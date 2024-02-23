@@ -1,0 +1,81 @@
+27/06/2013
+	- Published by Weegee
+2020
+	- CCCP fork started by 4zK! Notable changes:
+		- Faction data is now loaded automagically, goodbye compatibility files! (you can still use them for manual control though)
+		- some minor aesthetic and gameplay-related changes, most notably artificial gravity inside ships
+05/2020
+	- CCCP v0.1.0-pre2 version published
+	- fixed actor spawn bug
+	- added some fine spaceship modules gathered and conjured by MaximDude
+	- re-enabled compatibility with latest Map Pack by Gotcha
+	- created Dropbox link
+06/2020
+	- fixed bug in Lib_Storage involving black market listings when no artifacts are loaded
+	- changed item menu displays from MO spawning to bitmap primitives
+	- minor tweaks and fixes to black market listing system and artifact containers
+	- factions now pick the starter primary weapon properly
+09/2020
+	- added asteroid random encounter
+	- tweaked hostile drone encounter to be slightly less obnoxious
+	- fixed melee weapons (Ronin chainsaw) from being selected as starter primary
+	- fixed mining mission bug involving new "Tools - Diggers" group
+	- combat rank system is getting ready
+	- player gold increases AI skill slightly (temporary feature until I figure out better endgame mechanics)
+	- reworked AGS (artificial gravity system) - awaiting dynamics
+10/2020
+	- combat rank set to decrease only if difficulty is higher than normal
+	- fixed some flub involving enemy spawns
+12/2020
+	- preparing mod.io release (removing Dropbox link)
+03/2021
+	- fixed gold dig mission advancing enemy gold gathering each time a craft returns
+	- fixed actor storage and item shop dismissing item modules, causing mixups with items with the same name
+06/2021
+	- player controlled actor can now pick up items in zero g (cccp pre4+)
+07/2021
+	- you can now return to your vessel via craft, however there's no situation where this could happen, yet
+	- changes to combat XP distribution
+	- the CPU now hunts for actors in a more sophisticated fashion
+10/2021
+	- lost limbs will be replaced with prosthetics instead of getting reset upon entering/exiting vessel (fix your limbs by entering the clone vat)
+11/2021
+	- lost limbs will not be replaced automatically and will require you to find prosthetic limbs
+	- lost limbs will regenerate automatically upon entering a vat only if the difficulty setting is below medium
+	- removed rogue drone encounter for being obnoxious
+	- Reavers now work better
+	- "heal-others" brain skill is now the same as a medic drone
+12/2021
+	- fixed starter unit logic so that it tries to pick the cheapest humanoid actor instead of just assuming the first found actor as the starter
+	- fixed bug where items would be saved into storage via GetModuleAndPresetName(), creating duplicates
+02/2022
+	- prepping for 4th community project prerelease
+03/2022
+	- fixed bugs where the first item in an actor's inventory would disappear when spawning
+
+01/2023
+	- fixed stuff broken by the pie menu refactor
+06/2023
+	- fixed file loading shenanigans for pre-release 5
+	- gold carried by actors is now added to funds when exiting a location or entering a clone vat
+	- completing multiple missions in a row without saving will yield more combat xp
+	- space pirates will now have a chance to spare you if you can't afford to pay them
+07/2023
+	- use RandomWeight to (hopefully) disable items (and actors) from appearing as artifacts
+	- ally units are now uncontrollable which entices the player to protect them instead of just moving them away (which is technically still possible)
+	- added extra LZ panel fx for actors and items
+	- fixed bug where selected difficulty setting was never used properly
+	- AI skill settings for both player and cpu now get saved upon starting a game
+	- dead actors are no longer useless
+	- prosthetic limbs now get automatically applied to actors exiting the clone vat
+	- added rare "blueprint" item 
+08/2023
+	- added evacuation mission
+	- made turret upgrades cheaper
+	- increased max unit capacities on all ships
+	- fixed bugs with modded factions breaking due to missing "faction models"
+	- clone vat control panel is no longer removed during assaults, allowing you to deploy units but not store them
+	- fixed turrets being accounted for in ship's life support requirements
+	- fixed limb mixups caused by identical preset names
+	- fixed bugs related to heads coming off
+	- fixed error with completion streak appearing as zero

@@ -1,0 +1,31 @@
+if PresetMan:GetModuleID("Missions - Earth Music.rte") ~= -1 then
+	local n = #CF_Music[CF_MusicTypes.MISSION_CALM]
+	CF_Music[CF_MusicTypes.MISSION_CALM][n] = "Missions - Earth Music.rte/Ambientodelica (calm).ogg"
+	local n = #CF_Music[CF_MusicTypes.MISSION_CALM]
+	CF_Music[CF_MusicTypes.MISSION_CALM][n] = "Missions - Earth Music.rte/Next Day (calm).ogg"
+	local n = #CF_Music[CF_MusicTypes.MISSION_CALM]
+	CF_Music[CF_MusicTypes.MISSION_CALM][n] = "Missions - Earth Music.rte/Out Of Sight (calm).ogg"
+	local n = #CF_Music[CF_MusicTypes.MISSION_CALM]
+	CF_Music[CF_MusicTypes.MISSION_CALM][n] = "Missions - Earth Music.rte/Super Metroid (calm).ogg"
+	local n = #CF_Music[CF_MusicTypes.MISSION_CALM]
+	CF_Music[CF_MusicTypes.MISSION_CALM][n] = "Missions - Earth Music.rte/Technical Phobia (calm).ogg"
+	local n = #CF_Music[CF_MusicTypes.MISSION_CALM]
+	CF_Music[CF_MusicTypes.MISSION_CALM][n] = "Missions - Earth Music.rte/Tunnel (calm).ogg"
+	local n = #CF_Music[CF_MusicTypes.MISSION_CALM]
+	CF_Music[CF_MusicTypes.MISSION_CALM][n] = "Missions - Earth Music.rte/Winter (calm).ogg"
+
+	local n = #CF_Music[CF_MusicTypes.MISSION_INTENSE]
+	CF_Music[CF_MusicTypes.MISSION_INTENSE][n] = "Missions - Earth Music.rte/Abnormal Segment (agressive).ogg"
+	local n = #CF_Music[CF_MusicTypes.MISSION_INTENSE]
+	CF_Music[CF_MusicTypes.MISSION_INTENSE][n] = "Missions - Earth Music.rte/Ambientodelica (agressive).ogg"
+	local n = #CF_Music[CF_MusicTypes.MISSION_INTENSE]
+	CF_Music[CF_MusicTypes.MISSION_INTENSE][n] = "Missions - Earth Music.rte/Hopelessness (agressive).ogg"
+	local n = #CF_Music[CF_MusicTypes.MISSION_INTENSE]
+	CF_Music[CF_MusicTypes.MISSION_INTENSE][n] = "Missions - Earth Music.rte/Ikevan (agressive).ogg"
+	local n = #CF_Music[CF_MusicTypes.MISSION_INTENSE]
+	CF_Music[CF_MusicTypes.MISSION_INTENSE][n] = "Missions - Earth Music.rte/Next Day (agressive).ogg"
+	local n = #CF_Music[CF_MusicTypes.MISSION_INTENSE]
+	CF_Music[CF_MusicTypes.MISSION_INTENSE][n] = "Missions - Earth Music.rte/RTS (agressive).ogg"
+	local n = #CF_Music[CF_MusicTypes.MISSION_INTENSE]
+	CF_Music[CF_MusicTypes.MISSION_INTENSE][n] = "Missions - Earth Music.rte/Tunnel (agressive).ogg"
+end
