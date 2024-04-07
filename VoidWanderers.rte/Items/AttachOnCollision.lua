@@ -29,7 +29,7 @@ function OnCollideWithTerrain(self, terrainID)
 		local mo = MovableMan:GetMOFromID(
 			SceneMan:CastMORay(self.Pos, self.Vel.Normalized, self.ID, Activity.NOTEAM, rte.airID, true, 1)
 		)
-		if mo and IsAHuman(mo:GetRootParent()) and CF_AttemptReplaceLimb(self, ToAHuman(mo:GetRootParent())) then
+		if mo and IsAHuman(mo:GetRootParent()) and CF_AttemptReplaceLimb(ToAHuman(mo:GetRootParent()), self) then
 			self.attachSound:Play(self.Pos)
 			self.ToDelete = true
 		end
