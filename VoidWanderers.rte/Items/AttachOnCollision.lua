@@ -12,7 +12,7 @@ function OnCollideWithMO(self, mo, rootMO)
 		and self:GetNumberValue("Carriable") > 1
 		and mo
 		and IsAHuman(mo)
-		and CF_AttemptReplaceLimb(self, ToAHuman(mo))
+		and CF_AttemptReplaceLimb(ToAHuman(mo), self)
 	then
 		self.attachSound:Play(self.Pos)
 		self.ToDelete = true
