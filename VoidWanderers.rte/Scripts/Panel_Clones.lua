@@ -438,7 +438,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 												if itm ~= nil then
 													if
 														itm:HasScript(CF_ModuleName .. "/Items/Limb.lua")
-														and CF_AttemptReplaceLimb(itm, a)
+														and CF_AttemptReplaceLimb(a, itm)
 													then
 														DeleteEntity(itm)
 													else
