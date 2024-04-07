@@ -96,7 +96,7 @@ function VoidWanderers:StartActivity()
 				MovableMan:AddActor(brn)
 				self:SetPlayerBrain(brn, plr)
 				self:SwitchToActor(brn, plr, Activity.TEAM_1)
-				CameraMan:SetScrollTarget(brn.Pos, 0.04, false, self:ScreenOfPlayer(plr))
+				CameraMan:SetScrollTarget(brn.Pos, 0.04, self:ScreenOfPlayer(plr))
 
 				--brn.Team = -1;
 
