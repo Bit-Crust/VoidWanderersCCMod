@@ -210,8 +210,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				end
 
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed then
-						self.FirePressed = true
+					if not self.FirePressed[plr] then
+						self.FirePressed[plr] = true
 
 						if self.RandomEncounterID == nil then
 							if self.GS["Location"] == nil then
@@ -235,7 +235,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						end
 					end
 				else
-					self.FirePressed = false
+					self.FirePressed[plr] = false
 				end
 
 				self.ShipControlLocationListStart = self.ShipControlSelectedLocation
@@ -504,8 +504,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				end
 
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed then
-						self.FirePressed = true
+					if not self.FirePressed[plr] then
+						self.FirePressed[plr] = true
 
 						if self.RandomEncounterID == nil then
 							-- Travel to another planet
@@ -522,7 +522,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						end
 					end
 				else
-					self.FirePressed = false
+					self.FirePressed[plr] = false
 				end
 
 				self.ShipControlPlanetListStart = self.ShipControlSelectedPlanet
@@ -696,13 +696,13 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						end
 
 						if cont:IsState(Controller.WEAPON_FIRE) then
-							if not self.FirePressed then
-								self.FirePressed = true
+							if not self.FirePressed[plr] then
+								self.FirePressed[plr] = true
 
 								self.RandomEncounterChosenVariant = self.ShipControlSelectedEncounterVariant
 							end
 						else
-							self.FirePressed = false
+							self.FirePressed[plr] = false
 						end
 
 						CF_DrawString("U/D - Select, L/R - Mode, FIRE - Accept", pos + Vector(-62 - 71, 78), 270, 40)
@@ -839,8 +839,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				end
 
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed then
-						self.FirePressed = true
+					if not self.FirePressed[plr] then
+						self.FirePressed[plr] = true
 
 						-- Find planet where mission is
 						local planet =
@@ -886,7 +886,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						self.SetDestination = self.GS["Destination"]
 					end
 				else
-					self.FirePressed = false
+					self.FirePressed[plr] = false
 				end
 
 				self.ShipControlMissionListStart = self.ShipControlSelectedMission
@@ -1271,8 +1271,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					)
 
 					if cont:IsState(Controller.WEAPON_FIRE) then
-						if not self.FirePressed then
-							self.FirePressed = true
+						if not self.FirePressed[plr] then
+							self.FirePressed[plr] = true
 
 							if current < maximum and price <= sklpts then
 								self.GS[self.ShipControlSkillUpgrades[self.ShipControlSelectedSkillUpgrade]["Variable"]] = current
@@ -1282,7 +1282,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							end
 						end
 					else
-						self.FirePressed = false
+						self.FirePressed[plr] = false
 					end
 
 					-- Show list
@@ -1512,8 +1512,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				end
 
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed then
-						self.FirePressed = true
+					if not self.FirePressed[plr] then
+						self.FirePressed[plr] = true
 
 						if current < maximum and price <= CF_GetPlayerGold(self.GS, 0) then
 							self.GS[self.ShipControlUpgrades[self.ShipControlSelectedUpgrade]["Variable"]] = current
@@ -1527,7 +1527,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						end
 					end
 				else
-					self.FirePressed = false
+					self.FirePressed[plr] = false
 				end
 
 				CF_DrawString("Upgrade ship", pos + Vector(-62 - 71, -78), 270, 40)
@@ -1852,8 +1852,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				end
 
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed then
-						self.FirePressed = true
+					if not self.FirePressed[plr] then
+						self.FirePressed[plr] = true
 
 						local ok = true
 
@@ -1914,7 +1914,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						end
 					end
 				else
-					self.FirePressed = false
+					self.FirePressed[plr] = false
 				end
 
 				CF_DrawString("Buy new ship", pos + Vector(-62 - 71, -78), 270, 40)

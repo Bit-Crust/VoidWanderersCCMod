@@ -571,8 +571,8 @@ function VoidWanderers:ProcessLZControlPanelUI()
 				end
 
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed then
-						self.FirePressed = true
+					if not self.FirePressed[plr] then
+						self.FirePressed[plr] = true
 
 						if self.Bombs[self.BombsControlPanelSelectedItem] ~= nil then
 							if
@@ -621,7 +621,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 						end
 					end
 				else
-					self.FirePressed = false
+					self.FirePressed[plr] = false
 				end
 
 				self.BombControlPanelListStart = self.BombsControlPanelSelectedItem

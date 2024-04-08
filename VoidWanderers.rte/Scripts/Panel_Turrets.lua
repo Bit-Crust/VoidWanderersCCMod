@@ -157,8 +157,8 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 						end
 
 						if cont:IsState(Controller.WEAPON_FIRE) then
-							if not self.FirePressed then
-								self.FirePressed = true
+							if not self.FirePressed[plr] then
+								self.FirePressed[plr] = true
 
 								if self.SelectedTurret > 0 then
 									-- Remove current turret  if 'remove turret' was selected
@@ -219,7 +219,7 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 								end
 							end
 						else
-							self.FirePressed = false
+							self.FirePressed[plr] = false
 						end
 
 						self.TurretsControlCloneListStart = self.SelectedTurret
@@ -358,14 +358,14 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 						end
 
 						if cont:IsState(Controller.WEAPON_FIRE) then
-							if not self.FirePressed then
-								self.FirePressed = true
+							if not self.FirePressed[plr] then
+								self.FirePressed[plr] = true
 
 								self.TurretsControlPanelEditMode[turr] = true
 								self.TurretsControlPanelInitialized[turr] = false
 							end
 						else
-							self.FirePressed = false
+							self.FirePressed[plr] = false
 						end
 
 						-- Draw background

@@ -54,7 +54,8 @@ function VoidWanderers:StartActivity()
 	for plr = 0, self.PlayerCount - 1 do
 		FrameMan:ClearScreenText(plr)
 	end
-
+	
+	self.FirePressed = {}
 	--Make an invisible brain.
 	if self.PlayerCount == 1 then
 		self.brain = CreateActor("Fake Brain Case")

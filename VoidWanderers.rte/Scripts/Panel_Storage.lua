@@ -308,8 +308,8 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 
 			-- Dispense/sell/dump items
 			if cont:IsState(Controller.WEAPON_FIRE) then
-				if not self.FirePressed then
-					self.FirePressed = true
+				if not self.FirePressed[plr] then
+					self.FirePressed[plr] = true
 
 					if self.StorageSelectedItem > 0 then
 						local itm = self.StorageFilters[self.StorageControlMode][self.StorageSelectedItem]
@@ -374,7 +374,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 					end
 				end
 			else
-				self.FirePressed = false
+				self.FirePressed[plr] = false
 			end
 
 			-- Draw items list
