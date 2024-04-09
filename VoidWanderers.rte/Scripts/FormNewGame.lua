@@ -272,10 +272,6 @@ function VoidWanderers:RedrawFactionButton(el, state)
 			preset = "ButtonActorDeniedIdle"
 		elseif state == self.ButtonStates.MOUSE_OVER then
 			preset = "FactionBannerMouseOver"
-		elseif state == self.ButtonStates.PRESSED then
-			if (el.Selected ~= nil) then el.Selected = not el.Selected 
-			else el.Selected = true end 
-			preset = el.Selected and "ButtonActorDeniedIdle" or "FactionBannerMouseOver"
 		end
 
 		-- print(el.Selected)
@@ -471,8 +467,8 @@ function VoidWanderers:FormClick()
 				self.SelectedCPUFactions[removeInd] = 0
 				selectedActors[removeInd] = nil
 				self.FactionButtons[f].Selected = false
-				removeSoundContainer:Play()
 				if (self.Phase > removeInd) then self.Phase = removeInd end
+				removeSoundContainer:Play()
 				self:RedrawFactionButton(self.FactionButtons[f], self.ButtonStates.MOUSE_OVER)
 				-- print("Removed index " .. removeInd)
 				-- print(self.Phase .. " of " .. #self.Phases)
