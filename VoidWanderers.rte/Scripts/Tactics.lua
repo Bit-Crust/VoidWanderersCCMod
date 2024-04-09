@@ -1860,7 +1860,7 @@ function VoidWanderers:UpdateActivity()
 			end
 		end
 	end --]]--
-
+	
 	-- Generate artificial gravity inside the ship
 	if self.Ship then
 		-- God forbid you exit the ship when the engines are on
@@ -2393,12 +2393,20 @@ function VoidWanderers:UpdateActivity()
 			end
 		end
 	end
+	
+	local listacts = MovableMan.Actors
+	for act in listacts do
+		if act:GetNumberValue("VW_NamingFlag") == 1 then
+			CF_TypingActor = act
+			act:SetNumberValue("VW_NamingFlag", 0)
+		end
+	end
+	
 	if CF_TypingActor and MovableMan:IsActor(CF_TypingActor) then
 		local screen = self:ScreenOfPlayer(Activity.PLAYER_1)
 		CameraMan:SetScrollTarget(
 			CF_TypingActor.AboveHUDPos + CF_TypingActor.Vel * rte.PxTravelledPerFrame + Vector(1, 22),
 			1,
-			false,
 			screen
 		)
 		local controlledActor = self:GetControlledActor(Activity.PLAYER_1)
@@ -2438,7 +2446,6 @@ function VoidWanderers:UpdateActivity()
 		local nameString = #self.nameString ~= 0 and self.nameString[#self.nameString] or ""
 		FrameMan:SetScreenText("> NAME YOUR UNIT <\n" .. nameString, screen, 0, 1, true)
 	else
-		CF_TypingActor = nil
 		self.nameString = {}
 	end
 

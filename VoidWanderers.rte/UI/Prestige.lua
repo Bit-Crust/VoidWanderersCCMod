@@ -9,7 +9,7 @@ function VoidWanderersPrestige(pieActor, pieMenu, pieSlice)
 		pieActor:RemoveNumberValue("VW_Rank")
 		pieActor:SetNumberValue("VW_Prestige", pieActor:GetNumberValue("VW_Prestige") + 1)
 		pieActor:SetStringValue("VW_Name", "")
-		CF_TypingActor = pieActor
+		pieActor:SetNumberValue("VW_NamingFlag", 1)
 
 		pieMenu:RemovePieSlice(pieSlice)
 	end
