@@ -2394,13 +2394,13 @@ function VoidWanderers:UpdateActivity()
 		end
 	end
 	
-	local listacts = MovableMan.Actors
+	--[[local listacts = MovableMan.Actors
 	for act in listacts do
 		if act:GetNumberValue("VW_NamingFlag") == 1 then
 			CF_TypingActor = act
 			act:SetNumberValue("VW_NamingFlag", 0)
 		end
-	end
+	end]]--
 	
 	if CF_TypingActor and MovableMan:IsActor(CF_TypingActor) then
 		local screen = self:ScreenOfPlayer(Activity.PLAYER_1)
