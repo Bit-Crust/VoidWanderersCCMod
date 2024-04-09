@@ -269,12 +269,13 @@ function VoidWanderers:RedrawFactionButton(el, state)
 		if el["IsPlayer"] then
 			preset = "ButtonActorLockedIdle"
 		elseif el["Selected"] then 
-			preset = "Butto"
+			preset = "ButtonActorDeniedIdle"
 		elseif state == self.ButtonStates.MOUSE_OVER then
 			preset = "FactionBannerMouseOver"
 		elseif state == self.ButtonStates.PRESSED then
 			if (el.Selected ~= nil) then el.Selected = not el.Selected 
 			else el.Selected = true end 
+			preset = el.Selected and "ButtonActorDeniedIdle" or "FactionBannerMouseOver"
 		end
 
 		-- print(el.Selected)
@@ -408,7 +409,7 @@ function VoidWanderers:FormClick()
 			-- 	actor:SetControllerMode(Controller.CIM_DISABLED, -1)
 			-- end
 			-- self.Phase = self.Phase + 1
-		elseif self.Phase > 0 and self.Phase < (#self.Phases - 1) then
+		elseif self.Phase > 0 then
 			local ok = true
 
 			for i = 1, #self.Phases do
@@ -478,38 +479,42 @@ function VoidWanderers:FormClick()
 				-- print(#selectedActors)
 				-- print(#self.SelectedCPUFactions)
 			end
-		elseif self.Phase == (#self.Phases - 1) then
-			local ok = true
 
-			for i = 1, self.Phase do
-				if self.SelectedCPUFactions[i] == f then
-					ok = false
-				end
-			end
+		-- -- -- 
+		-- -- -- We don't need to worry about this anymore since we can remove factions now! -- -- --
+		-- -- -- 
+		-- elseif self.Phase == (#self.Phases - 1) then
+		-- 	local ok = true
 
-			if ok then
-				self.SelectedCPUFactions[self.Phase] = f
-				self.LblPhase["Text"] = "PRESS OK TO START NEW GAME"
+		-- 	for i = 1, self.Phase do
+		-- 		if self.SelectedCPUFactions[i] == f then
+		-- 			ok = false
+		-- 		end
+		-- 	end
 
-				local actor = CF_SpawnRandomInfantry(
-					-1,
-					self.SelectionButtons[self.Phase + 1]["Pos"],
-					self.FactionButtons[f]["FactionId"],
-					Actor.AIMODE_SENTRY
-				)
-				if actor == nil then
-					self.NoMOIDPlaceholders[self.Phase] = true
-				else
-					actor.HFlipped = false
-					actor:SetControllerMode(Controller.CIM_DISABLED, -1)
-				end
-				addSoundContainer:Play()
-				selectedActors[self.Phase] = actor
-				self:RedrawFactionButton(self.FactionButtons[f], self.ButtonStates.PRESS)
-				self.Phase = self.Phase + 1
-			else
-				FrameMan:SetScreenText("ALL CPU FACTIONS MUST BE DIFFERENT", 0, 0, 2000, true)
-			end
+		-- 	if ok then
+		-- 		self.SelectedCPUFactions[self.Phase] = f
+		-- 		self.LblPhase["Text"] = "PRESS OK TO START NEW GAME"
+
+		-- 		local actor = CF_SpawnRandomInfantry(
+		-- 			-1,
+		-- 			self.SelectionButtons[self.Phase + 1]["Pos"],
+		-- 			self.FactionButtons[f]["FactionId"],
+		-- 			Actor.AIMODE_SENTRY
+		-- 		)
+		-- 		if actor == nil then
+		-- 			self.NoMOIDPlaceholders[self.Phase] = true
+		-- 		else
+		-- 			actor.HFlipped = false
+		-- 			actor:SetControllerMode(Controller.CIM_DISABLED, -1)
+		-- 		end
+		-- 		addSoundContainer:Play()
+		-- 		selectedActors[self.Phase] = actor
+		-- 		self:RedrawFactionButton(self.FactionButtons[f], self.ButtonStates.PRESS)
+		-- 		self.Phase = self.Phase + 1
+		-- 	else
+		-- 		FrameMan:SetScreenText("ALL CPU FACTIONS MUST BE DIFFERENT", 0, 0, 2000, true)
+		-- 	end
 		end
 	end
 end
