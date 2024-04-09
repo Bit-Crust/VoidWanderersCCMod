@@ -151,7 +151,7 @@ function VoidWanderers:FormLoad()
 		end
 
 		self.FactionButtons[i]["Pos"] = Vector(
-			self.MidX - ((tilesperrow * 58) / 2) + (xtile * 58) - (58 / 2),
+			self.MidX - ((tilesperrow * tileW) / 2) + (xtile * tileW) - (tileW / 2),
 			self.MidY - (ytile * 70)
 		)
 
@@ -269,9 +269,9 @@ function VoidWanderers:RedrawFactionButton(el, state)
 		if el["IsPlayer"] then
 			preset = "ButtonActorLockedIdle"
 		elseif el["Selected"] then 
-			preset = "FactionBannerMouseOver"
+			preset = "Butto"
 		elseif state == self.ButtonStates.MOUSE_OVER then
-			preset = "FactionBannerPressed"
+			preset = "FactionBannerMouseOver"
 		elseif state == self.ButtonStates.PRESSED then
 			if (el.Selected ~= nil) then el.Selected = not el.Selected 
 			else el.Selected = true end 
