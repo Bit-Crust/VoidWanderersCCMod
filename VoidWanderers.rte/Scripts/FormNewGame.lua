@@ -267,7 +267,7 @@ function VoidWanderers:RedrawFactionButton(el, state)
 		local preset = "FactionBannerIdle"
 		
 		if el["IsPlayer"] then
-			preset = "ButtonActorDeniedIdle"
+			preset = "ButtonActorLockedIdle"
 		elseif el["Selected"] then 
 			preset = "FactionBannerMouseOver"
 		elseif state == self.ButtonStates.MOUSE_OVER then
