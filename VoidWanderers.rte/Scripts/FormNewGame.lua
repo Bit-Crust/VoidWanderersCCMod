@@ -66,26 +66,32 @@ function VoidWanderers:FormLoad()
 
 	el["OnClick"] = self.BtnOk_OnClick
 
-	-- add actors for traversing the scene vertically 
+	-- add actors for traversing the scene vertically
 	local max_off_center = 1
-	for i=1,max_off_center do 
-		local a = CreateActor("Basic Control Panel", "VoidWanderers.rte")
+	for i = 1, max_off_center do
+		local a = CreateActor("Fake Brain Case", "VoidWanderers.rte")
 		if a then
-			a.Team = CF_PlayerTeam
-			a.Pos = Vector(self.MidX - i, (self.MidY) - ((self.MidY*i)))
+			a.Team = Activity.PLAYER_1
+			a.HitsMOs = false
+			a.GetsHitByMOs = false
+			a.Scale = 0
+			a.Pos = Vector(self.MidX - i, (self.MidY) - ((self.MidY * i)) + 2)
 			a.Health = 1
 			MovableMan:AddActor(a)
 		end
-		local b = CreateActor("Basic Control Panel", "VoidWanderers.rte")
+		local b = CreateActor("Fake Brain Case", "VoidWanderers.rte")
 		if b then
-			b.Team = CF_PlayerTeam
-			b.Pos = Vector(self.MidX + i, (self.MidY) + (self.MidY*i))
+			b.Team = Activity.PLAYER_1
+			b.Pos = Vector(self.MidX + i, (self.MidY) + (self.MidY * i) - 2)
+			b.HitsMOs = false
+			b.GetsHitByMOs = false
+			b.Scale = 0
 			b.Health = 1
 			MovableMan:AddActor(b)
-			end
+		end
 		print("Adding off-center selectables")
 	end
-	-- 
+	--
 
 	self.UI[#self.UI + 1] = el
 	self.BtnOk = el
@@ -180,13 +186,13 @@ function VoidWanderers:FormLoad()
 			actor.IgnoresActorHits = true
 			actor.HFlipped = false
 			actor.SimUpdatesBetweenScriptedUpdates = 0
-			if (actor.Height > tileH) then 
+			if (actor.Height > tileH) then
 				actor.Scale = tileH / actor.Height
 			end
 		end
 	end
 
-		
+
 
 	self.NoMOIDPlaceholders = {}
 
@@ -212,7 +218,7 @@ function VoidWanderers:FormLoad()
 	local xtile = 1
 	local ytile = 0
 	local tilesperrow = self.FactionButtonsPerRow
-	
+
 
 	for i = 1, self.MaxCPUPlayersSelectable do
 		self.SelectionButtons[i] = {}
@@ -224,7 +230,7 @@ function VoidWanderers:FormLoad()
 		self:RedrawFactionButton(self.SelectionButtons[i], self.ButtonStates.IDLE)
 		xtile = xtile + 1
 
-		if (xtile > tilesperrow) then 
+		if (xtile > tilesperrow) then
 			xtile = 1
 			ytile = ytile + 1
 		end
@@ -238,7 +244,7 @@ function VoidWanderers:FormLoad()
 			el["Text"] = "PLAYER FACTION"
 		else
 			el["Pos"] = self.SelectionButtons[i]["Pos"] + Vector(0, -40)
-			el["Text"] = "FACT. " .. i 
+			el["Text"] = "FACT. " .. i
 		end
 		el["Width"] = tileW
 		el["Height"] = 100
@@ -251,6 +257,7 @@ function VoidWanderers:FormLoad()
 	-- print(tilesperrow)
 	-- print(self.FactionButtonsPerRow)
 end
+
 -----------------------------------------------------------------------------------------
 -- Redraw new campaign dialog mission plate
 -----------------------------------------------------------------------------------------
@@ -265,10 +272,10 @@ function VoidWanderers:RedrawFactionButton(el, state)
 		end
 
 		local preset = "FactionBannerIdle"
-		
+
 		if el["IsPlayer"] then
 			preset = "ButtonActorLockedIdle"
-		elseif el["Selected"] then 
+		elseif el["Selected"] then
 			preset = "ButtonActorDeniedIdle"
 		elseif state == self.ButtonStates.MOUSE_OVER then
 			preset = "FactionBannerMouseOver"
@@ -281,6 +288,7 @@ function VoidWanderers:RedrawFactionButton(el, state)
 		MovableMan:AddParticle(el["Particle"])
 	end
 end
+
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
@@ -289,6 +297,7 @@ function VoidWanderers:RedrawFactionButtons()
 		self:RedrawFactionButton(self.FactionButtons[i], self.ButtonStates.IDLE)
 	end
 end
+
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
@@ -305,11 +314,11 @@ function VoidWanderers:BtnOk_OnClick()
 	player = self.FactionButtons[self.SelectedPlayerFaction]["FactionId"]
 	local j = 0
 
-	for i = 1, self.MaxCPUPlayersSelectable do 
-		if (self.SelectedCPUFactions[i] == 0) then 
+	for i = 1, self.MaxCPUPlayersSelectable do
+		if (self.SelectedCPUFactions[i] == 0) then
 			table.remove(self.SelectedCPUFactions, i)
 			print("Removing team " .. i)
-			self.SelectedCPUFactions[self.MaxCPUPlayersSelectable] = 0	
+			self.SelectedCPUFactions[self.MaxCPUPlayersSelectable] = 0
 			i = i - 1
 		end
 	end
@@ -340,6 +349,7 @@ function VoidWanderers:BtnOk_OnClick()
 	--CF_LaunchMission(config["Scene"], "Tactics.lua")
 	self:LaunchScript(config["Scene"], "Tactics.lua")
 end
+
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
@@ -348,12 +358,14 @@ function VoidWanderers:GetFactionButtonUnderMouse(pos)
 		local elpos = self.FactionButtons[i]["Pos"]
 		local wx = self.FactionButtons[i]["Width"]
 		local wy = self.FactionButtons[i]["Height"]
-
+		-- print(pos.X .. " - " .. pos.Y)
+		-- print(elpos.X .. " - " .. elpos.Y)
+		-- print(wx .. " - " .. wy)
 		if
-			pos.X > elpos.X - (wx / 2)
-			and pos.X < elpos.X + (wx / 2)
-			and pos.Y > elpos.Y - (wy / 2)
-			and pos.Y < elpos.Y + (wy / 2)
+				pos.X > elpos.X - (wx / 2)
+				and pos.X < elpos.X + (wx / 2)
+				and pos.Y > elpos.Y - (wy / 2)
+				and pos.Y < elpos.Y + (wy / 2)
 		then
 			return i
 		end
@@ -361,6 +373,7 @@ function VoidWanderers:GetFactionButtonUnderMouse(pos)
 
 	return nil
 end
+
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
@@ -373,7 +386,7 @@ local selectedActors = {}
 local freeSpots = {}
 function VoidWanderers:FormClick()
 	local f = self:GetFactionButtonUnderMouse(self.Mouse)
-
+	-- print(f)
 	if f ~= nil then
 		if self.Phase == 0 then
 			self.SelectedPlayerFaction = f
@@ -388,6 +401,7 @@ function VoidWanderers:FormClick()
 			selectedActors[self.Phase] = actor
 			self.Phase = self.Phase + 1
 			addSoundContainer:Play()
+			self:RedrawFactionButton(self.FactionButtons[f], self.ButtonStates.PRESS)
 
 			-- self.SelectedCPUFactions[self.Phase] = f
 			-- self.LblPhase["Text"] = "SELECT CPU " .. self.Phase .. " FACTION"
@@ -414,9 +428,13 @@ function VoidWanderers:FormClick()
 				end
 			end
 
+			if self.SelectedPlayerFaction == f then
+				ok = false
+			end
+
 			if ok then
 				-- print(self.Phase)
-				while (self.SelectedCPUFactions[self.Phase] ~= 0) do 
+				while (self.SelectedCPUFactions[self.Phase] ~= 0) do
 					self.Phase = self.Phase + 1
 					-- print("adding to phase")
 				end
@@ -435,7 +453,7 @@ function VoidWanderers:FormClick()
 					Actor.AIMODE_SENTRY
 				)
 
-				
+
 				if actor == nil then
 					self.NoMOIDPlaceholders[self.Phase] = true
 				else
@@ -448,72 +466,83 @@ function VoidWanderers:FormClick()
 				self:RedrawFactionButton(self.FactionButtons[f], self.ButtonStates.PRESS)
 				self.Phase = self.Phase + 1
 			else
-				-- print(self.Phase .. " of " .. #self.Phases)
-				-- print(#selectedActors)
-				-- print(#self.SelectedCPUFactions)
-				
 				local removeInd = 0
-				for i=1, #self.SelectedCPUFactions do
-					if (f == self.SelectedCPUFactions[i]) then
-						removeInd = i
-						break
+				local isPlayerFaction = f == self.SelectedPlayerFaction
+
+				if isPlayerFaction then
+					self.SelectedPlayerFaction = 0
+				else
+					for i = 1, #self.SelectedCPUFactions do
+						if (f == self.SelectedCPUFactions[i]) then
+							removeInd = i
+							break
+						end
 					end
 				end
 				-- print("Removing index " .. removeInd)
-				
-				local actor = selectedActors[removeInd]	
+
+				local actor = selectedActors[removeInd]
 				if actor ~= nil then actor.ToDelete = true end
-				
-				self.SelectedCPUFactions[removeInd] = 0
+
+				if isPlayerFaction then
+					self.FactionButtons[f].IsPlayer = false
+					self.Phase = 0
+				else
+					self.SelectedCPUFactions[removeInd] = 0
+				end
 				selectedActors[removeInd] = nil
 				self.FactionButtons[f].Selected = false
+				-- print(removeInd)
+				-- print(self.Phase)
 				if (self.Phase > removeInd) then self.Phase = removeInd end
+				-- print(self.Phase)
 				removeSoundContainer:Play()
-				self:RedrawFactionButton(self.FactionButtons[f], self.ButtonStates.MOUSE_OVER)
+				self:RedrawFactionButton(self.FactionButtons[f], self.ButtonStates.PRESS)
 				-- print("Removed index " .. removeInd)
 				-- print(self.Phase .. " of " .. #self.Phases)
 				-- print(#selectedActors)
 				-- print(#self.SelectedCPUFactions)
 			end
 
-		-- -- -- 
-		-- -- -- We don't need to worry about this anymore since we can remove factions now! -- -- --
-		-- -- -- 
-		-- elseif self.Phase == (#self.Phases - 1) then
-		-- 	local ok = true
+			-- -- --
+			-- -- -- We don't need to worry about this anymore since we can remove factions now! -- -- --
+			-- -- --
+			-- elseif self.Phase == (#self.Phases - 1) then
+			-- 	local ok = true
 
-		-- 	for i = 1, self.Phase do
-		-- 		if self.SelectedCPUFactions[i] == f then
-		-- 			ok = false
-		-- 		end
-		-- 	end
+			-- 	for i = 1, self.Phase do
+			-- 		if self.SelectedCPUFactions[i] == f then
+			-- 			ok = false
+			-- 		end
+			-- 	end
 
-		-- 	if ok then
-		-- 		self.SelectedCPUFactions[self.Phase] = f
-		-- 		self.LblPhase["Text"] = "PRESS OK TO START NEW GAME"
+			-- 	if ok then
+			-- 		self.SelectedCPUFactions[self.Phase] = f
+			-- 		self.LblPhase["Text"] = "PRESS OK TO START NEW GAME"
 
-		-- 		local actor = CF_SpawnRandomInfantry(
-		-- 			-1,
-		-- 			self.SelectionButtons[self.Phase + 1]["Pos"],
-		-- 			self.FactionButtons[f]["FactionId"],
-		-- 			Actor.AIMODE_SENTRY
-		-- 		)
-		-- 		if actor == nil then
-		-- 			self.NoMOIDPlaceholders[self.Phase] = true
-		-- 		else
-		-- 			actor.HFlipped = false
-		-- 			actor:SetControllerMode(Controller.CIM_DISABLED, -1)
-		-- 		end
-		-- 		addSoundContainer:Play()
-		-- 		selectedActors[self.Phase] = actor
-		-- 		self:RedrawFactionButton(self.FactionButtons[f], self.ButtonStates.PRESS)
-		-- 		self.Phase = self.Phase + 1
-		-- 	else
-		-- 		FrameMan:SetScreenText("ALL CPU FACTIONS MUST BE DIFFERENT", 0, 0, 2000, true)
-		-- 	end
+			-- 		local actor = CF_SpawnRandomInfantry(
+			-- 			-1,
+			-- 			self.SelectionButtons[self.Phase + 1]["Pos"],
+			-- 			self.FactionButtons[f]["FactionId"],
+			-- 			Actor.AIMODE_SENTRY
+			-- 		)
+			-- 		if actor == nil then
+			-- 			self.NoMOIDPlaceholders[self.Phase] = true
+			-- 		else
+			-- 			actor.HFlipped = false
+			-- 			actor:SetControllerMode(Controller.CIM_DISABLED, -1)
+			-- 		end
+			-- 		addSoundContainer:Play()
+			-- 		selectedActors[self.Phase] = actor
+			-- 		self:RedrawFactionButton(self.FactionButtons[f], self.ButtonStates.PRESS)
+			-- 		self.Phase = self.Phase + 1
+			-- 	else
+			-- 		FrameMan:SetScreenText("ALL CPU FACTIONS MUST BE DIFFERENT", 0, 0, 2000, true)
+			-- 	end
 		end
 	end
 end
+
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
@@ -552,10 +581,12 @@ function VoidWanderers:FormUpdate()
 		end
 	end
 end
+
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:FormDraw() end
+
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
@@ -587,6 +618,7 @@ function VoidWanderers:FormClose()
 	self.FactionButtons = {}
 	self.SelectionButtons = {}
 end
+
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------

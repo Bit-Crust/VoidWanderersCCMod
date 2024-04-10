@@ -66,6 +66,9 @@ function VoidWanderers:StartActivity()
 		MovableMan:AddActor(self.brain)
 		self:SetPlayerBrain(self.brain, Activity.TEAM_1)
 		self:SwitchToActor(self.brain, Activity.PLAYER_1, Activity.TEAM_1)
+		self.CurCursorMO = self.brain
+		self.LastCursorMO = self.brain
+		self.MidOffset = Vector(0,0)
 	else
 		local brainpos = {}
 
@@ -97,7 +100,7 @@ function VoidWanderers:StartActivity()
 				self:SetPlayerBrain(brn, plr)
 				self:SwitchToActor(brn, plr, Activity.TEAM_1)
 				CameraMan:SetScrollTarget(brn.Pos, 0.04, self:ScreenOfPlayer(plr))
-
+				
 				--brn.Team = -1;
 
 				if self.brain == nil then
@@ -368,6 +371,8 @@ end
 -----------------------------------------------------------------------------------------
 -- Update Activity
 -----------------------------------------------------------------------------------------
+
+
 function VoidWanderers:UpdateActivity()
 	-- Just check for intialization flags in update loop to avoid unnecessary function calls during all the mission
 	if self.IsInitialized == nil then
@@ -402,9 +407,10 @@ function VoidWanderers:UpdateActivity()
 		self:RestoreAI()
 	end
 
+	local cont = self.PlayerCount == 1 and self.CurCursorMO:GetController() or self.brain:GetController()
 	--Read standard input, ugly but at least it will be operational if mouse fail for
 	-- whatever reason
-	local cont = self.brain:GetController()
+	
 
 	if CF_EnableKeyboardControls then
 		if cont:IsState(Controller.MOVE_LEFT) then
@@ -439,22 +445,47 @@ function VoidWanderers:UpdateActivity()
 	--		print (i)
 	--	end
 	--end
+	-- changePos if self.brain is not 
 
 	-- Don't let the cursor leave the screen
-	if self.Mouse.X - self.Mid.X < -self.ResX2 then
-		self.Mouse.X = self.Mid.X - self.ResX2
+
+	
+	if self.PlayerCount == 1 and self.CurCursorMO.ID ~= self.LastCursorMO.ID then
+		self.LastCursorMO = self.CurCursorMO
+		self:SetPlayerBrain(self.CurCursorMO, Activity.PLAYER_1)
+		
+		-- print("MID: " .. self.Mid.X .. ", " .. self.Mid.Y)
+		self.MidOffset = (self.CurCursorMO.Pos - self.Mid) / 2
+		-- print("MID: " .. self.Mid.X .. ", " .. self.Mid.Y)
 	end
 
-	if self.Mouse.Y - self.Mid.Y < -self.ResY2 then
-		self.Mouse.Y = self.Mid.Y - self.ResY2
+	-- print("OFFSET: " .. self.MidOffset.X .. ", " .. self.MidOffset.Y )
+	-- print("MID: " .. self.Mid.X .. ", " .. self.Mid.Y)
+	-- print("MOUSE: " .. self.Mouse.X .. ", " .. self.Mouse.Y)
+
+	self.CurCursorMO = self:GetControlledActor(Activity.PLAYER_1)
+
+	-- local CUR_MPOS = self.Mouse ?idOff
+	local LEFT_BOUND = self.Mid.X + -self.ResX2 + self.MidOffset.X
+	local RIGHT_BOUND = self.Mid.X + self.ResX2 + self.MidOffset.X - 10
+	local TOP_BOUND = self.Mid.Y + -self.ResY2 + self.MidOffset.Y
+	local BOTTOM_BOUND = self.Mid.Y + self.ResY2 + self.MidOffset.Y - 10
+	-- print("BOUNDS: \n\tl: " .. LEFT_BOUND .. "\n\tr: " .. RIGHT_BOUND .. "\n\tu: " .. TOP_BOUND .. "\n\td: " .. BOTTOM_BOUND)
+
+	if self.Mouse.X < LEFT_BOUND then
+		self.Mouse.X = LEFT_BOUND
 	end
 
-	if self.Mouse.X - self.Mid.X > self.ResX2 - 10 then
-		self.Mouse.X = self.Mid.X + self.ResX2 - 10
+	if self.Mouse.Y < TOP_BOUND then
+		self.Mouse.Y = TOP_BOUND
 	end
 
-	if self.Mouse.Y - self.Mid.Y > self.ResY2 - 10 then
-		self.Mouse.Y = self.Mid.Y + self.ResY2 - 10
+	if self.Mouse.X > RIGHT_BOUND  then
+		self.Mouse.X = RIGHT_BOUND
+	end
+
+	if self.Mouse.Y > BOTTOM_BOUND  then
+		self.Mouse.Y = BOTTOM_BOUND
 	end
 
 	self:DrawMouseCursor()
