@@ -75,6 +75,8 @@ function VoidWanderers:InitShipControlPanelUI()
 	self.ShipControlSelectedSkillUpgrade = 1
 	self.ShipControlSelectedFaction = 1
 	self.ShipControlSelectedShip = 1
+	
+	self.ShipControlReputationPage = 1
 
 	self.ShipControlSelectedEncounterVariant = 1
 	self.ShipControlForceVariantTime = 17000
@@ -992,7 +994,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 			if self.ShipControlMode == self.ShipControlPanelModes.REPUTATION then
 				-- Create upgrades list
 				local cpus = tonumber(self.GS["ActiveCPUs"])
-
+				local maxPerPage = 9
 				self.ShipControlFactions = {}
 				for i = 1, cpus do
 					self.ShipControlFactions[i] = {}
@@ -1016,29 +1018,35 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					self.HoldTimer:Reset()
 					up = true
 				end
-
+				
 				if cont:IsState(Controller.PRESS_DOWN) then
 					self.HoldTimer:Reset()
 					down = true
 				end
-
+				
 				if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
 					self.HoldTimer:Reset()
-
+					
 					if cont:IsState(Controller.HOLD_UP) then
 						up = true
 					end
-
+					
 					if cont:IsState(Controller.HOLD_DOWN) then
 						down = true
 					end
 				end
 
+				local maxPage = math.max(1, math.floor(#self.ShipControlFactions / maxPerPage))
+				-- print("maxPage: " .. maxPage)
 				if up then
 					-- Select faction
 					self.ShipControlSelectedFaction = self.ShipControlSelectedFaction - 1
 					if self.ShipControlSelectedFaction < 1 then
 						self.ShipControlSelectedFaction = #self.ShipControlFactions
+					end
+
+					if self.ShipControlReputationPage > 1 then
+						self.ShipControlReputationPage = self.ShipControlReputationPage - 1
 					end
 				end
 
@@ -1048,21 +1056,29 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					if self.ShipControlSelectedFaction > #self.ShipControlFactions then
 						self.ShipControlSelectedFaction = 1
 					end
+
+					if self.ShipControlReputationPage < maxPage then
+						self.ShipControlReputationPage = self.ShipControlReputationPage + 1
+					end
+
 				end
 
 				-- Show faction list
-				for i = 1, #self.ShipControlFactions do
-					CF_DrawString(self.ShipControlFactions[i]["Faction"], pos + Vector(-62 - 71, -76 + i * 15), 80, 10)
+				local curInd = maxPerPage * self.ShipControlReputationPage
+				-- print("self.ShipControlReputationPage: " .. self.ShipControlReputationPage)
+				-- print("math.min(maxPerPage * self.ShipControlReputationPage, #self.ShipControlFactions): " .. math.min(maxPerPage * self.ShipControlReputationPage, #self.ShipControlFactions))
+				for i = 1, math.min(9, #self.ShipControlFactions - curInd) do
+					CF_DrawString(self.ShipControlFactions[curInd+i]["Faction"], pos + Vector(-62 - 71, -76 + i * 15), 80, 10)
 					CF_DrawString(
-						self.ShipControlFactions[i]["ReputationStr"],
-						pos + Vector(-62 - 71 + 80, -76 + i * 15),
+						self.ShipControlFactions[curInd+i]["ReputationStr"],
+						pos + Vector(-62 - 71 + 150, -76 + i * 15),
 						130,
 						10
 					)
 
-					if self.ShipControlFactions[i]["Reputation"] < CF_ReputationHuntThreshold then
+					if self.ShipControlFactions[curInd+i]["Reputation"] < CF_ReputationHuntThreshold then
 						local diff = math.floor(
-							math.abs(self.ShipControlFactions[i]["Reputation"] / CF_ReputationPerDifficulty)
+							math.abs(self.ShipControlFactions[curInd+i]["Reputation"] / CF_ReputationPerDifficulty)
 						)
 
 						if diff <= 0 then
@@ -1080,8 +1096,9 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					end
 				end
 
-				CF_DrawString("Reputation intelligence report", pos + Vector(-62 - 71, -78), 270, 40)
-				CF_DrawString("L/R - Mode", pos + Vector(-62 - 71, 78), 270, 40)
+				local titleString = "Reputation intelligence report - PAGE "  .. self.ShipControlReputationPage .. " OF " .. maxPage
+				CF_DrawString(titleString, pos + Vector(-62 - 71, -78), 270, 40)
+				CF_DrawString("U/D - Next/Prev Page, L/R - Mode", pos + Vector(-62 - 71, 78), 270, 40)
 				self:PutGlow("ControlPanel_Ship_Report", pos)
 				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, -77))
 				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, 78))
