@@ -238,8 +238,8 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 
 			-- Dispense/sell/dump items
 			if cont:IsState(Controller.WEAPON_FIRE) then
-				if not self.FirePressed then
-					self.FirePressed = true
+				if not self.FirePressed[plr] then
+					self.FirePressed[plr] = true
 
 					if self.ItemShopSelectedItem > 0 then
 						local itm = self.ItemShopFilters[self.ItemShopControlMode][self.ItemShopSelectedItem]
@@ -298,7 +298,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 					end
 				end
 			else
-				self.FirePressed = false
+				self.FirePressed[plr] = false
 			end
 			-- Draw items list
 			for i = self.ItemShopControlItemsListStart, self.ItemShopControlItemsListStart + self.ItemShopControlPanelItemsPerPage - 1 do

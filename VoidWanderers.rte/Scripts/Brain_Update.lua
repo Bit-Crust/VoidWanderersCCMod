@@ -787,6 +787,7 @@ function do_rpgbrain_pda(self)
 	end
 
 	local cont = self.ThisActor:GetController()
+	local plr = cont.GetPlayer()
 	local up = false
 	local down = false
 
@@ -891,21 +892,21 @@ function do_rpgbrain_pda(self)
 	if cont:IsState(Controller.WEAPON_FIRE) then
 		cont:SetState(Controller.WEAPON_FIRE, false)
 
-		if not self.FirePressed then
-			self.FirePressed = true
+		if not self.FirePressed[plr] then
+			self.FirePressed[plr] = true
 
 			-- Execute skill function
 			if self.ActiveMenu[self.SelectedMenuItem]["Function"] ~= nil then
 				self.ActiveMenu[self.SelectedMenuItem]["Function"](self)
 			end
 
-			if self.ActiveMenu[self.SelectedMenuItem]["SubMenu"] ~= nill then
+			if self.ActiveMenu[self.SelectedMenuItem]["SubMenu"] ~= nil then
 				self.ActiveMenu = self.ActiveMenu[self.SelectedMenuItem]["SubMenu"]
 				self.SelectedMenuItem = 1
 			end
 		end
 	else
-		self.FirePressed = false
+		self.FirePressed[plr] = false
 	end
 end
 --[[

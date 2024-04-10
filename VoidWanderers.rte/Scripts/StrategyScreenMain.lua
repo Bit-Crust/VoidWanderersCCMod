@@ -31,7 +31,7 @@ function VoidWanderers:StartActivity()
 
 	---- -- -- self.ModuleName = "VoidWanderers.rte";
 
-	self.MidX = SceneMan.Scene.Width / 2
+	self.MidX = SceneMan.Scene.Width / 4
 	self.MidY = SceneMan.Scene.Height / 2
 	self.Mid = Vector(self.MidX, self.MidY)
 
@@ -54,7 +54,8 @@ function VoidWanderers:StartActivity()
 	for plr = 0, self.PlayerCount - 1 do
 		FrameMan:ClearScreenText(plr)
 	end
-
+	
+	self.FirePressed = {}
 	--Make an invisible brain.
 	if self.PlayerCount == 1 then
 		self.brain = CreateActor("Fake Brain Case")
@@ -71,22 +72,15 @@ function VoidWanderers:StartActivity()
 
 		local offset = 0.5
 
-		if self.PlayerCount == 2 then
-			brainpos[0] = self.Mid + Vector(0, -self.ResY2 / 2)
-			brainpos[1] = self.Mid + Vector(0, self.ResY2 / 2)
-		elseif self.PlayerCount == 3 or self.PlayerCount == 4 then
-			brainpos[0] = self.Mid + Vector(-self.ResX2 / 2 + offset, -self.ResY2 / 2 + offset)
-			brainpos[1] = self.Mid + Vector(self.ResX2 / 2 - offset, -self.ResY2 / 2 + offset)
+		brainpos[0] = self.Mid + Vector(0, 0)
+		brainpos[1] = self.Mid + Vector(self.ResX, -self.ResY2)
+		brainpos[2] = self.Mid + Vector(self.ResX, 0)
+		brainpos[3] = self.Mid + Vector(self.ResX, self.ResY2)
+		self.ObserverPos = brainpos[3]
 
-			brainpos[2] = self.Mid + Vector(-self.ResX2 / 2 + offset, self.ResY2 / 2 - offset)
-			brainpos[3] = self.Mid + Vector(self.ResX2 / 2 - offset, self.ResY2 / 2 - offset)
-
-			self.ObserverPos = brainpos[3]
-		end
-
-		for plr = 0, self.PlayerCount - 1 do
+		for plr = 0, 3 do
 			local brn
-			if self:PlayerHuman(plr) then
+			if self:PlayerActive(plr) and self:PlayerHuman(plr) then
 				brn = CreateActor("Fake Brain Case")
 				brn.Scale = 0
 				brn.Team = Activity.TEAM_1
@@ -393,7 +387,7 @@ function VoidWanderers:UpdateActivity()
 
 	-- Set the screen of disabled 4-th player when we're playing in 3-player mode
 	if self.ObserverPos and self:PlayerHuman(Activity.PLAYER_4) then
-		CameraMan:SetScrollTarget(self.ObserverPos, 0.04, false, self:ScreenOfPlayer(Activity.PLAYER_4))
+		CameraMan:SetScrollTarget(self.ObserverPos, 0.04, self:ScreenOfPlayer(Activity.PLAYER_4))
 	end
 
 	self:ClearObjectivePoints()

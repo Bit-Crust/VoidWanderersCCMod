@@ -349,7 +349,7 @@ function VoidWanderers:UpdateActivity()
 
 	-- Set the screen of disabled 4-th player when we're playing in 3-player mode
 	if self.ObserverPos ~= nil and self:PlayerHuman(Activity.PLAYER_4) then
-		CameraMan:SetScrollTarget(self.ObserverPos, 0.04, false, self:ScreenOfPlayer(Activity.PLAYER_4))
+		CameraMan:SetScrollTarget(self.ObserverPos, 0.04, self:ScreenOfPlayer(Activity.PLAYER_4))
 	end
 
 	--Read standard input, ugly but at least it will be operational if mouse fail for whatever reason
