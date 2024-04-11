@@ -8,7 +8,7 @@ function VoidWanderers:StartActivity()
 	LAUNCH_MISSION_PACK = nil
 	STATE_CONFIG_FILE = "current.dat"
 
-	self.Zone = SceneMan.Scene:GetArea("VoidWanderersAntiBugZone")
+	self.Zone = SceneMan.Scene:GetArea("VoidWanderersAntiBugZone") 
 
 	LIB_PATH = self.ModuleName .. "/Scripts/"
 	BASE_PATH = self.ModuleName .. "/Scripts/"

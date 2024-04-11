@@ -1036,7 +1036,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					end
 				end
 
-				local maxPage = math.max(1, math.floor(#self.ShipControlFactions / maxPerPage))
+				local maxPage = math.max(1, math.ceil(#self.ShipControlFactions / maxPerPage))
 				-- print("maxPage: " .. maxPage)
 				if up then
 					-- Select faction
@@ -1064,14 +1064,14 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				end
 
 				-- Show faction list
-				local curInd = maxPerPage * self.ShipControlReputationPage
-				-- print("self.ShipControlReputationPage: " .. self.ShipControlReputationPage)
-				-- print("math.min(maxPerPage * self.ShipControlReputationPage, #self.ShipControlFactions): " .. math.min(maxPerPage * self.ShipControlReputationPage, #self.ShipControlFactions))
+				local curInd = maxPerPage * (self.ShipControlReputationPage - 1)
 				for i = 1, math.min(9, #self.ShipControlFactions - curInd) do
-					CF_DrawString(self.ShipControlFactions[curInd+i]["Faction"], pos + Vector(-62 - 71, -76 + i * 15), 80, 10)
+					local str = self.ShipControlFactions[curInd+i]["Faction"]
+					if (self.ShipControlFactions[curInd+i]["Faction"] == self.PlayerFaction) then str = str .. " ( YOU )" end
+					CF_DrawString(str, pos + Vector(-62 - 71, -76 + i * 15), 180, 10)
 					CF_DrawString(
 						self.ShipControlFactions[curInd+i]["ReputationStr"],
-						pos + Vector(-62 - 71 + 150, -76 + i * 15),
+						pos + Vector(-62 - 71 + 200, -76 + i * 15),
 						130,
 						10
 					)

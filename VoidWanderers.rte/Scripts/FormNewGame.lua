@@ -179,13 +179,15 @@ function VoidWanderers:FormLoad()
 		)
 		if actor ~= nil then
 			actor:EnableOrDisableAllScripts(false)
-			actor:RestDetection()
 			actor:SetControllerMode(Controller.CIM_DISABLED, -1)
 			actor.ToSettle = true
 			actor.IgnoreTerrain = true
 			actor.IgnoresActorHits = true
 			actor.HFlipped = false
 			actor.SimUpdatesBetweenScriptedUpdates = 0
+			actor.HitsMOs = false
+			actor.GetsHitByMOs = false
+			actor:ClearForces()
 			if (actor.Height > tileH) then
 				actor.Scale = tileH / actor.Height
 			end
@@ -323,11 +325,13 @@ function VoidWanderers:BtnOk_OnClick()
 		end
 	end
 
+	cpu[1] = player
+
 	for i = 1, self.MaxCPUPlayersSelectable do
 		if self.SelectedCPUFactions[i] ~= 0 then
-			cpu[i] = self.FactionButtons[self.SelectedCPUFactions[i]]["FactionId"]
+			cpu[i+1] = self.FactionButtons[self.SelectedCPUFactions[i]]["FactionId"]
 		else
-			cpu[i] = nil
+			cpu[i+1] = nil
 		end
 	end
 
@@ -397,6 +401,10 @@ function VoidWanderers:FormClick()
 				self.FactionButtons[f]["FactionId"],
 				Actor.AIMODE_SENTRY
 			)
+			
+			actor.HitsMOs = false
+			actor.GetsHitByMOs = false
+			actor.IgnoresTerrain = true
 			self.FactionButtons[f].IsPlayer = true
 			selectedActors[self.Phase] = actor
 			self.Phase = self.Phase + 1
@@ -452,14 +460,17 @@ function VoidWanderers:FormClick()
 					self.FactionButtons[f]["FactionId"],
 					Actor.AIMODE_SENTRY
 				)
-
-
+		
+				
 				if actor == nil then
 					self.NoMOIDPlaceholders[self.Phase] = true
 				else
 					actor.HFlipped = false
 					actor:SetControllerMode(Controller.CIM_DISABLED, -1)
 				end
+				actor.HitsMOs = false
+				actor.GetsHitByMOs = false
+				actor.IgnoresTerrain = true
 				selectedActors[self.Phase] = actor
 				self.FactionButtons[f].Selected = true
 				addSoundContainer:Play()

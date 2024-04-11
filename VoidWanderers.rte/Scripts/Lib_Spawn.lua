@@ -938,7 +938,7 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-function CF_GenerateRandomMission(c)
+function CF_GenerateRandomMission(c, ally_faction_override, enemy_faction_override)
 	local cpus = tonumber(c["ActiveCPUs"])
 	local mission = {}
 
@@ -964,7 +964,10 @@ function CF_GenerateRandomMission(c)
 		end
 	end
 
-	local p = #selp > 0 and selp[math.random(#selp)] or math.random(cpus)
+	local p = ally_faction_override
+	if (p == nil) then 
+		p = #selp > 0 and selp[math.random(#selp)] or math.random(cpus)
+	end
 
 	-- Make list of available missions
 	local rep = tonumber(c["Player" .. p .. "Reputation"])
@@ -1030,25 +1033,28 @@ function CF_GenerateRandomMission(c)
 
 	-- Pick some random target for this mission
 	local ok = false
-	local renm
+	local renm = enemy_faction_override
 	local count = 1
 
-	while not ok do
-		ok = true
+	if (renm == nil or renm == p) then 
 
-		renm = math.random(cpus)
+		while not ok do
+			ok = true
 
-		if p == renm then
-			ok = false
+			renm = math.random(cpus)
+
+			if p == renm then
+				ok = false
+			end
+
+			count = count + 1
+			if count > 100 then
+				error("Endless loop at CF_GenerateRandomMission - enemy selection")
+				break
+			end
 		end
 
-		count = count + 1
-		if count > 100 then
-			error("Endless loop at CF_GenerateRandomMission - enemy selection")
-			break
-		end
 	end
-
 	-- Return mission
 	mission["SourcePlayer"] = p
 	mission["TargetPlayer"] = renm
@@ -1062,8 +1068,9 @@ end
 --
 -----------------------------------------------------------------------------
 function CF_GenerateRandomMissions(c)
-	local missions = {}
 
+	local missions = {}
+	local maxMissions = math.min(CF_MaxMissions, math.floor(tonumber(self.GS["ActiveCPUs"]) / 4))
 	for i = 1, CF_MaxMissions do
 		local ok = false
 		local msn
