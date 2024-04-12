@@ -1070,8 +1070,8 @@ end
 function CF_GenerateRandomMissions(c)
 
 	local missions = {}
-	local maxMissions = math.min(CF_MaxMissions, math.floor(tonumber(self.GS["ActiveCPUs"]) / 4))
-	for i = 1, CF_MaxMissions do
+	local maxMissions = math.max(CF_MaxMissions, math.floor(tonumber(c["ActiveCPUs"]) / 4))
+	for i = 1, maxMissions do
 		local ok = false
 		local msn
 		local count = 1
