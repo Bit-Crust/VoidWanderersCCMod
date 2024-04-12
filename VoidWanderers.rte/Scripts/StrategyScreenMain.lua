@@ -57,6 +57,7 @@ function VoidWanderers:StartActivity()
 	
 	self.FirePressed = {}
 	--Make an invisible brain.
+	self.MidOffset = Vector(0,0)
 	if self.PlayerCount == 1 then
 		self.brain = CreateActor("Fake Brain Case")
 		self.brain.Scale = 0
@@ -69,7 +70,6 @@ function VoidWanderers:StartActivity()
 		self:SwitchToActor(self.brain, Activity.PLAYER_1, Activity.TEAM_1)
 		self.CurCursorMO = self.brain
 		self.LastCursorMO = self.brain
-		self.MidOffset = Vector(0,0)
 	else
 		local brainpos = {}
 

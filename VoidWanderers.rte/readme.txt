@@ -4,6 +4,4 @@ PLEASE NOTE:
 
 KNOWN BUGS:
 
-	- the brain robot's quantum splitter skill causes the game to crash, please refrain from using it for the time being until it gets fixed
-
-	- grenade bandoliers don't always transfer properly in scene transitions
+	- see Github issues

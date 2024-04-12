@@ -79,3 +79,6 @@
 	- fixed limb mixups caused by identical preset names
 	- fixed bugs related to heads coming off
 	- fixed error with completion streak appearing as zero
+
+04/2024
+	- moved to VoidWanderersCCMod Github repository, changelog no longer seriously maintained
