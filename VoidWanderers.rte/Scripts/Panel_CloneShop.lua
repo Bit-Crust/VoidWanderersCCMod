@@ -185,8 +185,8 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 
 			-- Dispense/sell/dump items
 			if cont:IsState(Controller.WEAPON_FIRE) then
-				if not self.FirePressed then
-					self.FirePressed = true
+				if not self.FirePressed[plr] then
+					self.FirePressed[plr] = true
 
 					if self.CloneShopSelectedClone > 0 then
 						local cln = self.CloneShopFilters[self.CloneShopControlMode][self.CloneShopSelectedClone]
@@ -248,7 +248,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 					end
 				end
 			else
-				self.FirePressed = false
+				self.FirePressed[plr] = false
 			end
 
 			-- Draw items list

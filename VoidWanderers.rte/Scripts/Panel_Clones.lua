@@ -364,8 +364,8 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 					.. self.GS["Player0VesselLifeSupport"]
 
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed then
-						self.FirePressed = true
+					if not self.FirePressed[plr] then
+						self.FirePressed[plr] = true
 
 						if self.ClonesControlMode == self.ClonesControlPanelModes.SELL then
 							if self.SelectedClone ~= 0 then
@@ -503,15 +503,15 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 						end -- If not sell mode
 					end
 				else
-					self.FirePressed = false
+					self.FirePressed[plr] = false
 				end
 			end
 
 			-- Inventory list screen
 			if self.ClonesControlMode == self.ClonesControlPanelModes.INVENTORY then
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed then
-						self.FirePressed = true
+					if not self.FirePressed[plr] then
+						self.FirePressed[plr] = true
 
 						if
 							self.SelectedClone > 0
@@ -556,7 +556,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 						end
 					end
 				else
-					self.FirePressed = false
+					self.FirePressed[plr] = false
 				end
 
 				local up = false
@@ -603,8 +603,8 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 
 			if self.ClonesControlMode == self.ClonesControlPanelModes.ITEMS then
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed then
-						self.FirePressed = true
+					if not self.FirePressed[plr] then
+						self.FirePressed[plr] = true
 
 						if
 							self.SelectedClone > 0
@@ -648,7 +648,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 						end
 					end
 				else
-					self.FirePressed = false
+					self.FirePressed[plr] = false
 				end
 
 				-- Bacause StorageFilters my change outside of this panel by other players always check for out-of-bounds

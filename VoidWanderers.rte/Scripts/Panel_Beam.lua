@@ -167,8 +167,8 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 
 			-- Deploy units
 			if cont:IsState(Controller.WEAPON_FIRE) and canbeam then
-				if not self.FirePressed then
-					self.FirePressed = true
+				if not self.FirePressed[plr] then
+					self.FirePressed[plr] = true
 
 					local savedactor = 1
 
@@ -282,7 +282,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 					return
 				end
 			else
-				self.FirePressed = false
+				self.FirePressed[plr] = false
 			end
 
 			-- Draw background

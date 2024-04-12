@@ -138,8 +138,8 @@ function VoidWanderers:ProcessBombsControlPanelUI()
 				self:AddObjectivePoint("", targetpos, CF_PlayerTeam, GameActivity.ARROWDOWN)
 
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed then
-						self.FirePressed = true
+					if not self.FirePressed[plr] then
+						self.FirePressed[plr] = true
 
 						if self.BombingTarget == nil then
 							self.BombingTarget = bombpos.X
@@ -156,7 +156,7 @@ function VoidWanderers:ProcessBombsControlPanelUI()
 						end
 					end
 				else
-					self.FirePressed = false
+					self.FirePressed[plr] = false
 				end
 			end
 		end
