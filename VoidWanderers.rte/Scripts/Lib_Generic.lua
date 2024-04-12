@@ -159,7 +159,7 @@ function CF_InitFactions(activity)
 
 	CF_MaxDifficulty = 6
 
-	CF_MaxCPUPlayers = 8
+	CF_MaxCPUPlayers = 300
 	CF_MaxSaveGames = 6
 	CF_MaxItems = 8 -- Max items per clone in clone storage
 	CF_MaxItemsPerPreset = 3 -- Max items per AI unit preset
