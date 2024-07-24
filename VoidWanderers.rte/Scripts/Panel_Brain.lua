@@ -11,41 +11,37 @@ function VoidWanderers:DestroyBrainControlPanelUI() end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:ProcessBrainControlPanelUI()
 	if self.GS["Mode"] == "Assault" or self.RandomEncounterAttackLaunched then
-		return
+		return;
 	end
 
-	local showidle = true
-	for plr = 0, self.PlayerCount - 1 do
-		local act = self:GetControlledActor(plr)
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		local act = self:GetControlledActor(player);
 
 		if act and MovableMan:IsActor(act) then
 			-- Process brain detachment
 			if act.PresetName == "Brain Case" then
-				showidle = false
 
 				self:AddObjectivePoint(
 					"Press DOWN to detach",
 					act.Pos + Vector(0, 46),
 					CF_PlayerTeam,
 					GameActivity.ARROWDOWN
-				)
+				);
 
-				local cont = act:GetController()
-				local pos = act.Pos
+				local cont = act:GetController();
+				local pos = act.Pos;
 
 				if cont:IsState(Controller.PRESS_DOWN) then
 					-- Determine which player's brain it is
-					local bplr
+					-- I don't know why this was ever a concern, we know who's brain it is because we got the brain by who's it was
+					-- it was probably a necessary step somehow, TODO: find out if this could be at all necessary, somehow
+					local bplayer = player;
 
-					for b = 0, self.PlayerCount - 1 do
-						if MovableMan:IsActor(self.CreatedBrains[b]) and self.CreatedBrains[b].ID == act.ID then
-							bplr = b
-						end
-					end
+					local tough = math.max(math.min(tonumber(self.GS["Brain" .. player .. "Toughness"]), 5), 0);
 
-					local tough = math.max(math.min(tonumber(self.GS["Brain" .. plr .. "Toughness"]), 5), 0)
-
-					local rb, candidate
+					local mo = SceneMan:CastMORay(act.Pos, Vector(0, 250), act.ID, Activity.NOTEAM, rte.airID, false, 5);
+					
+					--[[local rb, candidate
 					local mo = SceneMan:CastMORay(act.Pos, Vector(0, 250), act.ID, Activity.NOTEAM, rte.airID, false, 5)
 					if mo ~= rte.NoMOID then
 						candidate = MovableMan:GetMOFromID(mo)
@@ -68,96 +64,104 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 						rb.Team = CF_PlayerTeam
 						rb.Vel = Vector(0, 4)
 						MovableMan:AddActor(rb)
-					end
+					end]]
+
+					local rb = CreateAHuman("RPG Brain Robot LVL" .. tough .. " PLR" .. bplayer);
+					rb.Team = CF_PlayerTeam;
+					rb.Vel = Vector(0, 4);
+					MovableMan:AddActor(rb);
+
 					if rb then
-						rb.AIMode = Actor.AIMODE_SENTRY
-						rb.Health = act.Health
+						rb.AIMode = Actor.AIMODE_SENTRY;
+						rb.Health = act.Health;
 
 						-- Give items
 						for j = 1, CF_MaxSavedItemsPerActor do
-							if self.GS["Brain" .. bplr .. "Item" .. j .. "Preset"] ~= nil then
+							if self.GS["Brain" .. bplayer .. "Item" .. j .. "Preset"] ~= nil then
 								local itm = CF_MakeItem(
-									self.GS["Brain" .. bplr .. "Item" .. j .. "Preset"],
-									self.GS["Brain" .. bplr .. "Item" .. j .. "Class"],
-									self.GS["Brain" .. bplr .. "Item" .. j .. "Module"]
-								)
+									self.GS["Brain" .. bplayer .. "Item" .. j .. "Preset"],
+									self.GS["Brain" .. bplayer .. "Item" .. j .. "Class"],
+									self.GS["Brain" .. bplayer .. "Item" .. j .. "Module"]
+								);
 								if itm then
-									rb:AddInventoryItem(itm)
+									rb:AddInventoryItem(itm);
 								end
 							else
-								break
+								break;
 							end
 						end
 
-						rb.Pos = act.Pos + Vector(0, 20)
-						self:SwitchToActor(rb, plr, CF_PlayerTeam)
+						rb.Pos = act.Pos + Vector(0, 20);
+						self:SwitchToActor(rb, player, CF_PlayerTeam);
+						self:SetPlayerBrain(rb, player);
 
-						self.GS["Brain" .. bplr .. "Detached"] = "True"
-						CF_ClearAllBrainsSupplies(self.GS, bplr)
-						self.CreatedBrains[bplr] = nil
-						act.ToDelete = true
+						self.GS["Brain" .. bplayer .. "Detached"] = "True";
+						CF_ClearAllBrainsSupplies(self.GS, bplayer);
+						self.CreatedBrains[bplayer] = nil;
+						act.ToDelete = true;
 					end
 				end
 				-- Process brain attachment
 			elseif act:IsInGroup("Brains") then
-				local s = act.PresetName
-				local pos = string.find(s, "RPG Brain Robot")
+				local s = act.PresetName;
+				local pos = string.find(s, "RPG Brain Robot");
 				if pos == 1 then
 					-- Determine which player's brain it is
-					local bplr = tonumber(string.sub(s, string.len(s), string.len(s)))
-					local readytoattach = false
+					local bplayer = tonumber(string.sub(s, string.len(s), string.len(s)));
+					local readytoattach = false;
 
 					if
-						act.Pos.X > self.BrainPos[bplr + 1].X - 10
-						and act.Pos.X < self.BrainPos[bplr + 1].X + 10
-						and act.Pos.Y > self.BrainPos[bplr + 1].Y
-						and CF_DistUnder(act.Pos, self.BrainPos[bplr + 1], 100)
+						act.Pos.X > self.BrainPos[bplayer + 1].X - 10
+						and act.Pos.X < self.BrainPos[bplayer + 1].X + 10
+						and act.Pos.Y > self.BrainPos[bplayer + 1].Y
+						and CF_DistUnder(act.Pos, self.BrainPos[bplayer + 1], 100)
 					then
-						readytoattach = true
+						readytoattach = true;
 						self:AddObjectivePoint(
 							"Press UP to attach",
-							self.BrainPos[bplr + 1] + Vector(0, 6 + (bplr + 1) * 6),
+							self.BrainPos[bplayer + 1] + Vector(0, 6 + (bplayer + 1) * 6),
 							CF_PlayerTeam,
 							GameActivity.ARROWUP
-						)
+						);
 					else
 						self:AddObjectivePoint(
 							"Attach brain",
-							self.BrainPos[bplr + 1] + Vector(0, 6 + (bplr + 1) * 6),
+							self.BrainPos[bplayer + 1] + Vector(0, 6 + (bplayer + 1) * 6),
 							CF_PlayerTeam,
 							GameActivity.ARROWUP
-						)
+						);
 					end
 
-					local cont = act:GetController()
+					local cont = act:GetController();
 
 					if cont:IsState(Controller.PRESS_UP) and readytoattach then
-						local rb = CreateActor("Brain Case")
+						local rb = CreateActor("Brain Case");
 						if rb then
-							rb.Team = CF_PlayerTeam
-							rb.Pos = self.BrainPos[bplr + 1]
-							rb.Health = act.Health
-							MovableMan:AddActor(rb)
-							self:SwitchToActor(rb, plr, CF_PlayerTeam)
+							rb.Team = CF_PlayerTeam;
+							rb.Pos = self.BrainPos[bplayer + 1];
+							rb.Health = act.Health;
+							MovableMan:AddActor(rb);
+							self:SwitchToActor(rb, player, CF_PlayerTeam);
+							self:SetPlayerBrain(rb, player);
 
 							-- Clear inventory
 							for j = 1, CF_MaxSavedItemsPerActor do
-								self.GS["Brain" .. bplr .. "Item" .. j .. "Preset"] = nil
-								self.GS["Brain" .. bplr .. "Item" .. j .. "Class"] = nil
-								self.GS["Brain" .. bplr .. "Item" .. j .. "Module"] = nil
+								self.GS["Brain" .. bplayer .. "Item" .. j .. "Preset"] = nil;
+								self.GS["Brain" .. bplayer .. "Item" .. j .. "Class"] = nil;
+								self.GS["Brain" .. bplayer .. "Item" .. j .. "Module"] = nil;
 							end
 
 							-- Save inventory
-							local pre, cls, mdl = CF_GetInventory(act)
+							local pre, cls, mdl = CF_GetInventory(act);
 
 							for j = 1, #pre do
-								self.GS["Brain" .. bplr .. "Item" .. j .. "Preset"] = pre[j]
-								self.GS["Brain" .. bplr .. "Item" .. j .. "Class"] = cls[j]
-								self.GS["Brain" .. bplr .. "Item" .. j .. "Module"] = mdl[j]
+								self.GS["Brain" .. bplayer .. "Item" .. j .. "Preset"] = pre[j];
+								self.GS["Brain" .. bplayer .. "Item" .. j .. "Class"] = cls[j];
+								self.GS["Brain" .. bplayer .. "Item" .. j .. "Module"] = mdl[j];
 							end
 
-							self.GS["Brain" .. bplr .. "Detached"] = "False"
-							self.CreatedBrains[bplr] = rb
+							self.GS["Brain" .. bplayer .. "Detached"] = "False";
+							self.CreatedBrains[bplayer] = rb;
 							--[[
 							if IsAHuman(act) and ToAHuman(act).Head then
 								act = ToAHuman(act);
@@ -176,12 +180,11 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 								
 								act:RemoveAttachable(act.Head, false, true);
 							else
-							]]
-							--
+							]]--
 							if act.GoldCarried > 0 then
-								CF_SetPlayerGold(self.GS, 0, CF_GetPlayerGold(self.GS, 0) + act.GoldCarried)
+								CF_SetPlayerGold(self.GS, 0, CF_GetPlayerGold(self.GS, 0) + act.GoldCarried);
 							end
-							act.ToDelete = true
+							act.ToDelete = true;
 							--end
 						end
 					end
