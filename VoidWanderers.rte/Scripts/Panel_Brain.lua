@@ -23,7 +23,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 
 				self:AddObjectivePoint(
 					"Press DOWN to detach",
-					act.Pos + Vector(0, 46),
+					act.Pos + Vector(0, -56 + (player + 1) * 8),
 					CF_PlayerTeam,
 					GameActivity.ARROWDOWN
 				);
@@ -119,14 +119,14 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 						readytoattach = true;
 						self:AddObjectivePoint(
 							"Press UP to attach",
-							self.BrainPos[bplayer + 1] + Vector(0, 6 + (bplayer + 1) * 6),
+							self.BrainPos[bplayer + 1] + Vector(0, 6 + (bplayer + 1) * 8),
 							CF_PlayerTeam,
 							GameActivity.ARROWUP
 						);
 					else
 						self:AddObjectivePoint(
 							"Attach brain",
-							self.BrainPos[bplayer + 1] + Vector(0, 6 + (bplayer + 1) * 6),
+							self.BrainPos[bplayer + 1] + Vector(0, 6 + (bplayer + 1) * 8),
 							CF_PlayerTeam,
 							GameActivity.ARROWUP
 						);

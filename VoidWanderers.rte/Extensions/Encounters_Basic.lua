@@ -23,15 +23,15 @@ end--]]
 --
 -------------------------------------------------------------------------------
 -- Define pirate identities
-CF_RandomEncounterPirates = {}
+CF_RandomEncounterPirates = {};
 
 -- Generic organic mid-heavy pirates
-local pid = #CF_RandomEncounterPirates + 1
-CF_RandomEncounterPirates[pid] = {}
-CF_RandomEncounterPirates[pid]["Captain"] = "Apone"
-CF_RandomEncounterPirates[pid]["Ship"] = "Sulako"
-CF_RandomEncounterPirates[pid]["Org"] = "The Free Galactic Brotherhood"
-CF_RandomEncounterPirates[pid]["FeeInc"] = 500
+local pid = #CF_RandomEncounterPirates + 1;
+CF_RandomEncounterPirates[pid] = {};
+CF_RandomEncounterPirates[pid]["Captain"] = "Apone";
+CF_RandomEncounterPirates[pid]["Ship"] = "Sulako";
+CF_RandomEncounterPirates[pid]["Org"] = "The Free Galactic Brotherhood";
+CF_RandomEncounterPirates[pid]["FeeInc"] = 500;
 --[[
 CF_RandomEncounterPirates[pid]["EncounterText"] = "";
 CF_RandomEncounterPirates[pid]["ReplyHostile"] = "";
@@ -41,14 +41,14 @@ CF_RandomEncounterPirates[pid]["MsgHostile"] = "";
 CF_RandomEncounterPirates[pid]["MsgDefeat"] = "";
 ]]
 --
-CF_RandomEncounterPirates[pid]["Act"] = { "Raider", "Soldier Light", "Soldier Heavy", "Browncoat", "Exterminator" }
+CF_RandomEncounterPirates[pid]["Act"] = { "Raider", "Soldier Light", "Soldier Heavy", "Browncoat", "Exterminator" };
 CF_RandomEncounterPirates[pid]["ActMod"] = {
 	"Ronin.rte",
 	"Coalition.rte",
 	"Coalition.rte",
 	"Browncoats.rte",
 	"Browncoats.rte",
-}
+};
 
 CF_RandomEncounterPirates[pid]["Itm"] = {
 	"AR-25 Hammerfist",
@@ -56,57 +56,58 @@ CF_RandomEncounterPirates[pid]["Itm"] = {
 	"M16A2",
 	"Assault Rifle",
 	"Auto Shotgun",
-}
+};
 CF_RandomEncounterPirates[pid]["ItmMod"] = {
 	"Browncoats.rte",
 	"Browncoats.rte",
 	"Ronin.rte",
 	"Coalition.rte",
 	"Coalition.rte",
-}
+};
 
-CF_RandomEncounterPirates[pid]["Thrown"] = { "Shredder SB-08", "Timed Explosive" }
-CF_RandomEncounterPirates[pid]["ThrownMod"] = { "Imperatus.rte", "Coalition.rte" }
+CF_RandomEncounterPirates[pid]["Thrown"] = { "Shredder SB-08", "Timed Explosive" };
+CF_RandomEncounterPirates[pid]["ThrownMod"] = { "Imperatus.rte", "Coalition.rte" };
 
-CF_RandomEncounterPirates[pid]["Units"] = 12
-CF_RandomEncounterPirates[pid]["Burst"] = 3
-CF_RandomEncounterPirates[pid]["Interval"] = 14
+CF_RandomEncounterPirates[pid]["Units"] = 12;
+CF_RandomEncounterPirates[pid]["Burst"] = 3;
+CF_RandomEncounterPirates[pid]["Interval"] = 14;
 
-local pid = #CF_RandomEncounterPirates + 1
-CF_RandomEncounterPirates[pid] = {}
-CF_RandomEncounterPirates[pid]["Captain"] = "SHODAN"
-CF_RandomEncounterPirates[pid]["Ship"] = "Von Braun"
-CF_RandomEncounterPirates[pid]["Org"] = "The Free Nexus"
-CF_RandomEncounterPirates[pid]["FeeInc"] = 500
+-- Generic mid-heavy robot pirates
+local pid = #CF_RandomEncounterPirates + 1;
+CF_RandomEncounterPirates[pid] = {};
+CF_RandomEncounterPirates[pid]["Captain"] = "SHODAN";
+CF_RandomEncounterPirates[pid]["Ship"] = "Von Braun";
+CF_RandomEncounterPirates[pid]["Org"] = "The Free Nexus";
+CF_RandomEncounterPirates[pid]["FeeInc"] = 500;
 
-CF_RandomEncounterPirates[pid]["Act"] = { "Dummy", "All Purpose Robot", "Combat Robot", "Whitebot", "Silver Man" }
+CF_RandomEncounterPirates[pid]["Act"] = { "Dummy", "All Purpose Robot", "Combat Robot", "Whitebot", "Silver Man" };
 CF_RandomEncounterPirates[pid]["ActMod"] = {
 	"Dummy.rte",
 	"Imperatus.rte",
 	"Imperatus.rte",
 	"Techion.rte",
 	"Techion.rte",
-}
+};
 
-CF_RandomEncounterPirates[pid]["Itm"] = { "Blaster", "Repeater", "Bullpup AR-14", "Mauler SG-23", "Pulse Rifle" }
-CF_RandomEncounterPirates[pid]["ItmMod"] = { "Dummy.rte", "Dummy.rte", "Imperatus.rte", "Imperatus.rte", "Techion.rte" }
+CF_RandomEncounterPirates[pid]["Itm"] = { "Blaster", "Repeater", "Bullpup AR-14", "Mauler SG-23", "Pulse Rifle" };
+CF_RandomEncounterPirates[pid]["ItmMod"] = { "Dummy.rte", "Dummy.rte", "Imperatus.rte", "Imperatus.rte", "Techion.rte" };
 
-CF_RandomEncounterPirates[pid]["Thrown"] = { "Scrambler", "Timed Explosive" }
-CF_RandomEncounterPirates[pid]["ThrownMod"] = { "Ronin.rte", "Coalition.rte" }
+CF_RandomEncounterPirates[pid]["Thrown"] = { "Scrambler", "Timed Explosive" };
+CF_RandomEncounterPirates[pid]["ThrownMod"] = { "Ronin.rte", "Coalition.rte" };
 
-CF_RandomEncounterPirates[pid]["Units"] = 12
-CF_RandomEncounterPirates[pid]["Burst"] = 2
-CF_RandomEncounterPirates[pid]["Interval"] = 10
+CF_RandomEncounterPirates[pid]["Units"] = 12;
+CF_RandomEncounterPirates[pid]["Burst"] = 2;
+CF_RandomEncounterPirates[pid]["Interval"] = 10;
 
-local id = "PIRATE_GENERIC"
-CF_RandomEncounters[#CF_RandomEncounters + 1] = id
-CF_RandomEncountersInitialTexts[id] = ""
+local id = "PIRATE_GENERIC";
+CF_RandomEncounters[#CF_RandomEncounters + 1] = id;
+CF_RandomEncountersInitialTexts[id] = "";
 CF_RandomEncountersInitialVariants[id] = {
 	"I'm at your mercy, take whatever you want.",
 	"Kid, don't threaten me. There are worse things than death and I can do all of them.",
-}
-CF_RandomEncountersVariantsInterval[id] = 24
-CF_RandomEncountersOneTime[id] = false
+};
+CF_RandomEncountersVariantsInterval[id] = 24;
+CF_RandomEncountersOneTime[id] = false;
 CF_RandomEncountersFunctions[id] = 
 function(self, variant)
 	if not self.RandomEncounterIsInitialized then
@@ -415,41 +416,41 @@ function(self, variant)
 end
 -------------------------------------------------------------------------------
 -- Abandoned ship exploration
-local id = "ABANDONED_VESSEL_GENERIC"
-CF_RandomEncounters[#CF_RandomEncounters + 1] = id
+local id = "ABANDONED_VESSEL_GENERIC";
+CF_RandomEncounters[#CF_RandomEncounters + 1] = id;
 CF_RandomEncountersInitialTexts[id] =
-	"A dead vessel floats in an asteroid field. It might have been abandoned for years, although it does not mean that it is empty."
+	"A dead vessel floats in an asteroid field. It might have been abandoned for years, although it does not mean that it is empty.";
 CF_RandomEncountersInitialVariants[id] = {
 	"Send away team immediately!",
 	"Just cut off everything valuable from the hull.",
 	"Leave it alone...",
-}
-CF_RandomEncountersVariantsInterval[id] = 24
-CF_RandomEncountersOneTime[id] = false
+};
+CF_RandomEncountersVariantsInterval[id] = 24;
+CF_RandomEncountersOneTime[id] = false;
 CF_RandomEncountersFunctions[id] = 
 function(self, variant)
 	if not self.RandomEncounterIsInitialized then
-		local locations = {}
+		local locations = {};
 
 		-- Find usable scene
 		for i = 1, #CF_Location do
-			local id = CF_Location[i]
+			local id = CF_Location[i];
 			if CF_IsLocationHasAttribute(id, CF_LocationAttributeTypes.ABANDONEDVESSEL) then
-				locations[#locations + 1] = id
+				locations[#locations + 1] = id;
 			end
 		end
 
-		self.AbandonedVesselLocation = locations[math.random(#locations)]
+		self.AbandonedVesselLocation = locations[math.random(#locations)];
 
-		self.RandomEncounterIsInitialized = true
+		self.RandomEncounterIsInitialized = true;
 	end
 
 	if variant == 1 then
-		self.GS["Location"] = self.AbandonedVesselLocation
+		self.GS["Location"] = self.AbandonedVesselLocation;
 
-		self.RandomEncounterText = "Deploy your away team to the abandoned ship."
-		self.RandomEncounterVariants = {}
-		self.RandomEncounterChosenVariant = 0
+		self.RandomEncounterText = "Deploy your away team to the abandoned ship.";
+		self.RandomEncounterVariants = {};
+		self.RandomEncounterChosenVariant = 0;
 	end
 
 	if variant == 2 then
@@ -465,151 +466,151 @@ function(self, variant)
 			"a Higgs boson detector",
 			"a microwave heater",
 			"a coffee bean roaster",
-		}
+		};
 		if math.random() < 0.125 then
-			local losstext
-			local r = math.random(5)
+			local losstext;
+			local r = math.random(5);
 
-			for p = 0, self.PlayerCount - 1 do
-				FrameMan:FlashScreen(p, 13, 1000)
+			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+				FrameMan:FlashScreen(self:ScreenOfPlayer(player), 13, 1000);
 			end
 
-			local charge = CreateMOSRotating("Explosion Sound " .. math.random(10))
-			charge.Pos = self.ShipControlPanelPos
-			MovableMan:AddParticle(charge)
-			charge:GibThis()
+			local charge = CreateMOSRotating("Explosion Sound " .. math.random(10));
+			charge.Pos = self.ShipControlPanelPos;
+			MovableMan:AddParticle(charge);
+			charge:GibThis();
 
 			if r == 1 then
 				-- Destroy stored clone if any
 				if #self.Clones > 0 then
-					local rclone = math.random(tonumber(self.GS["Player0VesselClonesCapacity"]))
+					local rclone = math.random(tonumber(self.GS["Player0VesselClonesCapacity"]));
 					-- If damaged cell hit the clone then remove actor from array
-					local newarr = {}
-					local ii = 1
+					local newarr = {};
+					local ii = 1;
 
 					for i = 1, #self.Clones do
 						if i ~= rclone then
-							newarr[ii] = self.Clones[i]
-							ii = ii + 1
+							newarr[ii] = self.Clones[i];
+							ii = ii + 1;
 						end
 					end
 
-					self.Clones = newarr
+					self.Clones = newarr;
 				end
-				CF_SetClonesArray(self.GS, self.Clones)
+				CF_SetClonesArray(self.GS, self.Clones);
 
-				self.GS["Player0VesselClonesCapacity"] = tonumber(self.GS["Player0VesselClonesCapacity"]) - 1
+				self.GS["Player0VesselClonesCapacity"] = tonumber(self.GS["Player0VesselClonesCapacity"]) - 1;
 
 				if self.GS["Player0VesselClonesCapacity"] <= 0 then
-					self.GS["Player0VesselClonesCapacity"] = 1
+					self.GS["Player0VesselClonesCapacity"] = 1;
 				end
 
-				losstext = "and destroyed one of our cryo-chambers."
+				losstext = "and destroyed one of our cryo-chambers.";
 			elseif r == 2 then
 				-- Destroy storage cells
-				local damage = math.random(3, 9)
+				local damage = math.random(3, 9);
 				for i = 1, damage do
-					local rweap = math.random(#self.StorageItems * 2)
+					local rweap = math.random(#self.StorageItems * 2);
 					if rweap <= #self.StorageItems then
 						if self.StorageItems[rweap]["Count"] > 0 then
-							self.StorageItems[rweap]["Count"] = self.StorageItems[rweap]["Count"] - 1
+							self.StorageItems[rweap]["Count"] = self.StorageItems[rweap]["Count"] - 1;
 						end
 					end
 				end
 
-				self.GS["Player0VesselStorageCapacity"] = tonumber(self.GS["Player0VesselStorageCapacity"]) - damage
+				self.GS["Player0VesselStorageCapacity"] = tonumber(self.GS["Player0VesselStorageCapacity"]) - damage;
 
 				if self.GS["Player0VesselStorageCapacity"] <= 0 then
-					self.GS["Player0VesselStorageCapacity"] = 1
+					self.GS["Player0VesselStorageCapacity"] = 1;
 				end
 
 				-- If we have some items left in nonexisting cell then throw them around
 				while CF_CountUsedStorageInArray(self.StorageItems) > self.GS["Player0VesselStorageCapacity"] do
-					local rweap = math.random(#self.StorageItems)
+					local rweap = math.random(#self.StorageItems);
 					if self.StorageItems[rweap]["Count"] > 0 then
-						self.StorageItems[rweap]["Count"] = self.StorageItems[rweap]["Count"] - 1
+						self.StorageItems[rweap]["Count"] = self.StorageItems[rweap]["Count"] - 1;
 
 						if self.StorageInputPos ~= nil then
 							local itm = CF_MakeItem(
 								self.StorageItems[rweap]["Preset"],
 								self.StorageItems[rweap]["Class"],
 								self.StorageItems[rweap]["Module"]
-							)
+							);
 							if itm then
-								itm.Pos = self.StorageInputPos
-								local a = math.random(360)
-								local r = 10 + math.random(40)
-								itm.Vel = Vector(math.cos(a / (180 / 3.14)) * r, math.sin(a / (180 / 3.14) * r))
-								MovableMan:AddItem(itm)
+								itm.Pos = self.StorageInputPos;
+								local a = math.random(360);
+								local r = 10 + math.random(40);
+								itm.Vel = Vector(math.cos(a / (180 / 3.14)) * r, math.sin(a / (180 / 3.14) * r));
+								MovableMan:AddItem(itm);
 							end
 						end
 					end
 				end
 
-				CF_SetStorageArray(self.GS, self.StorageItems)
-				self.StorageItems, self.StorageFilters = CF_GetStorageArray(self.GS, true)
+				CF_SetStorageArray(self.GS, self.StorageItems);
+				self.StorageItems, self.StorageFilters = CF_GetStorageArray(self.GS, true);
 
-				losstext = "and destroyed some of our storage cells."
+				losstext = "and destroyed some of our storage cells.";
 			elseif r == 3 then
 				-- Destroy life support
-				self.GS["Player0VesselLifeSupport"] = tonumber(self.GS["Player0VesselLifeSupport"]) - 1
+				self.GS["Player0VesselLifeSupport"] = tonumber(self.GS["Player0VesselLifeSupport"]) - 1;
 
 				if self.GS["Player0VesselLifeSupport"] <= 0 then
-					self.GS["Player0VesselLifeSupport"] = 1
+					self.GS["Player0VesselLifeSupport"] = 1;
 				end
 
-				losstext = "and destroyed our oxygen regeneration tank. Our life support system degraded."
+				losstext = "and destroyed our oxygen regeneration tank. Our life support system degraded.";
 			elseif r == 4 then
 				-- Destroy life support
-				self.GS["Player0VesselCommunication"] = tonumber(self.GS["Player0VesselCommunication"]) - 1
+				self.GS["Player0VesselCommunication"] = tonumber(self.GS["Player0VesselCommunication"]) - 1;
 
 				if self.GS["Player0VesselCommunication"] <= 0 then
-					self.GS["Player0VesselCommunication"] = 1
+					self.GS["Player0VesselCommunication"] = 1;
 				end
 
-				losstext = "and destroyed one of our antennas. Communication power has depleted."
+				losstext = "and destroyed one of our antennas. Communication power has depleted.";
 			elseif r == 5 then
 				-- Destroy engine
 				self.GS["Player0VesselSpeed"] = math.floor(tonumber(self.GS["Player0VesselSpeed"]) * 0.9 + 0.5)
-					- math.random(5)
+					- math.random(5);
 
 				if self.GS["Player0VesselSpeed"] <= 5 then
-					self.GS["Player0VesselSpeed"] = 5
+					self.GS["Player0VesselSpeed"] = 5;
 				end
 
-				losstext = "and damaged our engine. We've lost some speed."
+				losstext = "and damaged our engine. We've lost some speed.";
 			end
 
-			self.MissionReport = {}
+			self.MissionReport = {};
 			self.MissionReport[#self.MissionReport + 1] = "We tried to cut off "
 				.. devices[math.random(#devices)]
 				.. ", but it exploded "
-				.. losstext
-			CF_SaveMissionReport(self.GS, self.MissionReport)
+				.. losstext;
+			CF_SaveMissionReport(self.GS, self.MissionReport);
 		else
-			local gold = math.random(1000 - CF_Difficulty * 5)
-			CF_SetPlayerGold(self.GS, 0, CF_GetPlayerGold(self.GS, 0) + gold)
+			local gold = math.random(1000 - CF_Difficulty * 5);
+			CF_SetPlayerGold(self.GS, 0, CF_GetPlayerGold(self.GS, 0) + gold);
 
-			self.MissionReport = {}
+			self.MissionReport = {};
 			self.MissionReport[#self.MissionReport + 1] = "We managed to find some intact parts of "
 				.. devices[math.random(#devices)]
 				.. " worth "
 				.. gold
-				.. " oz of gold."
-			CF_SaveMissionReport(self.GS, self.MissionReport)
+				.. " oz of gold.";
+			CF_SaveMissionReport(self.GS, self.MissionReport);
 		end
 
 		-- Finish encounter
-		self.RandomEncounterID = nil
+		self.RandomEncounterID = nil;
 	end
 
 	if variant == 3 then
-		self.MissionReport = {}
-		self.MissionReport[#self.MissionReport + 1] = "Farewell, silent wanderer of the void." --"Adios, lone nomad of the unknown."
-		CF_SaveMissionReport(self.GS, self.MissionReport)
+		self.MissionReport = {};
+		self.MissionReport[#self.MissionReport + 1] = "Farewell, silent wanderer of the void."; --"Adios, lone nomad of the unknown."
+		CF_SaveMissionReport(self.GS, self.MissionReport);
 
 		-- Finish encounter
-		self.RandomEncounterID = nil
+		self.RandomEncounterID = nil;
 	end
 end
 -------------------------------------------------------------------------------
