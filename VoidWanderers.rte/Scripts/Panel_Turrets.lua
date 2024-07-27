@@ -370,8 +370,8 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 							self:PutGlow("ControlPanel_Turret_EmptyMove", self.TurretsControlPanelPos[turr]);
 						else
 							if
-								self.GS["DeployedTurret" .. turr .. "Preset"] ~= nil;
-								and self.GS["DeployedTurret" .. turr .. "Class"] ~= nil;
+								self.GS["DeployedTurret" .. turr .. "Preset"] ~= nil
+								and self.GS["DeployedTurret" .. turr .. "Class"] ~= nil
 							then
 								local l = CF_GetStringPixelWidth(self.GS["DeployedTurret" .. turr .. "Preset"]);
 								CF_DrawString(

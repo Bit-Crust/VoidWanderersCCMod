@@ -116,14 +116,16 @@ function VoidWanderers:StartActivity()
 
 		-- Create brains
 		--print ("Create brains")
-		for player = 0, self.PlayerCount - 1 do
-			if self.GS["Brain" .. player .. "Detached"] ~= "True" then
-				local a = CreateActor("Brain Case", "Base.rte")
-				if a then
-					a.Team = CF_PlayerTeam
-					a.Pos = self.BrainPos[player + 1]
-					MovableMan:AddActor(a)
-					self.CreatedBrains[player] = a
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				if self.GS["Brain" .. player .. "Detached"] ~= "True" then
+					local a = CreateActor("Brain Case", "Base.rte")
+					if a then
+						a.Team = CF_PlayerTeam
+						a.Pos = self.BrainPos[player + 1]
+						MovableMan:AddActor(a)
+						self.CreatedBrains[player] = a
+					end
 				end
 			end
 		end
@@ -313,7 +315,7 @@ function VoidWanderers:StartActivity()
 
 		-- Find suitable LZs
 		local lzs = CF_GetPointsArray(self.Pts, "Deploy", self.MissionDeploySet, "PlayerLZ")
-		self.LZControlPanelPos = CF_SelectRandomPoints(lzs, self.PlayerCount)
+		self.LZControlPanelPos = CF_SelectRandomPoints(lzs, Activity.MAXPLAYERCOUNT)
 
 		-- Init LZs
 		self:InitLZControlPanelUI()
@@ -553,10 +555,29 @@ function VoidWanderers:StartActivity()
 
 		-- Set unseen
 		if fowEnabled then
-			SceneMan:MakeAllUnseen(Vector(CF_FogOfWarResolution, CF_FogOfWarResolution), CF_PlayerTeam)
+			SceneMan:MakeAllUnseen(Vector(CF_FogOfWarResolution, CF_FogOfWarResolution), CF_CPUTeam);
+			SceneMan:MakeAllUnseen(Vector(CF_FogOfWarResolution, CF_FogOfWarResolution), CF_PlayerTeam);
+
+			-- Reveal outside areas for everyone.
+			for x = 0, SceneMan.SceneWidth - 1, CF_FogOfWarResolution do
+				local altitude = Vector(0, 0);
+				SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+				if altitude.Y > 1 then
+					SceneMan:RevealUnseenBox(x - 10, 0, CF_FogOfWarResolution + 20, altitude.Y + 10, CF_CPUTeam);
+					SceneMan:RevealUnseenBox(x - 10, 0, CF_FogOfWarResolution + 20, altitude.Y + 10, CF_PlayerTeam);
+				end
+			end
+
+			for Act in MovableMan.AddedActors do
+				if not IsADoor(Act) then
+					for angle = 0, math.pi * 2, 0.05 do
+						SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, CF_FogOfWarResolution);
+					end
+				end
+			end
 
 			-- Reveal previously saved fog of war, if applicable
-			if not CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.ALWAYSUNSEEN) then
+			if false and not CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.ALWAYSUNSEEN) then
 				local wx = math.ceil(SceneMan.Scene.Width / CF_FogOfWarResolution)
 				local wy = math.ceil(SceneMan.Scene.Height / CF_FogOfWarResolution)
 
@@ -584,8 +605,8 @@ function VoidWanderers:StartActivity()
 			end
 		end
 		-- Set unseen for AI (maybe some day it will matter ))))
-		for p = Activity.PLAYER_2, Activity.PLAYER_4 do
-			SceneMan:MakeAllUnseen(Vector(CF_FogOfWarResolution, CF_FogOfWarResolution), p)
+		for team = Activity.TEAM_2, Activity.MAXTEAMCOUNT - 1 do
+			SceneMan:MakeAllUnseen(Vector(CF_FogOfWarResolution, CF_FogOfWarResolution), team)
 		end
 	else
 		self:StartMusic(CF_MusicTypes.SHIP_CALM)
@@ -624,9 +645,10 @@ function VoidWanderers:StartActivity()
 
 	self.HumanPlayer = 0
 
-	for player = 0, self.PlayerCount - 1 do
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		self:SetPlayerBrain(nil, player)
 	end
+	
 	-- Display gold like normal since the buy menu is disabled
 	self:SetTeamFunds(CF_GetPlayerGold(self.GS, CF_PlayerTeam), CF_PlayerTeam)
 	self:SaveCurrentGameState()
@@ -980,7 +1002,7 @@ function VoidWanderers:SaveFogOfWarState(config)
 			for i = 0, digits do
 				numString = "0" .. numString
 			end
-			config[self.GS["Location"] .. "-Fog" .. numString] = str
+			--config[self.GS["Location"] .. "-Fog" .. numString] = str
 		end
 		config[self.GS["Location"] .. "-FogRevealPercentage"] = math.floor(revealed / tiles * 100)
 	end
@@ -1134,12 +1156,12 @@ function VoidWanderers:TriggerShipAssault()
 				local bridgeempty = true
 				local plrtoswitch = -1
 
-				for plr = 0, self.PlayerCount - 1 do
-					local act = self:GetControlledActor(plr)
+				for player = Activity.PLAYER_1, Activity.PLAYER_4 do
+					local act = self:GetControlledActor(player)
 
 					if act and MovableMan:IsActor(act) then
 						if act.PresetName ~= "Ship Control Panel" and plrtoswitch == -1 then
-							plrtoswitch = plr
+							plrtoswitch = player
 						end
 
 						if act.PresetName == "Ship Control Panel" then
@@ -2185,12 +2207,12 @@ function VoidWanderers:UpdateActivity()
 					local bridgeempty = true
 					local plrtoswitch = -1
 
-					for plr = 0, self.PlayerCount - 1 do
-						local act = self:GetControlledActor(plr)
+					for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+						local act = self:GetControlledActor(player)
 
 						if act and MovableMan:IsActor(act) then
 							if act.PresetName ~= "Ship Control Panel" and plrtoswitch == -1 then
-								plrtoswitch = plr
+								plrtoswitch = player
 							end
 
 							if act.PresetName == "Ship Control Panel" then
@@ -2523,44 +2545,46 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:DoBrainSelection()
 	if self.ActivityState ~= Activity.OVER then
-		for player = 0, self.PlayerCount - 1 do
-			local team = self:GetTeamOfPlayer(player)
-			local brain = self:GetPlayerBrain(player)
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				local team = self:GetTeamOfPlayer(player)
+				local brain = self:GetPlayerBrain(player)
 
-			if not brain or not MovableMan:IsActor(brain) or not brain:HasObjectInGroup("Brains") then
-				if team == CF_PlayerTeam then
-					self.PlayerBrainDead = true
-				end
-
-				self:SetPlayerBrain(nil, player)
-				local newBrain = MovableMan:GetUnassignedBrain(team)
-				if newBrain then
-					self:SetPlayerBrain(newBrain, player)
-					self:SwitchToActor(newBrain, player, team)
-					-- Looks like a brain actor can't become a brain actor if it can't hit MOs
-					-- so we'll define LZ actors as hittable but then change this once our brains are assigned to cheat
-					if newBrain.PresetName == "LZ Control Panel" then
-						newBrain.HitsMOs = false
-						newBrain.GetsHitByMOs = false
-					end
+				if not brain or not MovableMan:IsActor(brain) or not brain:HasObjectInGroup("Brains") then
 					if team == CF_PlayerTeam then
-						self.PlayerBrainDead = false
-						self:GetBanner(GUIBanner.RED, Activity.PLAYER_1):ClearText()
+						self.PlayerBrainDead = true
 					end
-				else
-					for actor in MovableMan.Actors do
-						if actor.Team == team and actor:HasObjectInGroup("Brains") then
-							self:SetPlayerBrain(actor, player)
-							self:SwitchToActor(actor, player, team)
-							if team == CF_PlayerTeam then
-								self.PlayerBrainDead = false
-							end
+
+					self:SetPlayerBrain(nil, player)
+					local newBrain = MovableMan:GetUnassignedBrain(team)
+					if newBrain then
+						self:SetPlayerBrain(newBrain, player)
+						self:SwitchToActor(newBrain, player, team)
+						-- Looks like a brain actor can't become a brain actor if it can't hit MOs
+						-- so we'll define LZ actors as hittable but then change this once our brains are assigned to cheat
+						if newBrain.PresetName == "LZ Control Panel" then
+							newBrain.HitsMOs = false
+							newBrain.GetsHitByMOs = false
+						end
+						if team == CF_PlayerTeam then
+							self.PlayerBrainDead = false
 							self:GetBanner(GUIBanner.RED, Activity.PLAYER_1):ClearText()
 						end
+					else
+						for actor in MovableMan.Actors do
+							if actor.Team == team and actor:HasObjectInGroup("Brains") then
+								self:SetPlayerBrain(actor, player)
+								self:SwitchToActor(actor, player, team)
+								if team == CF_PlayerTeam then
+									self.PlayerBrainDead = false
+								end
+								self:GetBanner(GUIBanner.RED, Activity.PLAYER_1):ClearText()
+							end
+						end
 					end
+				else
+					self:SetObservationTarget(brain.Pos, player)
 				end
-			else
-				self:SetObservationTarget(brain.Pos, player)
 			end
 		end
 	end
@@ -2584,6 +2608,30 @@ function VoidWanderers:DrawDottedLine(x1, y1, x2, y2, dot, interval)
 
 		x = x + ax
 		y = y + ay
+	end
+end
+-----------------------------------------------------------------------------------------
+--
+-----------------------------------------------------------------------------------------
+function VoidWanderers:DrawWanderingDottedLine(x1, y1, x2, y2, dot, interval, w, p, scale)
+	local d = CF_Dist(Vector(x1, y1), Vector(x2, y2));
+	local t = 0;
+
+	local startOffsetX, startOffsetY = -math.cos(p) * scale, -math.sin(p) * scale;
+	local endOffsetX, endOffsetY = -math.cos(p + w) * scale, -math.sin(p + w) * scale;
+
+	while t < 1 do
+		local pos = Vector(
+			x1 + (x2 - x1) * t + startOffsetX + (endOffsetX - startOffsetX) * t + math.cos(p + w * t) * scale,
+			y1 + (y2 - y1) * t + startOffsetY + (endOffsetY - startOffsetY) * t + math.sin(p + w * t) * scale
+		);
+
+		self:PutGlowWithModule(dot, pos, self.ModuleName);
+
+		t = t + interval / math.min(math.abs(math.sqrt(
+			((x2 - x1) + (endOffsetX - startOffsetX) - math.sin(p + w * t) * w * scale) ^ 2 +
+			((y2 - y1) + (endOffsetY - startOffsetY) + math.cos(p + w * t) * w * scale) ^ 2
+		)), d);
 	end
 end
 -----------------------------------------------------------------------------------------
@@ -3090,19 +3138,15 @@ function VoidWanderers:StartMusic(musictype)
 
 	-- Queue defeat or victory loops
 	if musictype == CF_MusicTypes.VICTORY then
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 1, -1)
+		MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true, false, false)
 		queue = true
 		print("MUSIC: Play victory")
 	elseif musictype == CF_MusicTypes.DEFEAT then
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 1, -1)
+		MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true, false, false)
 		queue = true
 		print("MUSIC: Play defeat")
 	elseif musictype == -1 then
-		return self:PlayMusicFile(
-			"VoidWanderers.rte/UI/ControlPanels/Control" .. "Panel_" .. "Shop" .. ".png",
-			false,
-			-1
-		)
+		MusicMan:EndDynamicMusic(true)
 	end
 
 	-- Select calm music to queue after victory or defeat
@@ -3140,10 +3184,10 @@ function VoidWanderers:StartMusic(musictype)
 	-- If we're playing intense music, then just queue it once and play ambient all the other times
 	if ok and CF_Music[musictype] then
 		if musictype == CF_MusicTypes.SHIP_INTENSE or musictype == CF_MusicTypes.MISSION_INTENSE then
-			self:PlayMusicFile(CF_Music[musictype][track], false, 1)
+			MusicMan:PlayDynamicSong(CF_Music[musictype][track], "Default", true, false, false)
 			print("MUSIC: Queue intense")
 		else
-			self:PlayMusicFile(CF_Music[musictype][track], queue, -1)
+			MusicMan:PlayDynamicSong(CF_Music[musictype][track], "Default", true, false, false)
 			if queue then
 				print("MUSIC: Queue calm")
 			else
@@ -3183,30 +3227,13 @@ function VoidWanderers:StartMusic(musictype)
 			end
 		end
 		if ok then
-			self:PlayMusicFile(CF_Music[musictype][track], true, -1)
+			MusicMan:PlayDynamicSong(CF_Music[musictype][track], "Default", true, false, false)
 			print("MUSIC: Queue calm")
 		end
 	end
 
 	self.LastMusicType = musictype
 	self.LastMusicTrack = track
-end
------------------------------------------------------------------------------------------
---
------------------------------------------------------------------------------------------
-function VoidWanderers:PlayMusicFile(path, queue, count)
-	if CF_IsFilePathExists(path) then
-		if queue then
-			AudioMan:QueueMusicStream(path)
-		else
-			AudioMan:ClearMusicQueue()
-			AudioMan:PlayMusic(path, count, -1)
-		end
-		return true
-	else
-		print("ERR: Can't find music: " .. path)
-		return false
-	end
 end
 -----------------------------------------------------------------------------------------
 -- That's all folks!!!

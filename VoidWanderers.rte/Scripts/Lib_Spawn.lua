@@ -1068,7 +1068,12 @@ end
 --
 -----------------------------------------------------------------------------
 function CF_GenerateRandomMissions(c)
-
+	
+	if not c["ActiveCPUs"] then
+		print("Active CPUS undefined:" .. tostring(c["ActiveCPUs"]))
+		return
+	end
+	
 	local missions = {}
 	local maxMissions = math.max(CF_MaxMissions, math.floor(tonumber(c["ActiveCPUs"]) / 4))
 	for i = 1, maxMissions do
