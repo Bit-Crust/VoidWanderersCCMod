@@ -1,15 +1,15 @@
 local n = #CF_Music[CF_MusicTypes.SHIP_CALM] + 1
-CF_Music[CF_MusicTypes.SHIP_CALM][n] = "Base.rte/Music/dBSoundworks/thisworld5.ogg"
+CF_Music[CF_MusicTypes.SHIP_CALM][n] = "Scenario Menu Music"
 
 local n = #CF_Music[CF_MusicTypes.SHIP_INTENSE] + 1
-CF_Music[CF_MusicTypes.SHIP_INTENSE][n] = "Base.rte/Music/dBSoundworks/ruinexploration.ogg"
+CF_Music[CF_MusicTypes.SHIP_INTENSE][n] = "Generic Battle Music ruinexploration"
 
 local n = #CF_Music[CF_MusicTypes.MISSION_CALM] + 1
-CF_Music[CF_MusicTypes.MISSION_CALM][n] = "Base.rte/Music/dBSoundworks/cc2g.ogg"
+CF_Music[CF_MusicTypes.MISSION_CALM][n] = "Generic Battle Music cc2g"
 local n = #CF_Music[CF_MusicTypes.MISSION_CALM] + 1
-CF_Music[CF_MusicTypes.MISSION_CALM][n] = "Base.rte/Music/dBSoundworks/ccambient4.ogg"
+CF_Music[CF_MusicTypes.MISSION_CALM][n] = "Generic Battle Music ccambient4"
 local n = #CF_Music[CF_MusicTypes.MISSION_CALM] + 1
-CF_Music[CF_MusicTypes.MISSION_CALM][n] = "Base.rte/Music/dBSoundworks/ccambient4.ogg"
+CF_Music[CF_MusicTypes.MISSION_CALM][n] = "Generic Battle Music ccambient4"
 
 local n = #CF_Music[CF_MusicTypes.MISSION_INTENSE] + 1
-CF_Music[CF_MusicTypes.MISSION_INTENSE][n] = "Base.rte/Music/dBSoundworks/bossfight.ogg"
+CF_Music[CF_MusicTypes.MISSION_INTENSE][n] = "Generic Boss Fight Music"

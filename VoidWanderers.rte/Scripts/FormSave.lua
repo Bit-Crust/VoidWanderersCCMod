@@ -85,7 +85,7 @@ function VoidWanderers:FormLoad()
 
 		self.UI[i]["Pos"] = Vector(
 			self.MidX - ((tilesperrow * (180 - 2)) / 2) + (xtile * (180 - 2)) - ((180 - 2) / 2),
-			self.MidY - ((self.Rows * 68) / 2) + (ytile * 68) - (68 / 2)
+			self.MidY - ((self.Rows * 68) / 2) + (ytile * 68) + (68 / 2)
 		)
 
 		xtile = xtile + 1
@@ -155,7 +155,7 @@ function VoidWanderers:FormLoad()
 	el = {}
 	el["Type"] = self.ElementTypes.LABEL
 	el["Preset"] = nil
-	el["Pos"] = self.Mid + Vector(0, -self.ResY2 + 8)
+	el["Pos"] = self.Mid + Vector(0, -self.ResY2 + 33)
 	el["Text"] = "SAVE GAME"
 	el["Width"] = 800
 	el["Height"] = 100
@@ -180,16 +180,16 @@ function VoidWanderers:FormLoad()
 	el = {}
 	el["Type"] = self.ElementTypes.LABEL
 	el["Preset"] = nil
-	el["Pos"] = self.Mid + Vector(0, -self.ResY2 + 28)
+	el["Pos"] = self.Mid + Vector(0, -self.ResY2 + 58)
 	el["Text"] = ""
 	el["Width"] = 800
 	el["Height"] = 100
 
 	self.UI[#self.UI + 1] = el
 	self.LblSlotDescription = el
-
-	AudioMan:ClearMusicQueue()
-	AudioMan:PlayMusic("Base.rte/Music/Hubnester/ccmenu.ogg", -1, -1)
+	
+	MusicMan:EndDynamicMusic(false)
+	MusicMan:PlayDynamicSong("Main Menu Music", "Default", true, false, false)
 end
 -----------------------------------------------------------------------------------------
 --

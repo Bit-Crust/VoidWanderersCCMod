@@ -331,9 +331,9 @@ function VoidWanderers:MissionUpdate()
 			self.MissionEndMusicPlayed = true
 		end
 		if self.Time < self.MissionStatusShowStart + CF_MissionResultShowInterval then
-			for p = 0, self.PlayerCount - 1 do
-				FrameMan:ClearScreenText(p)
-				FrameMan:SetScreenText(self.MissionStatus, p, 0, 1000, true)
+			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+				FrameMan:ClearScreenText(player)
+				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
 			end
 		end
 	elseif self.MissionStage == self.MissionStages.COMPLETED then
@@ -344,9 +344,9 @@ function VoidWanderers:MissionUpdate()
 		self.MissionStatus = "MISSION COMPLETED"
 
 		if self.Time < self.MissionStatusShowStart + CF_MissionResultShowInterval then
-			for p = 0, self.PlayerCount - 1 do
-				FrameMan:ClearScreenText(p)
-				FrameMan:SetScreenText(self.MissionStatus, p, 0, 1000, true)
+			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+				FrameMan:ClearScreenText(player)
+				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
 			end
 		end
 

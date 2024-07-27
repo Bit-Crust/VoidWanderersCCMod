@@ -159,9 +159,9 @@ function VoidWanderers:MissionUpdate()
 	--
 
 	if self.Time < self.MissionShowObjectiveTime then
-		for p = 0, self.PlayerCount - 1 do
-			FrameMan:ClearScreenText(p)
-			FrameMan:SetScreenText("TRY TO SAVE AS MANY ALLIED UNITS AS POSSIBLE!", p, 0, 1000, true)
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			FrameMan:ClearScreenText(player)
+			FrameMan:SetScreenText("TRY TO SAVE AS MANY ALLIED UNITS AS POSSIBLE!", player, 0, 1000, true)
 		end
 	end
 

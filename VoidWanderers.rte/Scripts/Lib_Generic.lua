@@ -186,7 +186,7 @@ function CF_InitFactions(activity)
 
 	CF_EnableAssaults = true -- Set to false to disable assaults
 
-	CF_FogOfWarResolution = 36
+	CF_FogOfWarResolution = 4
 
 	CF_Factions = {}
 
@@ -637,13 +637,9 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-function CF_StartMusic(modulename, musicfile)
-	local path = "" .. modulename .. "/Music/" .. musicfile
-
-	if CF_IsFilePathExists(path) then
-		AudioMan:ClearMusicQueue()
-		AudioMan:PlayMusic(path, -1, -1)
-	end
+function CF_StartMusic(musicfile)
+	MusicMan:EndDynamicMusic(true)
+	MusicMan:PlayDynamicSong(musicfile)
 end
 -----------------------------------------------------------------------------------------
 -- For a given char returns its index, width, vector offsset  if any
@@ -1631,36 +1627,38 @@ end
 function CF_GiveExp(c, exppts)
 	local levelup = false
 
-	for p = 0, 3 do
-		local curexp = tonumber(c["Brain" .. p .. "Exp"])
-		local cursklpts = tonumber(c["Brain" .. p .. "SkillPoints"])
-		local curlvl = tonumber(c["Brain" .. p .. "Level"])
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if ActivityMan:GetActivity():PlayerActive(player) and ActivityMan:GetActivity():PlayerHuman(player) then
+			local curexp = tonumber(c["Brain" .. player .. "Exp"])
+			local cursklpts = tonumber(c["Brain" .. player .. "SkillPoints"])
+			local curlvl = tonumber(c["Brain" .. player .. "Level"])
 
-		--print ("Curexp "..curexp)
-		--print ("Exppts "..exppts)
+			--print ("Curexp "..curexp)
+			--print ("Exppts "..exppts)
 
-		curexp = curexp + exppts
+			curexp = curexp + exppts
 
-		--print (CF_ExpPerLevel)
-		--print (math.floor(curexp / CF_ExpPerLevel))
+			--print (CF_ExpPerLevel)
+			--print (math.floor(curexp / CF_ExpPerLevel))
 
-		while math.floor(curexp / CF_ExpPerLevel) > 0 do
-			if curlvl < CF_MaxLevel then
-				curexp = curexp - CF_ExpPerLevel
-				cursklpts = cursklpts + 1
-				curlvl = curlvl + 1
-				levelup = true
+			while math.floor(curexp / CF_ExpPerLevel) > 0 do
+				if curlvl < CF_MaxLevel then
+					curexp = curexp - CF_ExpPerLevel
+					cursklpts = cursklpts + 1
+					curlvl = curlvl + 1
+					levelup = true
 
-				--print (levelup)
-			else
-				curexp = 0
-				break
+					--print (levelup)
+				else
+					curexp = 0
+					break
+				end
 			end
-		end
 
-		c["Brain" .. p .. "SkillPoints"] = cursklpts
-		c["Brain" .. p .. "Exp"] = curexp
-		c["Brain" .. p .. "Level"] = curlvl
+			c["Brain" .. player .. "SkillPoints"] = cursklpts
+			c["Brain" .. player .. "Exp"] = curexp
+			c["Brain" .. player .. "Level"] = curlvl
+		end
 	end
 
 	return levelup

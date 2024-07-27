@@ -94,7 +94,7 @@ function VoidWanderers:MissionCreate()
 		self.MissionBrain.AIMode = Actor.AIMODE_GOTO
 		local lzs = CF_SelectRandomPoints(
 			CF_GetPointsArray(self.Pts, "Deploy", self.MissionDeploySet, "PlayerLZ"),
-			self.PlayerCount
+			Activity.MAXPLAYERCOUNT
 		)
 		self.MissionBrain:AddAISceneWaypoint(lzs[math.random(#lzs)])
 	else
@@ -167,8 +167,8 @@ function VoidWanderers:MissionUpdate()
 				end
 				self.MissionCraft = nil
 				if self:IsAlly(self.MissionBrain) then
-					for player = Activity.PLAYER_1, self.PlayerCount - 1 do
-						if self:PlayerActive(player) then
+					for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+						if self:PlayerActive(player) and self:PlayerHuman(player) then
 							local savior = self:GetControlledActor(player) -- or MovableMan:GetClosestTeamActor(self.MissionBrain.Team, player, self.MissionBrain.Pos, 20 + self.MissionBrain.IndividualRadius, Vector(), self.MissionBrain)
 							if
 								savior
@@ -353,9 +353,9 @@ function VoidWanderers:MissionUpdate()
 			self.MissionEndMusicPlayed = true
 		end
 		if self.Time < self.MissionStatusShowStart + CF_MissionResultShowInterval then
-			for p = 0, self.PlayerCount - 1 do
-				FrameMan:ClearScreenText(p)
-				FrameMan:SetScreenText(self.MissionStatus, p, 0, 1000, true)
+			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+				FrameMan:ClearScreenText(player)
+				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
 			end
 		end
 	elseif self.MissionStage == self.MissionStages.COMPLETED then
@@ -366,9 +366,9 @@ function VoidWanderers:MissionUpdate()
 		self.MissionStatus = "MISSION COMPLETED"
 
 		if self.Time < self.MissionStatusShowStart + CF_MissionResultShowInterval then
-			for p = 0, self.PlayerCount - 1 do
-				FrameMan:ClearScreenText(p)
-				FrameMan:SetScreenText(self.MissionStatus, p, 0, 1000, true)
+			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+				FrameMan:ClearScreenText(player)
+				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
 			end
 		end
 	end

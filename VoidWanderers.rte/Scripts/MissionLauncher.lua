@@ -173,75 +173,75 @@ function VoidWanderers:LoadCurrentGameState()
 
 		-- Create RPG brain values if they are not present
 		-- This is needed to update old save files, those values are not created during save-file initialization
-		for plr = 0, 3 do
-			local val = self.GS["Brain" .. plr .. "SkillPoints"]
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			local val = self.GS["Brain" .. player .. "SkillPoints"]
 			if val == nil then
-				self.GS["Brain" .. plr .. "SkillPoints"] = 0
+				self.GS["Brain" .. player .. "SkillPoints"] = 0
 			end
 
-			local val = self.GS["Brain" .. plr .. "Exp"]
+			local val = self.GS["Brain" .. player .. "Exp"]
 			if val == nil then
-				self.GS["Brain" .. plr .. "Exp"] = 0
+				self.GS["Brain" .. player .. "Exp"] = 0
 			end
 
-			local val = self.GS["Brain" .. plr .. "Level"]
+			local val = self.GS["Brain" .. player .. "Level"]
 			if val == nil then
-				self.GS["Brain" .. plr .. "Level"] = 0
+				self.GS["Brain" .. player .. "Level"] = 0
 			end
 
-			local val = self.GS["Brain" .. plr .. "Toughness"]
+			local val = self.GS["Brain" .. player .. "Toughness"]
 			if val == nil then
-				self.GS["Brain" .. plr .. "Toughness"] = 0
+				self.GS["Brain" .. player .. "Toughness"] = 0
 			end
 
-			local val = self.GS["Brain" .. plr .. "Field"]
+			local val = self.GS["Brain" .. player .. "Field"]
 			if val == nil then
-				self.GS["Brain" .. plr .. "Field"] = 0
+				self.GS["Brain" .. player .. "Field"] = 0
 			end
 
-			local val = self.GS["Brain" .. plr .. "Telekinesis"]
+			local val = self.GS["Brain" .. player .. "Telekinesis"]
 			if val == nil then
-				self.GS["Brain" .. plr .. "Telekinesis"] = 0
+				self.GS["Brain" .. player .. "Telekinesis"] = 0
 			end
 
-			local val = self.GS["Brain" .. plr .. "Scanner"]
+			local val = self.GS["Brain" .. player .. "Scanner"]
 			if val == nil then
-				self.GS["Brain" .. plr .. "Scanner"] = 0
+				self.GS["Brain" .. player .. "Scanner"] = 0
 			end
 
-			local val = self.GS["Brain" .. plr .. "Heal"]
+			local val = self.GS["Brain" .. player .. "Heal"]
 			if val == nil then
-				self.GS["Brain" .. plr .. "Heal"] = 0
+				self.GS["Brain" .. player .. "Heal"] = 0
 			end
 
-			local val = self.GS["Brain" .. plr .. "SelfHeal"]
+			local val = self.GS["Brain" .. player .. "SelfHeal"]
 			if val == nil then
-				self.GS["Brain" .. plr .. "SelfHeal"] = 0
+				self.GS["Brain" .. player .. "SelfHeal"] = 0
 			end
 
-			local val = self.GS["Brain" .. plr .. "Fix"]
+			local val = self.GS["Brain" .. player .. "Fix"]
 			if val == nil then
-				self.GS["Brain" .. plr .. "Fix"] = 0
+				self.GS["Brain" .. player .. "Fix"] = 0
 			end
 
-			local val = self.GS["Brain" .. plr .. "Fix"]
+			local val = self.GS["Brain" .. player .. "Fix"]
 			if val == nil then
-				self.GS["Brain" .. plr .. "Fix"] = 0
+				self.GS["Brain" .. player .. "Fix"] = 0
 			end
 
-			local val = self.GS["Brain" .. plr .. "Splitter"]
+			local val = self.GS["Brain" .. player .. "Splitter"]
 			if val == nil then
-				self.GS["Brain" .. plr .. "Splitter"] = 0
+				self.GS["Brain" .. player .. "Splitter"] = 0
 			end
 
-			local val = self.GS["Brain" .. plr .. "QuantumStorage"]
+			local val = self.GS["Brain" .. player .. "QuantumStorage"]
 			if val == nil then
-				self.GS["Brain" .. plr .. "QuantumStorage"] = 0
+				self.GS["Brain" .. player .. "QuantumStorage"] = 0
 			end
 
-			local val = self.GS["Brain" .. plr .. "QuantumCapacity"]
+			local val = self.GS["Brain" .. player .. "QuantumCapacity"]
 			if val == nil then
-				self.GS["Brain" .. plr .. "QuantumCapacity"] = 0
+				self.GS["Brain" .. player .. "QuantumCapacity"] = 0
 			end
 		end
 

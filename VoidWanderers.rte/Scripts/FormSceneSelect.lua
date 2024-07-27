@@ -73,10 +73,6 @@ function VoidWanderers:SceneButton_OnClick()
 	self:FormClose()
 	SceneMan:LoadScene(self.UI[el]["Text"], true)
 
-	for p = -1, self.PlayerCount - 1 do
-		self:SetPlayerBrain(nil, p)
-	end
-
 	--[[for actor in MovableMan.AddedActors do
 		--print (actor.PresetName)
 		if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" or actor.PresetName == "Brain Case" then
@@ -85,8 +81,8 @@ function VoidWanderers:SceneButton_OnClick()
 	end--]]
 	--
 
-	for p = -1, self.PlayerCount - 1 do
-		self:SetPlayerBrain(nil, p)
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		self:SetPlayerBrain(nil, player)
 	end
 
 	self.SelectedLocationID = self.UI[el]["LocationID"]

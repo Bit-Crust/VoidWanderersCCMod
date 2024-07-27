@@ -72,8 +72,8 @@ function VoidWanderers:FormLoad()
 		self.UI[#self.UI + 1] = el
 	end
 
-	AudioMan:ClearMusicQueue()
-	AudioMan:PlayMusic("Base.rte/Music/Hubnester/ccmenu.ogg", -1, -1)
+	MusicMan:EndDynamicMusic(false)
+	MusicMan:PlayDynamicSong("Main Menu Music", "Default", true, false, false)
 end
 -----------------------------------------------------------------------------------------
 --

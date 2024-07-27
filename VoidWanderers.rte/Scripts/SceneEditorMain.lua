@@ -45,7 +45,7 @@ function VoidWanderers:StartActivity()
 
 	self.Mouse = self.Mid
 
-	for plr = 0, self.PlayerCount - 1 do
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		self:SetPlayerBrain(nil, Activity.TEAM_1)
 	end
 
@@ -53,8 +53,8 @@ function VoidWanderers:StartActivity()
 
 	self.ObserverPos = nil
 
-	for plr = 0, self.PlayerCount - 1 do
-		FrameMan:ClearScreenText(plr)
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		FrameMan:ClearScreenText(player)
 	end
 
 	self:CreateActors()
