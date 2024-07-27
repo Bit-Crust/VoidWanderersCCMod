@@ -26,4 +26,4 @@ pawnis:
 	Pre-6+ maintenance work
 
 Bit Crust:
-	Pre-6+ maintenance work, Pre-7+ maintenance work (in progress)
+	Pre-6+ maintenance work
