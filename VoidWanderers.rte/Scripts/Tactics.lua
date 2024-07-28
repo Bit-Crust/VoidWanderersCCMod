@@ -3138,11 +3138,11 @@ function VoidWanderers:StartMusic(musictype)
 
 	-- Queue defeat or victory loops
 	if musictype == CF_MusicTypes.VICTORY then
-		MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true, false, false)
+		MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true, true, false)
 		queue = true
 		print("MUSIC: Play victory")
 	elseif musictype == CF_MusicTypes.DEFEAT then
-		MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true, false, false)
+		MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true, true, false)
 		queue = true
 		print("MUSIC: Play defeat")
 	elseif musictype == -1 then
@@ -3184,10 +3184,10 @@ function VoidWanderers:StartMusic(musictype)
 	-- If we're playing intense music, then just queue it once and play ambient all the other times
 	if ok and CF_Music[musictype] then
 		if musictype == CF_MusicTypes.SHIP_INTENSE or musictype == CF_MusicTypes.MISSION_INTENSE then
-			MusicMan:PlayDynamicSong(CF_Music[musictype][track], "Default", true, false, false)
+			MusicMan:PlayDynamicSong(CF_Music[musictype][track], "Default", false, true, true)
 			print("MUSIC: Queue intense")
 		else
-			MusicMan:PlayDynamicSong(CF_Music[musictype][track], "Default", true, false, false)
+			MusicMan:PlayDynamicSong(CF_Music[musictype][track], "Default", not queue, true, true)
 			if queue then
 				print("MUSIC: Queue calm")
 			else
@@ -3227,7 +3227,7 @@ function VoidWanderers:StartMusic(musictype)
 			end
 		end
 		if ok then
-			MusicMan:PlayDynamicSong(CF_Music[musictype][track], "Default", true, false, false)
+			MusicMan:PlayDynamicSong(CF_Music[musictype][track], "Default", false, true, true)
 			print("MUSIC: Queue calm")
 		end
 	end

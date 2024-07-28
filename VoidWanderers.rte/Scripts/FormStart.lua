@@ -71,9 +71,8 @@ function VoidWanderers:FormLoad()
 	if CF_DebugEnableRandomActivity then
 		self.UI[#self.UI + 1] = el
 	end
-
-	MusicMan:EndDynamicMusic(false)
-	MusicMan:PlayDynamicSong("Main Menu Music", "Default", true, false, false)
+	
+	MusicMan:PlayDynamicSong("Main Menu Music DynamicSong", "Default", false, true, true);
 end
 -----------------------------------------------------------------------------------------
 --

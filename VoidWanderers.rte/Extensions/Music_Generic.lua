@@ -1,5 +1,5 @@
 local n = #CF_Music[CF_MusicTypes.SHIP_CALM] + 1
-CF_Music[CF_MusicTypes.SHIP_CALM][n] = "Scenario Menu Music"
+CF_Music[CF_MusicTypes.SHIP_CALM][n] = "Scenario Menu Music DynamicSong"
 
 local n = #CF_Music[CF_MusicTypes.SHIP_INTENSE] + 1
 CF_Music[CF_MusicTypes.SHIP_INTENSE][n] = "Generic Battle Music ruinexploration"

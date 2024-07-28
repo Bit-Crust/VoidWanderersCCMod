@@ -635,13 +635,6 @@ function CF_ReturnOnMissionEnd()
 	end
 end
 -----------------------------------------------------------------------------------------
---
------------------------------------------------------------------------------------------
-function CF_StartMusic(musicfile)
-	MusicMan:EndDynamicMusic(true)
-	MusicMan:PlayDynamicSong(musicfile)
-end
------------------------------------------------------------------------------------------
 -- For a given char returns its index, width, vector offsset  if any
 -----------------------------------------------------------------------------------------
 function CF_GetCharData(char)

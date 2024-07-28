@@ -188,8 +188,7 @@ function VoidWanderers:FormLoad()
 	self.UI[#self.UI + 1] = el
 	self.LblSlotDescription = el
 	
-	MusicMan:EndDynamicMusic(false)
-	MusicMan:PlayDynamicSong("Main Menu Music", "Default", true, false, false)
+	MusicMan:PlayDynamicSong("Main Menu Music DynamicSong", "Default", false, true, true);
 end
 -----------------------------------------------------------------------------------------
 --
