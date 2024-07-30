@@ -3235,6 +3235,16 @@ function VoidWanderers:StartMusic(musictype)
 	self.LastMusicType = musictype
 	self.LastMusicTrack = track
 end
+
+function VoidWanderers:OnMessage(message, context)
+	if message == "BrainCreate" then
+		do_rpgbrain_create(context);
+	elseif message == "BrainUpdate" then
+		do_rpgbrain_update(context);
+	elseif message == "BrainDestroy" then
+		swarm_destroy(context);
+	end
+end
 -----------------------------------------------------------------------------------------
 -- That's all folks!!!
 -----------------------------------------------------------------------------------------

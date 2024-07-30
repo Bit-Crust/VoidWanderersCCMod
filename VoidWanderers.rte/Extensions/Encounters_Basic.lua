@@ -615,7 +615,7 @@ function(self, variant)
 end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
---[[ Hostile drone
+-- Hostile drone
 local id = "HOSTILE_DRONE";
 CF_RandomEncounters[#CF_RandomEncounters + 1] = id
 CF_RandomEncountersInitialTexts[id] = "A pre-historic assault drone is floating nearby. We don't know if it is dead or not."
@@ -623,17 +623,18 @@ CF_RandomEncountersInitialVariants[id] = {"Initiate evade maneuvers and fire cou
 CF_RandomEncountersVariantsInterval[id] = 24
 CF_RandomEncountersOneTime[id] = false
 CF_RandomEncountersFunctions[id] = 
-
 function (self, variant)
 	if not self.RandomEncounterIsInitialized then
 		self.RandomEncounterDroneActivated = false
-		self.RandomEncounterDroneCharges = math.max(7 - math.floor(tonumber(self.GS["Player0VesselSpeed"]) * 0.1 + 0.5), 1)
+		self.RandomEncounterDroneCharges = math.max(10 - math.floor(tonumber(self.GS["Player0VesselSpeed"]) * 0.1 + 0.5), 1)
 		self.RandomEncounterShotFired = 0
-		self.RandomEncounterDroneInterval = 1
-		self.RandomEncounterDroneRechargeInterval = 8
+		self.RandomEncounterDroneInterval = 0
+		self.RandomEncounterDroneRechargeInterval = 1
 		self.RandomEncounterIsInitialized = true
 		
 		self.RandomEncounterNeedTarget = true
+		self.RandomEncounterSourcePos = Vector(SceneMan.SceneWidth / 2 + math.random(-200, 200), SceneMan.SceneHeight / 2 + 1000 * (1 - 2 * math.random(0, 1)))
+		self.RandomEncounterSourceVel = Vector(1 / 3, math.random() * 1 / 2 / 3)
 		self.RandomEncounterTargetPos = nil
 		self.RandomEncounterTargetAngle = nil
 		self.RandomEncounterTargetImpactPos = nil
@@ -648,7 +649,7 @@ function (self, variant)
 			CF_SaveMissionReport(self.GS, self.MissionReport)
 			-- Finish encounter
 			self.RandomEncounterID = nil
-		elseif math.random(12) == 1 then
+		elseif math.random(2) == 1 then
 			self.MissionReport = {}
 			self.MissionReport[#self.MissionReport + 1] = "Looks like it was dead after all."
 			CF_SaveMissionReport(self.GS, self.MissionReport)
@@ -665,8 +666,8 @@ function (self, variant)
 	end
 	
 	if variant == 2 then
-		if math.random(3) == 1 then
-			self.RandomEncounterText = "Shit, it's charging its weapons! INCOMING!"
+		if math.random(2) == 1 then
+			self.RandomEncounterText = "Shit, it's readying the Ceasefire! INCOMING!"
 			self.RandomEncounterVariants = {}
 			self.RandomEncounterChosenVariant = 0
 			
@@ -694,18 +695,17 @@ function (self, variant)
 		end
 		
 		local t
-		if #actors > 0 then 
+		if #actors > 0 and math.random() > 0.7 then 
 			local r = math.random(#actors)
 			t = actors[r].Pos
 		else
 			t = self.Ship:GetRandomPoint()
 		end
-		local a = math.random(360)
 		
 		--t:FlashWhite(5000)
 		
 		self.RandomEncounterTargetPos = Vector(t.X, t.Y)
-		self.RandomEncounterTargetAngle = a
+		self.RandomEncounterTargetAngle = (t - self.RandomEncounterSourcePos).AbsRadAngle;
 		self.RandomEncounterTargetImpactPos = Vector()
 		self.RandomEncounterNeedTarget = false
 		
@@ -713,7 +713,7 @@ function (self, variant)
 		local pos = Vector()
 		
 		for rds = 1, 5000, 50 do
-			pos = self.RandomEncounterTargetPos + Vector(math.cos(a / (180 / math.pi)) * rds, math.sin(a / (180 / math.pi)) * rds);
+			pos = self.RandomEncounterTargetPos + Vector(-math.cos(self.RandomEncounterTargetAngle) * rds, -math.sin(self.RandomEncounterTargetAngle) * rds);
 			if pos.X < 10 or pos.Y < 10 or pos.X > SceneMan.Scene.Width - 10 or pos.Y > SceneMan.Scene.Height - 10 then
 				break
 			else
@@ -721,7 +721,7 @@ function (self, variant)
 			end
 		end
 		
-		local vectortoactor = Vector(math.cos((a + 180) / (180 / math.pi)) * 5, math.sin((a + 180) / (180 / math.pi)) * 5)
+		local vectortoactor = Vector(-math.cos(self.RandomEncounterTargetAngle + math.pi) * 5, -math.sin(self.RandomEncounterTargetAngle + math.pi) * 5)
 		local outv = Vector()
 		
 		SceneMan:CastStrengthRay(self.RandomEncounterFirePos , self.RandomEncounterTargetPos - self.RandomEncounterFirePos, 10, outv, 6, -1, true)
@@ -730,28 +730,31 @@ function (self, variant)
 	end
 	
 	if self.RandomEncounterDroneActivated then
+		self.RandomEncounterSourcePos = self.RandomEncounterSourcePos + self.RandomEncounterSourceVel;	
+		self.RandomEncounterTargetAngle = (self.RandomEncounterTargetPos - self.RandomEncounterSourcePos).AbsRadAngle;
+
 		if self.Time > self.RandomEncounterDroneNextFire - self.RandomEncounterDroneRechargeInterval then
 			for i = self.RandomEncounterShotFired , 2 do
 				local a = self.RandomEncounterTargetAngle
-				self:AddObjectivePoint("DANGER!!!", self.RandomEncounterTargetImpactPos + Vector(math.cos((a + 180) / (180 / math.pi)) * (i * 50), math.sin((a + 180) / (180 / math.pi)) * (i * 50)) , CF_PlayerTeam, GameActivity.ARROWDOWN);
+				self:AddObjectivePoint("DANGER!!!", self.RandomEncounterTargetImpactPos + Vector(-math.cos(a + math.pi) * (i * 50), -math.sin(a + math.pi) * (i * 50)) , CF_PlayerTeam, GameActivity.ARROWDOWN);
 			end
 		end
 		
 		if self.Time >= self.RandomEncounterDroneNextFire then
 			local a = self.RandomEncounterTargetAngle
 	
-			for i = 1, 5 do
+			for i = 1, 25 do
 				local expl = CreateAEmitter("Destroyer Cannon Shot");
-				expl.Pos = self.RandomEncounterFirePos + Vector(math.cos((a + 180) / (180 / math.pi)) * (i * 10), math.sin((a + 180) / (180 / math.pi)) * (i * 10));
+				expl.Pos = self.RandomEncounterFirePos + Vector(-math.cos(a + math.pi) * (i * 10), -math.sin(a + math.pi) * (i * 10))
 				
-				expl.Vel = Vector(math.cos((a + 180) / (180 / math.pi)) * 150, math.sin((a + 180) / (180 / math.pi)) * 150)
-				expl.Mass = 50000;
+				expl.Vel = Vector(-math.cos(a + math.pi) * 150, -math.sin(a + math.pi) * 150)
+				expl.Mass = 1000000
 				MovableMan:AddParticle(expl)
 			end
 			
 			self.RandomEncounterShotFired = self.RandomEncounterShotFired + 1
 			
-			if self.RandomEncounterShotFired == 3 then
+			if self.RandomEncounterShotFired == 1 then
 				self.RandomEncounterShotFired = 0
 				self.RandomEncounterNeedTarget = true
 				self.RandomEncounterDroneCharges = self.RandomEncounterDroneCharges - 1
@@ -768,11 +771,11 @@ function (self, variant)
 				
 				self.RandomEncounterDroneNextFire = self.Time + self.RandomEncounterDroneRechargeInterval
 			else
-				self.RandomEncounterDroneNextFire = self.Time + self.RandomEncounterDroneInterval
+				self.RandomEncounterDroneNextFire = self.Time
 			end
 		end
 	end
-end]]
+end
 --
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------

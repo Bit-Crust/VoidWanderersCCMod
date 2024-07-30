@@ -14,14 +14,13 @@ function VoidWanderers:StartActivity()
 	BASE_PATH = self.ModuleName .. "/Scripts/"
 
 	if SKIP_LIBRARIES == nil then
+		dofile(LIB_PATH .. "Lib_Brain.lua")
 		dofile(LIB_PATH .. "Lib_Config.lua")
 		dofile(LIB_PATH .. "Lib_Generic.lua")
 		dofile(LIB_PATH .. "Lib_ExtensionsData.lua")
 		dofile(LIB_PATH .. "Lib_Spawn.lua")
 		dofile(LIB_PATH .. "Lib_Storage.lua")
 		dofile(LIB_PATH .. "Lib_Encounters.lua")
-
-		dofile(LIB_PATH .. "Brain_Update.lua")
 
 		dofile(LIB_PATH .. "Panel_Clones.lua")
 		dofile(LIB_PATH .. "Panel_Ship.lua")

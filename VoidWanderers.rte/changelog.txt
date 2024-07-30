@@ -82,3 +82,17 @@
 
 04/2024
 	- moved to VoidWanderersCCMod Github repository, changelog no longer seriously maintained
+
+07/2024
+	- did some stuff
+	- RPG brain powers and abilities may partially work now
+	- any player/control configuration should be supported
+	- music should work with Pre-7 music support
+	- small improvements to UI and menu UX
+	- restored mission dots because I think they look cool, but still needs work
+	- items outside the storage bay will take longer to collect
+	- storage sweeps accelerate as they go to offset this following attacks
+	- clone storage is now capable of nullifying dead actor jetpacks
+	- clone storage also grabs dead actors and dampens their velocity
+	- dettaching brain screen flash somehow fixed and then unfixed in the same update
+	- hostile drone encounter restored, very very deadly and not yet balanced, give serious care
