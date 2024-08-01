@@ -85,16 +85,15 @@
 
 07/2024
 	Whatever-date-it-is-right-now update
-	- RPG brain shields and toughness work, everything else currently busted
+	- RPG brain powers and abilities should be fully functional now
 	- any player/control configuration should be supported
 	- music should work with Pre-7 music manager
 	- small improvements to UI and menu UX
-	- restored route dots because they look cool, but still needs work
+	- restored route dots
 	- items outside the storage bay will take longer to collect
-	- storage sweeps accelerate as they go to offset this
+	- storage sweeps accelerate as they go
 	- clone storage is now capable of nullifying dead actor jetpacks
 	- clone storage also grabs dead actors and dampens their velocity
-	- dettaching brain D E A D flash fixed
-		+ somehow introduced red flash in it's place
+	- dettaching brain D E A D flash fixed, but red flashes may still occur
 	- hostile drone encounter restored, very very deadly indeed
 		+ it now has a position in space, so it can only shoot from one side

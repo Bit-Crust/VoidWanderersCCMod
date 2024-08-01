@@ -629,7 +629,7 @@ function (self, variant)
 		self.RandomEncounterDroneCharges = math.max(10 - math.floor(tonumber(self.GS["Player0VesselSpeed"]) * 0.1 + 0.5), 1)
 		self.RandomEncounterShotFired = 0
 		self.RandomEncounterDroneInterval = 0
-		self.RandomEncounterDroneRechargeInterval = 1
+		self.RandomEncounterDroneRechargeInterval = 3
 		self.RandomEncounterIsInitialized = true
 		
 		self.RandomEncounterNeedTarget = true
