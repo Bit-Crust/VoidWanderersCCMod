@@ -24,7 +24,7 @@ function VoidWanderers:InitTurretsControlPanelUI()
 			self.TurretsControlPanelActor[i] = CreateActor("Turret Control Panel");
 			if self.TurretsControlPanelActor[i] ~= nil then
 				self.TurretsControlPanelActor[i].Pos = self.TurretsControlPanelPos[i];
-				self.TurretsControlPanelActor[i].Team = CF_PlayerTeam;
+				self.TurretsControlPanelActor[i].Team = CF["PlayerTeam"];
 				MovableMan:AddActor(self.TurretsControlPanelActor[i]);
 			end
 		else
@@ -39,7 +39,7 @@ function VoidWanderers:InitTurretsControlPanelUI()
 		self.TurretsControlPanelInitialized[i] = false;
 	end
 
-	self.Turrets = CF_GetTurretsArray(self.GS);
+	self.Turrets = CF["GetTurretsArray"](self.GS);
 	self.TurretsControlPanelLinesPerPage = 4;
 end
 -----------------------------------------------------------------------------------------
@@ -121,7 +121,7 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 							down = true;
 						end
 
-						if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
+						if self.HoldTimer:IsPastSimMS(CF["KeyRepeatDelay"]) then
 							self.HoldTimer:Reset();
 
 							if cont:IsState(Controller.HOLD_UP) then
@@ -165,7 +165,7 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 											and self.GS["DeployedTurret" .. turr .. "Class"] ~= nil
 										then
 											if
-												CF_CountUsedTurretsInArray(self.Turrets)
+												CF["CountUsedTurretsInArray"](self.Turrets)
 												< tonumber(self.GS["Player0VesselTurretStorage"])
 											then
 												if self.Turrets[#self.Turrets]["Preset"] == "Remove turret" then
@@ -174,7 +174,7 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 
 												self.SelectedTurret = #self.Turrets;
 
-												CF_PutTurretToStorageArray(
+												CF["PutTurretToStorageArray"](
 													self.Turrets,
 													self.GS["DeployedTurret" .. turr .. "Preset"],
 													self.GS["DeployedTurret" .. turr .. "Class"],
@@ -184,7 +184,7 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 												self.GS["DeployedTurret" .. turr .. "Preset"] = nil;
 												self.GS["DeployedTurret" .. turr .. "Class"] = nil;
 												self.GS["DeployedTurret" .. turr .. "Module"] = nil;
-												CF_SetTurretsArray(self.GS, self.Turrets);
+												CF["SetTurretsArray"](self.GS, self.Turrets);
 											end
 										end
 									else
@@ -193,7 +193,7 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 												self.GS["DeployedTurret" .. turr .. "Preset"] ~= nil
 												and self.GS["DeployedTurret" .. turr .. "Class"] ~= nil
 											then
-												CF_PutTurretToStorageArray(
+												CF["PutTurretToStorageArray"](
 													self.Turrets,
 													self.GS["DeployedTurret" .. turr .. "Preset"],
 													self.GS["DeployedTurret" .. turr .. "Class"],
@@ -210,7 +210,7 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 											self.Turrets[self.SelectedTurret]["Count"] = self.Turrets[self.SelectedTurret]["Count"]
 												- 1;
 
-											CF_SetTurretsArray(self.GS, self.Turrets);
+											CF["SetTurretsArray"](self.GS, self.Turrets);
 										end
 									end
 								end
@@ -226,14 +226,14 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 
 						if self.Time % 2 == 0 then
 							if pre ~= nil then
-								CF_DrawString("Active: " .. pre, pos + Vector(-60, -24), 136, 10);
+								CF["DrawString"]("Active: " .. pre, pos + Vector(-60, -24), 136, 10);
 							else
-								CF_DrawString("Active: NONE", pos + Vector(-60, -24), 136, 10);
+								CF["DrawString"]("Active: NONE", pos + Vector(-60, -24), 136, 10);
 							end
 						else
-							CF_DrawString(
+							CF["DrawString"](
 								"Storage: "
-									.. CF_CountUsedTurretsInArray(self.Turrets)
+									.. CF["CountUsedTurretsInArray"](self.Turrets)
 									.. " / "
 									.. self.GS["Player0VesselTurretStorage"],
 								pos + Vector(-60, -24),
@@ -248,14 +248,14 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 								local loc = i - self.TurretsControlCloneListStart;
 
 								if i == self.SelectedTurret then
-									CF_DrawString(
+									CF["DrawString"](
 										"> " .. self.Turrets[i]["Preset"],
 										pos + Vector(-60, -8) + Vector(0, loc * 12),
 										120,
 										10
 									);
 								else
-									CF_DrawString(
+									CF["DrawString"](
 										self.Turrets[i]["Preset"],
 										pos + Vector(-60, -8) + Vector(0, loc * 12),
 										120,
@@ -263,7 +263,7 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 									);
 								end
 								if self.Turrets[i]["Preset"] ~= "Remove turret" then
-									CF_DrawString(
+									CF["DrawString"](
 										tostring(self.Turrets[i]["Count"]),
 										pos + Vector(56, -8) + Vector(0, loc * 12),
 										120,
@@ -373,8 +373,8 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 								self.GS["DeployedTurret" .. turr .. "Preset"] ~= nil
 								and self.GS["DeployedTurret" .. turr .. "Class"] ~= nil
 							then
-								local l = CF_GetStringPixelWidth(self.GS["DeployedTurret" .. turr .. "Preset"]);
-								CF_DrawString(
+								local l = CF["GetStringPixelWidth"](self.GS["DeployedTurret" .. turr .. "Preset"]);
+								CF["DrawString"](
 									self.GS["DeployedTurret" .. turr .. "Preset"],
 									self.TurretsControlPanelPos[turr] + Vector(-l / 2, -28),
 									120,
@@ -420,9 +420,9 @@ function VoidWanderers:DeployTurrets()
 		local module = self.GS["DeployedTurret" .. turr .. "Module"];
 
 		if preset ~= nil and class ~= nil then
-			local actor = CF_MakeActor(preset, class, module);
+			local actor = CF["MakeActor"](preset, class, module);
 			if actor then
-				actor.Team = CF_PlayerTeam;
+				actor.Team = CF["PlayerTeam"];
 				actor.Pos = self.TurretsControlPanelPos[turr];
 				actor.AIMode = Actor.AIMODE_SENTRY;
 				self:SetAlly(actor, true);

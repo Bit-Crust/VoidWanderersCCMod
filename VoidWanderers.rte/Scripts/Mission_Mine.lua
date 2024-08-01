@@ -72,17 +72,17 @@ function VoidWanderers:MissionCreate()
 	self.MissionLastAllyReinforcements = self.Time - 1
 
 	-- Use generic enemy set
-	local set = CF_GetRandomMissionPointsSet(self.Pts, "Mine")
+	local set = CF["GetRandomMissionPointsSet"](self.Pts, "Mine")
 
 	-- Git miners
-	local miners = CF_GetPointsArray(self.Pts, "Mine", set, "Miners")
+	local miners = CF["GetPointsArray"](self.Pts, "Mine", set, "Miners")
 	if #miners == 0 then
 		miners = { SceneMan:MovePointToGround(Vector(math.random(SceneMan.SceneWidth), 0), 0, 5) }
 	end
-	miners = CF_SelectRandomPoints(miners, self.MissionSettings["InitialMiners"])
+	miners = CF["SelectRandomPoints"](miners, self.MissionSettings["InitialMiners"])
 
 	-- Get LZs
-	self.MissionLZs = CF_GetPointsArray(self.Pts, "Mine", set, "MinerLZ")
+	self.MissionLZs = CF["GetPointsArray"](self.Pts, "Mine", set, "MinerLZ")
 	if #self.MissionLZs == 0 then
 		self.MissionLZs = { miners }
 	end
@@ -90,8 +90,8 @@ function VoidWanderers:MissionCreate()
 	-- Spawn miners
 	for i = 1, #miners do
 		local nw = {}
-		nw["Preset"] = CF_PresetTypes.ENGINEER
-		nw["Team"] = CF_PlayerTeam
+		nw["Preset"] = CF["PresetTypes"].ENGINEER
+		nw["Team"] = CF["PlayerTeam"]
 		nw["Player"] = self.MissionSourcePlayer
 		nw["AIMode"] = Actor.AIMODE_GOLDDIG
 		nw["Pos"] = miners[i]
@@ -106,7 +106,7 @@ function VoidWanderers:MissionCreate()
 	self.MissionCompleteCountdownStart = 0
 	self.MissionShowDropshipWarningStart = 0
 
-	self:SetTeamFunds(0, CF_CPUTeam)
+	self:SetTeamFunds(0, CF["CPUTeam"])
 end
 -----------------------------------------------------------------------------------------
 --
@@ -118,11 +118,11 @@ function VoidWanderers:MissionUpdate()
 		local enemies = 0
 
 		for actor in MovableMan.Actors do
-			if actor.Team == CF_PlayerTeam then
+			if actor.Team == CF["PlayerTeam"] then
 				if actor:HasObjectInGroup("Tools - Diggers") and self:IsAlly(actor) then
 					friends = friends + 1
 
-					self:AddObjectivePoint("PROTECT", actor.AboveHUDPos, CF_PlayerTeam, GameActivity.ARROWDOWN)
+					self:AddObjectivePoint("PROTECT", actor.AboveHUDPos, CF["PlayerTeam"], GameActivity.ARROWDOWN)
 					if actor.AIMode ~= Actor.AIMODE_GOLDDIG then
 						actor.AIMode = Actor.AIMODE_GOLDDIG
 					end
@@ -141,10 +141,10 @@ function VoidWanderers:MissionUpdate()
 						actor.Vel.Y = math.max(actor.Vel.Y, self.gravityPerFrame.Y + 1)
 					end
 				end
-			elseif actor.Team == CF_CPUTeam then
+			elseif actor.Team == CF["CPUTeam"] then
 				enemies = enemies + 1
 				if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
-					CF_HuntForActors(actor, CF_PlayerTeam)
+					CF["HuntForActors"](actor, CF["PlayerTeam"])
 				end
 			end
 		end
@@ -153,7 +153,7 @@ function VoidWanderers:MissionUpdate()
 		--[[if friends <= self.MissionSettings["MinersNeeded"] then
 			for item in MovableMan.Items do
 				if item:IsInGroup("Tools - Diggers") then
-					self:AddObjectivePoint("GRAB", item + Vector(0,-30), CF_PlayerTeam, GameActivity.ARROWDOWN);				
+					self:AddObjectivePoint("GRAB", item + Vector(0,-30), CF["PlayerTeam"], GameActivity.ARROWDOWN);				
 				end
 			end
 		end--]]
@@ -195,7 +195,7 @@ function VoidWanderers:MissionUpdate()
 
 			for actor in MovableMan.Actors do
 				if self:IsAlly(actor) and actor.GoldCarried > 0 then
-					CF_SetPlayerGold(self.GS, 0, CF_GetPlayerGold(self.GS, 0) + actor.GoldCarried)
+					CF["SetPlayerGold"](self.GS, 0, CF["GetPlayerGold"](self.GS, 0) + actor.GoldCarried)
 					actor.GoldCarried = 0
 				end
 			end
@@ -241,7 +241,7 @@ function VoidWanderers:MissionUpdate()
 			and self.Time >= self.MissionLastAllyReinforcements + self.MissionAllySpawnInterval
 			and self.MissionSettings["AllyReinforcementsCount"] > 0
 		then
-			if MovableMan:GetMOIDCount() < CF_MOIDLimit then
+			if MovableMan:GetMOIDCount() < CF["MOIDLimit"] then
 				--print ("Spawn ally")
 				self.MissionLastAllyReinforcements = self.Time
 
@@ -249,22 +249,22 @@ function VoidWanderers:MissionUpdate()
 					self.MissionShowDropshipWarningStart = self.Time
 				end
 
-				local f = CF_GetPlayerFaction(self.GS, self.MissionSourcePlayer)
-				local ship = CF_MakeActor(CF_Crafts[f], CF_CraftClasses[f], CF_CraftModules[f])
+				local f = CF["GetPlayerFaction"](self.GS, self.MissionSourcePlayer)
+				local ship = CF["MakeActor"](CF["Crafts"][f], CF["CraftClasses"][f], CF["CraftModules"][f])
 				if ship then
 					for i = 1, math.random(2) do
 						local actor
 						if i == 1 then
-							actor = CF_SpawnAIUnitWithPreset(
+							actor = CF["SpawnAIUnitWithPreset"](
 								self.GS,
 								self.MissionSourcePlayer,
-								CF_PlayerTeam,
+								CF["PlayerTeam"],
 								nil,
 								Actor.AIMODE_GOLDDIG,
-								CF_PresetTypes.ENGINEER
+								CF["PresetTypes"].ENGINEER
 							)
 						else
-							actor = CF_SpawnRandomInfantry(CF_PlayerTeam, nil, f, Actor.AIMODE_GOLDDIG)
+							actor = CF["SpawnRandomInfantry"](CF["PlayerTeam"], nil, f, Actor.AIMODE_GOLDDIG)
 							if actor then
 								actor:AddInventoryItem(CreateHDFirearm("Heavy Digger", "Base.rte"))
 							end
@@ -275,7 +275,7 @@ function VoidWanderers:MissionUpdate()
 						end
 					end
 					self:SetAlly(ship, true)
-					ship.Team = CF_PlayerTeam
+					ship.Team = CF["PlayerTeam"]
 					ship.Pos = Vector(self.MissionLZs[math.random(#self.MissionLZs)].X, -10)
 					ship.AIMode = Actor.AIMODE_DELIVER
 					ship:SetGoldValue(0)
@@ -290,10 +290,10 @@ function VoidWanderers:MissionUpdate()
 	elseif self.MissionStage == self.MissionStages.COMPLETED then
 		self.MissionStatus = "MISSION COMPLETED"
 		if not self.MissionEndMusicPlayed then
-			self:StartMusic(CF_MusicTypes.VICTORY)
+			self:StartMusic(CF["MusicTypes"].VICTORY)
 			self.MissionEndMusicPlayed = true
 		end
-		if self.Time < self.MissionStatusShowStart + CF_MissionResultShowInterval then
+		if self.Time < self.MissionStatusShowStart + CF["MissionResultShowInterval"] then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
@@ -302,11 +302,11 @@ function VoidWanderers:MissionUpdate()
 	elseif self.MissionStage == self.MissionStages.FAILED then
 		self.MissionStatus = "MISSION FAILED"
 		if not self.MissionEndMusicPlayed then
-			self:StartMusic(CF_MusicTypes.DEFEAT)
+			self:StartMusic(CF["MusicTypes"].DEFEAT)
 			self.MissionEndMusicPlayed = true
 		end
 
-		if self.Time < self.MissionStatusShowStart + CF_MissionResultShowInterval then
+		if self.Time < self.MissionStatusShowStart + CF["MissionResultShowInterval"] then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
@@ -316,13 +316,13 @@ function VoidWanderers:MissionUpdate()
 
 	-- Always send enemy reinforcements to prevent player from digging out the whole map with free miners
 	if
-		MovableMan:GetMOIDCount() < CF_MOIDLimit
+		MovableMan:GetMOIDCount() < CF["MOIDLimit"]
 		and #self.MissionLZs > 0
 		and self.Time >= self.MissionNextReinforcements
 	then
 		if self.MissionSettings["EnemyDropShips"] > 0 then
-			local f = CF_GetPlayerFaction(self.GS, self.MissionTargetPlayer)
-			local ship = CF_MakeActor(CF_Crafts[f], CF_CraftClasses[f], CF_CraftModules[f])
+			local f = CF["GetPlayerFaction"](self.GS, self.MissionTargetPlayer)
+			local ship = CF["MakeActor"](CF["Crafts"][f], CF["CraftClasses"][f], CF["CraftModules"][f])
 			if ship then
 				local count
 				if self.MissionStage == self.MissionStages.ACTIVE then
@@ -335,13 +335,13 @@ function VoidWanderers:MissionUpdate()
 					ship:SetGoldValue(0)
 				end
 				for i = 1, count do
-					local actor = CF_SpawnAIUnitWithPreset(
+					local actor = CF["SpawnAIUnitWithPreset"](
 						self.GS,
 						self.MissionTargetPlayer,
-						CF_CPUTeam,
+						CF["CPUTeam"],
 						nil,
 						Actor.AIMODE_SENTRY,
-						math.random(CF_PresetTypes.HEAVY2)
+						math.random(CF["PresetTypes"].HEAVY2)
 					)
 					if actor then
 						if self.MissionStage ~= self.MissionStages.ACTIVE then
@@ -350,7 +350,7 @@ function VoidWanderers:MissionUpdate()
 						ship:AddInventoryItem(actor)
 					end
 				end
-				ship.Team = CF_CPUTeam
+				ship.Team = CF["CPUTeam"]
 				ship.Pos = Vector(self.MissionLZs[math.random(#self.MissionLZs)].X, -10)
 				ship.AIMode = Actor.AIMODE_DELIVER
 				MovableMan:AddActor(ship)

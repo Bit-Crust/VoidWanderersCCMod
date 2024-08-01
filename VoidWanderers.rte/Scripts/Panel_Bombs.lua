@@ -5,7 +5,7 @@ function VoidWanderers:InitBombsControlPanelUI()
 	self.BombsControlPanelActor = CreateActor("Bomb Control Panel");
 	if self.BombsControlPanelActor ~= nil then
 		self.BombsControlPanelActor.Pos = Vector(0, 0);
-		self.BombsControlPanelActor.Team = CF_PlayerTeam;
+		self.BombsControlPanelActor.Team = CF["PlayerTeam"];
 		MovableMan:AddActor(self.BombsControlPanelActor);
 	end
 end
@@ -87,10 +87,10 @@ function VoidWanderers:ProcessBombsControlPanelUI()
 
 				local range;
 
-				if SceneMan:IsUnseen(bombpos.X, bombpos.Y, CF_PlayerTeam) then
-					range = CF_BombUnseenRange;
+				if SceneMan:IsUnseen(bombpos.X, bombpos.Y, CF["PlayerTeam"]) then
+					range = CF["BombUnseenRange"];
 				else
-					range = CF_BombSeenRange;
+					range = CF["BombSeenRange"];
 				end
 
 				local s = "SELECT TARGET";
@@ -99,43 +99,43 @@ function VoidWanderers:ProcessBombsControlPanelUI()
 					s = "";
 					if self.Time <= self.BombingStart + self.BombingLoadTime then
 						s = "LOADING BOMBS\nT-"
-							.. tostring(self.BombingStart + self.BombingLoadTime + CF_BombFlightInterval - self.Time);
-					elseif self.Time <= self.BombingStart + self.BombingLoadTime + CF_BombFlightInterval then
+							.. tostring(self.BombingStart + self.BombingLoadTime + CF["BombFlightInterval"] - self.Time);
+					elseif self.Time <= self.BombingStart + self.BombingLoadTime + CF["BombFlightInterval"] then
 						s = "BOMBS RELEASED\nT-"
-							.. tostring(self.BombingStart + self.BombingLoadTime + CF_BombFlightInterval - self.Time);
+							.. tostring(self.BombingStart + self.BombingLoadTime + CF["BombFlightInterval"] - self.Time);
 					end
 				else
 					self.LastKnownBombingPosition = bombpos;
 				end
-				self:AddObjectivePoint(s, bombpos, CF_PlayerTeam, GameActivity.ARROWDOWN);
+				self:AddObjectivePoint(s, bombpos, CF["PlayerTeam"], GameActivity.ARROWDOWN);
 
 				local x = pos.X - range / 4;
 				if x < 0 then
 					x = SceneMan.Scene.Width - math.abs(x);
 				end
 				local targetpos = SceneMan:MovePointToGround(Vector(x, 0), 20, 3);
-				self:AddObjectivePoint("", targetpos, CF_PlayerTeam, GameActivity.ARROWDOWN);
+				self:AddObjectivePoint("", targetpos, CF["PlayerTeam"], GameActivity.ARROWDOWN);
 
 				local x = pos.X - range / 2;
 				if x < 0 then
 					x = SceneMan.Scene.Width - math.abs(x);
 				end
 				local targetpos = SceneMan:MovePointToGround(Vector(x, 0), 20, 3);
-				self:AddObjectivePoint("", targetpos, CF_PlayerTeam, GameActivity.ARROWDOWN);
+				self:AddObjectivePoint("", targetpos, CF["PlayerTeam"], GameActivity.ARROWDOWN);
 
 				local x = pos.X + range / 4;
 				if x > SceneMan.Scene.Width then
 					x = x - SceneMan.Scene.Width;
 				end
 				local targetpos = SceneMan:MovePointToGround(Vector(x, 0), 20, 3);
-				self:AddObjectivePoint("", targetpos, CF_PlayerTeam, GameActivity.ARROWDOWN);
+				self:AddObjectivePoint("", targetpos, CF["PlayerTeam"], GameActivity.ARROWDOWN);
 
 				local x = pos.X + range / 2;
 				if x > SceneMan.Scene.Width then
 					x = x - SceneMan.Scene.Width;
 				end
 				local targetpos = SceneMan:MovePointToGround(Vector(x, 0), 20, 3);
-				self:AddObjectivePoint("", targetpos, CF_PlayerTeam, GameActivity.ARROWDOWN);
+				self:AddObjectivePoint("", targetpos, CF["PlayerTeam"], GameActivity.ARROWDOWN);
 
 				if cont:IsState(Controller.WEAPON_FIRE) then
 					if not self.FirePressed[player] then
@@ -146,13 +146,13 @@ function VoidWanderers:ProcessBombsControlPanelUI()
 							self.BombingStart = self.Time;
 							self.BombingLoadTime = math.ceil(
 								#self.BombPayload / tonumber(self.GS["Player0VesselBombBays"])
-							) * CF_BombLoadInterval;
+							) * CF["BombLoadInterval"];
 							self.BombingRange = range;
 							self.BombingLastBombShot = self.Time;
 							self.BombingCount = 1;
 
 							-- Commit bombs to storage
-							CF_SetBombsArray(self.GS, self.Bombs);
+							CF["SetBombsArray"](self.GS, self.Bombs);
 						end
 					end
 				else

@@ -6,12 +6,12 @@ function VoidWanderersPrestige(pieActor, pieMenu, pieSlice)
 		pieActor:RemoveWounds(pieActor.WoundCount)
 		pieActor.Health = pieActor.MaxHealth
 
-		CF_UnBuffActor(ToAHuman(pieActor), pieActor:GetNumberValue("VW_Rank"), pieActor:GetNumberValue("VW_Prestige"))
+		CF["UnBuffActor"](ToAHuman(pieActor), pieActor:GetNumberValue("VW_Rank"), pieActor:GetNumberValue("VW_Prestige"))
 		pieActor:RemoveNumberValue("VW_XP")
 		pieActor:RemoveNumberValue("VW_Rank")
 		pieActor:SetNumberValue("VW_Prestige", pieActor:GetNumberValue("VW_Prestige") + 1)
 		pieActor:SetStringValue("VW_Name", "")
-		CF_SetNamingActor(pieActor)
+		CF["SetNamingActor"](pieActor)
 
 		pieMenu:RemovePieSlice(pieSlice)
 	end

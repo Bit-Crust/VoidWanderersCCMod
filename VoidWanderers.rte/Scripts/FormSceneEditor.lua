@@ -2,14 +2,14 @@
 --	Load event. Put all UI element initialiations here.
 -----------------------------------------------------------------------------------------
 function VoidWanderers:FormLoad()
-	--CF_StopUIProcessing = true
+	--CF["StopUIProcessing"] = true
 
 	print("Form load")
 
 	G_CursorActor = CreateActor("VW_Cursor")
 	if G_CursorActor then
-		G_CursorActor.Team = CF_PlayerTeam
-		local curactor = self:GetControlledActor(CF_PlayerTeam)
+		G_CursorActor.Team = CF["PlayerTeam"]
+		local curactor = self:GetControlledActor(CF["PlayerTeam"])
 
 		if curactor and MovableMan:IsActor(curactor) then
 			G_CursorActor.Pos = curactor.Pos
@@ -59,16 +59,16 @@ function VoidWanderers:FormLoad()
 	--self.Data[2] = {}
 	--self.Data[2]["Name"] = "Enemy"
 
-	for i = 1, CF_GenericMissionCount do
+	for i = 1, CF["GenericMissionCount"] do
 		self.Data[i] = {}
-		self.Data[i]["Name"] = CF_Mission[i]
+		self.Data[i]["Name"] = CF["Mission"][i]
 	end
 
 	print(self.SelectedLocationID)
 
-	for i = 1, #CF_LocationMissions[self.SelectedLocationID] do
-		self.Data[CF_GenericMissionCount + i] = {}
-		self.Data[CF_GenericMissionCount + i]["Name"] = CF_LocationMissions[self.SelectedLocationID][i]
+	for i = 1, #CF["LocationMissions"][self.SelectedLocationID] do
+		self.Data[CF["GenericMissionCount"] + i] = {}
+		self.Data[CF["GenericMissionCount"] + i]["Name"] = CF["LocationMissions"][self.SelectedLocationID][i]
 	end
 
 	el = {}
@@ -148,16 +148,16 @@ function VoidWanderers:FormLoad()
 	self.LastTypeElement = #self.UI
 
 	-- Load level data
-	self.LS = CF_ReadSceneConfigFile(self.ModuleName, SceneMan.Scene.PresetName .. ".dat")
+	self.LS = CF["ReadSceneConfigFile"](self.ModuleName, SceneMan.Scene.PresetName .. ".dat")
 
 	for k1 = 1, #self.Data do
 		local msntype = self.Data[k1]["Name"]
 
-		for k2 = 1, CF_MissionMaxSets[msntype] do
-			for k3 = 1, #CF_MissionRequiredData[msntype] do
-				local pttype = CF_MissionRequiredData[msntype][k3]["Name"]
+		for k2 = 1, CF["MissionMaxSets"][msntype] do
+			for k3 = 1, #CF["MissionRequiredData"][msntype] do
+				local pttype = CF["MissionRequiredData"][msntype][k3]["Name"]
 
-				for k4 = 1, CF_MissionRequiredData[msntype][k3]["Max"] do
+				for k4 = 1, CF["MissionRequiredData"][msntype][k3]["Max"] do
 					local id = msntype .. tostring(k2) .. pttype .. tostring(k4)
 
 					local x = self.LS[id .. "X"]
@@ -249,9 +249,9 @@ function VoidWanderers:Save_OnClick()
 			for k3, v3 in pairs(v2) do -- Point type
 				--print (k3)
 
-				local pnttype = CF_MissionRequiredData[k][k3]["Name"]
+				local pnttype = CF["MissionRequiredData"][k][k3]["Name"]
 				-- Clear data
-				for i = 1, CF_MissionRequiredData[k][k3]["Max"] do
+				for i = 1, CF["MissionRequiredData"][k][k3]["Max"] do
 					self.LS[msntype .. setnum .. pnttype .. tostring(i) .. "X"] = nil
 					self.LS[msntype .. setnum .. pnttype .. tostring(i) .. "Y"] = nil
 				end
@@ -267,7 +267,7 @@ function VoidWanderers:Save_OnClick()
 		end
 	end
 
-	CF_WriteSceneConfigFile(self.LS, CF_ModuleName, SceneMan.Scene.PresetName .. ".dat")
+	CF["WriteSceneConfigFile"](self.LS, CF["ModuleName"], SceneMan.Scene.PresetName .. ".dat")
 end
 -----------------------------------------------------------------------------------------
 --
@@ -293,7 +293,7 @@ function VoidWanderers:MissionType_OnClick()
 	local pos = Vector(SceneMan.Scene.Width / 2, 0)
 
 	-- Fill sets
-	for i = 1, CF_MissionMaxSets[self.SelectedType] do
+	for i = 1, CF["MissionMaxSets"][self.SelectedType] do
 		el = {}
 		el["Type"] = self.ElementTypes.BUTTON
 		el["Presets"] = {}
@@ -320,7 +320,7 @@ function VoidWanderers:MissionType_OnClick()
 	local y = 1
 
 	-- Fill point types
-	for i = 1, #CF_MissionRequiredData[self.SelectedType] do
+	for i = 1, #CF["MissionRequiredData"][self.SelectedType] do
 		el = {}
 		el["Type"] = self.ElementTypes.BUTTON
 		el["Presets"] = {}
@@ -328,7 +328,7 @@ function VoidWanderers:MissionType_OnClick()
 		el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
 		el["Presets"][self.ButtonStates.PRESSED] = "ButtonSceneEditorWidePressed"
 		el["RelPos"] = Vector(-self.ResX2 + 20 + sx / 2 + x * sx + 252, -self.ResY2 + 20 + y * sy)
-		el["Text"] = CF_MissionRequiredData[self.SelectedType][i]["Name"]
+		el["Text"] = CF["MissionRequiredData"][self.SelectedType][i]["Name"]
 		el["Data"] = i
 		el["Width"] = sx
 		el["Height"] = sy
@@ -347,7 +347,7 @@ function VoidWanderers:MissionType_OnClick()
 
 	self:ShowElements()
 
-	--CF_DisableUIProcessing = true
+	--CF["DisableUIProcessing"] = true
 end
 -----------------------------------------------------------------------------------------
 --
@@ -379,7 +379,7 @@ function VoidWanderers:PointType_OnClick()
 	local pos = Vector(SceneMan.Scene.Width / 2, 0)
 
 	-- Fill sets
-	for i = 1, CF_MissionRequiredData[self.SelectedType][self.SelectedPointType]["Max"] do
+	for i = 1, CF["MissionRequiredData"][self.SelectedType][self.SelectedPointType]["Max"] do
 		el = {}
 		el["Type"] = self.ElementTypes.BUTTON
 		el["Presets"] = {}
@@ -421,7 +421,7 @@ function VoidWanderers:FormUpdate()
 		and self.SelectedPointType ~= nil
 		and self.SelectedPoint ~= nil
 	then
-		local mx = CF_MissionRequiredData[self.SelectedType][self.SelectedPointType]["Max"]
+		local mx = CF["MissionRequiredData"][self.SelectedType][self.SelectedPointType]["Max"]
 		local mv = UInputMan:MouseWheelMoved()
 
 		if mv > 0 then
@@ -473,7 +473,7 @@ function VoidWanderers:FormUpdate()
 				and self.SelectedPointType ~= nil
 				and self.SelectedPoint ~= nil
 			then
-				local mx = CF_MissionRequiredData[self.SelectedType][self.SelectedPointType]["Max"]
+				local mx = CF["MissionRequiredData"][self.SelectedType][self.SelectedPointType]["Max"]
 
 				if i <= mx then
 					self.SelectedPoint = i
@@ -489,7 +489,7 @@ function VoidWanderers:FormUpdate()
 				for k3, v3 in pairs(self.Pts[self.SelectedType][self.SelectedSet]) do
 					for k4, v4 in pairs(v3) do
 						--self:PutGlow("ControlPanel_Ship_LocationDot", v4)
-						if CF_DistUnder(v4, self.Mouse, 5) then
+						if CF["DistUnder"](v4, self.Mouse, 5) then
 							self.Pts[self.SelectedType][self.SelectedSet][k3][k4] = nil
 						end
 					end
@@ -568,14 +568,14 @@ function VoidWanderers:FormDraw()
 			ms = self.Mouse
 		end
 
-		CF_DrawString("" .. math.floor(ms.X) .. "-" .. math.floor(ms.Y), self.Mouse + Vector(-14, 40), 100, 100)
+		CF["DrawString"]("" .. math.floor(ms.X) .. "-" .. math.floor(ms.Y), self.Mouse + Vector(-14, 40), 100, 100)
 	end
 
 	if self.SelectedType ~= nil then
 		if self.Pts[self.SelectedType] ~= nil and self.Pts[self.SelectedType][self.SelectedSet] ~= nil then
 			-- Enum
 			for k3, v3 in pairs(self.Pts[self.SelectedType][self.SelectedSet]) do
-				local tp = CF_MissionRequiredData[self.SelectedType][k3]["Type"]
+				local tp = CF["MissionRequiredData"][self.SelectedType][k3]["Type"]
 
 				if tp == "Box" then
 					for k4, v4 in pairs(v3) do
@@ -619,27 +619,27 @@ function VoidWanderers:FormDraw()
 							self:DrawDottedLine(x1, y2, x2, y2, "SceneEditor_Dot_Yellow", 50)
 						end
 
-						local nm = CF_MissionRequiredData[self.SelectedType][k3]["Name"]
+						local nm = CF["MissionRequiredData"][self.SelectedType][k3]["Name"]
 						local s = nm .. "-" .. tostring(k4)
-						local l = CF_GetStringPixelWidth(s)
+						local l = CF["GetStringPixelWidth"](s)
 
-						CF_DrawString(s, v4 + Vector(-l / 2, -10), 150, 20)
+						CF["DrawString"](s, v4 + Vector(-l / 2, -10), 150, 20)
 					end
 				else
 					for k4, v4 in pairs(v3) do
-						local nm = CF_MissionRequiredData[self.SelectedType][k3]["Name"]
+						local nm = CF["MissionRequiredData"][self.SelectedType][k3]["Name"]
 						local s = nm .. "-" .. tostring(k4)
-						local l = CF_GetStringPixelWidth(s)
+						local l = CF["GetStringPixelWidth"](s)
 
-						CF_DrawString(s, v4 + Vector(-l / 2, -10), 150, 20)
+						CF["DrawString"](s, v4 + Vector(-l / 2, -10), 150, 20)
 						self:PutGlow("SceneEditor_Dot_Green", v4)
 
 						if self.SelectedPointType == k3 and self.SelectedPoint == k4 then
-							self:AddObjectivePoint(s, v4 + Vector(0, -15), CF_PlayerTeam, GameActivity.ARROWDOWN)
+							self:AddObjectivePoint(s, v4 + Vector(0, -15), CF["PlayerTeam"], GameActivity.ARROWDOWN)
 						end
 
 						if self.SelectedPointType == k3 and self.SelectedPoint ~= k4 then
-							self:AddObjectivePoint(s, v4 + Vector(0, 15), CF_PlayerTeam, GameActivity.ARROWUP)
+							self:AddObjectivePoint(s, v4 + Vector(0, 15), CF["PlayerTeam"], GameActivity.ARROWUP)
 						end
 					end
 				end
@@ -678,7 +678,7 @@ function VoidWanderers:FormDraw()
 	end
 
 	if self.SelectedPointType ~= nil then
-		s = s .. " - " .. CF_MissionRequiredData[self.SelectedType][self.SelectedPointType]["Name"]
+		s = s .. " - " .. CF["MissionRequiredData"][self.SelectedType][self.SelectedPointType]["Name"]
 	end
 
 	if self.SelectedPoint ~= nil then
@@ -687,7 +687,7 @@ function VoidWanderers:FormDraw()
 
 	-- Draw generic points
 	if self.ShowGeneric then
-		for i = 1, CF_GenericMissionCount do
+		for i = 1, CF["GenericMissionCount"] do
 			if
 				self.SelectedType ~= self.Data[i]["Name"]
 				and self.SelectedSet ~= nil
@@ -696,11 +696,11 @@ function VoidWanderers:FormDraw()
 			then
 				for k3, v3 in pairs(self.Pts[self.Data[i]["Name"]][self.SelectedSet]) do
 					for k4, v4 in pairs(v3) do
-						local nm = CF_MissionRequiredData[self.Data[i]["Name"]][k3]["Name"]
+						local nm = CF["MissionRequiredData"][self.Data[i]["Name"]][k3]["Name"]
 						local s = nm .. "-" .. tostring(k4)
-						local l = CF_GetStringPixelWidth(s)
+						local l = CF["GetStringPixelWidth"](s)
 
-						CF_DrawString(s, v4 + Vector(-l / 2, -10), 150, 20)
+						CF["DrawString"](s, v4 + Vector(-l / 2, -10), 150, 20)
 						self:PutGlow("SceneEditor_Dot_Blue", v4)
 					end
 				end
@@ -739,7 +739,7 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:DrawDottedLine(x1, y1, x2, y2, dot, interval)
-	local d = CF_Dist(Vector(x1, y1), Vector(x2, y2))
+	local d = CF["Dist"](Vector(x1, y1), Vector(x2, y2))
 
 	--local avgx = x2 - x1;
 	--local avgy = y2 - y2;

@@ -73,7 +73,7 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:EndActivity()
 	print("END! -- VoidWanderers:EndActivity()!")
-	CF_Self = nil
+	CF["Self"] = nil
 end
 -----------------------------------------------------------------------------------------
 -- Update Activity

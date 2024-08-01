@@ -38,12 +38,12 @@ function VoidWanderers:MissionCreate()
 	self.MissionStart = self.Time
 
 	-- Select set
-	local set = CF_GetRandomMissionPointsSet(self.Pts, "Zombies")
+	local set = CF["GetRandomMissionPointsSet"](self.Pts, "Zombies")
 
 	-- Get LZs
-	self.MissionVatsPos = CF_GetPointsArray(self.Pts, "Zombies", set, "Vat")
+	self.MissionVatsPos = CF["GetPointsArray"](self.Pts, "Zombies", set, "Vat")
 	if self.MissionSettings["VatsCount"] < 8 then
-		self.MissionVatsPos = CF_SelectRandomPoints(self.MissionVatsPos, self.MissionSettings["VatsCount"])
+		self.MissionVatsPos = CF["SelectRandomPoints"](self.MissionVatsPos, self.MissionSettings["VatsCount"])
 	end
 
 	self.MissionVats = {}
@@ -58,31 +58,31 @@ function VoidWanderers:MissionCreate()
 	end
 
 	-- Build random weapon lists
-	local rifles = CF_MakeListOfMostPowerfulWeapons(
+	local rifles = CF["MakeListOfMostPowerfulWeapons"](
 		self.GS,
 		self.MissionSourcePlayer,
-		CF_WeaponTypes.RIFLE,
-		CF_GetTechLevelFromDifficulty(self.GS, self.MissionSourcePlayer, self.MissionDifficulty, CF_MaxDifficulty)
+		CF["WeaponTypes"].RIFLE,
+		CF["GetTechLevelFromDifficulty"](self.GS, self.MissionSourcePlayer, self.MissionDifficulty, CF["MaxDifficulty"])
 	)
-	local snipers = CF_MakeListOfMostPowerfulWeapons(
+	local snipers = CF["MakeListOfMostPowerfulWeapons"](
 		self.GS,
 		self.MissionSourcePlayer,
-		CF_WeaponTypes.SNIPER,
-		CF_GetTechLevelFromDifficulty(self.GS, self.MissionSourcePlayer, self.MissionDifficulty, CF_MaxDifficulty)
+		CF["WeaponTypes"].SNIPER,
+		CF["GetTechLevelFromDifficulty"](self.GS, self.MissionSourcePlayer, self.MissionDifficulty, CF["MaxDifficulty"])
 	)
-	local pistols = CF_MakeListOfMostPowerfulWeapons(
+	local pistols = CF["MakeListOfMostPowerfulWeapons"](
 		self.GS,
 		self.MissionSourcePlayer,
-		CF_WeaponTypes.PISTOL,
-		CF_GetTechLevelFromDifficulty(self.GS, self.MissionSourcePlayer, self.MissionDifficulty, CF_MaxDifficulty)
+		CF["WeaponTypes"].PISTOL,
+		CF["GetTechLevelFromDifficulty"](self.GS, self.MissionSourcePlayer, self.MissionDifficulty, CF["MaxDifficulty"])
 	)
-	local grenades = CF_MakeListOfMostPowerfulWeapons(
+	local grenades = CF["MakeListOfMostPowerfulWeapons"](
 		self.GS,
 		self.MissionSourcePlayer,
-		CF_WeaponTypes.GRENADE,
-		CF_GetTechLevelFromDifficulty(self.GS, self.MissionSourcePlayer, self.MissionDifficulty, CF_MaxDifficulty)
+		CF["WeaponTypes"].GRENADE,
+		CF["GetTechLevelFromDifficulty"](self.GS, self.MissionSourcePlayer, self.MissionDifficulty, CF["MaxDifficulty"])
 	)
-	--local heavies = CF_MakeListOfMostPowerfulWeapons(self.GS, self.MissionSourcePlayer, CF_WeaponTypes.HEAVY , CF_GetTechLevelFromDifficulty(self.GS, self.MissionSourcePlayer, self.MissionDifficulty, CF_MaxDifficulty))
+	--local heavies = CF["MakeListOfMostPowerfulWeapons"](self.GS, self.MissionSourcePlayer, CF["WeaponTypes"].HEAVY , CF["GetTechLevelFromDifficulty"](self.GS, self.MissionSourcePlayer, self.MissionDifficulty, CF["MaxDifficulty"]))
 
 	self.MissionWeapons = {}
 
@@ -125,7 +125,7 @@ function VoidWanderers:MissionUpdate()
 				self:AddObjectivePoint(
 					"DESTROY",
 					self.MissionVatsPos[i] + Vector(0, -10),
-					CF_PlayerTeam,
+					CF["PlayerTeam"],
 					GameActivity.ARROWDOWN
 				)
 			else
@@ -162,7 +162,7 @@ function VoidWanderers:MissionUpdate()
 					local i = self.MissionWeapons[r1][r2]["Item"]
 					local f = self.MissionWeapons[r1][r2]["Faction"]
 
-					local w = CF_MakeItem(CF_ItmPresets[f][i], CF_ItmClasses[f][i], CF_ItmModules[f][i])
+					local w = CF["MakeItem"](CF["ItmPresets"][f][i], CF["ItmClasses"][f][i], CF["ItmModules"][f][i])
 					if w ~= nil then
 						actor:AddInventoryItem(w)
 					end
@@ -170,7 +170,7 @@ function VoidWanderers:MissionUpdate()
 			end
 		end
 
-		if zcount < self.MissionSettings["MaxZombiesPerVat"] * vats and MovableMan:GetMOIDCount() < CF_MOIDLimit then
+		if zcount < self.MissionSettings["MaxZombiesPerVat"] * vats and MovableMan:GetMOIDCount() < CF["MOIDLimit"] then
 			for i = 1, self.MissionSettings["VatsCount"] do
 				if MovableMan:IsParticle(self.MissionVats[i]) then
 					if not self.MissionVats[i]:IsEmitting() then
@@ -190,11 +190,11 @@ function VoidWanderers:MissionUpdate()
 	elseif self.MissionStage == self.MissionStages.COMPLETED then
 		self.MissionStatus = "MISSION COMPLETED"
 		if not self.MissionEndMusicPlayed then
-			self:StartMusic(CF_MusicTypes.VICTORY)
+			self:StartMusic(CF["MusicTypes"].VICTORY)
 			self.MissionEndMusicPlayed = true
 		end
 
-		if self.Time < self.MissionStatusShowStart + CF_MissionResultShowInterval then
+		if self.Time < self.MissionStatusShowStart + CF["MissionResultShowInterval"] then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)

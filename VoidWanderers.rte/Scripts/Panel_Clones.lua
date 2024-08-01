@@ -37,7 +37,7 @@ function VoidWanderers:InitClonesControlPanelUI()
 			self.ClonesControlPanelActor = CreateActor("Clones Control Panel");
 			if self.ClonesControlPanelActor ~= nil then
 				self.ClonesControlPanelActor.Pos = self.ClonesControlPanelPos;
-				self.ClonesControlPanelActor.Team = CF_PlayerTeam;
+				self.ClonesControlPanelActor.Team = CF["PlayerTeam"];
 				MovableMan:AddActor(self.ClonesControlPanelActor);
 			end
 		end
@@ -67,7 +67,7 @@ function VoidWanderers:InitClonesControlPanelUI()
 	self.ClonesControlPanelModesHelpTexts[self.ClonesControlPanelModes.ITEMS] =
 		"L/R/U/D - Select, FIRE - Add to inventory";
 
-	self.Clones = CF_GetClonesArray(self.GS);
+	self.Clones = CF["GetClonesArray"](self.GS);
 end
 -----------------------------------------------------------------------------------------
 --
@@ -157,11 +157,11 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 			then
 				if self.ClonesControlMode == self.ClonesControlPanelModes.SELL then
 					if
-						CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.TRADESTAR)
-						or CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.BLACKMARKET)
+						CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].TRADESTAR)
+						or CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].BLACKMARKET)
 					then
 						self.ClonesControlPanelModesTexts[self.ClonesControlPanelModes.SELL] = "SELL BODIES "
-							.. CF_GetPlayerGold(self.GS, 0)
+							.. CF["GetPlayerGold"](self.GS, 0)
 							.. " oz";
 						self.ClonesControlPanelModesHelpTexts[self.ClonesControlPanelModes.SELL] =
 							"L/R/U/D - Select, FIRE - Sell";
@@ -185,7 +185,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 					down = true;
 				end
 
-				if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
+				if self.HoldTimer:IsPastSimMS(CF["KeyRepeatDelay"]) then
 					self.HoldTimer:Reset();
 
 					if cont:IsState(Controller.HOLD_UP) then
@@ -221,9 +221,9 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 					- (self.SelectedClone - 1) % self.ClonesControlPanelLinesPerPage;
 
 				self.SelectedClonePrice = 0;
-				local sellCoeff = CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.BLACKMARKET)
-						and math.sqrt(CF_SellPriceCoeff)
-					or CF_SellPriceCoeff;
+				local sellCoeff = CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].BLACKMARKET)
+						and math.sqrt(CF["SellPriceCoeff"])
+					or CF["SellPriceCoeff"];
 
 				-- Draw clones list
 				for i = self.ClonesControlCloneListStart, self.ClonesControlCloneListStart + self.ClonesControlPanelLinesPerPage - 1 do
@@ -238,21 +238,21 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 								and self.Clones[i]["Name"]
 							or self.Clones[i]["Preset"];
 						if i == self.SelectedClone then
-							CF_DrawString("> " .. name, pos + Vector(-130, -40) + Vector(0, loc * 12), 120, 10);
+							CF["DrawString"]("> " .. name, pos + Vector(-130, -40) + Vector(0, loc * 12), 120, 10);
 							-- Calculate actor price
-							local fact, indx = CF_FindActorInFactions(self.Clones[i]["Preset"], self.Clones[i]["Class"]);
+							local fact, indx = CF["FindActorInFactions"](self.Clones[i]["Preset"], self.Clones[i]["Class"]);
 							self.SelectedClonePrice = math.floor(
 								(
-										(fact and indx) and self.SelectedClonePrice + CF_ActPrices[fact][indx]
-										or CF_UnknownActorPrice
+										(fact and indx) and self.SelectedClonePrice + CF["ActPrices"][fact][indx]
+										or CF["UnknownActorPrice"]
 									) * sellCoeff
 							);
 
 							--if self.ClonesControlMode == self.ClonesControlPanelModes.SELL and self.GS["Planet"] == "TradeStar" and self.GS["Location"] ~= nil then
-							--	CF_DrawString(tostring(self.SelectedClonePrice).."oz", pos + Vector(-20,-40) + Vector(0, (loc) * 12), 120, 10)
+							--	CF["DrawString"](tostring(self.SelectedClonePrice).."oz", pos + Vector(-20,-40) + Vector(0, (loc) * 12), 120, 10)
 							--end
 						else
-							CF_DrawString(name, pos + Vector(-130, -40) + Vector(0, loc * 12), 120, 10);
+							CF["DrawString"](name, pos + Vector(-130, -40) + Vector(0, loc * 12), 120, 10);
 						end
 					end
 				end
@@ -271,8 +271,8 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 					if xp then
 						xp = tonumber(xp);
 						local showRank = 0;
-						for rank = 1, #CF_Ranks do
-							if xp >= CF_Ranks[rank] then
+						for rank = 1, #CF["Ranks"] do
+							if xp >= CF["Ranks"][rank] then
 								showRank = rank;
 							else
 								break;
@@ -287,8 +287,8 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 						end
 					end
 					-- Print inventory
-					CF_DrawString(
-						info .. "Inventory: " .. #self.Clones[self.SelectedClone]["Items"] .. "/" .. CF_MaxItems,
+					CF["DrawString"](
+						info .. "Inventory: " .. #self.Clones[self.SelectedClone]["Items"] .. "/" .. CF["MaxItems"],
 						drawPos + Vector(12, -60),
 						300,
 						20
@@ -303,32 +303,32 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 							info = (info == "" and "" or info .. ", ")
 								.. ((armless and legless) and "LIMBLESS" or (armless and "ARMLESS" or "LEGLESS"));
 						end
-						CF_DrawString(info, drawPos + Vector(12, -60), 300, 20);
+						CF["DrawString"](info, drawPos + Vector(12, -60), 300, 20);
 					end
 
 					for i = 1, #self.Clones[self.SelectedClone]["Items"] do
 						-- Calculate inventory price
-						local fact, indx = CF_FindItemInFactions(
+						local fact, indx = CF["FindItemInFactions"](
 							self.Clones[self.SelectedClone]["Items"][i]["Preset"],
 							self.Clones[self.SelectedClone]["Items"][i]["Class"]
 						);
 
 						local price = math.floor(
-							((fact and indx) and CF_ItmPrices[fact][indx] or CF_UnknownItemPrice) * sellCoeff
+							((fact and indx) and CF["ItmPrices"][fact][indx] or CF["UnknownItemPrice"]) * sellCoeff
 						);
 						self.SelectedClonePrice = self.SelectedClonePrice + price;
 
 						local prefix = "";
 						if self.ClonesControlMode == self.ClonesControlPanelModes.SELL then
 							if
-								CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.TRADESTAR)
-								or CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.BLACKMARKET)
+								CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].TRADESTAR)
+								or CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].BLACKMARKET)
 							then
 								prefix = tostring(price) .. "oz ";
 							end
 						end
 
-						CF_DrawString(
+						CF["DrawString"](
 							prefix .. self.Clones[self.SelectedClone]["Items"][i]["Preset"],
 							drawPos + Vector(12, -40) + Vector(0, (i - 1) * 12),
 							120,
@@ -339,17 +339,17 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 
 				if self.ClonesControlMode == self.ClonesControlPanelModes.SELL then
 					if
-						CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.TRADESTAR)
-						or CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.BLACKMARKET)
+						CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].TRADESTAR)
+						or CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].BLACKMARKET)
 					then
-						CF_DrawString("Sell price: " .. self.SelectedClonePrice, pos + Vector(12, 60), 300, 10);
+						CF["DrawString"]("Sell price: " .. self.SelectedClonePrice, pos + Vector(12, 60), 300, 10);
 					end
 				end
 
 				-- Print clone storage capacity
-				CF_DrawString(
+				CF["DrawString"](
 					"Capacity: "
-						.. CF_CountUsedClonesInArray(self.Clones)
+						.. CF["CountUsedClonesInArray"](self.Clones)
 						.. "/"
 						.. self.GS["Player0VesselClonesCapacity"],
 					pos + Vector(-130, -60),
@@ -359,7 +359,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 
 				-- Change panel text to show life support capacity
 				self.ClonesControlPanelModesTexts[self.ClonesControlPanelModes.CLONES] = "Bodies - Life support usage: "
-					.. CF_CountActors(CF_PlayerTeam)
+					.. CF["CountActors"](CF["PlayerTeam"])
 					.. "/"
 					.. self.GS["Player0VesselLifeSupport"];
 
@@ -370,13 +370,13 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 						if self.ClonesControlMode == self.ClonesControlPanelModes.SELL then
 							if self.SelectedClone ~= 0 then
 								if
-									CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.TRADESTAR)
-									or CF_IsLocationHasAttribute(
+									CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].TRADESTAR)
+									or CF["IsLocationHasAttribute"](
 										self.GS["Location"],
-										CF_LocationAttributeTypes.BLACKMARKET
+										CF["LocationAttributeTypes"].BLACKMARKET
 									)
 								then
-									CF_SetPlayerGold(self.GS, 0, CF_GetPlayerGold(self.GS, 0) + self.SelectedClonePrice);
+									CF["SetPlayerGold"](self.GS, 0, CF["GetPlayerGold"](self.GS, 0) + self.SelectedClonePrice);
 								end
 
 								-- Remove actor from array
@@ -393,7 +393,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 								self.Clones = newarr;
 
 								-- Update game state data
-								CF_SetClonesArray(self.GS, self.Clones);
+								CF["SetClonesArray"](self.GS, self.Clones);
 
 								if self.SelectedClone > #self.Clones then
 									self.SelectedClone = #self.Clones;
@@ -403,19 +403,19 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 								self.ClonesControlMessageText = "Clone storage is empty";
 							end
 						else
-							if CF_CountActors(CF_PlayerTeam) < tonumber(self.GS["Player0VesselLifeSupport"]) then
+							if CF["CountActors"](CF["PlayerTeam"]) < tonumber(self.GS["Player0VesselLifeSupport"]) then
 								-- Create new unit
 								if self.SelectedClone ~= 0 then
-									if MovableMan:GetMOIDCount() < CF_MOIDLimit then
+									if MovableMan:GetMOIDCount() < CF["MOIDLimit"] then
 										-- Spawn actor
 										local limbData = {};
-										for j = 1, #CF_LimbID do
-											limbData[j] = self.Clones[self.SelectedClone][CF_LimbID[j]];
-											if not CF_PermanentLimbLoss and limbData[j] == "Null" then
+										for j = 1, #CF["LimbID"] do
+											limbData[j] = self.Clones[self.SelectedClone][CF["LimbID"][j]];
+											if not CF["PermanentLimbLoss"] and limbData[j] == "Null" then
 												limbData[j] = nil;
 											end
 										end
-										local a = CF_MakeActor(
+										local a = CF["MakeActor"](
 											self.Clones[self.SelectedClone]["Preset"],
 											self.Clones[self.SelectedClone]["Class"],
 											self.Clones[self.SelectedClone]["Module"],
@@ -426,19 +426,19 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 											limbData
 										);
 										if a ~= nil then
-											a.Team = CF_PlayerTeam;
+											a.Team = CF["PlayerTeam"];
 											a.AIMode = Actor.AIMODE_SENTRY;
 
 											for i = 1, #self.Clones[self.SelectedClone]["Items"] do
-												local itm = CF_MakeItem(
+												local itm = CF["MakeItem"](
 													self.Clones[self.SelectedClone]["Items"][i]["Preset"],
 													self.Clones[self.SelectedClone]["Items"][i]["Class"],
 													self.Clones[self.SelectedClone]["Items"][i]["Module"]
 												);
 												if itm ~= nil then
 													if
-														itm:HasScript(CF_ModuleName .. "/Items/Limb.lua")
-														and CF_AttemptReplaceLimb(a, itm)
+														itm:HasScript(CF["ModuleName"] .. "/Items/Limb.lua")
+														and CF["AttemptReplaceLimb"](a, itm)
 													then
 														DeleteEntity(itm);
 													else
@@ -474,7 +474,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 											self.Clones = newarr;
 
 											-- Update game state data
-											CF_SetClonesArray(self.GS, self.Clones);
+											CF["SetClonesArray"](self.GS, self.Clones);
 
 											if self.SelectedClone > #self.Clones then
 												self.SelectedClone = #self.Clones;
@@ -515,22 +515,22 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 
 						if
 							self.SelectedClone > 0
-							and CF_CountUsedStorageInArray(self.StorageItems) < tonumber(
+							and CF["CountUsedStorageInArray"](self.StorageItems) < tonumber(
 								self.GS["Player0VesselStorageCapacity"]
 							)
 							and #self.Clones[self.SelectedClone]["Items"] > 0
 						then
 							-- Put item to storage array
-							CF_PutItemToStorageArray(
+							CF["PutItemToStorageArray"](
 								self.StorageItems,
 								self.Clones[self.SelectedClone]["Items"][self.ClonesInventorySelectedItem]["Preset"],
 								self.Clones[self.SelectedClone]["Items"][self.ClonesInventorySelectedItem]["Class"],
 								self.Clones[self.SelectedClone]["Items"][self.ClonesInventorySelectedItem]["Module"]
 							);
-							CF_SetStorageArray(self.GS, self.StorageItems);
+							CF["SetStorageArray"](self.GS, self.StorageItems);
 
 							-- Refresh storage items array and filters
-							self.StorageItems, self.StorageFilters = CF_GetStorageArray(self.GS, true);
+							self.StorageItems, self.StorageFilters = CF["GetStorageArray"](self.GS, true);
 
 							-- Remove item from inventory via temp array
 							local inv = {};
@@ -550,7 +550,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 
 							self.Clones[self.SelectedClone]["Items"] = inv
 
-							CF_SetClonesArray(self.GS, self.Clones);
+							CF["SetClonesArray"](self.GS, self.Clones);
 
 							self.ClonesInventorySelectedItem = math.max(self.ClonesInventorySelectedItem - 1, 1);
 						end
@@ -572,7 +572,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 					down = true;
 				end
 
-				if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
+				if self.HoldTimer:IsPastSimMS(CF["KeyRepeatDelay"]) then
 					self.HoldTimer:Reset();
 
 					if cont:IsState(Controller.HOLD_UP) then
@@ -614,7 +614,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 								self.StorageFilters[self.StorageControlPanelModes.EVERYTHING][self.ClonesStorageSelectedItem];
 
 							--Add item to unit's inventory
-							if #self.Clones[self.SelectedClone]["Items"] < CF_MaxItems then
+							if #self.Clones[self.SelectedClone]["Items"] < CF["MaxItems"] then
 								if self.StorageItems[itm]["Count"] > 0 then
 									local newitm = #self.Clones[self.SelectedClone]["Items"] + 1;
 									self.StorageItems[itm]["Count"] = self.StorageItems[itm]["Count"] - 1;
@@ -627,12 +627,12 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 										self.StorageItems[itm]["Module"];
 
 									-- Update game state
-									CF_SetClonesArray(self.GS, self.Clones);
-									CF_SetStorageArray(self.GS, self.StorageItems);
+									CF["SetClonesArray"](self.GS, self.Clones);
+									CF["SetStorageArray"](self.GS, self.StorageItems);
 
 									-- Refresh storage array and filters
 									if self.StorageItems[itm]["Count"] == 0 then
-										self.StorageItems, self.StorageFilters = CF_GetStorageArray(self.GS, true);
+										self.StorageItems, self.StorageFilters = CF["GetStorageArray"](self.GS, true);
 									end
 								else
 									self.ClonesControlLastMessageTime = self.Time;
@@ -672,7 +672,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 					down = true;
 				end
 
-				if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
+				if self.HoldTimer:IsPastSimMS(CF["KeyRepeatDelay"]) then
 					self.HoldTimer:Reset();
 
 					if cont:IsState(Controller.HOLD_UP) then
@@ -724,8 +724,8 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 							)
 							and self.Clones[self.SelectedClone]["Name"]
 						or self.Clones[self.SelectedClone]["Preset"];
-					CF_DrawString(
-						name .. ": " .. #self.Clones[self.SelectedClone]["Items"] .. "/" .. CF_MaxItems,
+					CF["DrawString"](
+						name .. ": " .. #self.Clones[self.SelectedClone]["Items"] .. "/" .. CF["MaxItems"],
 						pos + Vector(-141 + 12, -60),
 						300,
 						10
@@ -736,7 +736,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 							self.ClonesControlMode == self.ClonesControlPanelModes.INVENTORY
 							and self.ClonesInventorySelectedItem == i
 						then
-							CF_DrawString(
+							CF["DrawString"](
 								"> " .. self.Clones[self.SelectedClone]["Items"][i]["Preset"],
 								pos + Vector(-141 + 12, -40) + Vector(0, (i - 1) * 12),
 								120,
@@ -745,7 +745,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 							self.ClonesControlPanelModesTexts[self.ClonesControlPanelModes.INVENTORY] = self.Clones[self.SelectedClone]["Items"][i]["Preset"]
 								.. " - Inventory";
 						else
-							CF_DrawString(
+							CF["DrawString"](
 								self.Clones[self.SelectedClone]["Items"][i]["Preset"],
 								pos + Vector(-141 + 12, -40) + Vector(0, (i - 1) * 12),
 								120,
@@ -768,7 +768,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 							self.ClonesControlMode == self.ClonesControlPanelModes.ITEMS
 							and self.ClonesStorageSelectedItem == i
 						then
-							CF_DrawString(
+							CF["DrawString"](
 								"> " .. self.StorageItems[itm]["Preset"],
 								pos + Vector(12, -40) + Vector(0, loc * 12),
 								110,
@@ -777,7 +777,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 							self.ClonesControlPanelModesTexts[self.ClonesControlPanelModes.ITEMS] = self.StorageItems[itm]["Preset"]
 								.. " - Items";
 						else
-							CF_DrawString(
+							CF["DrawString"](
 								self.StorageItems[itm]["Preset"],
 								pos + Vector(12, -40) + Vector(0, loc * 12),
 								110,
@@ -785,7 +785,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 							);
 						end
 
-						CF_DrawString(
+						CF["DrawString"](
 							tostring(self.StorageItems[itm]["Count"]),
 							pos + Vector(12, -40) + Vector(110, loc * 12),
 							110,
@@ -795,9 +795,9 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 				end
 
 				-- Print storage capacity
-				CF_DrawString(
+				CF["DrawString"](
 					"Capacity: "
-						.. CF_CountUsedStorageInArray(self.StorageItems)
+						.. CF["CountUsedStorageInArray"](self.StorageItems)
 						.. "/"
 						.. self.GS["Player0VesselStorageCapacity"],
 					pos + Vector(12, -60),
@@ -820,7 +820,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 			-- Print help text or error message text
 			if self.Time < self.ClonesControlLastMessageTime + self.ClonesControlMessageIntrval then
 				self:PutGlow("ControlPanel_Clones_HorizontalPanel_Red", pos + Vector(0, 78));
-				CF_DrawString(self.ClonesControlMessageText, pos + Vector(-130, 78), 300, 10);
+				CF["DrawString"](self.ClonesControlMessageText, pos + Vector(-130, 78), 300, 10);
 			else
 				if self.ClonesControlMode ~= self.ClonesControlPanelModes.SELL then
 					self:PutGlow("ControlPanel_Clones_HorizontalPanel", pos + Vector(0, 78));
@@ -828,7 +828,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 					self:PutGlow("ControlPanel_Clones_HorizontalPanel_Red", pos + Vector(0, 78));
 				end
 
-				CF_DrawString(
+				CF["DrawString"](
 					self.ClonesControlPanelModesHelpTexts[self.ClonesControlMode],
 					pos + Vector(-130, 78),
 					300,
@@ -837,14 +837,14 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 			end
 
 			-- Print Selected mode text
-			CF_DrawString(self.ClonesControlPanelModesTexts[self.ClonesControlMode], pos + Vector(-130, -77), 250, 10);
+			CF["DrawString"](self.ClonesControlPanelModesTexts[self.ClonesControlMode], pos + Vector(-130, -77), 250, 10);
 		end
 	end
 
 	if showidle and self.ClonesControlPanelPos ~= nil and self.ClonesControlPanelActor ~= nil then
 		self.ClonesControlPanelInitialized = false;
 		self:PutGlow("ControlPanel_Clones", self.ClonesControlPanelPos);
-		--CF_DrawString("CLONES",self.ClonesControlPanelPos + Vector(-16,0),120,20 )
+		--CF["DrawString"]("CLONES",self.ClonesControlPanelPos + Vector(-16,0),120,20 )
 		--print (self.ClonesControlPanelActor)
 	end
 
@@ -855,7 +855,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 		and self.GS["Mode"] ~= "Assault"
 		and not self.RandomEncounterAttackLaunched
 	then
-		local count = CF_CountUsedClonesInArray(self.Clones);
+		local count = CF["CountUsedClonesInArray"](self.Clones);
 		local toresettimer = true;
 		
 		if count < tonumber(self.GS["Player0VesselClonesCapacity"]) then
@@ -863,7 +863,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 
 			-- Search for body and put it in storage
 			for actor in MovableMan:GetMOsInRadius(self.ClonesInputPos, self.ClonesInputRange, Activity.NOTEAM, true) do
-				if IsActor(actor) and actor.Team == CF_PlayerTeam then
+				if IsActor(actor) and actor.Team == CF["PlayerTeam"] then
 					actor = ToActor(actor);
 					local controller = actor:GetController();
 					local moving = controller:IsState(Controller.MOVE_LEFT)
@@ -898,7 +898,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 							-- Put clone to storage
 							if
 								self.Time >= self.ClonesLastDetectedBodyTime + self.ClonesInputDelay
-								and CF_CountUsedClonesInArray(self.Clones)
+								and CF["CountUsedClonesInArray"](self.Clones)
 									< tonumber(self.GS["Player0VesselClonesCapacity"])
 							then
 								local c = #self.Clones + 1;
@@ -911,18 +911,18 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 								self.Clones[c]["Identity"] = actor:GetNumberValue("Identity");
 								self.Clones[c]["Prestige"] = actor:GetNumberValue("VW_Prestige");
 								self.Clones[c]["Name"] = actor:GetStringValue("VW_Name");
-								for j = 1, #CF_LimbID do
-									self.Clones[c][CF_LimbID[j]] = CF_GetLimbData(actor, j);
+								for j = 1, #CF["LimbID"] do
+									self.Clones[c][CF["LimbID"][j]] = CF["GetLimbData"](actor, j);
 								end
 
 								-- Store inventory
-								local inv, cls, mdl = CF_GetInventory(actor);
+								local inv, cls, mdl = CF["GetInventory"](actor);
 
 								self.Clones[c]["Items"] = {};
 
 								for i = 1, #inv do
 									-- First store items in clone storage
-									if i <= CF_MaxItems then
+									if i <= CF["MaxItems"] then
 										self.Clones[c]["Items"][i] = {}
 										self.Clones[c]["Items"][i]["Preset"] = inv[i]
 										self.Clones[c]["Items"][i]["Class"] = cls[i]
@@ -931,19 +931,19 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 										-- Try to store other items in items storage
 										-- If we have free space add items to storage, spawn nearby otherwise
 										if
-											CF_CountUsedStorageInArray(self.StorageItems)
+											CF["CountUsedStorageInArray"](self.StorageItems)
 											< tonumber(self.GS["Player0VesselStorageCapacity"])
 										then
 											-- Put item to storage array
-											CF_PutItemToStorageArray(self.StorageItems, inv[i], cls[i], mdl[i]);
+											CF["PutItemToStorageArray"](self.StorageItems, inv[i], cls[i], mdl[i]);
 
 											-- Store everything
-											CF_SetStorageArray(self.GS, self.StorageItems);
+											CF["SetStorageArray"](self.GS, self.StorageItems);
 
 											-- Refresh storage items array and filters
-											self.StorageItems, self.StorageFilters = CF_GetStorageArray(self.GS, true);
+											self.StorageItems, self.StorageFilters = CF["GetStorageArray"](self.GS, true);
 										else
-											local itm = CF_MakeItem(inv[i], cls[i], mdl[i]);
+											local itm = CF["MakeItem"](inv[i], cls[i], mdl[i]);
 											if itm ~= nil then
 												itm.Pos = self.ClonesInputPos;
 												MovableMan:AddItem(itm);
@@ -953,19 +953,19 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 								end
 
 								if actor:IsPlayerControlled() then
-									self:SwitchToActor(self.ClonesControlPanelActor, controller.Player, CF_PlayerTeam);
+									self:SwitchToActor(self.ClonesControlPanelActor, controller.Player, CF["PlayerTeam"]);
 								end
 								if actor.GoldCarried > 0 then
-									CF_SetPlayerGold(self.GS, 0, CF_GetPlayerGold(self.GS, 0) + actor.GoldCarried);
+									CF["SetPlayerGold"](self.GS, 0, CF["GetPlayerGold"](self.GS, 0) + actor.GoldCarried);
 								end
 
 								actor.ToDelete = true;
 
 								-- Store everything
-								CF_SetClonesArray(self.GS, self.Clones);
+								CF["SetClonesArray"](self.GS, self.Clones);
 
 								-- Refresh storage items array and filters
-								self.Clones = CF_GetClonesArray(self.GS, true);
+								self.Clones = CF["GetClonesArray"](self.GS, true);
 
 								self.ClonesLastDetectedBodyTime = nil;
 							end
@@ -983,14 +983,14 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 					self:AddObjectivePoint(
 						"Store in " .. self.ClonesLastDetectedBodyTime + self.ClonesInputDelay - self.Time,
 						self.ClonesInputPos,
-						CF_PlayerTeam,
+						CF["PlayerTeam"],
 						GameActivity.ARROWDOWN
 					);
 				else
 					self:AddObjectivePoint(
 						"Stand here to store body\n" .. count .. " / " .. self.GS["Player0VesselClonesCapacity"],
 						self.ClonesInputPos,
-						CF_PlayerTeam,
+						CF["PlayerTeam"],
 						GameActivity.ARROWDOWN
 					);
 				end
@@ -999,7 +999,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 			self:AddObjectivePoint(
 				"Clone storage is full",
 				self.ClonesInputPos + Vector(0, -40),
-				CF_PlayerTeam,
+				CF["PlayerTeam"],
 				GameActivity.ARROWUP
 			);
 			self.ClonesLastDetectedBodyTime = nil;

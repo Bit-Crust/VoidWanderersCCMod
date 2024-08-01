@@ -36,7 +36,7 @@ function VoidWanderers:InitStorageControlPanelUI()
 			self.StorageControlPanelActor = CreateActor("Storage Control Panel");
 			if self.StorageControlPanelActor ~= nil then
 				self.StorageControlPanelActor.Pos = self.StorageControlPanelPos;
-				self.StorageControlPanelActor.Team = CF_PlayerTeam;
+				self.StorageControlPanelActor.Team = CF["PlayerTeam"];
 				MovableMan:AddActor(self.StorageControlPanelActor);
 			end
 		end
@@ -97,8 +97,8 @@ function VoidWanderers:InitStorageControlPanelUI()
 
 	self.StorageControlMode = self.StorageControlPanelModes.EVERYTHING;
 
-	self.StorageItems, self.StorageFilters = CF_GetStorageArray(self.GS, true);
-	self.Bombs = CF_GetBombsArray(self.GS);
+	self.StorageItems, self.StorageFilters = CF["GetStorageArray"](self.GS, true);
+	self.Bombs = CF["GetBombsArray"](self.GS);
 end
 -----------------------------------------------------------------------------------------
 --
@@ -143,7 +143,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 				self:PutGlow("ControlPanel_Storage_HorizontalPanel", pos + Vector(19, 78));
 
 				-- Print help text
-				CF_DrawString("L/R - Change filter, U/D - Select, FIRE - Dispense", pos + Vector(-130, 78), 300, 10);
+				CF["DrawString"]("L/R - Change filter, U/D - Select, FIRE - Dispense", pos + Vector(-130, 78), 300, 10);
 			else
 				self:PutGlow("ControlPanel_Storage_ListRed", pos + Vector(-71, 0));
 				self:PutGlow("ControlPanel_Storage_DescriptionRed", pos + Vector(90, 0));
@@ -153,15 +153,15 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 				self.StorageControlPanelModesTexts[self.StorageControlPanelModes.SELL] = "DUMP ITEMS";
 
 				if
-					CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.TRADESTAR)
-					or CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.BLACKMARKET)
+					CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].TRADESTAR)
+					or CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].BLACKMARKET)
 				then
 					self.StorageControlPanelModesTexts[self.StorageControlPanelModes.SELL] = "SELL ITEMS Gold: "
-						.. CF_GetPlayerGold(self.GS, 0)
+						.. CF["GetPlayerGold"](self.GS, 0)
 						.. "oz";
-					CF_DrawString("L/R - Change filter, U/D - Select, FIRE - Sell", pos + Vector(-130, 78), 300, 10);
+					CF["DrawString"]("L/R - Change filter, U/D - Select, FIRE - Sell", pos + Vector(-130, 78), 300, 10);
 				else
-					CF_DrawString("L/R - Change filter, U/D - Select, FIRE - Dump", pos + Vector(-130, 78), 300, 10);
+					CF["DrawString"]("L/R - Change filter, U/D - Select, FIRE - Dump", pos + Vector(-130, 78), 300, 10);
 				end
 			end
 
@@ -188,7 +188,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 				down = true;
 			end
 
-			if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
+			if self.HoldTimer:IsPastSimMS(CF["KeyRepeatDelay"]) then
 				self.HoldTimer:Reset();
 
 				if cont:IsState(Controller.HOLD_UP) then
@@ -271,28 +271,28 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 
 				if itm ~= nil then
 					-- Get item description
-					local f, i = CF_FindItemInFactions(
+					local f, i = CF["FindItemInFactions"](
 						self.StorageItems[itm]["Preset"],
 						self.StorageItems[itm]["Class"]
 					);
 
-					local sellCoeff = CF_IsLocationHasAttribute(
+					local sellCoeff = CF["IsLocationHasAttribute"](
 						self.GS["Location"],
-						CF_LocationAttributeTypes.BLACKMARKET
-					) and math.sqrt(CF_SellPriceCoeff) or CF_SellPriceCoeff;
+						CF["LocationAttributeTypes"].BLACKMARKET
+					) and math.sqrt(CF["SellPriceCoeff"]) or CF["SellPriceCoeff"];
 
 					if f and i then
-						self.StorageSelectedItemDescription = CF_ItmDescriptions[f][i];
-						self.StorageSelectedItemManufacturer = CF_FactionNames[f];
-						self.StorageSelectedItemPrice = math.floor(CF_ItmPrices[f][i] * sellCoeff);
+						self.StorageSelectedItemDescription = CF["ItmDescriptions"][f][i];
+						self.StorageSelectedItemManufacturer = CF["FactionNames"][f];
+						self.StorageSelectedItemPrice = math.floor(CF["ItmPrices"][f][i] * sellCoeff);
 					else
 						self.StorageSelectedItemDescription = "Unknown item";
 						self.StorageSelectedItemManufacturer = "Unknown";
-						self.StorageSelectedItemPrice = math.floor(CF_UnknownItemPrice * sellCoeff);
+						self.StorageSelectedItemPrice = math.floor(CF["UnknownItemPrice"] * sellCoeff);
 					end
 
 					-- Create new item object
-					self.StorageControlPanelObject = CF_MakeItem(
+					self.StorageControlPanelObject = CF["MakeItem"](
 						self.StorageItems[itm]["Preset"],
 						self.StorageItems[itm]["Class"],
 						self.StorageItems[itm]["Module"]
@@ -326,7 +326,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 								-- Try to find actor or put item as is otherwise
 								for actor in MovableMan.Actors do
 									if
-										CF_DistUnder(actor.Pos, self.StorageInputPos, self.StorageInputRange)
+										CF["DistUnder"](actor.Pos, self.StorageInputPos, self.StorageInputRange)
 										and actor.ClassName == "AHuman"
 									then
 										foundActor = actor;
@@ -334,7 +334,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 									end
 								end
 
-								local item = CF_MakeItem(
+								local item = CF["MakeItem"](
 									self.StorageItems[itm]["Preset"],
 									self.StorageItems[itm]["Class"],
 									self.StorageItems[itm]["Module"]
@@ -350,24 +350,24 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 								end
 							else
 								if
-									CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.TRADESTAR)
-									or CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.BLACKMARKET)
+									CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].TRADESTAR)
+									or CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].BLACKMARKET)
 								then
 									if self.StorageSelectedItemPrice ~= nil then
-										CF_SetPlayerGold(
+										CF["SetPlayerGold"](
 											self.GS,
 											0,
-											CF_GetPlayerGold(self.GS, 0) + self.StorageSelectedItemPrice
+											CF["GetPlayerGold"](self.GS, 0) + self.StorageSelectedItemPrice
 										);
 									end
 								end
 							end
 							-- Update game state
-							CF_SetStorageArray(self.GS, self.StorageItems);
+							CF["SetStorageArray"](self.GS, self.StorageItems);
 
 							-- Refresh storage array and filters
 							if self.StorageItems[itm]["Count"] == 0 then
-								self.StorageItems, self.StorageFilters = CF_GetStorageArray(self.GS, true);
+								self.StorageItems, self.StorageFilters = CF["GetStorageArray"](self.GS, true);
 							end
 						end
 					end
@@ -383,21 +383,21 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 					local loc = i - self.StorageControlItemsListStart;
 
 					if i == self.StorageSelectedItem then
-						CF_DrawString(
+						CF["DrawString"](
 							"> " .. self.StorageItems[itm]["Preset"],
 							pos + Vector(-130, -40) + Vector(0, loc * 12),
 							90,
 							10
 						);
 					else
-						CF_DrawString(
+						CF["DrawString"](
 							self.StorageItems[itm]["Preset"],
 							pos + Vector(-130, -40) + Vector(0, loc * 12),
 							90,
 							10
 						);
 					end
-					CF_DrawString(
+					CF["DrawString"](
 						tostring(self.StorageItems[itm]["Count"]),
 						pos + Vector(-130, -40) + Vector(110, loc * 12),
 						90,
@@ -432,13 +432,13 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 
 			-- Print description
 			if self.StorageSelectedItemDescription ~= nil then
-				CF_DrawString(self.StorageSelectedItemDescription, pos + Vector(10, -10), 170, 70);
+				CF["DrawString"](self.StorageSelectedItemDescription, pos + Vector(10, -10), 170, 70);
 			end
 
 			-- Print manufacturer or price
 			if self.StorageControlMode ~= self.StorageControlPanelModes.SELL then
 				if self.StorageSelectedItemManufacturer ~= nil and self.StorageSelectedItemManufacturer ~= "" then
-					CF_DrawString(
+					CF["DrawString"](
 						"Manufacturer: " .. self.StorageSelectedItemManufacturer,
 						pos + Vector(10, -25),
 						170,
@@ -447,11 +447,11 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 				end
 			else
 				if
-					CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.TRADESTAR)
-					or CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.BLACKMARKET)
+					CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].TRADESTAR)
+					or CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].BLACKMARKET)
 				then
 					if self.StorageSelectedItemPrice ~= nil then
-						CF_DrawString(
+						CF["DrawString"](
 							"Sell price: " .. self.StorageSelectedItemPrice .. " oz",
 							pos + Vector(10, -25),
 							170,
@@ -462,12 +462,12 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 			end
 
 			-- Print Selected mode text
-			CF_DrawString(self.StorageControlPanelModesTexts[self.StorageControlMode], pos + Vector(-130, -77), 170, 10);
+			CF["DrawString"](self.StorageControlPanelModesTexts[self.StorageControlMode], pos + Vector(-130, -77), 170, 10);
 
 			-- Print storage capacity
-			CF_DrawString(
+			CF["DrawString"](
 				"Capacity: "
-					.. CF_CountUsedStorageInArray(self.StorageItems)
+					.. CF["CountUsedStorageInArray"](self.StorageItems)
 					.. "/"
 					.. self.GS["Player0VesselStorageCapacity"],
 				pos + Vector(-130, -60),
@@ -479,7 +479,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 
 	if showidle and self.StorageControlPanelPos ~= nil and self.StorageControlPanelActor ~= nil then
 		self:PutGlow("ControlPanel_Storage", self.StorageControlPanelPos);
-		--CF_DrawString("STORAGE",self.StorageControlPanelPos + Vector(-16,0), 120, 20)
+		--CF["DrawString"]("STORAGE",self.StorageControlPanelPos + Vector(-16,0), 120, 20)
 
 		self.StorageControlPanelInitialized = false;
 
@@ -491,7 +491,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 
 	-- Process weapons input
 	if self.StorageInputPos ~= nil and self.StorageControlPanelActor ~= nil then
-		local count = CF_CountUsedStorageInArray(self.StorageItems);
+		local count = CF["CountUsedStorageInArray"](self.StorageItems);
 
 		if count < tonumber(self.GS["Player0VesselStorageCapacity"]) then
 			local hasitem = false;
@@ -511,7 +511,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 					-- Increase delay dramatically outside of storage bay, but allow faster acceleration
 					local adjustedDelay = self.StorageInputDelay;
 					local adjustedRapidity = math.log(self.StorageInputRapidity);
-					if CF_Dist(item.Pos, self.StorageInputPos) < self.StorageInputRange * 3 then
+					if CF["Dist"](item.Pos, self.StorageInputPos) < self.StorageInputRange * 3 then
 						adjustedDelay = adjustedDelay / self.StorageInputModifier;
 						adjustedRapidity = adjustedRapidity / self.StorageInputModifier;
 					end
@@ -521,23 +521,23 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 						toreset = false;
 
 						-- Debug
-						--self:AddObjectivePoint("X", item.Pos , CF_PlayerTeam, GameActivity.ARROWDOWN);
+						--self:AddObjectivePoint("X", item.Pos , CF["PlayerTeam"], GameActivity.ARROWDOWN);
 
 						if self.StorageLastDetectedItemTime ~= nil then
 							self:AddObjectivePoint(
 								"Store in " .. self.StorageLastDetectedItemTime + adjustedDelay - self.Time,
 								item.Pos + Vector(0, -40),
-								CF_PlayerTeam,
+								CF["PlayerTeam"],
 								GameActivity.ARROWDOWN
 							);
 
 							-- Put item to storage
 							if
 								self.Time >= self.StorageLastDetectedItemTime + adjustedDelay
-								and CF_CountUsedStorageInArray(self.StorageItems)
+								and CF["CountUsedStorageInArray"](self.StorageItems)
 									< tonumber(self.GS["Player0VesselStorageCapacity"])
 							then
-								local needrefresh = CF_PutItemToStorageArray(
+								local needrefresh = CF["PutItemToStorageArray"](
 									self.StorageItems,
 									item.PresetName,
 									item.ClassName,
@@ -547,11 +547,11 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 								item.ToDelete = true;
 
 									-- Store everything
-								CF_SetStorageArray(self.GS, self.StorageItems);
+								CF["SetStorageArray"](self.GS, self.StorageItems);
 
 									-- Refresh storage items array and filters
 								if needrefresh then
-									self.StorageItems, self.StorageFilters = CF_GetStorageArray(self.GS, true);
+									self.StorageItems, self.StorageFilters = CF["GetStorageArray"](self.GS, true);
 								end
 
 								self.StorageLastDetectedItemTime = nil;
@@ -582,7 +582,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 					self:AddObjectivePoint(
 						"Stand here to receive items\n" .. count .. " / " .. self.GS["Player0VesselStorageCapacity"],
 						self.StorageInputPos,
-						CF_PlayerTeam,
+						CF["PlayerTeam"],
 						GameActivity.ARROWDOWN
 					);
 				end
@@ -591,7 +591,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 			self:AddObjectivePoint(
 				"Storage is full",
 				self.StorageInputPos + Vector(0, -40),
-				CF_PlayerTeam,
+				CF["PlayerTeam"],
 				GameActivity.ARROWUP
 			);
 			self.StorageLastDetectedItemTime = nil;

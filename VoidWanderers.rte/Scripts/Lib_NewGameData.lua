@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------------------
 -- Initializes all game data when new game started and returns new config
 -----------------------------------------------------------------------------------------
-function CF_MakeNewConfig(difficulty, playerSkill, cpuSkill, f, cpus, activity)
+CF["MakeNewConfig"] = function(difficulty, playerSkill, cpuSkill, f, cpus, activity)
 	local config = {}
 	local gameplay = true
 
@@ -67,25 +67,25 @@ function CF_MakeNewConfig(difficulty, playerSkill, cpuSkill, f, cpus, activity)
 	--config["Player0Vessel"] = "Ager 9th" -- DEBUG
 
 	-- Set vessel attrs
-	config["Player0VesselStorageCapacity"] = CF_VesselStartStorageCapacity[config["Player0Vessel"]]
-	config["Player0VesselClonesCapacity"] = CF_VesselStartClonesCapacity[config["Player0Vessel"]]
+	config["Player0VesselStorageCapacity"] = CF["VesselStartStorageCapacity"][config["Player0Vessel"]]
+	config["Player0VesselClonesCapacity"] = CF["VesselStartClonesCapacity"][config["Player0Vessel"]]
 
-	config["Player0VesselLifeSupport"] = CF_VesselStartLifeSupport[config["Player0Vessel"]]
-	config["Player0VesselCommunication"] = CF_VesselStartCommunication[config["Player0Vessel"]]
+	config["Player0VesselLifeSupport"] = CF["VesselStartLifeSupport"][config["Player0Vessel"]]
+	config["Player0VesselCommunication"] = CF["VesselStartCommunication"][config["Player0Vessel"]]
 
-	config["Player0VesselSpeed"] = CF_VesselStartSpeed[config["Player0Vessel"]]
-	config["Player0VesselTurrets"] = CF_VesselStartTurrets[config["Player0Vessel"]]
-	config["Player0VesselTurretStorage"] = CF_VesselStartTurretStorage[config["Player0Vessel"]]
-	config["Player0VesselBombBays"] = CF_VesselStartBombBays[config["Player0Vessel"]]
-	config["Player0VesselBombStorage"] = CF_VesselStartBombStorage[config["Player0Vessel"]]
+	config["Player0VesselSpeed"] = CF["VesselStartSpeed"][config["Player0Vessel"]]
+	config["Player0VesselTurrets"] = CF["VesselStartTurrets"][config["Player0Vessel"]]
+	config["Player0VesselTurretStorage"] = CF["VesselStartTurretStorage"][config["Player0Vessel"]]
+	config["Player0VesselBombBays"] = CF["VesselStartBombBays"][config["Player0Vessel"]]
+	config["Player0VesselBombStorage"] = CF["VesselStartBombStorage"][config["Player0Vessel"]]
 
 	config["Time"] = 1
 
 	-- Set up initial location - Tradestar
-	config["Planet"] = CF_Planet[1]
-	config["Location"] = CF_Location[1]
+	config["Planet"] = CF["Planet"][1]
+	config["Location"] = CF["Location"][1]
 
-	local locpos = CF_LocationPos[config["Location"]]
+	local locpos = CF["LocationPos"][config["Location"]]
 
 	config["ShipX"] = locpos.X
 	config["ShipY"] = locpos.Y
@@ -97,8 +97,8 @@ function CF_MakeNewConfig(difficulty, playerSkill, cpuSkill, f, cpus, activity)
 	local found = 0
 
 	-- Find available player actor
-	for i = 1, #CF_ActNames[f] do
-		if CF_ActUnlockData[f][i] == 0 then
+	for i = 1, #CF["ActNames"][f] do
+		if CF["ActUnlockData"][f][i] == 0 then
 			found = i
 			break
 		end
@@ -108,44 +108,44 @@ function CF_MakeNewConfig(difficulty, playerSkill, cpuSkill, f, cpus, activity)
 	local weaps = {}
 
 	-- Find available player items
-	for i = 1, #CF_ItmNames[f] do
-		if CF_ItmUnlockData[f][i] == 0 then
+	for i = 1, #CF["ItmNames"][f] do
+		if CF["ItmUnlockData"][f][i] == 0 then
 			weaps[#weaps + 1] = i
 		end
 	end
 
 	-- DEBUG Add all available weapons
 	--local weaps = {}
-	--for i = 1, #CF_ItmNames[f] do
+	--for i = 1, #CF["ItmNames"][f] do
 	--	weaps[#weaps + 1] = i
 	--end
 
 	-- Assign initial player actors in storage
 	for i = 1, 4 do
-		config["ClonesStorage" .. i .. "Preset"] = CF_ActPresets[f][found]
-		if CF_ActClasses[f][found] ~= nil then
-			config["ClonesStorage" .. i .. "Class"] = CF_ActClasses[f][found]
+		config["ClonesStorage" .. i .. "Preset"] = CF["ActPresets"][f][found]
+		if CF["ActClasses"][f][found] ~= nil then
+			config["ClonesStorage" .. i .. "Class"] = CF["ActClasses"][f][found]
 		else
 			config["ClonesStorage" .. i .. "Class"] = "AHuman"
 		end
-		config["ClonesStorage" .. i .. "Module"] = CF_ActModules[f][found]
+		config["ClonesStorage" .. i .. "Module"] = CF["ActModules"][f][found]
 		config["ClonesStorage" .. i .. "Identity"] = i - 1
 
 		local slt = 1
 		for j = #weaps, 1, -1 do
-			config["ClonesStorage" .. i .. "Item" .. slt .. "Preset"] = CF_ItmPresets[f][weaps[j]]
-			if CF_ItmClasses[f][weaps[j]] ~= nil then
-				config["ClonesStorage" .. i .. "Item" .. slt .. "Class"] = CF_ItmClasses[f][weaps[j]]
+			config["ClonesStorage" .. i .. "Item" .. slt .. "Preset"] = CF["ItmPresets"][f][weaps[j]]
+			if CF["ItmClasses"][f][weaps[j]] ~= nil then
+				config["ClonesStorage" .. i .. "Item" .. slt .. "Class"] = CF["ItmClasses"][f][weaps[j]]
 			else
 				config["ClonesStorage" .. i .. "Item" .. slt .. "Class"] = "HDFirearm"
 			end
-			config["ClonesStorage" .. i .. "Item" .. slt .. "Module"] = CF_ItmModules[f][weaps[j]]
+			config["ClonesStorage" .. i .. "Item" .. slt .. "Module"] = CF["ItmModules"][f][weaps[j]]
 			slt = slt + 1
 		end
 	end --]]--
 
 	-- Set initial scene
-	config["Scene"] = CF_VesselScene[config["Player0Vessel"]]
+	config["Scene"] = CF["VesselScene"][config["Player0Vessel"]]
 
 	-- Set initial scene type
 	config["SceneType"] = "Vessel"
@@ -155,7 +155,7 @@ function CF_MakeNewConfig(difficulty, playerSkill, cpuSkill, f, cpus, activity)
 
 	local activecpus = 0
 
-	for i = 1, CF_MaxCPUPlayers do
+	for i = 1, CF["MaxCPUPlayers"] do
 		if cpus[i] then
 			config["Player" .. i .. "Faction"] = cpus[i]
 			config["Player" .. i .. "Active"] = "True"
@@ -166,12 +166,12 @@ function CF_MakeNewConfig(difficulty, playerSkill, cpuSkill, f, cpus, activity)
 			else
 				-- Organic factions automatically get negative rep from synthetic factions and vice versa
 				if
-					CF_FactionNatures[config["Player0Faction"]] == CF_FactionNatures[config["Player" .. i .. "Faction"]]
+					CF["FactionNatures"][config["Player0Faction"]] == CF["FactionNatures"][config["Player" .. i .. "Faction"]]
 				then
 					config["Player" .. i .. "Reputation"] = 0
 				else
 					config["Player" .. i .. "Reputation"] = math.floor(
-						CF_ReputationHuntThreshold * (CF_Difficulty * 0.01) + 0.5
+						CF["ReputationHuntThreshold"] * (CF["Difficulty"] * 0.01) + 0.5
 					)
 				end
 			end
@@ -186,7 +186,7 @@ function CF_MakeNewConfig(difficulty, playerSkill, cpuSkill, f, cpus, activity)
 
 	config["ActiveCPUs"] = activecpus
 
-	CF_GenerateRandomMissions(config)
+	CF["GenerateRandomMissions"](config)
 
 	return config
 end

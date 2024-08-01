@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------------
---	Objective: 	Kill all CF_CPUTeam enemies inside the Enemy::Base box set
+--	Objective: 	Kill all CF["CPUTeam"] enemies inside the Enemy::Base box set
 --	Set used: 	Enemy
 --	Events: 	Depending on mission difficulty AI might send dropships with up to 2 actors and
 --	 			launch one counterattack when it will try to kill player actors with
@@ -51,20 +51,20 @@ function VoidWanderers:MissionCreate()
 	self.MissionStart = self.Time
 
 	-- Use generic enemy set
-	local set = CF_GetRandomMissionPointsSet(self.Pts, "Enemy")
+	local set = CF["GetRandomMissionPointsSet"](self.Pts, "Enemy")
 
 	self:DeployGenericMissionEnemies(
 		set,
 		"Enemy",
 		self.MissionTargetPlayer,
-		CF_CPUTeam,
+		CF["CPUTeam"],
 		self.MissionSettings["SpawnRate"]
 	)
 	self:DeployInfantryMines(
-		CF_CPUTeam,
+		CF["CPUTeam"],
 		math.min(
 			-tonumber(self.GS["Player" .. self.MissionTargetPlayer .. "Reputation"])
-				/ (CF_MaxDifficulty * CF_ReputationPerDifficulty),
+				/ (CF["MaxDifficulty"] * CF["ReputationPerDifficulty"]),
 			1
 		) - 0.75
 	)
@@ -84,7 +84,7 @@ function VoidWanderers:MissionUpdate()
 		local count = 0
 
 		for actor in MovableMan.Actors do
-			if actor.Team == CF_CPUTeam and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
+			if actor.Team == CF["CPUTeam"] and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
 				local inside = false
 
 				for i = 1, #self.MissionBase do
@@ -96,8 +96,8 @@ function VoidWanderers:MissionUpdate()
 					end
 				end
 
-				if inside and SceneMan:IsUnseen(actor.Pos.X, actor.Pos.Y, CF_PlayerTeam) and self.Time % 4 == 1 then
-					self:AddObjectivePoint("KILL", actor.AboveHUDPos, CF_PlayerTeam, GameActivity.ARROWDOWN)
+				if inside and SceneMan:IsUnseen(actor.Pos.X, actor.Pos.Y, CF["PlayerTeam"]) and self.Time % 4 == 1 then
+					self:AddObjectivePoint("KILL", actor.AboveHUDPos, CF["PlayerTeam"], GameActivity.ARROWDOWN)
 				end
 
 				if self.MissionReinforcementsTriggered then
@@ -134,21 +134,21 @@ function VoidWanderers:MissionUpdate()
 			if
 				#self.MissionLZs > 0
 				and self.MissionSettings["Reinforcements"] > 0
-				and MovableMan:GetMOIDCount() < CF_MOIDLimit
+				and MovableMan:GetMOIDCount() < CF["MOIDLimit"]
 			then
 				self.MissionSettings["Reinforcements"] = self.MissionSettings["Reinforcements"] - 1
 
 				local count = math.random(2)
-				local f = CF_GetPlayerFaction(self.GS, self.MissionTargetPlayer)
-				local ship = CF_MakeActor(CF_Crafts[f], CF_CraftClasses[f], CF_CraftModules[f])
+				local f = CF["GetPlayerFaction"](self.GS, self.MissionTargetPlayer)
+				local ship = CF["MakeActor"](CF["Crafts"][f], CF["CraftClasses"][f], CF["CraftModules"][f])
 				if ship then
 					for i = 1, count do
-						local actor = CF_SpawnAIUnit(self.GS, self.MissionTargetPlayer, CF_CPUTeam, nil, nil)
+						local actor = CF["SpawnAIUnit"](self.GS, self.MissionTargetPlayer, CF["CPUTeam"], nil, nil)
 						if actor then
 							ship:AddInventoryItem(actor)
 						end
 					end
-					ship.Team = CF_CPUTeam
+					ship.Team = CF["CPUTeam"]
 					ship.Pos = Vector(self.MissionLZs[math.random(#self.MissionLZs)].X, -10)
 					ship.AIMode = Actor.AIMODE_DELIVER
 					MovableMan:AddActor(ship)
@@ -164,28 +164,28 @@ function VoidWanderers:MissionUpdate()
 		then
 			self.CounterAttackTriggered = true
 			print("COUNTERATTACK!")
-			self:StartMusic(CF_MusicTypes.MISSION_INTENSE)
+			self:StartMusic(CF["MusicTypes"].MISSION_INTENSE)
 
 			local count = 0
 
 			for actor in MovableMan.Actors do
-				if actor.Team == CF_CPUTeam then
+				if actor.Team == CF["CPUTeam"] then
 					count = count + 1
 
 					if count % 3 == 0 then
-						CF_HuntForActors(actor, CF_PlayerTeam)
+						CF["HuntForActors"](actor, CF["PlayerTeam"])
 					end
 				end
 			end
 		end
 	elseif self.MissionStage == self.MissionStages.COMPLETED then
 		if not self.MissionEndMusicPlayed then
-			self:StartMusic(CF_MusicTypes.VICTORY)
+			self:StartMusic(CF["MusicTypes"].VICTORY)
 			self.MissionEndMusicPlayed = true
 		end
 		self.MissionStatus = "MISSION COMPLETED"
 
-		if self.Time < self.MissionStatusShowStart + CF_MissionResultShowInterval then
+		if self.Time < self.MissionStatusShowStart + CF["MissionResultShowInterval"] then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)

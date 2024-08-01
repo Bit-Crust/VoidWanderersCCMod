@@ -8,24 +8,24 @@
 if PresetMan:GetModuleID("Mappack.rte") ~= -1 then
 	-- Define planet
 	local id = "MapPack-Snow"
-	CF_Planet[#CF_Planet + 1] = id
-	CF_PlanetName[id] = "MapPack-Snow"
-	CF_PlanetGlow[id] = "MapPack-Snow"
-	CF_PlanetPos[id] = Vector(-26, 0)
-	CF_PlanetGlowModule[id] = "VoidWanderers.rte"
+	CF["Planet"][#CF["Planet"] + 1] = id
+	CF["PlanetName"][id] = "MapPack-Snow"
+	CF["PlanetGlow"][id] = "MapPack-Snow"
+	CF["PlanetPos"][id] = Vector(-26, 0)
+	CF["PlanetGlowModule"][id] = "VoidWanderers.rte"
 
 	-- Planet locations
 	local id = "Arctic Pole"
-	CF_Location[#CF_Location + 1] = id
-	CF_LocationName[id] = "Arctic Pole"
-	CF_LocationPos[id] = Vector(-6, -9)
-	CF_LocationRemoveDoors[id] = true
-	CF_LocationDescription[id] = ""
-	CF_LocationSecurity[id] = 0
-	CF_LocationGoldPresent[id] = true
-	CF_LocationScenes[id] = { "Arctic Pole" }
-	CF_LocationPlanet[id] = "MapPack-Snow"
-	CF_LocationMissions[id] = {
+	CF["Location"][#CF["Location"] + 1] = id
+	CF["LocationName"][id] = "Arctic Pole"
+	CF["LocationPos"][id] = Vector(-6, -9)
+	CF["LocationRemoveDoors"][id] = true
+	CF["LocationDescription"][id] = ""
+	CF["LocationSecurity"][id] = 0
+	CF["LocationGoldPresent"][id] = true
+	CF["LocationScenes"][id] = { "Arctic Pole" }
+	CF["LocationPlanet"][id] = "MapPack-Snow"
+	CF["LocationMissions"][id] = {
 		"Assault",
 		"Assassinate",
 		"Dropships",
@@ -38,16 +38,16 @@ if PresetMan:GetModuleID("Mappack.rte") ~= -1 then
 	}
 
 	local id = "Summit"
-	CF_Location[#CF_Location + 1] = id
-	CF_LocationName[id] = "Summit"
-	CF_LocationPos[id] = Vector(-0, -22)
-	CF_LocationRemoveDoors[id] = true
-	CF_LocationDescription[id] = ""
-	CF_LocationSecurity[id] = 0
-	CF_LocationGoldPresent[id] = true
-	CF_LocationScenes[id] = { "Summit" }
-	CF_LocationPlanet[id] = "MapPack-Snow"
-	CF_LocationMissions[id] = {
+	CF["Location"][#CF["Location"] + 1] = id
+	CF["LocationName"][id] = "Summit"
+	CF["LocationPos"][id] = Vector(-0, -22)
+	CF["LocationRemoveDoors"][id] = true
+	CF["LocationDescription"][id] = ""
+	CF["LocationSecurity"][id] = 0
+	CF["LocationGoldPresent"][id] = true
+	CF["LocationScenes"][id] = { "Summit" }
+	CF["LocationPlanet"][id] = "MapPack-Snow"
+	CF["LocationMissions"][id] = {
 		"Assault",
 		"Assassinate",
 		"Dropships",
@@ -60,16 +60,16 @@ if PresetMan:GetModuleID("Mappack.rte") ~= -1 then
 	}
 
 	local id = "Snow Cave"
-	CF_Location[#CF_Location + 1] = id
-	CF_LocationName[id] = "Snow Cave"
-	CF_LocationPos[id] = Vector(-2, -46)
-	CF_LocationRemoveDoors[id] = true
-	CF_LocationDescription[id] = ""
-	CF_LocationSecurity[id] = 0
-	CF_LocationGoldPresent[id] = true
-	CF_LocationScenes[id] = { "Snow Cave" }
-	CF_LocationPlanet[id] = "MapPack-Snow"
-	CF_LocationMissions[id] = {
+	CF["Location"][#CF["Location"] + 1] = id
+	CF["LocationName"][id] = "Snow Cave"
+	CF["LocationPos"][id] = Vector(-2, -46)
+	CF["LocationRemoveDoors"][id] = true
+	CF["LocationDescription"][id] = ""
+	CF["LocationSecurity"][id] = 0
+	CF["LocationGoldPresent"][id] = true
+	CF["LocationScenes"][id] = { "Snow Cave" }
+	CF["LocationPlanet"][id] = "MapPack-Snow"
+	CF["LocationMissions"][id] = {
 		"Assault",
 		"Assassinate",
 		"Dropships",
@@ -82,28 +82,28 @@ if PresetMan:GetModuleID("Mappack.rte") ~= -1 then
 	}
 
 	local id = "Missile Silo"
-	CF_Location[#CF_Location + 1] = id
-	CF_LocationName[id] = "Missile Silo"
-	CF_LocationPos[id] = Vector(-43, 9)
-	CF_LocationRemoveDoors[id] = true
-	CF_LocationDescription[id] = ""
-	CF_LocationSecurity[id] = 0
-	CF_LocationGoldPresent[id] = true
-	CF_LocationScenes[id] = { "Missile Silo" }
-	CF_LocationPlanet[id] = "MapPack-Snow"
-	CF_LocationMissions[id] = { "Assault", "Assassinate", "Zombies", "Defend", "Destroy", "Evacuate" }
+	CF["Location"][#CF["Location"] + 1] = id
+	CF["LocationName"][id] = "Missile Silo"
+	CF["LocationPos"][id] = Vector(-43, 9)
+	CF["LocationRemoveDoors"][id] = true
+	CF["LocationDescription"][id] = ""
+	CF["LocationSecurity"][id] = 0
+	CF["LocationGoldPresent"][id] = true
+	CF["LocationScenes"][id] = { "Missile Silo" }
+	CF["LocationPlanet"][id] = "MapPack-Snow"
+	CF["LocationMissions"][id] = { "Assault", "Assassinate", "Zombies", "Defend", "Destroy", "Evacuate" }
 
 	local id = "Glacier"
-	CF_Location[#CF_Location + 1] = id
-	CF_LocationName[id] = "Glacier"
-	CF_LocationPos[id] = Vector(-26, 13)
-	CF_LocationRemoveDoors[id] = true
-	CF_LocationDescription[id] = ""
-	CF_LocationSecurity[id] = 0
-	CF_LocationGoldPresent[id] = true
-	CF_LocationScenes[id] = { "Glacier" }
-	CF_LocationPlanet[id] = "MapPack-Snow"
-	CF_LocationMissions[id] = {
+	CF["Location"][#CF["Location"] + 1] = id
+	CF["LocationName"][id] = "Glacier"
+	CF["LocationPos"][id] = Vector(-26, 13)
+	CF["LocationRemoveDoors"][id] = true
+	CF["LocationDescription"][id] = ""
+	CF["LocationSecurity"][id] = 0
+	CF["LocationGoldPresent"][id] = true
+	CF["LocationScenes"][id] = { "Glacier" }
+	CF["LocationPlanet"][id] = "MapPack-Snow"
+	CF["LocationMissions"][id] = {
 		"Assault",
 		"Assassinate",
 		"Dropships",
@@ -116,28 +116,28 @@ if PresetMan:GetModuleID("Mappack.rte") ~= -1 then
 	}
 
 	local id = "Ice Caves"
-	CF_Location[#CF_Location + 1] = id
-	CF_LocationName[id] = "Ice Caves"
-	CF_LocationPos[id] = Vector(23, -2)
-	CF_LocationRemoveDoors[id] = true
-	CF_LocationDescription[id] = ""
-	CF_LocationSecurity[id] = 0
-	CF_LocationGoldPresent[id] = true
-	CF_LocationScenes[id] = { "Ice Caves" }
-	CF_LocationPlanet[id] = "MapPack-Snow"
-	CF_LocationMissions[id] = { "Assault", "Assassinate", "Zombies", "Destroy", "Squad", "Evacuate" }
+	CF["Location"][#CF["Location"] + 1] = id
+	CF["LocationName"][id] = "Ice Caves"
+	CF["LocationPos"][id] = Vector(23, -2)
+	CF["LocationRemoveDoors"][id] = true
+	CF["LocationDescription"][id] = ""
+	CF["LocationSecurity"][id] = 0
+	CF["LocationGoldPresent"][id] = true
+	CF["LocationScenes"][id] = { "Ice Caves" }
+	CF["LocationPlanet"][id] = "MapPack-Snow"
+	CF["LocationMissions"][id] = { "Assault", "Assassinate", "Zombies", "Destroy", "Squad", "Evacuate" }
 
 	local id = "Cold Slabs"
-	CF_Location[#CF_Location + 1] = id
-	CF_LocationName[id] = "Cold Slabs"
-	CF_LocationPos[id] = Vector(-6, 6)
-	CF_LocationRemoveDoors[id] = true
-	CF_LocationDescription[id] = ""
-	CF_LocationSecurity[id] = 0
-	CF_LocationGoldPresent[id] = true
-	CF_LocationScenes[id] = { "Cold Slabs" }
-	CF_LocationPlanet[id] = "MapPack-Snow"
-	CF_LocationMissions[id] = {
+	CF["Location"][#CF["Location"] + 1] = id
+	CF["LocationName"][id] = "Cold Slabs"
+	CF["LocationPos"][id] = Vector(-6, 6)
+	CF["LocationRemoveDoors"][id] = true
+	CF["LocationDescription"][id] = ""
+	CF["LocationSecurity"][id] = 0
+	CF["LocationGoldPresent"][id] = true
+	CF["LocationScenes"][id] = { "Cold Slabs" }
+	CF["LocationPlanet"][id] = "MapPack-Snow"
+	CF["LocationMissions"][id] = {
 		"Assault",
 		"Assassinate",
 		"Dropships",
@@ -150,16 +150,16 @@ if PresetMan:GetModuleID("Mappack.rte") ~= -1 then
 	}
 
 	local id = "Cliffside"
-	CF_Location[#CF_Location + 1] = id
-	CF_LocationName[id] = "Cliffside"
-	CF_LocationPos[id] = Vector(21, 31)
-	CF_LocationRemoveDoors[id] = true
-	CF_LocationDescription[id] = ""
-	CF_LocationSecurity[id] = 10
-	CF_LocationGoldPresent[id] = true
-	CF_LocationScenes[id] = { "Cliffside" }
-	CF_LocationPlanet[id] = "MapPack-Snow"
-	CF_LocationMissions[id] = {
+	CF["Location"][#CF["Location"] + 1] = id
+	CF["LocationName"][id] = "Cliffside"
+	CF["LocationPos"][id] = Vector(21, 31)
+	CF["LocationRemoveDoors"][id] = true
+	CF["LocationDescription"][id] = ""
+	CF["LocationSecurity"][id] = 10
+	CF["LocationGoldPresent"][id] = true
+	CF["LocationScenes"][id] = { "Cliffside" }
+	CF["LocationPlanet"][id] = "MapPack-Snow"
+	CF["LocationMissions"][id] = {
 		"Assault",
 		"Assassinate",
 		"Dropships",
@@ -172,16 +172,16 @@ if PresetMan:GetModuleID("Mappack.rte") ~= -1 then
 	}
 
 	local id = "Ant Hill"
-	CF_Location[#CF_Location + 1] = id
-	CF_LocationName[id] = "Ant Hill"
-	CF_LocationPos[id] = Vector(40, -7)
-	CF_LocationRemoveDoors[id] = true
-	CF_LocationDescription[id] = ""
-	CF_LocationSecurity[id] = 10
-	CF_LocationGoldPresent[id] = true
-	CF_LocationScenes[id] = { "Ant Hill" }
-	CF_LocationPlanet[id] = "MapPack-Snow"
-	CF_LocationMissions[id] = {
+	CF["Location"][#CF["Location"] + 1] = id
+	CF["LocationName"][id] = "Ant Hill"
+	CF["LocationPos"][id] = Vector(40, -7)
+	CF["LocationRemoveDoors"][id] = true
+	CF["LocationDescription"][id] = ""
+	CF["LocationSecurity"][id] = 10
+	CF["LocationGoldPresent"][id] = true
+	CF["LocationScenes"][id] = { "Ant Hill" }
+	CF["LocationPlanet"][id] = "MapPack-Snow"
+	CF["LocationMissions"][id] = {
 		"Assault",
 		"Assassinate",
 		"Dropships",
@@ -194,16 +194,16 @@ if PresetMan:GetModuleID("Mappack.rte") ~= -1 then
 	}
 
 	local id = "Drilling Rig"
-	CF_Location[#CF_Location + 1] = id
-	CF_LocationName[id] = "Drilling Rig"
-	CF_LocationPos[id] = Vector(14, -29)
-	CF_LocationRemoveDoors[id] = true
-	CF_LocationDescription[id] = ""
-	CF_LocationSecurity[id] = 10
-	CF_LocationGoldPresent[id] = true
-	CF_LocationScenes[id] = { "Drilling Rig" }
-	CF_LocationPlanet[id] = "MapPack-Snow"
-	CF_LocationMissions[id] = {
+	CF["Location"][#CF["Location"] + 1] = id
+	CF["LocationName"][id] = "Drilling Rig"
+	CF["LocationPos"][id] = Vector(14, -29)
+	CF["LocationRemoveDoors"][id] = true
+	CF["LocationDescription"][id] = ""
+	CF["LocationSecurity"][id] = 10
+	CF["LocationGoldPresent"][id] = true
+	CF["LocationScenes"][id] = { "Drilling Rig" }
+	CF["LocationPlanet"][id] = "MapPack-Snow"
+	CF["LocationMissions"][id] = {
 		"Assault",
 		"Assassinate",
 		"Dropships",

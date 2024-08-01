@@ -1,32 +1,43 @@
-function CF_GetAvailableQuantumItems(c)
+-----------------------------------------------------------------------------------------
+-- RPG brain related functions to add to library
+-----------------------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------------
+-- 
+-----------------------------------------------------------------------------------------
+CF["GetAvailableQuantumItems"] = function(c)
 	local arr = {}
 
-	for i = 1, #CF_QuantumItems do
-		local id = CF_QuantumItems[i]
+	for i = 1, #CF["QuantumItems"] do
+		local id = CF["QuantumItems"][i]
 
 		if c["QuantumItemUnlocked_" .. id] == "True" then
 			local n = #arr + 1
 			arr[n] = {}
 			arr[n]["ID"] = id
-			arr[n]["Preset"] = CF_QuantumItmPresets[id]
-			arr[n]["Class"] = CF_QuantumItmClasses[id]
-			arr[n]["Module"] = CF_QuantumItmModules[id]
-			arr[n]["Price"] = math.ceil(CF_QuantumItmPrices[id] / 2)
+			arr[n]["Preset"] = CF["QuantumItmPresets"][id]
+			arr[n]["Class"] = CF["QuantumItmClasses"][id]
+			arr[n]["Module"] = CF["QuantumItmModules"][id]
+			arr[n]["Price"] = math.ceil(CF["QuantumItmPrices"][id] / 2)
 		end
 	end
 
 	return arr
 end
-
-function CF_UnlockRandomQuantumItem(c)
-	local id = CF_QuantumItems[math.random(#CF_QuantumItems)]
+-----------------------------------------------------------------------------------------
+-- 
+-----------------------------------------------------------------------------------------
+CF["UnlockRandomQuantumItem"] = function(c)
+	local id = CF["QuantumItems"][math.random(#CF["QuantumItems"])]
 
 	c["QuantumItemUnlocked_" .. id] = "True"
 
 	return id
 end
-
-function CF_SaveThisBrainSupplies(c, self)
+-----------------------------------------------------------------------------------------
+-- 
+-----------------------------------------------------------------------------------------
+CF["SaveThisBrainSupplies"] = function(c, self)
 	if self.BrainNumber > -1 then
 		c["Brain" .. self.BrainNumber .. "Fix_Count"] = self.RepairCount
 		c["Brain" .. self.BrainNumber .. "Heal_Count"] = self.HealCount
@@ -34,8 +45,10 @@ function CF_SaveThisBrainSupplies(c, self)
 		c["Brain" .. self.BrainNumber .. "QuantumStorage"] = self.QuantumStorage
 	end
 end
-
-function CF_LoadThisBrainSupplies(c, self)
+-----------------------------------------------------------------------------------------
+-- 
+-----------------------------------------------------------------------------------------
+CF["LoadThisBrainSupplies"] = function(c, self)
 	if self.BrainNumber > -1 then
 		local val = tonumber(c["Brain" .. self.BrainNumber .. "Fix_Count"])
 		if val ~= nil then
@@ -58,8 +71,10 @@ function CF_LoadThisBrainSupplies(c, self)
 		end
 	end
 end
-
-function CF_ClearAllBrainsSupplies(c, b)
+-----------------------------------------------------------------------------------------
+-- 
+-----------------------------------------------------------------------------------------
+CF["ClearAllBrainsSupplies"] = function(c, b)
 	c["Brain" .. b .. "Fix_Count"] = nil
 	c["Brain" .. b .. "Heal_Count"] = nil
 	c["Brain" .. b .. "SelfHeal_Count"] = nil

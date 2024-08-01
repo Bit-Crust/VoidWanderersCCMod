@@ -24,7 +24,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 				self:AddObjectivePoint(
 					"Press DOWN to detach",
 					act.Pos + Vector(0, -56 + (player + 1) * 8),
-					CF_PlayerTeam,
+					CF["PlayerTeam"],
 					GameActivity.ARROWDOWN
 				);
 
@@ -46,7 +46,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 					if mo ~= rte.NoMOID then
 						candidate = MovableMan:GetMOFromID(mo)
 						if
-							candidate.Team == CF_PlayerTeam
+							candidate.Team == CF["PlayerTeam"]
 							and IsAHuman(candidate)
 							and ToAHuman(candidate).Status < Actor.INACTIVE
 						then
@@ -61,13 +61,13 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 						rb = candidate
 					else
 						rb = CreateAHuman("RPG Brain Robot LVL" .. tough .. " PLR" .. bplr)
-						rb.Team = CF_PlayerTeam
+						rb.Team = CF["PlayerTeam"]
 						rb.Vel = Vector(0, 4)
 						MovableMan:AddActor(rb)
 					end]]
 
 					local rb = CreateAHuman("RPG Brain Robot LVL" .. tough .. " PLR" .. bplayer);
-					rb.Team = CF_PlayerTeam;
+					rb.Team = CF["PlayerTeam"];
 					rb.Vel = Vector(0, 4);
 					MovableMan:AddActor(rb);
 
@@ -76,9 +76,9 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 						rb.Health = act.Health;
 
 						-- Give items
-						for j = 1, CF_MaxSavedItemsPerActor do
+						for j = 1, CF["MaxSavedItemsPerActor"] do
 							if self.GS["Brain" .. bplayer .. "Item" .. j .. "Preset"] ~= nil then
-								local itm = CF_MakeItem(
+								local itm = CF["MakeItem"](
 									self.GS["Brain" .. bplayer .. "Item" .. j .. "Preset"],
 									self.GS["Brain" .. bplayer .. "Item" .. j .. "Class"],
 									self.GS["Brain" .. bplayer .. "Item" .. j .. "Module"]
@@ -92,11 +92,11 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 						end
 
 						rb.Pos = act.Pos + Vector(0, 20);
-						self:SwitchToActor(rb, player, CF_PlayerTeam);
+						self:SwitchToActor(rb, player, CF["PlayerTeam"]);
 						self:SetPlayerBrain(rb, player);
 
 						self.GS["Brain" .. bplayer .. "Detached"] = "True";
-						CF_ClearAllBrainsSupplies(self.GS, bplayer);
+						CF["ClearAllBrainsSupplies"](self.GS, bplayer);
 						self.CreatedBrains[bplayer] = nil;
 						act.ToDelete = true;
 					end
@@ -114,20 +114,20 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 						act.Pos.X > self.BrainPos[bplayer + 1].X - 10
 						and act.Pos.X < self.BrainPos[bplayer + 1].X + 10
 						and act.Pos.Y > self.BrainPos[bplayer + 1].Y
-						and CF_DistUnder(act.Pos, self.BrainPos[bplayer + 1], 100)
+						and CF["DistUnder"](act.Pos, self.BrainPos[bplayer + 1], 100)
 					then
 						readytoattach = true;
 						self:AddObjectivePoint(
 							"Press UP to attach",
 							self.BrainPos[bplayer + 1] + Vector(0, 6 + (bplayer + 1) * 8),
-							CF_PlayerTeam,
+							CF["PlayerTeam"],
 							GameActivity.ARROWUP
 						);
 					else
 						self:AddObjectivePoint(
 							"Attach brain",
 							self.BrainPos[bplayer + 1] + Vector(0, 6 + (bplayer + 1) * 8),
-							CF_PlayerTeam,
+							CF["PlayerTeam"],
 							GameActivity.ARROWUP
 						);
 					end
@@ -137,22 +137,22 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 					if cont:IsState(Controller.PRESS_UP) and readytoattach then
 						local rb = CreateActor("Brain Case");
 						if rb then
-							rb.Team = CF_PlayerTeam;
+							rb.Team = CF["PlayerTeam"];
 							rb.Pos = self.BrainPos[bplayer + 1];
 							rb.Health = act.Health;
 							MovableMan:AddActor(rb);
-							self:SwitchToActor(rb, player, CF_PlayerTeam);
+							self:SwitchToActor(rb, player, CF["PlayerTeam"]);
 							self:SetPlayerBrain(rb, player);
 
 							-- Clear inventory
-							for j = 1, CF_MaxSavedItemsPerActor do
+							for j = 1, CF["MaxSavedItemsPerActor"] do
 								self.GS["Brain" .. bplayer .. "Item" .. j .. "Preset"] = nil;
 								self.GS["Brain" .. bplayer .. "Item" .. j .. "Class"] = nil;
 								self.GS["Brain" .. bplayer .. "Item" .. j .. "Module"] = nil;
 							end
 
 							-- Save inventory
-							local pre, cls, mdl = CF_GetInventory(act);
+							local pre, cls, mdl = CF["GetInventory"](act);
 
 							for j = 1, #pre do
 								self.GS["Brain" .. bplayer .. "Item" .. j .. "Preset"] = pre[j];
@@ -182,7 +182,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 							else
 							]]--
 							if act.GoldCarried > 0 then
-								CF_SetPlayerGold(self.GS, 0, CF_GetPlayerGold(self.GS, 0) + act.GoldCarried);
+								CF["SetPlayerGold"](self.GS, 0, CF["GetPlayerGold"](self.GS, 0) + act.GoldCarried);
 							end
 							act.ToDelete = true;
 							--end

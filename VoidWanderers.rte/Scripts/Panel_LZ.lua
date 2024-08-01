@@ -27,7 +27,7 @@ function VoidWanderers:InitLZControlPanelUI()
 				self.LZControlPanelActor[player + 1] = CreateActor("LZ Control Panel");
 				if self.LZControlPanelActor[player + 1] ~= nil then
 					self.LZControlPanelActor[player + 1].Pos = self.LZControlPanelPos[player + 1];
-					self.LZControlPanelActor[player + 1].Team = CF_PlayerTeam;
+					self.LZControlPanelActor[player + 1].Team = CF["PlayerTeam"];
 					MovableMan:AddActor(self.LZControlPanelActor[player + 1]);
 					panelPos = self.LZControlPanelPos[player + 1];
 				end
@@ -43,20 +43,20 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 	if orbitedCraft.PresetName ~= "Fake Drop Ship MK1" and self.GS["Mode"] ~= "Vessel" then
-		if orbitedCraft.Team == CF_PlayerTeam and orbitedCraft:HasObjectInGroup("Brains") then
+		if orbitedCraft.Team == CF["PlayerTeam"] and orbitedCraft:HasObjectInGroup("Brains") then
 			self.DeployedActors = {};
 
 			-- Bring back actors
 			for actor in orbitedCraft.Inventory do
-				if actor.Team == CF_PlayerTeam and IsActor(actor) and ToActor(actor).Health > 0 then
+				if actor.Team == CF["PlayerTeam"] and IsActor(actor) and ToActor(actor).Health > 0 then
 					actor = ToActor(actor);
 					local assignable = true;
-					local f = CF_GetPlayerFaction(self.GS, 0);
+					local f = CF["GetPlayerFaction"](self.GS, 0);
 
 					-- Check if unit is playable
-					if CF_UnassignableUnits[f] ~= nil then
-						for i = 1, #CF_UnassignableUnits[f] do
-							if actor.PresetName == CF_UnassignableUnits[f][i] then
+					if CF["UnassignableUnits"][f] ~= nil then
+						for i = 1, #CF["UnassignableUnits"][f] do
+							if actor.PresetName == CF["UnassignableUnits"][f][i] then
 								assignable = false;
 							end
 						end
@@ -72,7 +72,7 @@ function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 						and actor.PresetName ~= "LZ Control Panel"
 						and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 					then
-						local pre, cls, mdl = CF_GetInventory(actor);
+						local pre, cls, mdl = CF["GetInventory"](actor);
 						-- These actors must be deployed
 						local n = #self.DeployedActors + 1;
 						self.DeployedActors[n] = {};
@@ -86,14 +86,14 @@ function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 						self.DeployedActors[n]["InventoryPresets"] = pre;
 						self.DeployedActors[n]["InventoryClasses"] = cls;
 						self.DeployedActors[n]["InventoryModules"] = mdl;
-						for j = 1, #CF_LimbID do
-							self.DeployedActors[n][CF_LimbID[j]] = CF_GetLimbData(actor, j);
+						for j = 1, #CF["LimbID"] do
+							self.DeployedActors[n][CF["LimbID"][j]] = CF["GetLimbData"](actor, j);
 						end
 					end
 				end
 			end
 			--Nullify the funds we just gained from the orbited craft
-			self:SetTeamFunds(CF_GetPlayerGold(self.GS, CF_PlayerTeam), CF_PlayerTeam);
+			self:SetTeamFunds(CF["GetPlayerGold"](self.GS, CF["PlayerTeam"]), CF["PlayerTeam"]);
 			FrameMan:ClearScreenText(0);
 		end
 	end
@@ -142,8 +142,8 @@ function VoidWanderers:ProcessLZControlPanelUI()
 
 	-- And process bombing itself
 	if self.BombingTarget ~= nil then
-		if self.Time > self.BombingStart + self.BombingLoadTime + CF_BombFlightInterval then
-			if self.Time > self.BombingLastBombShot + CF_BombInterval then
+		if self.Time > self.BombingStart + self.BombingLoadTime + CF["BombFlightInterval"] then
+			if self.Time > self.BombingLastBombShot + CF["BombInterval"] then
 				self.BombingLastBombShot = self.Time;
 
 				self.BombsControlPanelInBombMode = true;
@@ -158,7 +158,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 						-40
 					);
 
-					local bomb = CF_MakeItem(
+					local bomb = CF["MakeItem"](
 						self.BombPayload[self.BombingCount]["Preset"],
 						self.BombPayload[self.BombingCount]["Class"],
 						self.BombPayload[self.BombingCount]["Module"]
@@ -172,7 +172,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					-- Fake dropship will delete itself after 250 ms
 					local dropship = CreateACDropShip("Fake Drop Ship MK1", self.ModuleName);
 					if dropship then
-						dropship.Team = CF_PlayerTeam;
+						dropship.Team = CF["PlayerTeam"];
 						dropship.Pos = bombpos + Vector(0, -20);
 						MovableMan:AddActor(dropship);
 					else
@@ -189,12 +189,12 @@ function VoidWanderers:ProcessLZControlPanelUI()
 				if self.BombingCount == 2 and #self.BombPayload > 1 then
 					for actor in MovableMan.Actors do
 						if
-							actor.Team ~= CF_PlayerTeam
+							actor.Team ~= CF["PlayerTeam"]
 							and not actor:IsInGroup("Brains")
 							and actor.AIMode == Actor.AIMODE_SENTRY
 							and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 						then
-							if CF_DistUnder(actor.Pos, self.LastKnownBombingPosition, self.BombingRange * 1.5) then
+							if CF["DistUnder"](actor.Pos, self.LastKnownBombingPosition, self.BombingRange * 1.5) then
 								actor.AIMode = Actor.AIMODE_PATROL;
 							end
 						end
@@ -224,7 +224,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 
 				if self.LZControlPanelActor[player + 1] ~= nil then
 					self.LZControlPanelActor[player + 1].Pos = self.LZControlPanelPos[player + 1];
-					self.LZControlPanelActor[player + 1].Team = CF_PlayerTeam;
+					self.LZControlPanelActor[player + 1].Team = CF["PlayerTeam"];
 					MovableMan:AddActor(self.LZControlPanelActor[player + 1]);
 				end
 			end
@@ -247,7 +247,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 
 			if showidle then
 				self:PutGlow("ControlPanel_LZ", self.LZControlPanelPos[player + 1]);
-				--CF_DrawString("RETURN",self.LZControlPanelPos[i] + Vector(-13,0),120,20 )
+				--CF["DrawString"]("RETURN",self.LZControlPanelPos[i] + Vector(-13,0),120,20 )
 			end
 		end
 	end
@@ -280,7 +280,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 						(actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 						and actor.Team ~= Activity.NOTEAM
 					then
-						if actor.Team ~= CF_PlayerTeam then
+						if actor.Team ~= CF["PlayerTeam"] then
 							enemyPos[#enemyPos + 1] = actor.Pos;
 						elseif not self:IsAlly(actor) and actor.PresetName ~= "LZ Control Panel" then
 							if self:IsInLZPanelProximity(actor.Pos) then
@@ -297,7 +297,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 				for actor in MovableMan:GetMOsInBox(self.lzBox, Activity.NOTEAM, true) do
 					if
 						(actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-						and actor.Team == CF_PlayerTeam
+						and actor.Team == CF["PlayerTeam"]
 						and ToActor(actor):IsDead()
 						and not self:IsAlly(ToActor(actor))
 						and self:IsInLZPanelProximity(actor.Pos)
@@ -334,7 +334,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 				if safe then
 					self:PutGlow("ControlPanel_LZ_Button", pos);
 					local storageCapacity = tonumber(self.GS["Player0VesselStorageCapacity"])
-						- CF_CountUsedStorageInArray(CF_GetStorageArray(self.GS, false));
+						- CF["CountUsedStorageInArray"](CF["GetStorageArray"](self.GS, false));
 					for i = 1, #items do
 						if i <= storageCapacity then
 							local part = CreateMOSParticle("Tiny Blue Glow", self.ModuleName);
@@ -361,9 +361,9 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					self:PutGlow("ControlPanel_LZ_ButtonRed", pos);
 					if #unsafeUnits > 0 then
 						if brainUnsafe > 0 then
-							CF_DrawString("AND ABANDON BRAIN", pos + Vector(-54, 4), 130, 20);
+							CF["DrawString"]("AND ABANDON BRAIN", pos + Vector(-54, 4), 130, 20);
 						else
-							CF_DrawString(
+							CF["DrawString"](
 								"AND ABANDON " .. #unsafeUnits .. " UNIT" .. (#unsafeUnits > 1 and "S" or ""),
 								pos + Vector(-54, 4),
 								130,
@@ -378,7 +378,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 							self:AddObjectivePoint(
 								"HOSTILE",
 								enemyPos[i] + Vector(0, -30),
-								CF_PlayerTeam,
+								CF["PlayerTeam"],
 								GameActivity.ARROWDOWN
 							);
 						end
@@ -388,7 +388,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 							self:AddObjectivePoint(
 								"ABANDONED",
 								unsafeUnits[i].Pos + Vector(0, -40),
-								CF_PlayerTeam,
+								CF["PlayerTeam"],
 								GameActivity.ARROWDOWN
 							);
 						end
@@ -406,7 +406,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					if self.BombsControlPanelSelectedModes[selectedpanel] == self.BombsControlPanelModes.BOMB then
 						if
 							self.BombsControlPanelInBombMode
-							or CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.NOBOMBS)
+							or CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].NOBOMBS)
 						then
 							self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelSelectedModes[selectedpanel]
 								- 1;
@@ -421,7 +421,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					if self.BombsControlPanelSelectedModes[selectedpanel] == self.BombsControlPanelModes.BOMB then
 						if
 							self.BombsControlPanelInBombMode
-							or CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.NOBOMBS)
+							or CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].NOBOMBS)
 						then
 							self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelSelectedModes[selectedpanel]
 								+ 1;
@@ -437,22 +437,22 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					if self.ControlPanelLZPressTime == nil then
 						self.ControlPanelLZPressTime = self.Time;
 					end
-					CF_DrawString(
-						"RETURN IN T-" .. tostring(self.ControlPanelLZPressTime + CF_TeamReturnDelay - self.Time),
+					CF["DrawString"](
+						"RETURN IN T-" .. tostring(self.ControlPanelLZPressTime + CF["TeamReturnDelay"] - self.Time),
 						pos + Vector(-30, -10),
 						130,
 						20
 					);
 
 					-- Return to ship
-					if self.ControlPanelLZPressTime + CF_TeamReturnDelay == self.Time then
+					if self.ControlPanelLZPressTime + CF["TeamReturnDelay"] == self.Time then
 						self.DeployedActors = {};
 
 						local actors = {};
 						-- Bring back actors
 						for actor in MovableMan.Actors do
 							if
-								actor.Team == CF_PlayerTeam
+								actor.Team == CF["PlayerTeam"]
 								and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 								and actor.PresetName ~= "LZ Control Panel"
 								and not self:IsAlly(actor)
@@ -463,7 +463,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 						end
 						for actor in MovableMan:GetMOsInBox(self.lzBox, Activity.NOTEAM, true) do
 							if
-								actor.Team == CF_PlayerTeam
+								actor.Team == CF["PlayerTeam"]
 								and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 								and ToActor(actor):IsDead()
 								and not self:IsAlly(ToActor(actor))
@@ -476,17 +476,17 @@ function VoidWanderers:ProcessLZControlPanelUI()
 							local assignable = true;
 
 							-- Check if unit is playable
-							local f = CF_GetPlayerFaction(self.GS, 0);
-							if CF_UnassignableUnits[f] ~= nil then
-								for i = 1, #CF_UnassignableUnits[f] do
-									if actor.PresetName == CF_UnassignableUnits[f][i] then
+							local f = CF["GetPlayerFaction"](self.GS, 0);
+							if CF["UnassignableUnits"][f] ~= nil then
+								for i = 1, #CF["UnassignableUnits"][f] do
+									if actor.PresetName == CF["UnassignableUnits"][f][i] then
 										assignable = false;
 									end
 								end
 							end
 
 							if assignable then
-								local pre, cls, mdl = CF_GetInventory(actor);
+								local pre, cls, mdl = CF["GetInventory"](actor);
 								-- These actors must be deployed
 								local n = #self.DeployedActors + 1;
 								self.DeployedActors[n] = {};
@@ -500,8 +500,8 @@ function VoidWanderers:ProcessLZControlPanelUI()
 								self.DeployedActors[n]["InventoryPresets"] = pre;
 								self.DeployedActors[n]["InventoryClasses"] = cls;
 								self.DeployedActors[n]["InventoryModules"] = mdl;
-								for j = 1, #CF_LimbID do
-									self.DeployedActors[n][CF_LimbID[j]] = CF_GetLimbData(actor, j);
+								for j = 1, #CF["LimbID"] do
+									self.DeployedActors[n][CF["LimbID"][j]] = CF["GetLimbData"](actor, j);
 								end
 								if actor.GoldCarried then
 									totalGoldCarried = totalGoldCarried + actor.GoldCarried;
@@ -511,19 +511,19 @@ function VoidWanderers:ProcessLZControlPanelUI()
 						end
 					end
 				else
-					CF_DrawString("HOLD FIRE TO RETURN", pos + Vector(-50, -10), 130, 20);
+					CF["DrawString"]("HOLD FIRE TO RETURN", pos + Vector(-50, -10), 130, 20);
 					self.ControlPanelLZPressTime = nil;
 				end
 
 				if self.MissionStatus ~= nil then
-					local l = CF_GetStringPixelWidth(self.MissionStatus);
-					CF_DrawString(self.MissionStatus, pos + Vector(-l / 2, 16), 130, 25);
+					local l = CF["GetStringPixelWidth"](self.MissionStatus);
+					CF["DrawString"](self.MissionStatus, pos + Vector(-l / 2, 16), 130, 25);
 				end
 			elseif self.BombsControlPanelSelectedModes[selectedpanel] == self.BombsControlPanelModes.BOMB then
 				if not self.BombsControlPanelInBombMode then
 					self.BombsControlPanelSelectedItem = 1;
 
-					self.Bombs = CF_GetBombsArray(self.GS);
+					self.Bombs = CF["GetBombsArray"](self.GS);
 					n = #self.Bombs + 1;
 					self.Bombs[n] = {};
 					self.Bombs[n]["Preset"] = "Request orbital strike";
@@ -590,7 +590,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 										self.BombsControlPanelActor.Pos = self.LastKnownBombingPosition;
 									end
 
-									self:SwitchToActor(self.BombsControlPanelActor, player, CF_PlayerTeam);
+									self:SwitchToActor(self.BombsControlPanelActor, player, CF["PlayerTeam"]);
 									return;
 								else
 									print("ERROR: Bomb control actor not created!");
@@ -600,7 +600,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 								if
 									self.Bombs[self.BombsControlPanelSelectedItem]["Count"] > 0
 									and #self.BombPayload
-										< tonumber(self.GS["Player0VesselBombBays"]) * CF_BombsPerBay
+										< tonumber(self.GS["Player0VesselBombBays"]) * CF["BombsPerBay"]
 								then
 									self.Bombs[self.BombsControlPanelSelectedItem]["Count"] = self.Bombs[self.BombsControlPanelSelectedItem]["Count"]
 										- 1;
@@ -626,9 +626,9 @@ function VoidWanderers:ProcessLZControlPanelUI()
 
 				self:PutGlow("ControlPanel_LZ_Button", pos);
 
-				CF_DrawString("PAYLOAD: ", pos + Vector(-40, -8) + Vector(0, -10), 120, 10);
-				CF_DrawString(
-					tostring(#self.BombPayload) .. " / " .. self.GS["Player0VesselBombBays"] * CF_BombsPerBay,
+				CF["DrawString"]("PAYLOAD: ", pos + Vector(-40, -8) + Vector(0, -10), 120, 10);
+				CF["DrawString"](
+					tostring(#self.BombPayload) .. " / " .. self.GS["Player0VesselBombBays"] * CF["BombsPerBay"],
 					pos + Vector(20, -8) + Vector(0, -10),
 					120,
 					10
@@ -640,17 +640,17 @@ function VoidWanderers:ProcessLZControlPanelUI()
 						local loc = i - self.BombControlPanelListStart;
 
 						if i == self.BombsControlPanelSelectedItem then
-							CF_DrawString(
+							CF["DrawString"](
 								"> " .. self.Bombs[i]["Preset"],
 								pos + Vector(-60, -8) + Vector(0, loc * 12),
 								130,
 								10
 							);
 						else
-							CF_DrawString(self.Bombs[i]["Preset"], pos + Vector(-60, -8) + Vector(0, loc * 12), 130, 10);
+							CF["DrawString"](self.Bombs[i]["Preset"], pos + Vector(-60, -8) + Vector(0, loc * 12), 130, 10);
 						end
 						if self.Bombs[i]["Preset"] ~= "Request orbital strike" then
-							CF_DrawString(
+							CF["DrawString"](
 								tostring(self.Bombs[i]["Count"]),
 								pos + Vector(56, -8) + Vector(0, loc * 12),
 								120,
@@ -679,7 +679,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 
 		if self.MissionAvailable then
 			-- Generate new missions
-			CF_GenerateRandomMissions(self.GS);
+			CF["GenerateRandomMissions"](self.GS);
 		end
 
 		-- Update casualties report
@@ -704,7 +704,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 
 		-- Collect items
 		if safe then
-			local storage = CF_GetStorageArray(self.GS, false);
+			local storage = CF["GetStorageArray"](self.GS, false);
 			local items = {};
 			for item in MovableMan.Items do
 				if
@@ -716,14 +716,14 @@ function VoidWanderers:ProcessLZControlPanelUI()
 				end
 			end
 			for _, item in pairs(items) do
-				if CF_CountUsedStorageInArray(storage) < tonumber(self.GS["Player0VesselStorageCapacity"]) then
-					CF_PutItemToStorageArray(storage, item.PresetName, item.ClassName, item.ModuleName);
+				if CF["CountUsedStorageInArray"](storage) < tonumber(self.GS["Player0VesselStorageCapacity"]) then
+					CF["PutItemToStorageArray"](storage, item.PresetName, item.ClassName, item.ModuleName);
 				else
 					break;
 				end
 			end
 
-			CF_SetStorageArray(self.GS, storage);
+			CF["SetStorageArray"](self.GS, storage);
 
 			if #items > 0 then
 				self.MissionReport[#self.MissionReport + 1] = tostring(#items)
@@ -734,7 +734,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		end
 		if totalGoldCarried > 0 then
 			self.MissionReport[#self.MissionReport + 1] = totalGoldCarried .. " oz of gold collected";
-			CF_SetPlayerGold(self.GS, 0, CF_GetPlayerGold(self.GS, 0) + totalGoldCarried);
+			CF["SetPlayerGold"](self.GS, 0, CF["GetPlayerGold"](self.GS, 0) + totalGoldCarried);
 		end
 
 		-- Save fog of war
@@ -743,9 +743,9 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		end
 
 		-- Dump mission report to config to be saved
-		CF_SaveMissionReport(self.GS, self.MissionReport);
+		CF["SaveMissionReport"](self.GS, self.MissionReport);
 
-		local scene = CF_VesselScene[self.GS["Player0Vessel"]];
+		local scene = CF["VesselScene"][self.GS["Player0Vessel"]];
 		-- Set new operating mode
 		self.GS["Mode"] = "Vessel";
 		self.GS["SceneType"] = "Vessel";

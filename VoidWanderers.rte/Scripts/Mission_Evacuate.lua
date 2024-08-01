@@ -38,7 +38,7 @@ function VoidWanderers:MissionCreate()
 	self.MissionStart = self.Time
 
 	-- We're going to alter ally presets, ally units may be tougher or weaker then enemy units
-	CF_CreateAIUnitPresets(
+	CF["CreateAIUnitPresets"](
 		self.GS,
 		self.MissionSourcePlayer,
 		self.GS["Player" .. self.MissionSourcePlayer .. "Reputation"] * 0.5
@@ -46,26 +46,26 @@ function VoidWanderers:MissionCreate()
 
 	for actor in MovableMan.Actors do
 		if actor.ClassName == "ADoor" then
-			actor.Team = CF_PlayerTeam
+			actor.Team = CF["PlayerTeam"]
 		end
 	end
 
 	-- Use generic enemy set
-	local set = CF_GetRandomMissionPointsSet(self.Pts, "Enemy")
+	local set = CF["GetRandomMissionPointsSet"](self.Pts, "Enemy")
 
 	self:DeployGenericMissionEnemies(
 		set,
 		"Enemy",
 		self.MissionSourcePlayer,
-		CF_PlayerTeam,
+		CF["PlayerTeam"],
 		self.MissionSettings["SpawnRate"]
 	)
 
 	-- Spawn commander
-	local cmndrpts = CF_GetPointsArray(self.Pts, "Assassinate", set, "Commander")
+	local cmndrpts = CF["GetPointsArray"](self.Pts, "Assassinate", set, "Commander")
 	local cpos = cmndrpts[math.random(#cmndrpts)]
 
-	self.MissionBrain = CF_MakeBrain(self.GS, self.MissionSourcePlayer, CF_PlayerTeam, cpos, false)
+	self.MissionBrain = CF["MakeBrain"](self.GS, self.MissionSourcePlayer, CF["PlayerTeam"], cpos, false)
 
 	if self.MissionBrain then
 		MovableMan:AddActor(self.MissionBrain)
@@ -73,18 +73,18 @@ function VoidWanderers:MissionCreate()
 		self.MissionBrain:AddToGroup("MissionBrain")
 		self.MissionBrain:RemoveFromGroup("Brains")
 
-		local weaps = CF_MakeListOfMostPowerfulWeapons(
+		local weaps = CF["MakeListOfMostPowerfulWeapons"](
 			self.GS,
 			self.MissionSourcePlayer,
-			CF_WeaponTypes.PISTOL,
-			CF_ReputationPerDifficulty * self.MissionDifficulty
+			CF["WeaponTypes"].PISTOL,
+			CF["ReputationPerDifficulty"] * self.MissionDifficulty
 		)
 		if weaps then
 			local f = weaps[1]["Faction"]
-			local weapon = CF_MakeItem(
-				CF_ItmPresets[f][weaps[1]["Item"]],
-				CF_ItmClasses[f][weaps[1]["Item"]],
-				CF_ItmModules[f][weaps[1]["Item"]]
+			local weapon = CF["MakeItem"](
+				CF["ItmPresets"][f][weaps[1]["Item"]],
+				CF["ItmClasses"][f][weaps[1]["Item"]],
+				CF["ItmModules"][f][weaps[1]["Item"]]
 			)
 			if weapon then
 				self.MissionBrain:AddInventoryItem(weapon)
@@ -92,8 +92,8 @@ function VoidWanderers:MissionCreate()
 		end
 
 		self.MissionBrain.AIMode = Actor.AIMODE_GOTO
-		local lzs = CF_SelectRandomPoints(
-			CF_GetPointsArray(self.Pts, "Deploy", self.MissionDeploySet, "PlayerLZ"),
+		local lzs = CF["SelectRandomPoints"](
+			CF["GetPointsArray"](self.Pts, "Deploy", self.MissionDeploySet, "PlayerLZ"),
 			Activity.MAXPLAYERCOUNT
 		)
 		self.MissionBrain:AddAISceneWaypoint(lzs[math.random(#lzs)])
@@ -122,7 +122,7 @@ function VoidWanderers:MissionUpdate()
 					self:AddObjectivePoint(
 						"EVACUATE",
 						self.MissionBrain.AboveHUDPos,
-						CF_PlayerTeam,
+						CF["PlayerTeam"],
 						GameActivity.ARROWUP
 					)
 					if
@@ -137,7 +137,7 @@ function VoidWanderers:MissionUpdate()
 					self:AddObjectivePoint(
 						"BOARD SHIP",
 						self.MissionBrain.AboveHUDPos,
-						CF_PlayerTeam,
+						CF["PlayerTeam"],
 						GameActivity.ARROWUP
 					)
 					if self:IsAlly(self.MissionBrain) and self.MissionBrain.AIMode ~= Actor.AIMODE_GOTO then
@@ -160,7 +160,7 @@ function VoidWanderers:MissionUpdate()
 					end
 				end
 			elseif self.MissionBrain.ClassName ~= "ACDropShip" and self.MissionBrain.ClassName ~= "ACRocket" then -- Maybe this check isn't needed?
-				self:AddObjectivePoint("EVACUATE", self.MissionBrain.AboveHUDPos, CF_PlayerTeam, GameActivity.ARROWDOWN)
+				self:AddObjectivePoint("EVACUATE", self.MissionBrain.AboveHUDPos, CF["PlayerTeam"], GameActivity.ARROWDOWN)
 				if self.MissionCraft then
 					-- Craft is defined but not an actor - that means it has been destroyed, so delay the next one
 					self.MissionCraftCheckTime = self.Time + 10
@@ -172,7 +172,7 @@ function VoidWanderers:MissionUpdate()
 							local savior = self:GetControlledActor(player) -- or MovableMan:GetClosestTeamActor(self.MissionBrain.Team, player, self.MissionBrain.Pos, 20 + self.MissionBrain.IndividualRadius, Vector(), self.MissionBrain)
 							if
 								savior
-								and CF_DistUnder(
+								and CF["DistUnder"](
 									savior.Pos,
 									self.MissionBrain.Pos,
 									1 + self.MissionBrain.IndividualRadius + savior.IndividualRadius
@@ -205,8 +205,8 @@ function VoidWanderers:MissionUpdate()
 							10
 						) < 0
 					then
-						local f = CF_GetPlayerFaction(self.GS, self.MissionSourcePlayer)
-						self.MissionCraft = CF_MakeActor(CF_Crafts[f], CF_CraftClasses[f], CF_CraftModules[f])
+						local f = CF["GetPlayerFaction"](self.GS, self.MissionSourcePlayer)
+						self.MissionCraft = CF["MakeActor"](CF["Crafts"][f], CF["CraftClasses"][f], CF["CraftModules"][f])
 							or CreateACDropShip("Dropship MK1", "Base.rte")
 						self.MissionCraft.Pos = Vector(self.MissionBrain.Pos.X, -10)
 						self.MissionCraft.Team = self.MissionBrain.Team
@@ -259,7 +259,7 @@ function VoidWanderers:MissionUpdate()
 							end
 						else
 							-- The rest will scatter
-							CF_HuntForActors(actor, Activity.NOTEAM)
+							CF["HuntForActors"](actor, Activity.NOTEAM)
 						end
 					end
 				end
@@ -273,17 +273,17 @@ function VoidWanderers:MissionUpdate()
 			self.MissionStatus = "COMMANDER ALIVE"
 
 			if self.Time >= self.MissionNextReinforcements then
-				local actorCount = { [CF_PlayerTeam] = 0, [CF_CPUTeam] = 0 }
+				local actorCount = { [CF["PlayerTeam"]] = 0, [CF["CPUTeam"]] = 0 }
 				for actor in MovableMan.Actors do
 					if actor.ID ~= self.MissionBrain.ID then
 						if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
-							if actor.Team == CF_CPUTeam then
-								actorCount[CF_CPUTeam] = actorCount[CF_CPUTeam] + 1
+							if actor.Team == CF["CPUTeam"] then
+								actorCount[CF["CPUTeam"]] = actorCount[CF["CPUTeam"]] + 1
 								if actor.AIMode ~= Actor.AIMODE_GOTO then
-									CF_Hunt(actor, { self.MissionBrain })
+									CF["Hunt"](actor, { self.MissionBrain })
 								end
-							elseif actor.Team == CF_PlayerTeam then
-								actorCount[CF_PlayerTeam] = actorCount[CF_PlayerTeam] + 1
+							elseif actor.Team == CF["PlayerTeam"] then
+								actorCount[CF["PlayerTeam"]] = actorCount[CF["PlayerTeam"]] + 1
 								if
 									self.MissionCraft == nil
 									and self:IsAlly(actor)
@@ -292,19 +292,19 @@ function VoidWanderers:MissionUpdate()
 										:ShortestDistance(actor.Pos, self.MissionBrain.Pos, SceneMan.SceneWrapsX)
 										:MagnitudeIsLessThan(50)
 								then
-									CF_Hunt(actor, { self.MissionBrain })
+									CF["Hunt"](actor, { self.MissionBrain })
 								end
 							end
 						elseif actor.ClassName == "ACDropShip" or actor.ClassName == "ACRocket" then
-							if actor.Team == CF_CPUTeam then
-								actorCount[CF_CPUTeam] = actorCount[CF_CPUTeam] + actor.InventorySize
-							elseif actor.Team == CF_PlayerTeam then
-								actorCount[CF_PlayerTeam] = actorCount[CF_PlayerTeam] + actor.InventorySize
+							if actor.Team == CF["CPUTeam"] then
+								actorCount[CF["CPUTeam"]] = actorCount[CF["CPUTeam"]] + actor.InventorySize
+							elseif actor.Team == CF["PlayerTeam"] then
+								actorCount[CF["PlayerTeam"]] = actorCount[CF["PlayerTeam"]] + actor.InventorySize
 							end
 						end
 					end
 				end
-				if #self.MissionLZs > 0 and MovableMan:GetMOIDCount() < CF_MOIDLimit then
+				if #self.MissionLZs > 0 and MovableMan:GetMOIDCount() < CF["MOIDLimit"] then
 					if self.MissionSettings["EnemyDropShips"] > 0 then
 						local count = math.ceil(
 							RangeRand(
@@ -312,24 +312,24 @@ function VoidWanderers:MissionUpdate()
 								self.MissionSettings["SpawnUnitCount"]
 							)
 						)
-						local f = CF_GetPlayerFaction(self.GS, self.MissionTargetPlayer)
+						local f = CF["GetPlayerFaction"](self.GS, self.MissionTargetPlayer)
 
-						local ship = CF_MakeActor(CF_Crafts[f], CF_CraftClasses[f], CF_CraftModules[f])
+						local ship = CF["MakeActor"](CF["Crafts"][f], CF["CraftClasses"][f], CF["CraftModules"][f])
 						if ship then
 							for i = 1, count do
-								local actor = CF_SpawnAIUnit(self.GS, self.MissionTargetPlayer, CF_CPUTeam, nil, nil)
+								local actor = CF["SpawnAIUnit"](self.GS, self.MissionTargetPlayer, CF["CPUTeam"], nil, nil)
 								if actor then
 									if actor.AIMode == Actor.AIMODE_BRAINHUNT then
-										CF_Hunt(actor, { self.MissionBrain })
+										CF["Hunt"](actor, { self.MissionBrain })
 									end
 									if i == self.MissionSettings["SpawnUnitCount"] and math.random() < 0.5 then
 										actor:AddInventoryItem(CreateTDExplosive("Timed Explosive"))
 									end
-									actorCount[CF_CPUTeam] = actorCount[CF_CPUTeam] + 1
+									actorCount[CF["CPUTeam"]] = actorCount[CF["CPUTeam"]] + 1
 									ship:AddInventoryItem(actor)
 								end
 							end
-							ship.Team = CF_CPUTeam
+							ship.Team = CF["CPUTeam"]
 							ship.Pos = Vector(self.MissionLZs[math.random(#self.MissionLZs)].X, -10)
 							ship.AIMode = Actor.AIMODE_DELIVER
 							MovableMan:AddActor(ship)
@@ -343,16 +343,16 @@ function VoidWanderers:MissionUpdate()
 				end
 				self.MissionNextReinforcements = self.Time
 					+ self.MissionSettings["Interval"]
-					+ math.ceil(actorCount[CF_CPUTeam] / math.sqrt(math.max(actorCount[CF_PlayerTeam], 1)))
+					+ math.ceil(actorCount[CF["CPUTeam"]] / math.sqrt(math.max(actorCount[CF["PlayerTeam"]], 1)))
 			end
 		end
 	elseif self.MissionStage == self.MissionStages.FAILED then
 		self.MissionStatus = "MISSION FAILED"
 		if not self.MissionEndMusicPlayed then
-			self:StartMusic(CF_MusicTypes.DEFEAT)
+			self:StartMusic(CF["MusicTypes"].DEFEAT)
 			self.MissionEndMusicPlayed = true
 		end
-		if self.Time < self.MissionStatusShowStart + CF_MissionResultShowInterval then
+		if self.Time < self.MissionStatusShowStart + CF["MissionResultShowInterval"] then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
@@ -360,12 +360,12 @@ function VoidWanderers:MissionUpdate()
 		end
 	elseif self.MissionStage == self.MissionStages.COMPLETED then
 		if not self.MissionEndMusicPlayed then
-			self:StartMusic(CF_MusicTypes.VICTORY)
+			self:StartMusic(CF["MusicTypes"].VICTORY)
 			self.MissionEndMusicPlayed = true
 		end
 		self.MissionStatus = "MISSION COMPLETED"
 
-		if self.Time < self.MissionStatusShowStart + CF_MissionResultShowInterval then
+		if self.Time < self.MissionStatusShowStart + CF["MissionResultShowInterval"] then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)

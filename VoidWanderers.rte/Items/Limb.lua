@@ -27,7 +27,7 @@ function Update(self)
 			if
 				actor
 				and IsAHuman(actor:GetRootParent())
-				and CF_AttemptReplaceLimb(ToAHuman(actor:GetRootParent()), self)
+				and CF["AttemptReplaceLimb"](ToAHuman(actor:GetRootParent()), self)
 			then
 				ToAHuman(actor:GetRootParent()):FlashWhite(50)
 				self.attachSound:Play(self.Pos)

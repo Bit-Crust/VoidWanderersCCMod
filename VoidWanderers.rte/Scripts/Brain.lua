@@ -1,5 +1,59 @@
+CF = {}
+
+LIB_PATH = ActivityMan:GetActivity().ModuleName .. "/Scripts/";
+dofile(LIB_PATH .. "Lib_Isolated.lua");
+
+local tempvar = nil;
+
+function GS_Read(self, key) 
+	tempvar = nil;
+	ActivityMan:GetActivity():SendMessage("read_from_GS", {self, key});
+	return tempvar;
+end
+
+function GS_Write(key, value) 
+	ActivityMan:GetActivity():SendMessage("write_to_GS", {key, value});
+end
+
+function CF_Read(self, keys) 
+	tempvar = nil;
+	ActivityMan:GetActivity():SendMessage("read_from_CF", {self, keys});
+	return tempvar;
+end
+
+function CF_Write(keys, value) 
+	ActivityMan:GetActivity():SendMessage("write_to_CF", {keys, value});
+end
+
+function CF_Call(self, keys, arguments) 
+	tempvar = nil;
+	ActivityMan:GetActivity():SendMessage("call_in_CF", {self, keys, arguments});
+	return tempvar;
+end
+
+function OnMessage(self, message, context)
+	if message == "return_from_activity" then
+		tempvar = context;
+	end
+end
+
+function PackBrainForConfig(self)
+	return {BrainNumber = self.BrainNumber, RepairCount = self.RepairCount, HealCount = self.HealCount, SelfHealCount = self.SelfHealCount, QuantumStorage = self.QuantumStorage}
+end
+
+function UnpackBrainForConfig(self, info)
+	self.BrainNumber = info.BrainNumber
+	self.RepairCount = info.RepairCount
+	self.HealCount = info.HealCount
+	self.SelfHealCount = info.SelfHealCount
+	self.QuantumStorage = info.QuantumStorage
+end
+
 function Create(self)
 	-- Set up constants
+
+	--print(GS_Read(self, "Brain" .. "0" .. "Telekinesis"));
+	
 	self.DistPerPower = 75
 	self.CoolDownInterval = 3000
 	self.PrintSkills = true
@@ -29,7 +83,6 @@ function Create(self)
 	if found then
 		-- Store actor for future use
 		if found.ClassName == "AHuman" then
-			print("WEre here");
 			self.ThisActor = ToAHuman(found)
 			--print ("Created: " ..self.ThisActor.PresetName)
 		elseif found.ClassName == "ACrab" then
@@ -76,43 +129,43 @@ function Create(self)
 		local s = self.ThisActor.PresetName
 		local pos = string.find(s, "RPG Brain Robot")
 		if pos ~= nil and pos == 1 then
-			if CF_GS ~= nil and self.ThisActor.Team == 0 then
+			if self.ThisActor.Team == 0 then
 				--print ("GS")
 				local bplr = tonumber(string.sub(s, string.len(s), string.len(s)))
 				self.BrainNumber = bplr
 
-				self.TelekinesisLvl = tonumber(CF_GS["Brain" .. bplr .. "Telekinesis"])
-				self.ShieldLvl = tonumber(CF_GS["Brain" .. bplr .. "Field"])
+				self.TelekinesisLvl = tonumber(GS_Read(self, "Brain" .. bplr .. "Telekinesis"))
+				self.ShieldLvl = tonumber(GS_Read(self, "Brain" .. bplr .. "Field"))
 
-				self.MaxHealth = 100 + tonumber(CF_GS["Brain" .. bplr .. "Level"])
-				self.RegenInterval = 1500 - tonumber(CF_GS["Brain" .. bplr .. "Level"]) * 10
+				self.MaxHealth = 100 + tonumber(GS_Read(self, "Brain" .. bplr .. "Level"))
+				self.RegenInterval = 1500 - tonumber(GS_Read(self, "Brain" .. bplr .. "Level")) * 10
 
-				self.RepairCount = tonumber(CF_GS["Brain" .. bplr .. "Fix"]) * 3
-				self.HealCount = tonumber(CF_GS["Brain" .. bplr .. "Heal"])
-				self.SelfHealCount = tonumber(CF_GS["Brain" .. bplr .. "SelfHeal"])
-				self.ScanLevel = tonumber(CF_GS["Brain" .. bplr .. "Scanner"])
-				self.SplitterLevel = tonumber(CF_GS["Brain" .. bplr .. "Splitter"])
-				self.QuantumCapacity = tonumber(CF_GS["Brain" .. bplr .. "QuantumCapacity"])
-				self.QuantumCapacity = CF_QuantumCapacityPerLevel + self.QuantumCapacity * CF_QuantumCapacityPerLevel
+				self.RepairCount = tonumber(GS_Read(self, "Brain" .. bplr .. "Fix")) * 3
+				self.HealCount = tonumber(GS_Read(self, "Brain" .. bplr .. "Heal"))
+				self.SelfHealCount = tonumber(GS_Read(self, "Brain" .. bplr .. "SelfHeal"))
+				self.ScanLevel = tonumber(GS_Read(self, "Brain" .. bplr .. "Scanner"))
+				self.SplitterLevel = tonumber(GS_Read(self, "Brain" .. bplr .. "Splitter"))
+				self.QuantumCapacity = tonumber(GS_Read(self, "Brain" .. bplr .. "QuantumCapacity"))
+				self.QuantumCapacity = (self.QuantumCapacity) * CF_Read(self, {"QuantumCapacityPerLevel"})
 
 				-- If skills counters were previosly saved then load their values from config
 				if self.BrainNumber > -1 then
-					local val = tonumber(c["Brain" .. self.BrainNumber .. "Fix_Count"])
+					local val = tonumber(GS_Read(self, "Brain" .. self.BrainNumber .. "Fix_Count"))
 					if val ~= nil then
 						self.RepairCount = val
 					end
 
-					local val = tonumber(c["Brain" .. self.BrainNumber .. "Heal_Count"])
+					local val = tonumber(GS_Read(self, "Brain" .. self.BrainNumber .. "Heal_Count"))
 					if val ~= nil then
 						self.HealCount = val
 					end
 
-					local val = tonumber(c["Brain" .. self.BrainNumber .. "SelfHeal_Count"])
+					local val = tonumber(GS_Read(self, "Brain" .. self.BrainNumber .. "SelfHeal_Count"))
 					if val ~= nil then
 						self.SelfHealCount = val
 					end
 
-					local val = tonumber(c["Brain" .. self.BrainNumber .. "QuantumStorage"])
+					local val = tonumber(GS_Read(self, "Brain" .. self.BrainNumber .. "QuantumStorage"))
 					if val ~= nil then
 						self.QuantumStorage = val
 					end
@@ -164,14 +217,14 @@ function Create(self)
 
 				local pos = string.find(s, "STOR")
 				if pos ~= nil then
-					self.QuantumStorage = CF_QuantumCapacityPerLevel
-						+ tonumber(string.sub(s, pos + 4, pos + 4)) * CF_QuantumCapacityPerLevel
+					self.QuantumStorage = CF_Read(self, {"QuantumCapacityPerLevel"})
+						+ tonumber(string.sub(s, pos + 4, pos + 4)) * CF_Read(self, {"QuantumCapacityPerLevel"})
 				end
 
 				local pos = string.find(s, "QCAP")
 				if pos ~= nil then
-					self.QuantumCapacity = CF_QuantumCapacityPerLevel
-						+ tonumber(string.sub(s, pos + 4, pos + 4)) * CF_QuantumCapacityPerLevel
+					self.QuantumCapacity = CF_Read(self, "QuantumCapacityPerLevel")
+						+ tonumber(string.sub(s, pos + 4, pos + 4)) * CF_Read(self, {"QuantumCapacityPerLevel"})
 				end
 
 				local pos = string.find(s, "::")
@@ -223,7 +276,7 @@ function Create(self)
 
 			self.ScannerSkillIndex = count
 
-			if CF_GS["Brain" .. self.BrainNumber .. "ScannerEnabled"] == "true" then
+			if GS_Read(self, "Brain" .. self.BrainNumber .. "ScannerEnabled") == "true" then
 				self.Skills[self.ScannerSkillIndex]["State"] = "On"
 				self.ScanEnabled = true
 			else
@@ -276,17 +329,17 @@ function Create(self)
 			-- Make quantum sub-menu
 			local items = {}
 
-			for i = 1, #CF_QuantumItems do
-				local id = CF_QuantumItems[i]
+			for i = 1, #CF_Read(self, {"QuantumItems"}) do
+				local id = CF_Read(self, {"QuantumItems"})[i]
 
-				if c["QuantumItemUnlocked_" .. id] == "True" then
+				if CF_Read(self, {"QuantumItemUnlocked_" .. id}) == "True" then
 					local n = #arr + 1
 					arr[n] = {}
 					arr[n]["ID"] = id
-					arr[n]["Preset"] = CF_QuantumItmPresets[id]
-					arr[n]["Class"] = CF_QuantumItmClasses[id]
-					arr[n]["Module"] = CF_QuantumItmModules[id]
-					arr[n]["Price"] = math.ceil(CF_QuantumItmPrices[id] / 2)
+					arr[n]["Preset"] = CF_Read(self, {"QuantumItmPresets"})[id]
+					arr[n]["Class"] = CF_Read(self, {"QuantumItmClasses"})[id]
+					arr[n]["Module"] = CF_Read(self, {"QuantumItmModules"})[id]
+					arr[n]["Price"] = math.ceil(CF_Read(self, {"QuantumItmPrices"})[id] / 2)
 				end
 			end
 
@@ -473,7 +526,7 @@ function Update(self)-- Don't do anything when in edit mode
 			-- Search for friends to amplify power
 			if actor.Team ~= self.ThisActor.Team and not actor:IsInGroup("Brains") and actor.Health > 0 then
 				-- Search for enemies to find threat
-				local dist = SceneMan:ShortestDistance(actor.Pos, self.ThisActor.Pos, true)
+				local dist = SceneMan:ShortestDistance(actor.Pos, self.ThisActor.Pos, SceneMan.SceneWrapsX)
 
 				-- Find only nearest enemies
 				if dist:MagnitudeIsLessThan(self.EffectiveDistance) and dist:MagnitudeIsLessThan(nearestenemydist) then
@@ -611,7 +664,7 @@ function Update(self)-- Don't do anything when in edit mode
 				local weap = self.Threat.EquippedItem
 
 				if weap ~= nil then
-					local newweap = VoidWanderersRPG_VW_MakeItem(weap.PresetName, weap.ClassName)
+					local newweap = VoidWanderersRPG_VW_MakeItem(weap.PresetName, weap.ClassName, weap.ModuleName)
 					if newweap ~= nil then
 						if self.PrintSkills then
 							print("Steal - " .. tostring(math.ceil(self.FullPower)) .. " - " .. self.Threat.PresetName)
@@ -716,9 +769,9 @@ function Update(self)-- Don't do anything when in edit mode
 			self.DamageThreat = nil
 		end
 
-		--CF_DrawString(tostring(self.ThisActor:GetAimAngle(true)), self.Pos + Vector(0,-110), 200, 200)
-		--CF_DrawString(tostring(math.cos(self.ThisActor:GetAimAngle(false))), self.Pos + Vector(0,-100), 200, 200)
-		--CF_DrawString(tostring(math.floor(self.ThisActor:GetAimAngle(true) * (180 / 3.14))), self.Pos + Vector(0,-90), 200, 200)
+		--CF["DrawString"](tostring(self.ThisActor:GetAimAngle(true)), self.Pos + Vector(0,-110), 200, 200)
+		--CF["DrawString"](tostring(math.cos(self.ThisActor:GetAimAngle(false))), self.Pos + Vector(0,-100), 200, 200)
+		--CF["DrawString"](tostring(math.floor(self.ThisActor:GetAimAngle(true) * (180 / 3.14))), self.Pos + Vector(0,-90), 200, 200)
 
 		-- Update state
 		if self.Timer:IsPastSimMS(250) then
@@ -754,16 +807,16 @@ function Update(self)-- Don't do anything when in edit mode
 			end
 		end
 
-		if CF_DrawString ~= nil and self.PrintSkills then
-			CF_DrawString("E " .. math.floor(self.Energy), self.Pos + Vector(0, -50), 200, 200)
-			CF_DrawString("P " .. self.FullPower, self.Pos + Vector(0, -40), 200, 200)
+		if self.PrintSkills then
+			CF_Call(self, {"DrawString"}, {"E " .. math.floor(self.Energy), self.Pos + Vector(0, -50), 200, 200})
+			CF_Call(self, {"DrawString"}, {"P " .. self.FullPower, self.Pos + Vector(0, -40), 200, 200})
 		end
 
 		-- Process scanner
 		if self.ScanLevel > 0 and self.ScanEnabled then
 			for actor in MovableMan.Actors do
 				if actor.ClassName ~= "ADoor" and actor.ClassName ~= "Actor" and actor.ID ~= self.ThisActor.ID then
-					local d = CF_Dist(actor.Pos, self.Pos)
+					local d = math.min((actor.Pos - self.Pos).Magnitude, (actor.Pos - self.Pos - Vector(SceneMan.SceneWidth, 0) * (SceneMan.SceneWrapsX and 1 or 0)).Magnitude, (actor.Pos - self.Pos + Vector(SceneMan.SceneWidth, 0) * (SceneMan.SceneWrapsX and 1 or 0)).Magnitude)
 
 					if d < self.ScanRange then
 						local a = VoidWanderersRPG_GetAngle(self.Pos, actor.Pos)
@@ -796,7 +849,7 @@ function Update(self)-- Don't do anything when in edit mode
 
 			-- Show eye pos
 			local a = VoidWanderersRPG_GetAngle(self.Pos, self.ThisActor.ViewPoint)
-			local d = CF_Dist(self.ThisActor.ViewPoint, self.Pos)
+			local d = SceneMan:ShortestDistance(self.ThisActor.ViewPoint, self.Pos, SceneMan.SceneWrapsX).Magnitude
 			local relpos = Vector(math.cos(-a) * (20 + (d * 0.1)), math.sin(-a) * (20 + (d * 0.1)))
 			local effect = "Green Glow"
 
@@ -805,8 +858,7 @@ function Update(self)-- Don't do anything when in edit mode
 
 		-- Process PDA input
 		if self.ThisActor:IsPlayerControlled() then
-			print("help")
-			if CF_PDAInitiator ~= nil and CF_PDAInitiator.ID == self.ThisActor.ID then
+			if self:NumberValueExists("enablePDA") then
 				-- Enable PDA only if we're not flying or something
 				if self.PDAEnabled then
 					self.PDAEnabled = false
@@ -814,12 +866,12 @@ function Update(self)-- Don't do anything when in edit mode
 					if self.ThisActor.Vel:MagnitudeIsLessThan(3) then
 						self.PDAEnabled = true
 					end
+					self.SelectedMenuItem = 1
+					self.PinPoint = Vector(self.ThisActor.Pos.X, self.ThisActor.Pos.Y)
+					self.ActiveMenu = self.Skills
 				end
-				CF_PDAInitiator = nil
-				self.SelectedMenuItem = 1
-				self.PinPoint = Vector(self.ThisActor.Pos.X, self.ThisActor.Pos.Y)
-				self.ActiveMenu = self.Skills
 			end
+			self:RemoveNumberValue("enablePDA");
 		else
 			self.PDAEnabled = false
 			if self.LinkedActors ~= nil then
@@ -871,7 +923,7 @@ function Update(self)-- Don't do anything when in edit mode
 						and (healTarget.Health < healTarget.MaxHealth or healTarget.WoundCount > 0)
 						and healTarget.Vel.Largest < 10
 					then
-						local trace = SceneMan:ShortestDistance(self.Pos, healTarget.Pos, false)
+						local trace = SceneMan:ShortestDistance(self.Pos, healTarget.Pos, SceneMan.SceneWrapsX)
 						if
 							(trace.Magnitude - healTarget.Radius) < healRange
 							and SceneMan:CastObstacleRay(
@@ -909,7 +961,7 @@ function Update(self)-- Don't do anything when in edit mode
 						and (actor.Health < actor.MaxHealth or actor.WoundCount > 0)
 						and actor.Vel.Largest < 5
 					then
-						local trace = SceneMan:ShortestDistance(self.Pos, actor.Pos, false)
+						local trace = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX)
 						if (trace.Magnitude - actor.Radius) < (healRange * 0.9) then
 							if
 								SceneMan:CastObstacleRay(
@@ -962,7 +1014,7 @@ function Update(self)-- Don't do anything when in edit mode
 
 				for actor in MovableMan.Actors do
 					if actor.Team == self.ThisActor.Team and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
-						local d = CF_Dist(self.ThisActor.Pos, actor.Pos)
+						local d = CF["Dist"](self.ThisActor.Pos, actor.Pos)
 						if d <= dist then
 							if actor.Health < hlth then
 								a = actor;
@@ -987,20 +1039,6 @@ function Destroy(self)
 	swarm_destroy(self)
 end
 
-function OnMessage(message, context)
-	if "RPGBrain_State_Request_Fulfill" == message then
-		
-	end
-end
-
-function RequestInfoTable()
-	
-end
-
-function ExportInfoTable()
-	
-end
-
 function VoidWanderersRPG_AddEffect(pos, preset)
 	local pix = CreateMOPixel(preset, "VoidWanderers.rte")
 	pix.Pos = pos
@@ -1013,15 +1051,26 @@ function VoidWanderersRPG_AddPsyEffect(pos)
 	MovableMan:AddParticle(pix)
 end
 
-function VoidWanderersRPG_VW_MakeItem(item, class)
+function Distance(point1, point2)
+	local wrapFact = Vector(SceneMan.SceneWidth, 0) * (SceneMan.SceneWrapsX and 1 or 0);
+	return math.min(
+		(point1 - point2).Magnitude, 
+		(point1 - point2 - wrapFact).Magnitude, 
+		(point1 - point2 + wrapFact ).Magnitude)
+end
+
+function VoidWanderersRPG_VW_MakeItem(preset, class, module)
+	if class == nil then
+		class = "HDFirearm"
+	end
 	if class == "HeldDevice" then
-		return CreateHeldDevice(item)
+		return module == nil and CreateHeldDevice(preset) or CreateHeldDevice(preset, module)
 	elseif class == "HDFirearm" then
-		return CreateHDFirearm(item)
+		return module == nil and CreateHDFirearm(preset) or CreateHDFirearm(preset, module)
 	elseif class == "TDExplosive" then
-		return CreateTDExplosive(item)
+		return module == nil and CreateTDExplosive(preset) or CreateTDExplosive(preset, module)
 	elseif class == "ThrownDevice" then
-		return CreateThrownDevice(item)
+		return module == nil and CreateThrownDevice(preset) or CreateThrownDevice(preset, module)
 	end
 
 	return nil
@@ -1114,7 +1163,7 @@ function do_rpgbrain_shield()
 			end
 			--pressure[n] = 15000
 
-			--CF_DrawString(tostring(math.ceil(G_VW_Pressure[i])), shields[n].Pos + Vector(0,-50), 200, 200)
+			--CF["DrawString"](tostring(math.ceil(G_VW_Pressure[i])), shields[n].Pos + Vector(0,-50), 200, 200)
 		else
 			G_VW_Active[i] = false
 		end
@@ -1217,7 +1266,7 @@ function do_rpgbrain_pda(self)
 					and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 					and acceptable
 				then
-					local d = CF_Dist(self.ThisActor.Pos, actor.Pos)
+					local d = SceneMan:ShortestDistance(self.ThisActor.Pos, actor.Pos, SceneMan.SceneWrapsX).Magnitude
 					if d <= dist then
 						a = actor
 						dist = d
@@ -1270,7 +1319,7 @@ function do_rpgbrain_pda(self)
 					and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 					and acceptable
 				then
-					local d = CF_Dist(self.ThisActor.Pos, actor.Pos)
+					local d = SceneMan:ShortestDistance(self.ThisActor.Pos, actor.Pos, SceneMan.SceneWrapsX).Magnitude
 					if d <= dist then
 						self.SkillTargetActors[#self.SkillTargetActors + 1] = actor
 					end
@@ -1287,7 +1336,7 @@ function do_rpgbrain_pda(self)
 	end
 
 	local cont = self.ThisActor:GetController()
-	local plr = cont.GetPlayer()
+	local plr = Activity.PLAYER_1--cont.GetPlayer()
 	local up = false
 	local down = false
 
@@ -1301,7 +1350,7 @@ function do_rpgbrain_pda(self)
 		down = true
 	end
 
-	if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
+	if self.HoldTimer:IsPastSimMS(CF_Read(self, {"KeyRepeatDelay"})) then
 		self.HoldTimer:Reset()
 
 		if cont:IsState(Controller.HOLD_UP) then
@@ -1344,7 +1393,7 @@ function do_rpgbrain_pda(self)
 
 		if self.ThisActor.EquippedItem ~= nil then
 			local mass = self.ThisActor.EquippedItem.Mass
-			local convert = self.SplitterLevel * CF_QuantumSplitterEffectiveness
+			local convert = self.SplitterLevel * CF_Read(self, {"QuantumSplitterEffectiveness"})
 			local matter = math.floor(mass * convert)
 
 			if self.QuantumStorage + matter > self.QuantumCapacity then
@@ -1364,9 +1413,9 @@ function do_rpgbrain_pda(self)
 	-- Draw skills menu
 	if self.ActiveMenu == nil or #self.ActiveMenu == 0 then
 		local s = "NO SKILLS"
-		local l = CF_GetStringPixelWidth(s)
+		local l = CF_Call(self, {"GetStringPixelWidth"}, {s})[1]
 
-		CF_DrawString(s, pos + Vector(-l / 2, 2), 100, 8)
+		CF_Call(self, {"DrawString"}, {s, pos + Vector(-l / 2, 2), 100, 8})
 	else
 		for i = self.MenuItemsListStart, self.MenuItemsListStart + 6 - 1 do
 			if i <= #self.ActiveMenu then
@@ -1381,9 +1430,9 @@ function do_rpgbrain_pda(self)
 				end
 
 				if i == self.SelectedMenuItem then
-					CF_DrawString("> " .. s, pos + Vector(-50, (i - self.MenuItemsListStart) * 10), 150, 8)
+					CF_Call(self, {"DrawString"}, {"> " .. s, pos + Vector(-50, (i - self.MenuItemsListStart) * 10), 150, 8})
 				else
-					CF_DrawString(s, pos + Vector(-50, (i - self.MenuItemsListStart) * 10), 150, 8)
+					CF_Call(self, {"DrawString"}, {s, pos + Vector(-50, (i - self.MenuItemsListStart) * 10), 150, 8})
 				end
 			end
 		end --]]--
@@ -1392,8 +1441,8 @@ function do_rpgbrain_pda(self)
 	if cont:IsState(Controller.WEAPON_FIRE) then
 		cont:SetState(Controller.WEAPON_FIRE, false)
 
-		if not self.FirePressed[plr] then
-			self.FirePressed[plr] = true
+		if not self.FirePressed then
+			self.FirePressed = true
 
 			-- Execute skill function
 			if self.ActiveMenu[self.SelectedMenuItem]["Function"] ~= nil then
@@ -1406,7 +1455,7 @@ function do_rpgbrain_pda(self)
 			end
 		end
 	else
-		self.FirePressed[plr] = false
+		self.FirePressed = false
 	end
 end
 --[[
@@ -1419,7 +1468,7 @@ function rpgbrain_skill_healstart(self)
 			
 			self.HealCount = self.HealCount - 1
 			self.ActiveMenu[self.SelectedMenuItem]["Count"] = self.HealCount
-			CF_SaveThisBrainSupplies(CF_GS, self)
+			CF["SaveThisBrainSupplies"](CF["GS"], self)
 		end
 	end
 end
@@ -1438,7 +1487,7 @@ function rpgbrain_skill_selfhealstart(self)
 
 			self.SelfHealCount = self.SelfHealCount - 1
 			self.ActiveMenu[self.SelectedMenuItem]["Count"] = self.SelfHealCount
-			CF_SaveThisBrainSupplies(CF_GS, self)
+			CF_Call(self, {"SaveThisBrainSupplies"}, {CF_Read(self, {"GS"}), PackBrainForConfig(self)})
 		end
 	end
 end
@@ -1447,7 +1496,8 @@ function rpgbrain_skill_healend(self)
 	if self.HealTarget ~= nil and MovableMan:IsActor(self.HealTarget) and self.HealTarget.Health > 0 then
 		local presets, classes, modules
 		if self.HealTarget.ClassName == "AHuman" then
-			presets, classes, modules = CF_GetInventory(self.HealTarget)
+			presets, classes, modules = unpack(CF_Call(self, {"GetInventory"}, {self.HealTarget}))
+			print(presets, classes, modules)
 		end
 		local preset = self.HealTarget.PresetName
 		local oldpreset = self.HealTarget.PresetName
@@ -1459,7 +1509,7 @@ function rpgbrain_skill_healend(self)
 		--print (self.OriginalPreset)
 		--print (oldpreset)
 
-		local actor = CF_MakeActor(
+		local actor = (CF_Call(self, {"MakeActor"}, {
 			preset,
 			self.HealTarget.ClassName,
 			self.HealTarget.ModuleName,
@@ -1468,7 +1518,7 @@ function rpgbrain_skill_healend(self)
 			self.HealTarget:GetNumberValue("VW_Prestige"),
 			self.HealTarget:GetStringValue("VW_Name"),
 			{}
-		)
+		})[1]):Clone()
 		if actor then
 			actor.PresetName = oldpreset
 			actor.Team = self.ThisActor.Team
@@ -1476,8 +1526,8 @@ function rpgbrain_skill_healend(self)
 
 			if actor.ClassName == "AHuman" then
 				for i = 1, #presets do
-					local itm = CF_MakeItem(presets[i], classes[i], modules[i])
-					if itm then
+					local itm = (CF_Call(self, {"MakeItem"}, {presets[i], classes[i], modules[i]})[1]):Clone()
+					if itm ~= nil then
 						actor:AddInventoryItem(itm)
 					end
 				end
@@ -1502,15 +1552,15 @@ function rpgbrain_skill_repair(self)
 
 			self.ThisActor.EquippedItem.ToDelete = true
 
-			local newgun = CF_MakeItem(preset, class, module)
-			if newgun then
+			local newgun = VoidWanderersRPG_VW_MakeItem(preset, class, module);
+			if newgun ~= nil then
 				self.ThisActor:AddInventoryItem(newgun)
 				self.ThisActor:GetController():SetState(Controller.WEAPON_CHANGE_PREV, true)
 			end
 
 			self.RepairCount = self.RepairCount - 1
 			self.ActiveMenu[self.SelectedMenuItem]["Count"] = self.RepairCount
-			CF_SaveThisBrainSupplies(CF_GS, self)
+			CF_Call(self, {"SaveThisBrainSupplies"}, {CF_Read(self, {"GS"}), PackBrainForConfig(self)})
 		end
 	end
 end
@@ -1519,7 +1569,7 @@ function rpgbrain_skill_split(self)
 	if self.ThisActor.EquippedItem ~= nil then
 		if self.QuantumStorage < self.QuantumCapacity then
 			local mass = self.ThisActor.EquippedItem.Mass
-			local convert = self.SplitterLevel * CF_QuantumSplitterEffectiveness
+			local convert = self.SplitterLevel * CF_Read(self, {"QuantumSplitterEffectiveness"})
 			local matter = math.floor(mass * convert)
 
 			self.QuantumStorage = self.QuantumStorage + matter
@@ -1528,7 +1578,7 @@ function rpgbrain_skill_split(self)
 			end
 
 			self.Skills[self.QuantumStorageItem]["Count"] = self.QuantumStorage
-			CF_SaveThisBrainSupplies(CF_GS, self)
+			CF_Call(self, {"SaveThisBrainSupplies"}, {CF_Read(self, {"GS"}), PackBrainForConfig(self)})
 
 			self.ThisActor.EquippedItem.ToDelete = true
 			self.ThisActor:GetController():SetState(Controller.WEAPON_CHANGE_PREV, true)
@@ -1542,28 +1592,28 @@ function rpgbrain_skill_synthesize(self)
 		local class = self.ActiveMenu[self.SelectedMenuItem]["Class"]
 		local module = self.ActiveMenu[self.SelectedMenuItem]["Module"]
 
-		local newgun = CF_MakeItem(preset, class, module)
-		if newgun then
+		local newgun = VoidWanderersRPG_VW_MakeItem(preset, class, module)
+		if newgun ~= nil then
 			self.ThisActor:AddInventoryItem(newgun)
 			self.ThisActor:GetController():SetState(Controller.WEAPON_CHANGE_PREV, true)
 		end
 
 		self.QuantumStorage = self.QuantumStorage - self.ActiveMenu[self.SelectedMenuItem]["Price"]
 		self.Skills[self.QuantumStorageItem]["Count"] = self.QuantumStorage
-		CF_SaveThisBrainSupplies(CF_GS, self)
+		CF_Call(self, {"SaveThisBrainSupplies"}, {CF_Read(self, {"GS"}), PackBrainForConfig(self)})
 	end
 end
 
 function rpgbrain_skill_scanner(self)
 	self.ScanEnabled = not self.ScanEnabled
 
-	if CF_GS["Brain" .. self.BrainNumber .. "ScannerEnabled"] == "true" then
-		CF_GS["Brain" .. self.BrainNumber .. "ScannerEnabled"] = "false"
+	if GS_Read(self, "Brain" .. self.BrainNumber .. "ScannerEnabled") == "true" then
+		GS_Write("Brain" .. self.BrainNumber .. "ScannerEnabled", "false")
 	else
-		CF_GS["Brain" .. self.BrainNumber .. "ScannerEnabled"] = "true"
+		GS_Write("Brain" .. self.BrainNumber .. "ScannerEnabled", "true")
 	end
 
-	if CF_GS["Brain" .. self.BrainNumber .. "ScannerEnabled"] == "true" then
+	if GS_Read(self, "Brain" .. self.BrainNumber .. "ScannerEnabled") == "true" then
 		self.Skills[self.ScannerSkillIndex]["State"] = "On"
 	else
 		self.Skills[self.ScannerSkillIndex]["State"] = "Off"
@@ -1571,7 +1621,7 @@ function rpgbrain_skill_scanner(self)
 end
 
 function swarm_swarmto(object, target, speed)
-	local baseVector = SceneMan:ShortestDistance(object.Pos, target, true)
+	local baseVector = SceneMan:ShortestDistance(object.Pos, target, SceneMan.SceneWrapsX)
 	local dirVector = baseVector / baseVector.Largest
 	local dist = baseVector.Magnitude
 	local modifier = dist / 5
@@ -1679,7 +1729,7 @@ function swarm_update(self)
 		if
 			not SceneMan:CastStrengthRay(
 				self.Pos,
-				SceneMan:ShortestDistance(self.Pos, self.target.Pos, true),
+				SceneMan:ShortestDistance(self.Pos, self.target.Pos, SceneMan.SceneWrapsX),
 				self.maxMoveStrength,
 				Vector(),
 				5,
@@ -1687,7 +1737,7 @@ function swarm_update(self)
 				true
 			)
 		then
-			local dirVec = SceneMan:ShortestDistance(self.Pos, self.target.Pos, true)
+			local dirVec = SceneMan:ShortestDistance(self.Pos, self.target.Pos, SceneMan.SceneWrapsX)
 			local movement = (dirVec / dirVec.Largest) * self.maxBaseSpeed
 
 			self.Vel = self.Vel + movement
@@ -1741,7 +1791,7 @@ function swarm_update(self)
 				swarm_swarmto(wasp, target, math.random() * self.baseAcc * attackAcc)
 
 				--Keep the wasp from going too fast.
-				local speedMod = SceneMan:ShortestDistance(wasp.Pos, target, true).Magnitude / 5
+				local speedMod = SceneMan:ShortestDistance(wasp.Pos, target, SceneMan.SceneWrapsX).Magnitude / 5
 				if speedMod < 1 then
 					speedMod = 1
 				end
@@ -1754,7 +1804,7 @@ function swarm_update(self)
 				end
 
 				--Keep the wasp within decent bounds of the swarm.
-				local distVec = SceneMan:ShortestDistance(target, wasp.Pos, true)
+				local distVec = SceneMan:ShortestDistance(target, wasp.Pos, SceneMan.SceneWrapsX)
 
 				if math.abs(distVec.Largest) > self.maxDist then
 					wasp.Pos = distVec:SetMagnitude(self.maxDist) + target

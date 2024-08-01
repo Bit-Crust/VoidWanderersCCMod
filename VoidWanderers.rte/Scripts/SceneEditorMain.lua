@@ -8,9 +8,9 @@ function VoidWanderers:StartActivity()
 	self.player1Controller = self:GetPlayerController(Activity.PLAYER_1)
 
 	if self.PlayerCount > 1 or self.player1Controller:IsKeyboardOnlyControlled() then
-		CF_EnableKeyboardControls = true
+		CF["EnableKeyboardControls"] = true
 	else
-		CF_EnableKeyboardControls = false
+		CF["EnableKeyboardControls"] = false
 	end
 
 	if self.IsInitialized == nil then
@@ -29,7 +29,7 @@ function VoidWanderers:StartActivity()
 
 	self:LoadCurrentGameState()
 
-	CF_InitFactions(self)
+	CF["InitFactions"](self)
 
 	---- -- -- self.ModuleName = "VoidWanderers.rte";
 
@@ -66,7 +66,7 @@ function VoidWanderers:StartActivity()
 
 	self.MessageTimer = Timer()
 	self.MessageTimer:Reset()
-	self.MessageInterval = CF_MessageInterval
+	self.MessageInterval = CF["MessageInterval"]
 	self.MessagePos = self.Mid + Vector(-75, self.ResY2 - 48)
 
 	self.Messages = {}
@@ -127,7 +127,7 @@ function VoidWanderers:CreateActors()
 
 	G_CursorActor = CreateActor("VW_Cursor")
 	if G_CursorActor then
-		G_CursorActor.Team = CF_PlayerTeam
+		G_CursorActor.Team = CF["PlayerTeam"]
 		local curactor = self:GetControlledActor(Activity.PLAYER_1)
 
 		if act and MovableMan:IsActor(curactor) then
@@ -155,15 +155,15 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:LoadCurrentGameState()
-	if CF_IsFileExists(self.ModuleName, STATE_CONFIG_FILE) then
-		self.GS = CF_ReadConfigFile(self.ModuleName, STATE_CONFIG_FILE)
+	if CF["IsFileExists"](self.ModuleName, STATE_CONFIG_FILE) then
+		self.GS = CF["ReadConfigFile"](self.ModuleName, STATE_CONFIG_FILE)
 	end
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:SaveCurrentGameState()
-	CF_WriteConfigFile(self.GS, self.ModuleName, STATE_CONFIG_FILE)
+	CF["WriteConfigFile"](self.GS, self.ModuleName, STATE_CONFIG_FILE)
 end
 -----------------------------------------------------------------------------------------
 --
@@ -194,14 +194,14 @@ function VoidWanderers:DrawLabel(el, state)
 		end
 
 		if centered then
-			CF_DrawString(
+			CF["DrawString"](
 				el["Text"],
-				Vector(el.Pos.X - (CF_GetStringPixelWidth(el["Text"]) / 2) + 2, el.Pos.Y),
+				Vector(el.Pos.X - (CF["GetStringPixelWidth"](el["Text"]) / 2) + 2, el.Pos.Y),
 				el["Width"] - 8,
 				el["Height"]
 			)
 		else
-			CF_DrawString(el["Text"], el.Pos, el["Width"], el["Height"])
+			CF["DrawString"](el["Text"], el.Pos, el["Width"], el["Height"])
 		end
 	end
 end
@@ -212,7 +212,7 @@ function VoidWanderers:DrawButton(el, state, drawthistime)
 	local isvisible = true
 	local presetprefix
 
-	if CF_LowPerformance then
+	if CF["LowPerformance"] then
 		presetprefix = "Ln"
 	else
 		presetprefix = ""
@@ -232,9 +232,9 @@ function VoidWanderers:DrawButton(el, state, drawthistime)
 		end
 
 		if el["Text"] then
-			CF_DrawString(
+			CF["DrawString"](
 				el["Text"],
-				Vector(el.Pos.X - (CF_GetStringPixelWidth(el["Text"]) / 2) + 2, el.Pos.Y),
+				Vector(el.Pos.X - (CF["GetStringPixelWidth"](el["Text"]) / 2) + 2, el.Pos.Y),
 				el["Width"] - 8,
 				el["Height"]
 			)
@@ -279,8 +279,8 @@ function VoidWanderers:RedrawKnownFormElements()
 	for i = 1, #self.UI do
 		drawthistime = true
 
-		if CF_LowPerformance then
-			if CF_FrameCounter % 2 == i % 2 then
+		if CF["LowPerformance"] then
+			if CF["FrameCounter"] % 2 == i % 2 then
 				drawthistime = true
 			else
 				drawthistime = false
@@ -339,7 +339,7 @@ function VoidWanderers:UpdateActivity()
 		return
 	end
 
-	if CF_StopUIProcessing then
+	if CF["StopUIProcessing"] then
 		return
 	end
 
@@ -354,7 +354,7 @@ function VoidWanderers:UpdateActivity()
 
 	--Read standard input, ugly but at least it will be operational if mouse fail for whatever reason
 
-	if CF_EnableKeyboardControls then
+	if CF["EnableKeyboardControls"] then
 		if self.player1Controller:IsState(Controller.MOVE_LEFT) then
 			self.Mouse = self.Mouse + Vector(-5, 0)
 		end
@@ -377,8 +377,8 @@ function VoidWanderers:UpdateActivity()
 
 	-- Debug Toggle low performance flag on/off
 	--if UInputMan:KeyPressed(28) then
-	--	CF_LowPerformance = not CF_LowPerformance
-	--	print (CF_LowPerformance)
+	--	CF["LowPerformance"] = not CF["LowPerformance"]
+	--	print (CF["LowPerformance"])
 	--end
 
 	-- Find out info about UInputMan buttons
@@ -432,7 +432,7 @@ function VoidWanderers:UpdateActivity()
 	end
 
 	-- Process mouse hovers and presses -- TODO: UInputMan doesn't seem to register the mouse press functions?
-	if true or CF_EnableKeyboardControls then
+	if true or CF["EnableKeyboardControls"] then
 		self.MouseOverElement = self:GetMouseOverKnownFormElements()
 
 		if self.MouseOverElement then
@@ -525,11 +525,11 @@ function VoidWanderers:UpdateActivity()
 	self:FormUpdate()
 	self:FormDraw()
 
-	-- Count frames for low performance version of CF_DrawString
-	CF_FrameCounter = CF_FrameCounter + 1
+	-- Count frames for low performance version of CF["DrawString"]
+	CF["FrameCounter"] = CF["FrameCounter"] + 1
 
-	if CF_FrameCounter >= 10000 then
-		CF_FrameCounter = 0
+	if CF["FrameCounter"] >= 10000 then
+		CF["FrameCounter"] = 0
 	end
 
 	--print (self.Mouse - self.Mid)--]]--

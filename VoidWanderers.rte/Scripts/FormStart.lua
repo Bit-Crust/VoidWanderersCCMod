@@ -7,7 +7,7 @@ function VoidWanderers:FormLoad()
 	local el
 	self.UI = {}
 
-	--[[if CF_IsFileExists(self.ModuleName , STATE_CONFIG_FILE) then
+	--[[if CF["IsFileExists"](self.ModuleName , STATE_CONFIG_FILE) then
 		el = {}
 		el["Type"] = self.ElementTypes.BUTTON;
 		el["Presets"] = {};
@@ -68,7 +68,7 @@ function VoidWanderers:FormLoad()
 
 	el["OnClick"] = self.BtnLaunchRandomActivity_OnClick
 
-	if CF_DebugEnableRandomActivity then
+	if CF["DebugEnableRandomActivity"] then
 		self.UI[#self.UI + 1] = el
 	end
 	
@@ -79,13 +79,13 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:BtnLaunchRandomActivity_OnClick()
 	self:SaveCurrentGameState()
-	CF_LaunchMission(scene, script)
+	CF["LaunchMission"](scene, script)
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:BtnContinueGame_OnClick()
-	config = CF_ReadConfigFile(self.ModuleName, STATE_CONFIG_FILE)
+	config = CF["ReadConfigFile"](self.ModuleName, STATE_CONFIG_FILE)
 	self:LaunchScript(config["Scene"], "Tactics.lua")
 
 	--self:FormClose();

@@ -52,28 +52,28 @@ function VoidWanderers:MissionCreate()
 	self.MissionStart = self.Time
 
 	-- We're going to alter ally presets, ally units may be tougher or weaker then enemy units
-	CF_CreateAIUnitPresets(
+	CF["CreateAIUnitPresets"](
 		self.GS,
 		self.MissionSourcePlayer,
 		self.GS["Player" .. self.MissionSourcePlayer .. "Reputation"] * 0.5
 	)
 
 	-- Remove all non-player doors, because allied units will be deployed inside CPU bases
-	if CF_LocationRemoveDoors[self.GS["Location"]] ~= nil and CF_LocationRemoveDoors[self.GS["Location"]] == true then
+	if CF["LocationRemoveDoors"][self.GS["Location"]] ~= nil and CF["LocationRemoveDoors"][self.GS["Location"]] == true then
 		for actor in MovableMan.Actors do
 			if actor.ClassName == "ADoor" then
-				actor.Team = CF_PlayerTeam
+				actor.Team = CF["PlayerTeam"]
 			end
 		end
 	end
 
 	-- Use generic enemy set
-	local set = CF_GetRandomMissionPointsSet(self.Pts, "Enemy")
+	local set = CF["GetRandomMissionPointsSet"](self.Pts, "Enemy")
 	self:DeployGenericMissionEnemies(
 		set,
 		"Enemy",
 		self.MissionSourcePlayer,
-		CF_PlayerTeam,
+		CF["PlayerTeam"],
 		self.MissionSettings["SpawnRate"]
 	)
 
@@ -103,7 +103,7 @@ function VoidWanderers:MissionUpdate()
 		local enemies = 0
 
 		for actor in MovableMan.Actors do
-			if actor.Team == CF_PlayerTeam and actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
+			if actor.Team == CF["PlayerTeam"] and actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
 				local inside = false
 
 				for i = 1, #self.MissionBase do
@@ -115,12 +115,12 @@ function VoidWanderers:MissionUpdate()
 				end
 
 				if inside and self.Time % 5 == 0 then
-					self:AddObjectivePoint("HOLD POSITION", actor.AboveHUDPos, CF_PlayerTeam, GameActivity.ARROWDOWN)
+					self:AddObjectivePoint("HOLD POSITION", actor.AboveHUDPos, CF["PlayerTeam"], GameActivity.ARROWDOWN)
 				end
-			elseif actor.Team == CF_CPUTeam then
+			elseif actor.Team == CF["CPUTeam"] then
 				enemies = enemies + 1
 				if actor.ClassName == "AHuman" or actor.ClassName == "ACrab" then
-					CF_HuntForActors(actor, CF_PlayerTeam)
+					CF["HuntForActors"](actor, CF["PlayerTeam"])
 				end
 			end
 		end
@@ -134,7 +134,7 @@ function VoidWanderers:MissionUpdate()
 		if not self.MissionReinforcementsTriggered or friends < 2 then
 			-- If nobody was spawned at the base then show player where to go and what to defend
 			for i = 1, #self.MissionBase do
-				self:AddObjectivePoint("DEFEND BASE", self.MissionBase[i].Center, CF_PlayerTeam, GameActivity.ARROWDOWN)
+				self:AddObjectivePoint("DEFEND BASE", self.MissionBase[i].Center, CF["PlayerTeam"], GameActivity.ARROWDOWN)
 			end
 
 			if self.BaseEffectTimer:IsPastSimMS(25) then
@@ -178,19 +178,19 @@ function VoidWanderers:MissionUpdate()
 			and self.MissionSettings["EnemyDropShips"] > 0
 			and self.Time >= self.MissionNextReinforcements
 		then
-			if MovableMan:GetMOIDCount() < CF_MOIDLimit then
+			if MovableMan:GetMOIDCount() < CF["MOIDLimit"] then
 				local count = math.random(
 					math.ceil(self.MissionSettings["TroopCount"] * 0.5),
 					self.MissionSettings["TroopCount"]
 				)
-				local f = CF_GetPlayerFaction(self.GS, self.MissionTargetPlayer)
-				local ship = CF_MakeActor(CF_Crafts[f], CF_CraftClasses[f], CF_CraftModules[f])
+				local f = CF["GetPlayerFaction"](self.GS, self.MissionTargetPlayer)
+				local ship = CF["MakeActor"](CF["Crafts"][f], CF["CraftClasses"][f], CF["CraftModules"][f])
 				if ship then
 					for i = 1, count do
-						local actor = CF_SpawnAIUnit(
+						local actor = CF["SpawnAIUnit"](
 							self.GS,
 							self.MissionTargetPlayer,
-							CF_CPUTeam,
+							CF["CPUTeam"],
 							nil,
 							Actor.AIMODE_SENTRY
 						)
@@ -198,7 +198,7 @@ function VoidWanderers:MissionUpdate()
 							ship:AddInventoryItem(actor)
 						end
 					end
-					ship.Team = CF_CPUTeam
+					ship.Team = CF["CPUTeam"]
 					ship.Pos = Vector(self.MissionLZs[math.random(#self.MissionLZs)].X, -10)
 					ship.AIMode = Actor.AIMODE_DELIVER
 					MovableMan:AddActor(ship)
@@ -212,22 +212,22 @@ function VoidWanderers:MissionUpdate()
 		end
 
 		-- Use particle cannon to destroy some allies prevening enemy to deploy
-		if enemies == 0 and MovableMan:GetMOIDCount() >= CF_MOIDLimit then
+		if enemies == 0 and MovableMan:GetMOIDCount() >= CF["MOIDLimit"] then
 			if self.Time == self.MissionParticleCannonLastShot + self.MissionParticleCannonInterval then
 				self.MissionParticleCannonLastShot = self.Time
-				self:MissionDefendFireSuperWeapon(true, CF_CPUTeam, CF_PlayerTeam)
+				self:MissionDefendFireSuperWeapon(true, CF["CPUTeam"], CF["PlayerTeam"])
 			else
-				self:MissionDefendFireSuperWeapon(false, CF_CPUTeam, CF_PlayerTeam)
+				self:MissionDefendFireSuperWeapon(false, CF["CPUTeam"], CF["PlayerTeam"])
 			end
 		end
 	elseif self.MissionStage == self.MissionStages.FAILED then
 		self.MissionStatus = "MISSION FAILED"
 		if not self.MissionEndMusicPlayed then
-			self:StartMusic(CF_MusicTypes.DEFEAT)
+			self:StartMusic(CF["MusicTypes"].DEFEAT)
 			self.MissionEndMusicPlayed = true
 		end
 
-		if self.Time < self.MissionStatusShowStart + CF_MissionResultShowInterval then
+		if self.Time < self.MissionStatusShowStart + CF["MissionResultShowInterval"] then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
@@ -236,11 +236,11 @@ function VoidWanderers:MissionUpdate()
 	elseif self.MissionStage == self.MissionStages.COMPLETED then
 		self.MissionStatus = "MISSION COMPLETED"
 		if not self.MissionEndMusicPlayed then
-			self:StartMusic(CF_MusicTypes.VICTORY)
+			self:StartMusic(CF["MusicTypes"].VICTORY)
 			self.MissionEndMusicPlayed = true
 		end
 
-		if self.Time < self.MissionStatusShowStart + CF_MissionResultShowInterval then
+		if self.Time < self.MissionStatusShowStart + CF["MissionResultShowInterval"] then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)

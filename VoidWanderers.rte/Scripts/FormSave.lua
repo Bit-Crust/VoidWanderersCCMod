@@ -9,7 +9,7 @@ function VoidWanderers:FormLoad()
 
 	-- Create save slots-buttons
 	self.Slots = {}
-	for i = 1, CF_MaxSaveGames do
+	for i = 1, CF["MaxSaveGames"] do
 		el = {}
 		el["Type"] = self.ElementTypes.BUTTON
 		el["Presets"] = {}
@@ -29,13 +29,13 @@ function VoidWanderers:FormLoad()
 		self.Slots[i] = {}
 		self.Slots[i]["Empty"] = true
 
-		if CF_IsFileExists(self.ModuleName, "savegame" .. i .. ".dat") then
+		if CF["IsFileExists"](self.ModuleName, "savegame" .. i .. ".dat") then
 			local config = {}
 
-			config = CF_ReadConfigFile(self.ModuleName, "savegame" .. i .. ".dat")
+			config = CF["ReadConfigFile"](self.ModuleName, "savegame" .. i .. ".dat")
 
 			if config["Player0Faction"] ~= nil then
-				self.Slots[i]["Faction"] = CF_FactionNames[config["Player0Faction"]]
+				self.Slots[i]["Faction"] = CF["FactionNames"][config["Player0Faction"]]
 				self.Slots[i]["Gold"] = config["Player0Gold"]
 
 				local tm = tonumber(config["Time"])
@@ -52,7 +52,7 @@ function VoidWanderers:FormLoad()
 				tm = tostring(hrs) .. ":" .. mins
 
 				self.Slots[i]["Time"] = tm
-				self.Slots[i]["Planet"] = CF_PlanetName[config["Planet"]]
+				self.Slots[i]["Planet"] = CF["PlanetName"][config["Planet"]]
 				self.Slots[i]["Empty"] = false
 			else
 				self.Slots[i]["Faction"] = "Empty/Broken slot #" .. i .. "\n"
@@ -65,22 +65,22 @@ function VoidWanderers:FormLoad()
 	-- Place elements
 	self.SaveSlotsPerRow = 2 -- Plates per row
 
-	if CF_MaxSaveGames < self.SaveSlotsPerRow then
-		self.SaveSlotsPerRow = CF_MaxSaveGames
+	if CF["MaxSaveGames"] < self.SaveSlotsPerRow then
+		self.SaveSlotsPerRow = CF["MaxSaveGames"]
 	end
 
-	self.Rows = math.floor(CF_MaxSaveGames / self.SaveSlotsPerRow + 1)
+	self.Rows = math.floor(CF["MaxSaveGames"] / self.SaveSlotsPerRow + 1)
 
 	local xtile = 1
 	local ytile = 1
 	local tilesperrow = 0
 
 	-- Init factions UI
-	for i = 1, CF_MaxSaveGames do
-		if i <= CF_MaxSaveGames - CF_MaxSaveGames % self.SaveSlotsPerRow then
+	for i = 1, CF["MaxSaveGames"] do
+		if i <= CF["MaxSaveGames"] - CF["MaxSaveGames"] % self.SaveSlotsPerRow then
 			tilesperrow = self.SaveSlotsPerRow
 		else
-			tilesperrow = CF_MaxSaveGames % self.SaveSlotsPerRow
+			tilesperrow = CF["MaxSaveGames"] % self.SaveSlotsPerRow
 		end
 
 		self.UI[i]["Pos"] = Vector(
@@ -96,7 +96,7 @@ function VoidWanderers:FormLoad()
 	end
 
 	-- Create description labels
-	for i = 1, CF_MaxSaveGames do
+	for i = 1, CF["MaxSaveGames"] do
 		el = {}
 		el["Type"] = self.ElementTypes.LABEL
 		el["Preset"] = nil
@@ -204,7 +204,7 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:SaveSlots_OnClick()
-	CF_WriteConfigFile(self.GS, self.ModuleName, "savegame" .. self.MouseOverElement .. ".dat")
+	CF["WriteConfigFile"](self.GS, self.ModuleName, "savegame" .. self.MouseOverElement .. ".dat")
 
 	self:FormClose()
 	self:LoadCurrentGameState()

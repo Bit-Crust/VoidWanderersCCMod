@@ -1,7 +1,7 @@
 function Create(self)
 	local act, itm
-	if CF_PlayerTeam ~= nil then
-		if not self:NumberValueExists("VWOpenCrate") and math.random(50, 1000) < CF_Difficulty then
+	if CF["PlayerTeam"] ~= nil then
+		if not self:NumberValueExists("VWOpenCrate") and math.random(50, 1000) < CF["Difficulty"] then
 			if math.random() < 0.9 then
 				act = CreateACrab("Crab", "Base.rte")
 				act.Pos = self.Pos
@@ -23,43 +23,43 @@ function Create(self)
 				end
 			end
 		else
-			if #CF_ArtActPresets == 0 then
-				CF_ArtifactActorRate = 0
+			if #CF["ArtActPresets"] == 0 then
+				CF["ArtifactActorRate"] = 0
 			end
-			local artifactChance = CF_ArtifactActorRate - (CF_ArtifactActorRate / (0.5 + math.sqrt(#CF_ArtActPresets)))
+			local artifactChance = CF["ArtifactActorRate"] - (CF["ArtifactActorRate"] / (0.5 + math.sqrt(#CF["ArtActPresets"])))
 
-			local atypes = { CF_ActorTypes.LIGHT, CF_ActorTypes.HEAVY, CF_ActorTypes.HEAVY, CF_ActorTypes.ARMOR }
+			local atypes = { CF["ActorTypes"].LIGHT, CF["ActorTypes"].HEAVY, CF["ActorTypes"].HEAVY, CF["ActorTypes"].ARMOR }
 			local f
 			local ok = false
 
 			while not ok do
-				f = CF_Factions[math.random(#CF_Factions)]
-				if CF_FactionPlayable[f] then
+				f = CF["Factions"][math.random(#CF["Factions"])]
+				if CF["FactionPlayable"][f] then
 					ok = true
 				end
 			end
 
-			-- We need this fake cfg because CF_MakeList operates only on configs to get data
+			-- We need this fake cfg because CF["MakeList"] operates only on configs to get data
 			local cfg = {}
 			cfg["Player0Faction"] = f
 
 			--print (cfg)
 
-			local acts = CF_MakeListOfMostPowerfulActors(cfg, 0, atypes[math.random(#atypes)], 100000)
+			local acts = CF["MakeListOfMostPowerfulActors"](cfg, 0, atypes[math.random(#atypes)], 100000)
 
 			if math.random() < artifactChance or acts == nil then
-				local r = math.random(#CF_ArtActPresets)
-				act = CF_MakeActor(CF_ArtActPresets[r], CF_ArtActClasses[r], CF_ArtActModules[r])
+				local r = math.random(#CF["ArtActPresets"])
+				act = CF["MakeActor"](CF["ArtActPresets"][r], CF["ArtActClasses"][r], CF["ArtActModules"][r])
 			else
 				local r = #acts > 1 and math.random(#acts) or 1
 				local actindex = acts[r]["Actor"]
-				act = CF_MakeActor(CF_ActPresets[f][actindex], CF_ActClasses[f][actindex], CF_ActModules[f][actindex])
+				act = CF["MakeActor"](CF["ActPresets"][f][actindex], CF["ActClasses"][f][actindex], CF["ActModules"][f][actindex])
 			end
 			if act then
 				act.AngularVel = 0
 				act.Vel = Vector(0, -3)
 				act.Pos = self.Pos + Vector(0, -10)
-				act.Team = CF_PlayerTeam
+				act.Team = CF["PlayerTeam"]
 				act.AIMode = Actor.AIMODE_SENTRY
 				MovableMan:AddActor(act)
 			end

@@ -45,8 +45,8 @@ function VoidWanderers:AmbientUpdate()
 		pos = self.Ship:GetRandomPoint()
 
 		for actor in MovableMan.Actors do
-			if actor.Team == CF_PlayerTeam then
-				if CF_DistUnder(pos, actor.Pos, self.SafeExplosionDistance) then
+			if actor.Team == CF["PlayerTeam"] then
+				if CF["DistUnder"](pos, actor.Pos, self.SafeExplosionDistance) then
 					ok = false
 					break
 				end

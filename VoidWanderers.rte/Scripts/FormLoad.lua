@@ -9,7 +9,7 @@ function VoidWanderers:FormLoad()
 
 	-- Create save slots-buttons
 	self.Slots = {}
-	for i = 1, CF_MaxSaveGames do
+	for i = 1, CF["MaxSaveGames"] do
 		el = {}
 		el["Type"] = self.ElementTypes.BUTTON
 		el["Presets"] = {}
@@ -29,16 +29,16 @@ function VoidWanderers:FormLoad()
 		self.Slots[i] = {}
 		self.Slots[i]["Empty"] = true
 
-		if CF_IsFileExists(self.ModuleName, "savegame" .. i .. ".dat") then
+		if CF["IsFileExists"](self.ModuleName, "savegame" .. i .. ".dat") then
 			local config = {}
 
-			config = CF_ReadConfigFile(self.ModuleName, "savegame" .. i .. ".dat")
+			config = CF["ReadConfigFile"](self.ModuleName, "savegame" .. i .. ".dat")
 
 			local isbroken = false
 			local reason = ""
 
 			-- Check that all used factions are installed
-			for j = 0, CF_MaxCPUPlayers do
+			for j = 0, CF["MaxCPUPlayers"] do
 				if config["Player" .. j .. "Active"] == "True" then
 					local f = config["Player" .. j .. "Faction"]
 
@@ -46,7 +46,7 @@ function VoidWanderers:FormLoad()
 						isbroken = true
 						break
 					else
-						if CF_FactionNames[f] == nil or CF_FactionPlayable[f] == false then
+						if CF["FactionNames"][f] == nil or CF["FactionPlayable"][f] == false then
 							isbroken = true
 							reason = "NO " .. f
 						end
@@ -55,7 +55,7 @@ function VoidWanderers:FormLoad()
 			end
 
 			if not isbroken then
-				self.Slots[i]["Faction"] = CF_FactionNames[config["Player0Faction"]]
+				self.Slots[i]["Faction"] = CF["FactionNames"][config["Player0Faction"]]
 				self.Slots[i]["Gold"] = config["Player0Gold"]
 
 				local tm = tonumber(config["Time"])
@@ -73,7 +73,7 @@ function VoidWanderers:FormLoad()
 
 				self.Slots[i]["Time"] = tm
 				self.Slots[i]["Reason"] = reason
-				self.Slots[i]["Planet"] = CF_PlanetName[config["Planet"]]
+				self.Slots[i]["Planet"] = CF["PlanetName"][config["Planet"]]
 				self.Slots[i]["Empty"] = false
 			else
 				self.Slots[i]["Faction"] = "Broken slot #" .. i .. ""
@@ -87,22 +87,22 @@ function VoidWanderers:FormLoad()
 	-- Place elements
 	self.SaveSlotsPerRow = 2 -- Plates per row
 
-	if CF_MaxSaveGames < self.SaveSlotsPerRow then
-		self.SaveSlotsPerRow = CF_MaxSaveGames
+	if CF["MaxSaveGames"] < self.SaveSlotsPerRow then
+		self.SaveSlotsPerRow = CF["MaxSaveGames"]
 	end
 
-	self.Rows = math.floor(CF_MaxSaveGames / self.SaveSlotsPerRow + 1)
+	self.Rows = math.floor(CF["MaxSaveGames"] / self.SaveSlotsPerRow + 1)
 
 	local xtile = 1
 	local ytile = 1
 	local tilesperrow = 0
 
 	-- Init factions UI
-	for i = 1, CF_MaxSaveGames do
-		if i <= CF_MaxSaveGames - CF_MaxSaveGames % self.SaveSlotsPerRow then
+	for i = 1, CF["MaxSaveGames"] do
+		if i <= CF["MaxSaveGames"] - CF["MaxSaveGames"] % self.SaveSlotsPerRow then
 			tilesperrow = self.SaveSlotsPerRow
 		else
-			tilesperrow = CF_MaxSaveGames % self.SaveSlotsPerRow
+			tilesperrow = CF["MaxSaveGames"] % self.SaveSlotsPerRow
 		end
 
 		self.UI[i]["Pos"] = Vector(
@@ -118,7 +118,7 @@ function VoidWanderers:FormLoad()
 	end
 
 	-- Create description labels
-	for i = 1, CF_MaxSaveGames do
+	for i = 1, CF["MaxSaveGames"] do
 		el = {}
 		el["Type"] = self.ElementTypes.LABEL
 		el["Preset"] = nil
@@ -223,18 +223,18 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:SaveSlots_OnClick()
 	if not self.Slots[self.MouseOverElement]["Empty"] then
-		local config = CF_ReadConfigFile(self.ModuleName, "savegame" .. self.MouseOverElement .. ".dat")
+		local config = CF["ReadConfigFile"](self.ModuleName, "savegame" .. self.MouseOverElement .. ".dat")
 		-- Reset mission listing if they are not correct
-		for j = 1, CF_MaxMissions do
+		for j = 1, CF["MaxMissions"] do
 			local resetMissions = true
 			if
 				config["Mission" .. j .. "Location"]
 				and config["Mission" .. j .. "Type"]
-				and CF_LocationMissions[config["Mission" .. j .. "Location"]]
+				and CF["LocationMissions"][config["Mission" .. j .. "Location"]]
 			then
-				for lm = 1, #CF_LocationMissions[config["Mission" .. j .. "Location"]] do
+				for lm = 1, #CF["LocationMissions"][config["Mission" .. j .. "Location"]] do
 					if
-						config["Mission" .. j .. "Type"] == CF_LocationMissions[config["Mission" .. j .. "Location"]][lm]
+						config["Mission" .. j .. "Type"] == CF["LocationMissions"][config["Mission" .. j .. "Location"]][lm]
 					then
 						resetMissions = false
 						break
@@ -242,14 +242,14 @@ function VoidWanderers:SaveSlots_OnClick()
 				end
 				if resetMissions then
 					print("Mission location mismatch detected!! Mission listing has been reset!")
-					CF_GenerateRandomMissions(config)
+					CF["GenerateRandomMissions"](config)
 					break
 				end
 			end
 		end
 		-- Completion streak will be reset, so make sure that the mission report gets fixed
-		CF_MissionCombo = nil
-		for i = 1, CF_MaxMissionReportLines do
+		CF["MissionCombo"] = nil
+		for i = 1, CF["MaxMissionReportLines"] do
 			if config["MissionReport" .. i] then
 				if string.find(config["MissionReport" .. i], "Completion streak") then
 					config["MissionReport" .. i] = "Completion streak: 0"
@@ -259,7 +259,7 @@ function VoidWanderers:SaveSlots_OnClick()
 				break
 			end
 		end
-		CF_WriteConfigFile(config, self.ModuleName, STATE_CONFIG_FILE)
+		CF["WriteConfigFile"](config, self.ModuleName, STATE_CONFIG_FILE)
 		self:FormClose()
 
 		self:LoadCurrentGameState()

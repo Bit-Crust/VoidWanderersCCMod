@@ -20,7 +20,7 @@ function VoidWanderers:InitShipControlPanelUI()
 			self.ShipControlPanelActor = CreateActor("Ship Control Panel");
 			if self.ShipControlPanelActor ~= nil then
 				self.ShipControlPanelActor.Pos = self.ShipControlPanelPos;
-				self.ShipControlPanelActor.Team = CF_PlayerTeam;
+				self.ShipControlPanelActor.Team = CF["PlayerTeam"];
 				MovableMan:AddActor(self.ShipControlPanelActor);
 			end
 		end
@@ -39,7 +39,7 @@ function VoidWanderers:InitShipControlPanelUI()
 	};
 
 	-- Debug
-	--for i = 1, CF_MaxMissionReportLines do
+	--for i = 1, CF["MaxMissionReportLines"] do
 	--	self.GS["MissionReport"..i] = "STRING "..i
 	--end
 
@@ -109,7 +109,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 	if self.MissionReport ~= nil then
 		--[[ Force-show report if we have some report array left from previous mission?
-		self:SwitchToActor(self.ShipControlPanelActor, 0, CF_PlayerTeam)
+		self:SwitchToActor(self.ShipControlPanelActor, 0, CF["PlayerTeam"])
 		]]
 		--
 		self.MissionReport = nil;
@@ -123,9 +123,9 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 			-- Fill planet list
 			self.ShipControlPlanetList = {};
-			for i = 1, #CF_Planet do
-				if CF_Planet[i] ~= self.GS["Planet"] then
-					self.ShipControlPlanetList[#self.ShipControlPlanetList + 1] = CF_Planet[i];
+			for i = 1, #CF["Planet"] do
+				if CF["Planet"][i] ~= self.GS["Planet"] then
+					self.ShipControlPlanetList[#self.ShipControlPlanetList + 1] = CF["Planet"][i];
 				end
 			end
 
@@ -133,8 +133,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 			for i = 1, #self.ShipControlPlanetList do
 				for j = 1, #self.ShipControlPlanetList - 1 do
 					if
-						CF_PlanetName[self.ShipControlPlanetList[j]]
-						> CF_PlanetName[self.ShipControlPlanetList[j + 1]]
+						CF["PlanetName"][self.ShipControlPlanetList[j]]
+						> CF["PlanetName"][self.ShipControlPlanetList[j + 1]]
 					then
 						local s = self.ShipControlPlanetList[j];
 						self.ShipControlPlanetList[j] = self.ShipControlPlanetList[j + 1];
@@ -145,9 +145,9 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 			-- Fill location list
 			self.ShipControlLocationList = {};
-			for i = 1, #CF_Location do
-				if CF_LocationPlanet[CF_Location[i]] == self.GS["Planet"] then
-					self.ShipControlLocationList[#self.ShipControlLocationList + 1] = CF_Location[i];
+			for i = 1, #CF["Location"] do
+				if CF["LocationPlanet"][CF["Location"][i]] == self.GS["Planet"] then
+					self.ShipControlLocationList[#self.ShipControlLocationList + 1] = CF["Location"][i];
 				end
 			end
 
@@ -155,8 +155,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 			for i = 1, #self.ShipControlLocationList do
 				for j = 1, #self.ShipControlLocationList - 1 do
 					if
-						CF_LocationName[self.ShipControlLocationList[j]]
-						> CF_LocationName[self.ShipControlLocationList[j + 1]]
+						CF["LocationName"][self.ShipControlLocationList[j]]
+						> CF["LocationName"][self.ShipControlLocationList[j + 1]]
 					then
 						local s = self.ShipControlLocationList[j];
 						self.ShipControlLocationList[j] = self.ShipControlLocationList[j + 1];
@@ -183,7 +183,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					down = true;
 				end
 
-				if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
+				if self.HoldTimer:IsPastSimMS(CF["KeyRepeatDelay"]) then
 					self.HoldTimer:Reset();
 
 					if cont:IsState(Controller.HOLD_UP) then
@@ -225,12 +225,12 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							self.GS["Location"] = nil;
 							self.GS["Destination"] = self.ShipControlLocationList[self.ShipControlSelectedLocation];
 
-							local destpos = CF_LocationPos[self.GS["Destination"]] or Vector();
+							local destpos = CF["LocationPos"][self.GS["Destination"]] or Vector();
 
 							self.GS["DestX"] = math.floor(destpos.X);
 							self.GS["DestY"] = math.floor(destpos.Y);
 
-							self.GS["Distance"] = CF_Dist(
+							self.GS["Distance"] = CF["Dist"](
 								Vector(tonumber(self.GS["ShipX"]), tonumber(self.GS["ShipY"])),
 								Vector(tonumber(self.GS["DestX"]), tonumber(self.GS["DestX"]))
 							);
@@ -246,28 +246,28 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				-- Draw mode specific elements
 				-- Write current location
 				if self.GS["Destination"] ~= nil then
-					local scale = CF_PlanetScale[self.GS["Planet"]] or 1;
+					local scale = CF["PlanetScale"][self.GS["Planet"]] or 1;
 
-					local dst = math.ceil(tonumber(self.GS["Distance"]) * CF_KmPerPixel * scale);
+					local dst = math.ceil(tonumber(self.GS["Distance"]) * CF["KmPerPixel"] * scale);
 
-					CF_DrawString("EN ROUTE TO: ", pos + Vector(-62 - 71, -78), 270, 40);
-					local locname = CF_LocationName[self.GS["Destination"]];
+					CF["DrawString"]("EN ROUTE TO: ", pos + Vector(-62 - 71, -78), 270, 40);
+					local locname = CF["LocationName"][self.GS["Destination"]];
 					if locname ~= nil then
-						CF_DrawString(locname .. " - " .. dst .. " km", pos + Vector(-64, -78), 180, 40);
+						CF["DrawString"](locname .. " - " .. dst .. " km", pos + Vector(-64, -78), 180, 40);
 					end
 				else
-					CF_DrawString("CURRENT LOCATION:", pos + Vector(-62 - 71, -78), 270, 40);
-					local locname = CF_LocationName[self.GS["Location"]];
+					CF["DrawString"]("CURRENT LOCATION:", pos + Vector(-62 - 71, -78), 270, 40);
+					local locname = CF["LocationName"][self.GS["Location"]];
 					if locname ~= nil then
-						CF_DrawString(locname, pos + Vector(-34, -78), 130, 40);
+						CF["DrawString"](locname, pos + Vector(-34, -78), 130, 40);
 					else
-						CF_DrawString("Distant orbit", pos + Vector(-34, -78), 130, 40);
+						CF["DrawString"]("Distant orbit", pos + Vector(-34, -78), 130, 40);
 					end
 				end
 
-				CF_DrawString("FLY TO LOCATION:", pos + Vector(-62 - 71, -60), 270, 40);
+				CF["DrawString"]("FLY TO LOCATION:", pos + Vector(-62 - 71, -60), 270, 40);
 
-				CF_DrawString("U/D - Select location, L/R - Mode, FIRE - Fly", pos + Vector(-62 - 71, 78), 270, 40);
+				CF["DrawString"]("U/D - Select location, L/R - Mode, FIRE - Fly", pos + Vector(-62 - 71, 78), 270, 40);
 
 				--local shippos = Vector(0,0)
 
@@ -275,7 +275,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				local msn = false;
 
 				-- If we have mission in that location then draw red dot
-				for m = 1, CF_MaxMissions do
+				for m = 1, CF["MaxMissions"] do
 					if self.GS["Location"] == self.GS["Mission" .. m .. "Location"] then
 						msn = true;
 						break;
@@ -312,14 +312,14 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				local msncon;
 
 				-- If we have mission in that location then draw red dot
-				for m = 1, CF_MaxMissions do
+				for m = 1, CF["MaxMissions"] do
 					if
 						self.ShipControlLocationList[self.ShipControlSelectedLocation]
 						== self.GS["Mission" .. m .. "Location"]
 					then
 						msn = true;
 						msntype = self.GS["Mission" .. m .. "Type"];
-						msndiff = CF_GetFullMissionDifficulty(self.GS, self.GS["Mission" .. m .. "Location"], m); --tonumber(self.GS["Mission"..m.."Difficulty"])
+						msndiff = CF["GetFullMissionDifficulty"](self.GS, self.GS["Mission" .. m .. "Location"], m); --tonumber(self.GS["Mission"..m.."Difficulty"])
 						msntgt = tonumber(self.GS["Mission" .. m .. "TargetPlayer"]);
 						msncon = tonumber(self.GS["Mission" .. m .. "SourcePlayer"]);
 						break;
@@ -327,7 +327,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				end
 
 				-- Show selected location dot
-				local locpos = CF_LocationPos[self.ShipControlLocationList[self.ShipControlSelectedLocation]];
+				local locpos = CF["LocationPos"][self.ShipControlLocationList[self.ShipControlSelectedLocation]];
 				if locpos ~= nil then
 					if msn then
 						self:PutGlow("ControlPanel_Ship_MissionDot", pos + locpos + Vector(70, 0));
@@ -352,22 +352,22 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				local diff;
 
 				if msn then
-					CF_DrawString("MISSION: " .. CF_MissionName[msntype], pos + Vector(8, 38), 140, 10);
-					CF_DrawString(
-						"CONTRACTOR: " .. CF_FactionNames[CF_GetPlayerFaction(self.GS, msncon)],
+					CF["DrawString"]("MISSION: " .. CF["MissionName"][msntype], pos + Vector(8, 38), 140, 10);
+					CF["DrawString"](
+						"CONTRACTOR: " .. CF["FactionNames"][CF["GetPlayerFaction"](self.GS, msncon)],
 						pos + Vector(8, 50),
 						130,
 						10
 					);
-					CF_DrawString(
-						"TARGET: " .. CF_FactionNames[CF_GetPlayerFaction(self.GS, msntgt)],
+					CF["DrawString"](
+						"TARGET: " .. CF["FactionNames"][CF["GetPlayerFaction"](self.GS, msntgt)],
 						pos + Vector(8, 62),
 						130,
 						10
 					);
 					diff = msndiff;
 				else
-					diff = CF_GetLocationDifficulty(
+					diff = CF["GetLocationDifficulty"](
 						self.GS,
 						self.ShipControlLocationList[self.ShipControlSelectedLocation]
 					);
@@ -375,13 +375,13 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				local playable = true;
 
-				if CF_LocationPlayable[self.ShipControlLocationList[self.ShipControlSelectedLocation]] ~= nil then
-					playable = CF_LocationPlayable[self.ShipControlLocationList[self.ShipControlSelectedLocation]];
+				if CF["LocationPlayable"][self.ShipControlLocationList[self.ShipControlSelectedLocation]] ~= nil then
+					playable = CF["LocationPlayable"][self.ShipControlLocationList[self.ShipControlSelectedLocation]];
 				end
 
 				if playable then
-					CF_DrawString(
-						"SECURITY: " .. string.upper(CF_LocationDifficultyTexts[diff]),
+					CF["DrawString"](
+						"SECURITY: " .. string.upper(CF["LocationDifficultyTexts"][diff]),
 						pos + Vector(8, -60),
 						136,
 						10
@@ -391,64 +391,64 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						local rev = self.GS[self.ShipControlLocationList[self.ShipControlSelectedLocation] .. "-FogRevealPercentage"]
 							or 0;
 						-- TODO: Better name for fog revealed indicator?
-						CF_DrawString("INTEL: " .. rev .. "%", pos + Vector(8, -36), 136, 10);
+						CF["DrawString"]("INTEL: " .. rev .. "%", pos + Vector(8, -36), 136, 10);
 					end
 
 					-- Write gold status
-					local gold = CF_LocationGoldPresent[self.ShipControlLocationList[self.ShipControlSelectedLocation]];
+					local gold = CF["LocationGoldPresent"][self.ShipControlLocationList[self.ShipControlSelectedLocation]];
 					if gold ~= nil then
-						CF_DrawString(
+						CF["DrawString"](
 							"GOLD: " .. (gold == true and "PRESENT" or "ABSENT"),
 							pos + Vector(8, -48),
 							136,
 							182 - 34
 						);
 					else
-						CF_DrawString("GOLD: UNKNOWN", pos + Vector(8, -48), 136, 182 - 34);
+						CF["DrawString"]("GOLD: UNKNOWN", pos + Vector(8, -48), 136, 182 - 34);
 					end
 				else
 					if
-						CF_IsLocationHasAttribute(
+						CF["IsLocationHasAttribute"](
 							self.ShipControlLocationList[self.ShipControlSelectedLocation],
-							CF_LocationAttributeTypes.TRADESTAR
+							CF["LocationAttributeTypes"].TRADESTAR
 						)
 					then
-						CF_DrawString("TRADE STAR", pos + Vector(8, -60), 136, 10);
+						CF["DrawString"]("TRADE STAR", pos + Vector(8, -60), 136, 10);
 					end
 
 					if
-						CF_IsLocationHasAttribute(
+						CF["IsLocationHasAttribute"](
 							self.ShipControlLocationList[self.ShipControlSelectedLocation],
-							CF_LocationAttributeTypes.BLACKMARKET
+							CF["LocationAttributeTypes"].BLACKMARKET
 						)
 					then
-						CF_DrawString("BLACK MARKET", pos + Vector(8, -60), 136, 10);
+						CF["DrawString"]("BLACK MARKET", pos + Vector(8, -60), 136, 10);
 					end
 
 					if
-						CF_IsLocationHasAttribute(
+						CF["IsLocationHasAttribute"](
 							self.ShipControlLocationList[self.ShipControlSelectedLocation],
-							CF_LocationAttributeTypes.SHIPYARD
+							CF["LocationAttributeTypes"].SHIPYARD
 						)
 					then
-						CF_DrawString("SHIPYARD", pos + Vector(8, -60), 136, 10);
+						CF["DrawString"]("SHIPYARD", pos + Vector(8, -60), 136, 10);
 					end
 				end
 
 				-- Show location list
 				if #self.ShipControlLocationList > 0 then
 					for i = self.ShipControlLocationListStart, self.ShipControlLocationListStart + self.ShipControlLocationsPerPage - 1 do
-						local pname = CF_LocationName[self.ShipControlLocationList[i]];
+						local pname = CF["LocationName"][self.ShipControlLocationList[i]];
 						if pname ~= nil then
 							if i == self.ShipControlSelectedLocation then
-								CF_DrawString(
+								CF["DrawString"](
 									"> " .. pname,
 									pos + Vector(-62 - 71, -40 + (i - self.ShipControlLocationListStart) * 11),
 									130,
 									10
 								);
 							else
-								CF_DrawString(
+								CF["DrawString"](
 									pname,
 									pos + Vector(-62 - 71, -40 + (i - self.ShipControlLocationListStart) * 11),
 									130,
@@ -458,11 +458,11 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						end
 					end
 				else
-					CF_DrawString("NO OTHER LOCATIONS", pos + Vector(-62, 77), 130, 12);
+					CF["DrawString"]("NO OTHER LOCATIONS", pos + Vector(-62, 77), 130, 12);
 				end
 
-				local plntpreset = CF_PlanetGlow[self.GS["Planet"]];
-				local plntmodeule = CF_PlanetGlowModule[self.GS["Planet"]];
+				local plntpreset = CF["PlanetGlow"][self.GS["Planet"]];
+				local plntmodeule = CF["PlanetGlowModule"][self.GS["Planet"]];
 				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(-71, 0));
 				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(70, 0));
 				self:PutGlow(plntpreset, pos + Vector(70, 0), plntmodeule);
@@ -485,7 +485,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					down = true;
 				end
 
-				if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
+				if self.HoldTimer:IsPastSimMS(CF["KeyRepeatDelay"]) then
 					self.HoldTimer:Reset();
 
 					if cont:IsState(Controller.HOLD_UP) then
@@ -539,24 +539,24 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					- (self.ShipControlSelectedPlanet - 1) % self.ShipControlPlanetsPerPage;
 
 				-- Show current planet
-				local locname = CF_PlanetName[self.GS["Planet"]];
+				local locname = CF["PlanetName"][self.GS["Planet"]];
 				if locname ~= nil then
-					CF_DrawString(locname, pos + Vector(-54, -78), 130, 40);
+					CF["DrawString"](locname, pos + Vector(-54, -78), 130, 40);
 				end
-				CF_DrawString("NOW ORBITING:", pos + Vector(-62 - 71, -78), 130, 40);
+				CF["DrawString"]("NOW ORBITING:", pos + Vector(-62 - 71, -78), 130, 40);
 
-				CF_DrawString("WARP TO ANOTHER PLANET:", pos + Vector(-62 - 71, -60), 270, 40);
+				CF["DrawString"]("WARP TO ANOTHER PLANET:", pos + Vector(-62 - 71, -60), 270, 40);
 
-				CF_DrawString("U/D - Select location, L/R - Mode, FIRE - Fly", pos + Vector(-62 - 71, 78), 270, 40);
+				CF["DrawString"]("U/D - Select location, L/R - Mode, FIRE - Fly", pos + Vector(-62 - 71, 78), 270, 40);
 
 				-- Show current planet dot
-				local locpos = CF_PlanetPos[self.GS["Planet"]];
+				local locpos = CF["PlanetPos"][self.GS["Planet"]];
 				if locpos ~= nil then
 					self:PutGlow("ControlPanel_Ship_CurrentLocation", pos + locpos + Vector(70, 0));
 				end
 
 				-- Show selected planet dot
-				local shppos = CF_PlanetPos[self.ShipControlPlanetList[self.ShipControlSelectedPlanet]];
+				local shppos = CF["PlanetPos"][self.ShipControlPlanetList[self.ShipControlSelectedPlanet]];
 				if shppos ~= nil then
 					self:PutGlow("ControlPanel_Ship_LocationDot", pos + shppos + Vector(70, 0));
 				end
@@ -579,17 +579,17 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				-- Show planet list
 				for i = self.ShipControlPlanetListStart, self.ShipControlPlanetListStart + self.ShipControlPlanetsPerPage - 1 do
-					local pname = CF_PlanetName[self.ShipControlPlanetList[i]];
+					local pname = CF["PlanetName"][self.ShipControlPlanetList[i]];
 					if pname ~= nil then
 						if i == self.ShipControlSelectedPlanet then
-							CF_DrawString(
+							CF["DrawString"](
 								"> " .. pname,
 								pos + Vector(-62 - 71, -40 + (i - self.ShipControlPlanetListStart) * 11),
 								130,
 								12
 							);
 						else
-							CF_DrawString(
+							CF["DrawString"](
 								pname,
 								pos + Vector(-62 - 71, -40 + (i - self.ShipControlPlanetListStart) * 11),
 								130,
@@ -613,15 +613,15 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, 78));
 
 				if self.RandomEncounterID == nil then
-					CF_DrawString("REPORT", pos + Vector(-10, -77), 262, 141);
-					CF_DrawString("AVAILABLE GOLD: " .. CF_GetPlayerGold(self.GS, 0), pos + Vector(-130, -60), 262, 141);
+					CF["DrawString"]("REPORT", pos + Vector(-10, -77), 262, 141);
+					CF["DrawString"]("AVAILABLE GOLD: " .. CF["GetPlayerGold"](self.GS, 0), pos + Vector(-130, -60), 262, 141);
 
-					CF_DrawString("Press DOWN to save game", pos + Vector(-60, 77), 262, 141);
+					CF["DrawString"]("Press DOWN to save game", pos + Vector(-60, 77), 262, 141);
 
-					for i = 1, CF_MaxMissionReportLines do
-						--CF_DrawString("LINE"..i, pos + Vector(-130,-70 + i * 10), 262, 141) -- Debug
+					for i = 1, CF["MaxMissionReportLines"] do
+						--CF["DrawString"]("LINE"..i, pos + Vector(-130,-70 + i * 10), 262, 141) -- Debug
 						if self.GS["MissionReport" .. i] ~= nil then
-							CF_DrawString(self.GS["MissionReport" .. i], pos + Vector(-130, -56 + i * 10), 262, 141);
+							CF["DrawString"](self.GS["MissionReport" .. i], pos + Vector(-130, -56 + i * 10), 262, 141);
 						else
 							break;
 						end
@@ -631,10 +631,10 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						-- Save all items
 						for item in MovableMan.Items do
 							if IsHeldDevice(item) and not ToHeldDevice(item).UnPickupable then
-								local count = CF_CountUsedStorageInArray(self.StorageItems);
+								local count = CF["CountUsedStorageInArray"](self.StorageItems);
 
 								if count < tonumber(self.GS["Player0VesselStorageCapacity"]) then
-									CF_PutItemToStorageArray(
+									CF["PutItemToStorageArray"](
 										self.StorageItems,
 										item.PresetName,
 										item.ClassName,
@@ -646,7 +646,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							end
 						end
 
-						CF_SetStorageArray(self.GS, self.StorageItems);
+						CF["SetStorageArray"](self.GS, self.StorageItems);
 
 						self:SaveActors(false);
 						self:SaveCurrentGameState();
@@ -658,8 +658,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						return;
 					end
 				else
-					CF_DrawString("INCOMING TRANSMISSION", pos + Vector(-56, -77), 262, 141);
-					CF_DrawString(self.RandomEncounterText, pos + Vector(-130, -56), 262, 141);
+					CF["DrawString"]("INCOMING TRANSMISSION", pos + Vector(-56, -77), 262, 141);
+					CF["DrawString"](self.RandomEncounterText, pos + Vector(-130, -56), 262, 141);
 
 					if self.RandomEncounterVariants ~= nil and self.RandomEncounterDelayTimer:IsPastSimMS(750) then
 						local up = false;
@@ -675,7 +675,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							down = true;
 						end
 
-						if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
+						if self.HoldTimer:IsPastSimMS(CF["KeyRepeatDelay"]) then
 							self.HoldTimer:Reset();
 
 							if cont:IsState(Controller.HOLD_UP) then
@@ -717,27 +717,27 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							self.FirePressed[player] = false;
 						end
 
-						CF_DrawString("U/D - Select, L/R - Mode, FIRE - Accept", pos + Vector(-62 - 71, 78), 270, 40);
+						CF["DrawString"]("U/D - Select, L/R - Mode, FIRE - Accept", pos + Vector(-62 - 71, 78), 270, 40);
 
 						local l = #self.RandomEncounterVariants * self.RandomEncounterVariantsInterval
 							+ (self.RandomEncounterVariantsInterval / 2);
 
 						for i = 1, #self.RandomEncounterVariants do
 							if self.ShipControlSelectedEncounterVariant == i then
-								CF_DrawString(
+								CF["DrawString"](
 									">",
 									pos + Vector(-130, 58 - l + i * self.RandomEncounterVariantsInterval),
 									262,
 									141
 								);
-								CF_DrawString(
+								CF["DrawString"](
 									self.RandomEncounterVariants[i],
 									pos + Vector(-120, 58 - l + i * self.RandomEncounterVariantsInterval),
 									262,
 									141
 								);
 							else
-								CF_DrawString(
+								CF["DrawString"](
 									self.RandomEncounterVariants[i],
 									pos + Vector(-130, 58 - l + i * self.RandomEncounterVariantsInterval),
 									262,
@@ -754,11 +754,11 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				local cpus = tonumber(self.GS["ActiveCPUs"]);
 
 				self.ShipControlMissions = {};
-				for i = 1, CF_MaxMissions do
+				for i = 1, CF["MaxMissions"] do
 					self.ShipControlMissions[i] = {};
 					self.ShipControlMissions[i]["SourcePlayer"] = tonumber(self.GS["Mission" .. i .. "SourcePlayer"]);
 					self.ShipControlMissions[i]["TargetPlayer"] = tonumber(self.GS["Mission" .. i .. "TargetPlayer"]);
-					self.ShipControlMissions[i]["Difficulty"] = CF_GetFullMissionDifficulty(
+					self.ShipControlMissions[i]["Difficulty"] = CF["GetFullMissionDifficulty"](
 						self.GS,
 						self.GS["Mission" .. i .. "Location"],
 						i
@@ -776,7 +776,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						srep = tostring(rep);
 					end
 					self.ShipControlMissions[i]["SourceFactionReputation"] = srep;
-					self.ShipControlMissions[i]["SourceFaction"] = CF_FactionNames[CF_GetPlayerFaction(
+					self.ShipControlMissions[i]["SourceFaction"] = CF["FactionNames"][CF["GetPlayerFaction"](
 						self.GS,
 						self.ShipControlMissions[i]["SourcePlayer"]
 					)];
@@ -791,20 +791,20 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						srep = tostring(rep);
 					end
 					self.ShipControlMissions[i]["TargetFactionRaputation"] = srep;
-					self.ShipControlMissions[i]["TargetFaction"] = CF_FactionNames[CF_GetPlayerFaction(
+					self.ShipControlMissions[i]["TargetFaction"] = CF["FactionNames"][CF["GetPlayerFaction"](
 						self.GS,
 						self.ShipControlMissions[i]["TargetPlayer"]
 					)];
 
 					self.ShipControlMissions[i]["Description"] =
-						CF_MissionBriefingText[self.ShipControlMissions[i]["Type"]];
+						CF["MissionBriefingText"][self.ShipControlMissions[i]["Type"]];
 
-					self.ShipControlMissions[i]["GoldReward"] = CF_CalculateReward(
-						CF_MissionGoldRewardPerDifficulty[self.ShipControlMissions[i]["Type"]],
+					self.ShipControlMissions[i]["GoldReward"] = CF["CalculateReward"](
+						CF["MissionGoldRewardPerDifficulty"][self.ShipControlMissions[i]["Type"]],
 						self.ShipControlMissions[i]["Difficulty"]
 					);
-					self.ShipControlMissions[i]["RepReward"] = CF_CalculateReward(
-						CF_MissionReputationRewardPerDifficulty[self.ShipControlMissions[i]["Type"]],
+					self.ShipControlMissions[i]["RepReward"] = CF["CalculateReward"](
+						CF["MissionReputationRewardPerDifficulty"][self.ShipControlMissions[i]["Type"]],
 						self.ShipControlMissions[i]["Difficulty"]
 					);
 				end
@@ -822,7 +822,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					down = true;
 				end
 
-				if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
+				if self.HoldTimer:IsPastSimMS(CF["KeyRepeatDelay"]) then
 					self.HoldTimer:Reset();
 
 					if cont:IsState(Controller.HOLD_UP) then
@@ -856,7 +856,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 						-- Find planet where mission is
 						local planet =
-							CF_LocationPlanet[self.ShipControlMissions[self.ShipControlSelectedMission]["Location"]];
+							CF["LocationPlanet"][self.ShipControlMissions[self.ShipControlSelectedMission]["Location"]];
 
 						if self.GS["Planet"] ~= planet then
 							-- Move to planet if we're not there
@@ -870,7 +870,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						end
 
 						if self.GS["Location"] ~= nil then
-							local locpos = CF_LocationPos[self.GS["Location"]] or Vector();
+							local locpos = CF["LocationPos"][self.GS["Location"]] or Vector();
 
 							self.GS["ShipX"] = math.floor(locpos.X);
 							self.GS["ShipY"] = math.floor(locpos.Y);
@@ -884,12 +884,12 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						self.GS["Location"] = nil;
 						self.GS["Destination"] = self.ShipControlMissions[self.ShipControlSelectedMission]["Location"];
 
-						local destpos = CF_LocationPos[self.GS["Destination"]] or Vector();
+						local destpos = CF["LocationPos"][self.GS["Destination"]] or Vector();
 
 						self.GS["DestX"] = math.floor(destpos.X);
 						self.GS["DestY"] = math.floor(destpos.Y);
 
-						self.GS["Distance"] = CF_Dist(
+						self.GS["Distance"] = CF["Dist"](
 							Vector(tonumber(self.GS["ShipX"]), tonumber(self.GS["ShipY"])),
 							Vector(tonumber(self.GS["DestX"]), tonumber(self.GS["DestY"]))
 						);
@@ -910,26 +910,26 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						local factionName = self.ShipControlMissions[i]["SourceFaction"];
 						if factionName ~= nil then
 							if i == self.ShipControlSelectedMission then
-								CF_DrawString(
+								CF["DrawString"](
 									"> " .. self.ShipControlMissions[i]["SourceFaction"],
 									pos + Vector(-62 - 71, -86 + (i - self.ShipControlMissionListStart + 1) * 25),
 									120,
 									8
 								);
-								CF_DrawString(
+								CF["DrawString"](
 									">   VS " .. self.ShipControlMissions[i]["TargetFaction"],
 									pos + Vector(-62 - 71, -86 + (i - self.ShipControlMissionListStart + 1) * 25 + 10),
 									150,
 									8
 								);
 							else
-								CF_DrawString(
+								CF["DrawString"](
 									self.ShipControlMissions[i]["SourceFaction"],
 									pos + Vector(-62 - 71, -86 + (i - self.ShipControlMissionListStart + 1) * 25),
 									120,
 									8
 								);
-								CF_DrawString(
+								CF["DrawString"](
 									"VS " .. self.ShipControlMissions[i]["TargetFaction"],
 									pos
 										+ Vector(
@@ -945,56 +945,56 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				end
 
 				-- Show selected mission info
-				CF_DrawString(
+				CF["DrawString"](
 					"TARGET: " .. self.ShipControlMissions[self.ShipControlSelectedMission]["TargetFaction"],
 					pos + Vector(10, -61),
 					150,
 					8
 				);
-				CF_DrawString(
+				CF["DrawString"](
 					"AT: " .. self.ShipControlMissions[self.ShipControlSelectedMission]["Location"],
 					pos + Vector(10, -51),
 					150,
 					8
 				);
-				CF_DrawString(
+				CF["DrawString"](
 					"SECURITY: "
-						.. CF_LocationDifficultyTexts[self.ShipControlMissions[self.ShipControlSelectedMission]["Difficulty"]],
+						.. CF["LocationDifficultyTexts"][self.ShipControlMissions[self.ShipControlSelectedMission]["Difficulty"]],
 					pos + Vector(10, -41),
 					270,
 					40
 				);
 
-				CF_DrawString(
+				CF["DrawString"](
 					"GOLD: " .. self.ShipControlMissions[self.ShipControlSelectedMission]["GoldReward"] .. " oz",
 					pos + Vector(10, -31),
 					270,
 					40
 				);
-				CF_DrawString(
+				CF["DrawString"](
 					"REPUTATION: " .. self.ShipControlMissions[self.ShipControlSelectedMission]["RepReward"],
 					pos + Vector(10, -21),
 					270,
 					40
 				);
 
-				CF_DrawString(
+				CF["DrawString"](
 					self.ShipControlMissions[self.ShipControlSelectedMission]["Description"],
 					pos + Vector(10, -5),
 					125,
 					80
 				);
 
-				CF_DrawString(
+				CF["DrawString"](
 					"Available missions: page "
 						.. math.ceil(self.ShipControlSelectedMission / self.ShipControlMissionsPerPage)
 						.. "/"
-						.. math.ceil(CF_MaxMissions / self.ShipControlMissionsPerPage),
+						.. math.ceil(CF["MaxMissions"] / self.ShipControlMissionsPerPage),
 					pos + Vector(-62 - 71, -78),
 					270,
 					40
 				);
-				CF_DrawString("U/D - Select mission, L/R - Mode, FIRE - Fly", pos + Vector(-62 - 71, 78), 270, 40);
+				CF["DrawString"]("U/D - Select mission, L/R - Mode, FIRE - Fly", pos + Vector(-62 - 71, 78), 270, 40);
 				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(-71, 0));
 				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(70, 0));
 				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, -77));
@@ -1008,7 +1008,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				self.ShipControlFactions = {};
 				for i = 1, cpus do
 					self.ShipControlFactions[i] = {};
-					self.ShipControlFactions[i]["Faction"] = CF_FactionNames[CF_GetPlayerFaction(self.GS, i)];
+					self.ShipControlFactions[i]["Faction"] = CF["FactionNames"][CF["GetPlayerFaction"](self.GS, i)];
 					self.ShipControlFactions[i]["Reputation"] = tonumber(self.GS["Player" .. i .. "Reputation"]);
 
 					if self.ShipControlFactions[i]["Reputation"] > 0 then
@@ -1034,7 +1034,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					down = true;
 				end
 				
-				if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
+				if self.HoldTimer:IsPastSimMS(CF["KeyRepeatDelay"]) then
 					self.HoldTimer:Reset();
 					
 					if cont:IsState(Controller.HOLD_UP) then
@@ -1080,37 +1080,37 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					if (self.ShipControlFactions[curInd+i]["Faction"] == self.PlayerFaction) then 
 						str = str .. " ( YOU )";
 					end
-					CF_DrawString(str, pos + Vector(-62 - 71, -76 + i * 15), 180, 10);
-					CF_DrawString(
+					CF["DrawString"](str, pos + Vector(-62 - 71, -76 + i * 15), 180, 10);
+					CF["DrawString"](
 						self.ShipControlFactions[curInd+i]["ReputationStr"],
 						pos + Vector(-62 - 71 + 200, -76 + i * 15),
 						130,
 						10
 					);
 
-					if self.ShipControlFactions[curInd+i]["Reputation"] < CF_ReputationHuntThreshold then
+					if self.ShipControlFactions[curInd+i]["Reputation"] < CF["ReputationHuntThreshold"] then
 						local diff = math.floor(
-							math.abs(self.ShipControlFactions[curInd+i]["Reputation"] / CF_ReputationPerDifficulty)
+							math.abs(self.ShipControlFactions[curInd+i]["Reputation"] / CF["ReputationPerDifficulty"])
 						);
 
 						if diff <= 0 then
 							diff = 1;
 						end
 
-						if diff > CF_MaxDifficulty then
-							diff = CF_MaxDifficulty;
+						if diff > CF["MaxDifficulty"] then
+							diff = CF["MaxDifficulty"];
 						end
 
 						--diff = 6 -- Debug!!!
 
-						local s = "Sent " .. CF_AssaultDifficultyTexts[diff] .. "s after you!";
-						CF_DrawString(s, pos + Vector(-62 - 71 + 120, -76 + i * 15), 160, 12);
+						local s = "Sent " .. CF["AssaultDifficultyTexts"][diff] .. "s after you!";
+						CF["DrawString"](s, pos + Vector(-62 - 71 + 120, -76 + i * 15), 160, 12);
 					end
 				end
 
 				local titleString = "Reputation intelligence report - PAGE "  .. self.ShipControlReputationPage .. " OF " .. maxPage;
-				CF_DrawString(titleString, pos + Vector(-62 - 71, -78), 270, 40);
-				CF_DrawString("U/D - Next/Prev Page, L/R - Mode", pos + Vector(-62 - 71, 78), 270, 40);
+				CF["DrawString"](titleString, pos + Vector(-62 - 71, -78), 270, 40);
+				CF["DrawString"]("U/D - Next/Prev Page, L/R - Mode", pos + Vector(-62 - 71, 78), 270, 40);
 				self:PutGlow("ControlPanel_Ship_Report", pos);
 				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, -77));
 				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, 78));
@@ -1119,20 +1119,20 @@ function VoidWanderers:ProcessShipControlPanelUI()
 			if self.ShipControlMode == self.ShipControlPanelModes.BRAIN then
 				if self.GS["Brain" .. player .. "Detached"] == "True" then
 					if self.Time % 2 == 0 then
-						CF_DrawString(
+						CF["DrawString"](
 							"PLAYER " .. player + 1 .. " BRAIN DETACHED, ROBOT IN USE!",
 							pos + Vector(-106, -6),
 							270,
 							40
 						);
-						CF_DrawString(
+						CF["DrawString"](
 							self.GS["Brain" .. player .. "SkillPoints"] .. " POINTS AVAILABLE",
 							pos + Vector(-46, 6),
 							270,
 							40
 						);
 					end
-					CF_DrawString("L/R - Mode", pos + Vector(-62 - 71, 78), 270, 40);
+					CF["DrawString"]("L/R - Mode", pos + Vector(-62 - 71, 78), 270, 40);
 					self:PutGlow("ControlPanel_Ship_Report", pos);
 				else
 					self.ShipControlSkillUpgrades = {};
@@ -1237,7 +1237,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						down = true;
 					end
 
-					if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
+					if self.HoldTimer:IsPastSimMS(CF["KeyRepeatDelay"]) then
 						self.HoldTimer:Reset();
 
 						if cont:IsState(Controller.HOLD_UP) then
@@ -1270,21 +1270,21 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					local price = self.ShipControlSkillUpgrades[self.ShipControlSelectedSkillUpgrade]["Price"];
 					local sklpts = tonumber(self.GS["Brain" .. player .. "SkillPoints"]);
 
-					CF_DrawString("LEVEL: " .. self.GS["Brain" .. player .. "Level"], pos + Vector(-62 - 71, -60), 270, 40);
-					CF_DrawString("EXP: " .. self.GS["Brain" .. player .. "Exp"], pos + Vector(-62, -60), 270, 40);
+					CF["DrawString"]("LEVEL: " .. self.GS["Brain" .. player .. "Level"], pos + Vector(-62 - 71, -60), 270, 40);
+					CF["DrawString"]("EXP: " .. self.GS["Brain" .. player .. "Exp"], pos + Vector(-62, -60), 270, 40);
 
 					if price > sklpts then
 						if self.Time % 2 == 0 then
-							CF_DrawString("POINTS: " .. sklpts, pos + Vector(-62 - 71, -46), 270, 40);
+							CF["DrawString"]("POINTS: " .. sklpts, pos + Vector(-62 - 71, -46), 270, 40);
 						end
 					else
-						CF_DrawString("POINTS: " .. sklpts, pos + Vector(-62 - 71, -46), 270, 40);
+						CF["DrawString"]("POINTS: " .. sklpts, pos + Vector(-62 - 71, -46), 270, 40);
 					end
 
-					CF_DrawString("Current level: " .. current, pos + Vector(10, -30), 270, 40);
-					CF_DrawString("Maximum level: " .. maximum, pos + Vector(10, -20), 270, 40);
+					CF["DrawString"]("Current level: " .. current, pos + Vector(10, -30), 270, 40);
+					CF["DrawString"]("Maximum level: " .. maximum, pos + Vector(10, -20), 270, 40);
 					if current < maximum then
-						CF_DrawString(
+						CF["DrawString"](
 							"Points needed: "
 								.. self.ShipControlSkillUpgrades[self.ShipControlSelectedSkillUpgrade]["Price"],
 							pos + Vector(10, -10),
@@ -1293,7 +1293,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						);
 					end
 
-					CF_DrawString(
+					CF["DrawString"](
 						self.ShipControlSkillUpgrades[self.ShipControlSelectedSkillUpgrade]["Description"],
 						pos + Vector(10, 10),
 						130,
@@ -1318,14 +1318,14 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					-- Show list
 					for i = 1, #self.ShipControlSkillUpgrades do
 						if i == self.ShipControlSelectedSkillUpgrade then
-							CF_DrawString(
+							CF["DrawString"](
 								"> " .. self.ShipControlSkillUpgrades[i]["Name"],
 								pos + Vector(-62 - 71, -40 + i * 11),
 								130,
 								12
 							);
 						else
-							CF_DrawString(
+							CF["DrawString"](
 								self.ShipControlSkillUpgrades[i]["Name"],
 								pos + Vector(-62 - 71, -40 + i * 11),
 								130,
@@ -1334,12 +1334,12 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						end
 					end
 
-					CF_DrawString("U/D - Select, L/R - Mode, FIRE - Upgrade", pos + Vector(-62 - 71, 78), 270, 40);
+					CF["DrawString"]("U/D - Select, L/R - Mode, FIRE - Upgrade", pos + Vector(-62 - 71, 78), 270, 40);
 					self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(-71, 0));
 					self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(70, 0));
 				end
 
-				CF_DrawString("Player " .. player + 1 .. " brain robot maintenance", pos + Vector(-62 - 71, -78), 270, 40);
+				CF["DrawString"]("Player " .. player + 1 .. " brain robot maintenance", pos + Vector(-62 - 71, -78), 270, 40);
 
 				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, -77));
 				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, 78));
@@ -1351,74 +1351,74 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				self.ShipControlUpgrades[1] = {};
 				self.ShipControlUpgrades[1]["Name"] = "Cryo-chambers";
 				self.ShipControlUpgrades[1]["Variable"] = "Player0VesselClonesCapacity";
-				self.ShipControlUpgrades[1]["Max"] = CF_VesselMaxClonesCapacity[self.GS["Player0Vessel"]];
+				self.ShipControlUpgrades[1]["Max"] = CF["VesselMaxClonesCapacity"][self.GS["Player0Vessel"]];
 				self.ShipControlUpgrades[1]["Description"] = "How many bodies you can store";
-				self.ShipControlUpgrades[1]["Price"] = CF_ClonePrice;
+				self.ShipControlUpgrades[1]["Price"] = CF["ClonePrice"];
 				self.ShipControlUpgrades[1]["Bundle"] = 1;
 
 				self.ShipControlUpgrades[2] = {};
 				self.ShipControlUpgrades[2]["Name"] = "Storage";
 				self.ShipControlUpgrades[2]["Variable"] = "Player0VesselStorageCapacity";
-				self.ShipControlUpgrades[2]["Max"] = CF_VesselMaxStorageCapacity[self.GS["Player0Vessel"]];
+				self.ShipControlUpgrades[2]["Max"] = CF["VesselMaxStorageCapacity"][self.GS["Player0Vessel"]];
 				self.ShipControlUpgrades[2]["Description"] = "How many items you can store";
-				self.ShipControlUpgrades[2]["Price"] = CF_StoragePrice;
+				self.ShipControlUpgrades[2]["Price"] = CF["StoragePrice"];
 				self.ShipControlUpgrades[2]["Bundle"] = 5;
 
 				self.ShipControlUpgrades[3] = {};
 				self.ShipControlUpgrades[3]["Name"] = "Life support";
 				self.ShipControlUpgrades[3]["Variable"] = "Player0VesselLifeSupport";
-				self.ShipControlUpgrades[3]["Max"] = CF_VesselMaxLifeSupport[self.GS["Player0Vessel"]];
+				self.ShipControlUpgrades[3]["Max"] = CF["VesselMaxLifeSupport"][self.GS["Player0Vessel"]];
 				self.ShipControlUpgrades[3]["Description"] = "How many bodies can be active on ship simultaneously";
-				self.ShipControlUpgrades[3]["Price"] = CF_LifeSupportPrice;
+				self.ShipControlUpgrades[3]["Price"] = CF["LifeSupportPrice"];
 				self.ShipControlUpgrades[3]["Bundle"] = 1;
 
 				self.ShipControlUpgrades[4] = {};
 				self.ShipControlUpgrades[4]["Name"] = "Communication";
 				self.ShipControlUpgrades[4]["Variable"] = "Player0VesselCommunication";
-				self.ShipControlUpgrades[4]["Max"] = CF_VesselMaxCommunication[self.GS["Player0Vessel"]];
+				self.ShipControlUpgrades[4]["Max"] = CF["VesselMaxCommunication"][self.GS["Player0Vessel"]];
 				self.ShipControlUpgrades[4]["Description"] = "How many bodies you can control on planet surface";
-				self.ShipControlUpgrades[4]["Price"] = CF_CommunicationPrice;
+				self.ShipControlUpgrades[4]["Price"] = CF["CommunicationPrice"];
 				self.ShipControlUpgrades[4]["Bundle"] = 1;
 
 				self.ShipControlUpgrades[5] = {};
 				self.ShipControlUpgrades[5]["Name"] = "Engine";
 				self.ShipControlUpgrades[5]["Variable"] = "Player0VesselSpeed";
-				self.ShipControlUpgrades[5]["Max"] = CF_VesselMaxSpeed[self.GS["Player0Vessel"]];
+				self.ShipControlUpgrades[5]["Max"] = CF["VesselMaxSpeed"][self.GS["Player0Vessel"]];
 				self.ShipControlUpgrades[5]["Description"] =
 					"Speed of the vessel. Faster ships are harder to intercept.";
-				self.ShipControlUpgrades[5]["Price"] = CF_EnginePrice;
+				self.ShipControlUpgrades[5]["Price"] = CF["EnginePrice"];
 				self.ShipControlUpgrades[5]["Bundle"] = 1;
 
 				self.ShipControlUpgrades[6] = {};
 				self.ShipControlUpgrades[6]["Name"] = "Turret systems";
 				self.ShipControlUpgrades[6]["Variable"] = "Player0VesselTurrets";
-				self.ShipControlUpgrades[6]["Max"] = CF_VesselMaxTurrets[self.GS["Player0Vessel"]];
+				self.ShipControlUpgrades[6]["Max"] = CF["VesselMaxTurrets"][self.GS["Player0Vessel"]];
 				self.ShipControlUpgrades[6]["Description"] = "How many turrets can be deployed inside the ship";
-				self.ShipControlUpgrades[6]["Price"] = CF_TurretPrice;
+				self.ShipControlUpgrades[6]["Price"] = CF["TurretPrice"];
 				self.ShipControlUpgrades[6]["Bundle"] = 1;
 
 				self.ShipControlUpgrades[7] = {};
 				self.ShipControlUpgrades[7]["Name"] = "Turret storage";
 				self.ShipControlUpgrades[7]["Variable"] = "Player0VesselTurretStorage";
-				self.ShipControlUpgrades[7]["Max"] = CF_VesselMaxTurretStorage[self.GS["Player0Vessel"]];
+				self.ShipControlUpgrades[7]["Max"] = CF["VesselMaxTurretStorage"][self.GS["Player0Vessel"]];
 				self.ShipControlUpgrades[7]["Description"] = "How many turrets can be stored in the ship";
-				self.ShipControlUpgrades[7]["Price"] = CF_TurretStoragePrice;
+				self.ShipControlUpgrades[7]["Price"] = CF["TurretStoragePrice"];
 				self.ShipControlUpgrades[7]["Bundle"] = 1;
 
 				self.ShipControlUpgrades[8] = {};
 				self.ShipControlUpgrades[8]["Name"] = "Bomb bays";
 				self.ShipControlUpgrades[8]["Variable"] = "Player0VesselBombBays";
-				self.ShipControlUpgrades[8]["Max"] = CF_VesselMaxBombBays[self.GS["Player0Vessel"]];
+				self.ShipControlUpgrades[8]["Max"] = CF["VesselMaxBombBays"][self.GS["Player0Vessel"]];
 				self.ShipControlUpgrades[8]["Description"] = "How many bombs can be launched simultaneously";
-				self.ShipControlUpgrades[8]["Price"] = CF_BombBayPrice;
+				self.ShipControlUpgrades[8]["Price"] = CF["BombBayPrice"];
 				self.ShipControlUpgrades[8]["Bundle"] = 1;
 
 				self.ShipControlUpgrades[9] = {};
 				self.ShipControlUpgrades[9]["Name"] = "Bomb storage";
 				self.ShipControlUpgrades[9]["Variable"] = "Player0VesselBombStorage";
-				self.ShipControlUpgrades[9]["Max"] = CF_VesselMaxBombStorage[self.GS["Player0Vessel"]];
+				self.ShipControlUpgrades[9]["Max"] = CF["VesselMaxBombStorage"][self.GS["Player0Vessel"]];
 				self.ShipControlUpgrades[9]["Description"] = "How many bombs can be stored in the ship";
-				self.ShipControlUpgrades[9]["Price"] = CF_BombStoragePrice;
+				self.ShipControlUpgrades[9]["Price"] = CF["BombStoragePrice"];
 				self.ShipControlUpgrades[9]["Bundle"] = 1;
 
 				local up = false;
@@ -1434,7 +1434,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					down = true;
 				end
 
-				if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
+				if self.HoldTimer:IsPastSimMS(CF["KeyRepeatDelay"]) then
 					self.HoldTimer:Reset();
 
 					if cont:IsState(Controller.HOLD_UP) then
@@ -1465,14 +1465,14 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				-- Show planet list
 				for i = 1, #self.ShipControlUpgrades do
 					if i == self.ShipControlSelectedUpgrade then
-						CF_DrawString(
+						CF["DrawString"](
 							"> " .. self.ShipControlUpgrades[i]["Name"],
 							pos + Vector(-62 - 71, -40 + i * 11),
 							130,
 							12
 						);
 					else
-						CF_DrawString(
+						CF["DrawString"](
 							self.ShipControlUpgrades[i]["Name"],
 							pos + Vector(-62 - 71, -40 + i * 11),
 							130,
@@ -1481,7 +1481,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					end
 				end
 
-				CF_DrawString("SELECT UPGRADE:", pos + Vector(-62 - 71, -60), 270, 40);
+				CF["DrawString"]("SELECT UPGRADE:", pos + Vector(-62 - 71, -60), 270, 40);
 
 				local current = tonumber(self.GS[self.ShipControlUpgrades[self.ShipControlSelectedUpgrade]["Variable"]]);
 				local maximum = self.ShipControlUpgrades[self.ShipControlSelectedUpgrade]["Max"];
@@ -1491,39 +1491,39 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				local price = self.ShipControlUpgrades[self.ShipControlSelectedUpgrade]["Price"] * amount;
 
-				if price > CF_GetPlayerGold(self.GS, 0) then
+				if price > CF["GetPlayerGold"](self.GS, 0) then
 					if self.Time % 2 == 0 then
-						CF_DrawString(
-							"FUNDS: " .. CF_GetPlayerGold(self.GS, 0) .. " oz",
+						CF["DrawString"](
+							"FUNDS: " .. CF["GetPlayerGold"](self.GS, 0) .. " oz",
 							pos + Vector(-62 - 71, -46),
 							270,
 							40
 						);
 					end
 				else
-					CF_DrawString(
-						"FUNDS: " .. CF_GetPlayerGold(self.GS, 0) .. " oz",
+					CF["DrawString"](
+						"FUNDS: " .. CF["GetPlayerGold"](self.GS, 0) .. " oz",
 						pos + Vector(-62 - 71, -46),
 						270,
 						40
 					);
 				end
 
-				CF_DrawString("Current: " .. current, pos + Vector(10, -30), 270, 40);
-				CF_DrawString("Maximum: " .. maximum, pos + Vector(10, -20), 270, 40);
+				CF["DrawString"]("Current: " .. current, pos + Vector(10, -30), 270, 40);
+				CF["DrawString"]("Maximum: " .. maximum, pos + Vector(10, -20), 270, 40);
 				if current < maximum then
-					CF_DrawString("Upgrade price: " .. price .. " oz", pos + Vector(10, -10), 270, 40);
+					CF["DrawString"]("Upgrade price: " .. price .. " oz", pos + Vector(10, -10), 270, 40);
 				end
 
 				if amount == 1 then
-					CF_DrawString(
+					CF["DrawString"](
 						self.ShipControlUpgrades[self.ShipControlSelectedUpgrade]["Description"],
 						pos + Vector(10, 10),
 						130,
 						80
 					);
 				else
-					CF_DrawString(
+					CF["DrawString"](
 						self.ShipControlUpgrades[self.ShipControlSelectedUpgrade]["Description"]
 							.. " ( x"
 							.. amount
@@ -1538,10 +1538,10 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					if not self.FirePressed[player] then
 						self.FirePressed[player] = true;
 
-						if current < maximum and price <= CF_GetPlayerGold(self.GS, 0) then
+						if current < maximum and price <= CF["GetPlayerGold"](self.GS, 0) then
 							self.GS[self.ShipControlUpgrades[self.ShipControlSelectedUpgrade]["Variable"]] = current
 								+ amount;
-							CF_SetPlayerGold(self.GS, 0, CF_GetPlayerGold(self.GS, 0) - price);
+							CF["SetPlayerGold"](self.GS, 0, CF["GetPlayerGold"](self.GS, 0) - price);
 
 							-- Re-init turrets panels to add new turrets to ship
 							if self.ShipControlSelectedUpgrade == 6 then
@@ -1553,8 +1553,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					self.FirePressed[player] = false;
 				end
 
-				CF_DrawString("Upgrade ship", pos + Vector(-62 - 71, -78), 270, 40);
-				CF_DrawString("U/D - Select, L/R - Mode, FIRE - Upgrade", pos + Vector(-62 - 71, 78), 270, 40);
+				CF["DrawString"]("Upgrade ship", pos + Vector(-62 - 71, -78), 270, 40);
+				CF["DrawString"]("U/D - Select, L/R - Mode, FIRE - Upgrade", pos + Vector(-62 - 71, 78), 270, 40);
 				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(-71, 0));
 				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(70, 0));
 
@@ -1565,8 +1565,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 			if self.ShipControlMode == self.ShipControlPanelModes.SHIPYARD then
 				-- Create ship list
 				self.ShipControlShips = {};
-				for i = 1, #CF_Vessel do
-					local id = CF_Vessel[i];
+				for i = 1, #CF["Vessel"] do
+					local id = CF["Vessel"][i];
 
 					if self.GS["Player0Vessel"] ~= id then
 						local nv = #self.ShipControlShips + 1;
@@ -1588,7 +1588,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					down = true;
 				end
 
-				if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
+				if self.HoldTimer:IsPastSimMS(CF["KeyRepeatDelay"]) then
 					self.HoldTimer:Reset();
 
 					up = cont:IsState(Controller.HOLD_UP);
@@ -1616,25 +1616,25 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					local id = self.ShipControlShips[i];
 
 					if i == self.ShipControlSelectedShip then
-						CF_DrawString("> " .. CF_VesselName[id], pos + Vector(-62 - 71, -40 + i * 11), 130, 12);
+						CF["DrawString"]("> " .. CF["VesselName"][id], pos + Vector(-62 - 71, -40 + i * 11), 130, 12);
 					else
-						CF_DrawString(CF_VesselName[id], pos + Vector(-62 - 71, -40 + i * 11), 130, 12);
+						CF["DrawString"](CF["VesselName"][id], pos + Vector(-62 - 71, -40 + i * 11), 130, 12);
 					end
 				end
 
-				CF_DrawString("SELECT SHIP:", pos + Vector(-62 - 71, -60), 140, 40);
-				CF_DrawString("SPECIFICATIONS:", pos + Vector(8, -60), 140, 40);
+				CF["DrawString"]("SELECT SHIP:", pos + Vector(-62 - 71, -60), 140, 40);
+				CF["DrawString"]("SPECIFICATIONS:", pos + Vector(8, -60), 140, 40);
 
 				-- Show specs
 				local id = self.ShipControlShips[self.ShipControlSelectedShip];
-				local price = CF_VesselPrice[id];
-				local bonus = CF_VesselPrice[self.GS["Player0Vessel"]] * CF_ShipSellCoeff;
+				local price = CF["VesselPrice"][id];
+				local bonus = CF["VesselPrice"][self.GS["Player0Vessel"]] * CF["ShipSellCoeff"];
 				local instl = 0;
 
 				-- Cryo chambers
-				local newcryo = CF_VesselStartClonesCapacity[id];
+				local newcryo = CF["VesselStartClonesCapacity"][id];
 				local oldcryo = tonumber(self.GS["Player0VesselClonesCapacity"]);
-				local maxcryo = CF_VesselMaxClonesCapacity[id];
+				local maxcryo = CF["VesselMaxClonesCapacity"][id];
 				local actcryo = newcryo + oldcryo;
 				local exccryo = 0;
 				if actcryo > maxcryo then
@@ -1647,19 +1647,19 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					inscryo = 0;
 				end
 
-				bonus = bonus + exccryo * CF_ClonePrice * CF_ShipSellCoeff;
-				instl = instl + inscryo * CF_ClonePrice * CF_ShipDevInstallCoeff;
+				bonus = bonus + exccryo * CF["ClonePrice"] * CF["ShipSellCoeff"];
+				instl = instl + inscryo * CF["ClonePrice"] * CF["ShipDevInstallCoeff"];
 
 				--print (inscryo)
 				--print (instl)
 
-				CF_DrawString("Cryo:", pos + Vector(8, -48), 140, 40);
-				CF_DrawString("" .. actcryo .. "/" .. maxcryo, pos + Vector(8 + 90, -48), 140, 40);
+				CF["DrawString"]("Cryo:", pos + Vector(8, -48), 140, 40);
+				CF["DrawString"]("" .. actcryo .. "/" .. maxcryo, pos + Vector(8 + 90, -48), 140, 40);
 
 				-- Storage
-				local newstor = CF_VesselStartStorageCapacity[id];
+				local newstor = CF["VesselStartStorageCapacity"][id];
 				local oldstor = tonumber(self.GS["Player0VesselStorageCapacity"]);
-				local maxstor = CF_VesselMaxStorageCapacity[id];
+				local maxstor = CF["VesselMaxStorageCapacity"][id];
 				local actstor = newstor + oldstor;
 				local excstor = 0;
 				if actstor > maxstor then
@@ -1672,19 +1672,19 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					insstor = 0;
 				end
 
-				bonus = bonus + excstor * CF_StoragePrice * CF_ShipSellCoeff;
-				instl = instl + insstor * CF_StoragePrice * CF_ShipDevInstallCoeff;
+				bonus = bonus + excstor * CF["StoragePrice"] * CF["ShipSellCoeff"];
+				instl = instl + insstor * CF["StoragePrice"] * CF["ShipDevInstallCoeff"];
 
 				--print (insstor)
 				--print (instl)
 
-				CF_DrawString("Storage:", pos + Vector(8, -36), 140, 40);
-				CF_DrawString("" .. actstor .. "/" .. maxstor, pos + Vector(8 + 90, -36), 140, 40);
+				CF["DrawString"]("Storage:", pos + Vector(8, -36), 140, 40);
+				CF["DrawString"]("" .. actstor .. "/" .. maxstor, pos + Vector(8 + 90, -36), 140, 40);
 
 				-- Life support
-				local newlife = CF_VesselStartLifeSupport[id];
+				local newlife = CF["VesselStartLifeSupport"][id];
 				local oldlife = tonumber(self.GS["Player0VesselLifeSupport"]);
-				local maxlife = CF_VesselMaxLifeSupport[id];
+				local maxlife = CF["VesselMaxLifeSupport"][id];
 				local actlife = newlife + oldlife;
 				local exclife = 0;
 				if actlife > maxlife then
@@ -1697,19 +1697,19 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					inslife = 0;
 				end
 
-				bonus = bonus + exclife * CF_LifeSupportPrice * CF_ShipSellCoeff;
-				instl = instl + inslife * CF_LifeSupportPrice * CF_ShipDevInstallCoeff;
+				bonus = bonus + exclife * CF["LifeSupportPrice"] * CF["ShipSellCoeff"];
+				instl = instl + inslife * CF["LifeSupportPrice"] * CF["ShipDevInstallCoeff"];
 
 				--print (inslife)
 				--print (instl)
 
-				CF_DrawString("Life support:", pos + Vector(8, -24), 140, 40);
-				CF_DrawString("" .. actlife .. "/" .. maxlife, pos + Vector(8 + 90, -24), 140, 40);
+				CF["DrawString"]("Life support:", pos + Vector(8, -24), 140, 40);
+				CF["DrawString"]("" .. actlife .. "/" .. maxlife, pos + Vector(8 + 90, -24), 140, 40);
 
 				-- Communcation
-				local newcomm = CF_VesselStartCommunication[id];
+				local newcomm = CF["VesselStartCommunication"][id];
 				local oldcomm = tonumber(self.GS["Player0VesselCommunication"]);
-				local maxcomm = CF_VesselMaxCommunication[id];
+				local maxcomm = CF["VesselMaxCommunication"][id];
 				local actcomm = newcomm + oldcomm;
 				local exccomm = 0;
 				if actcomm > maxcomm then
@@ -1722,27 +1722,27 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					inscomm = 0;
 				end
 				
-				bonus = bonus + exccomm * CF_CommunicationPrice * CF_ShipSellCoeff;
-				instl = instl + inscomm * CF_CommunicationPrice * CF_ShipDevInstallCoeff;
+				bonus = bonus + exccomm * CF["CommunicationPrice"] * CF["ShipSellCoeff"];
+				instl = instl + inscomm * CF["CommunicationPrice"] * CF["ShipDevInstallCoeff"];
 
 				--print (inscomm)
 				--print (instl)
 
-				CF_DrawString("Communication:", pos + Vector(8, -12), 140, 40);
-				CF_DrawString("" .. actcomm .. "/" .. maxcomm, pos + Vector(8 + 90, -12), 140, 40);
+				CF["DrawString"]("Communication:", pos + Vector(8, -12), 140, 40);
+				CF["DrawString"]("" .. actcomm .. "/" .. maxcomm, pos + Vector(8 + 90, -12), 140, 40);
 
 				-- Engine
-				local actengn = CF_VesselStartSpeed[id];
-				local maxengn = CF_VesselMaxSpeed[id];
+				local actengn = CF["VesselStartSpeed"][id];
+				local maxengn = CF["VesselMaxSpeed"][id];
 				local excengn = tonumber(self.GS["Player0VesselEngine"]);
 
-				CF_DrawString("Engine:", pos + Vector(8, 0), 140, 40);
-				CF_DrawString("" .. actengn .. "/" .. maxengn, pos + Vector(8 + 90, 0), 140, 40);
+				CF["DrawString"]("Engine:", pos + Vector(8, 0), 140, 40);
+				CF["DrawString"]("" .. actengn .. "/" .. maxengn, pos + Vector(8 + 90, 0), 140, 40);
 
 				-- Turrets
-				local newturr = CF_VesselStartTurrets[id];
+				local newturr = CF["VesselStartTurrets"][id];
 				local oldturr = tonumber(self.GS["Player0VesselTurrets"]);
-				local maxturr = CF_VesselMaxTurrets[id];
+				local maxturr = CF["VesselMaxTurrets"][id];
 				local actturr = newturr + oldturr;
 				local excturr = 0;
 				if actturr > maxturr then
@@ -1755,19 +1755,19 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					insturr = 0;
 				end
 
-				bonus = bonus + excturr * CF_TurretPrice * CF_ShipSellCoeff;
-				instl = instl + insturr * CF_TurretPrice * CF_ShipDevInstallCoeff;
+				bonus = bonus + excturr * CF["TurretPrice"] * CF["ShipSellCoeff"];
+				instl = instl + insturr * CF["TurretPrice"] * CF["ShipDevInstallCoeff"];
 
 				--print (insturr)
 				--print (instl)
 
-				CF_DrawString("Turrets:", pos + Vector(8, 12), 140, 40);
-				CF_DrawString("" .. actturr .. "/" .. maxturr, pos + Vector(8 + 90, 12), 140, 40);
+				CF["DrawString"]("Turrets:", pos + Vector(8, 12), 140, 40);
+				CF["DrawString"]("" .. actturr .. "/" .. maxturr, pos + Vector(8 + 90, 12), 140, 40);
 
 				-- Turrets storage
-				local newturs = CF_VesselStartTurretStorage[id];
+				local newturs = CF["VesselStartTurretStorage"][id];
 				local oldturs = tonumber(self.GS["Player0VesselTurretStorage"]);
-				local maxturs = CF_VesselMaxTurretStorage[id];
+				local maxturs = CF["VesselMaxTurretStorage"][id];
 				local actturs = newturs + oldturs;
 				local excturs = 0;
 				if actturs > maxturs then
@@ -1780,19 +1780,19 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					insturs = 0;
 				end
 
-				bonus = bonus + excturs * CF_TurretStoragePrice * CF_ShipSellCoeff;
-				instl = instl + insturs * CF_TurretStoragePrice * CF_ShipDevInstallCoeff;
+				bonus = bonus + excturs * CF["TurretStoragePrice"] * CF["ShipSellCoeff"];
+				instl = instl + insturs * CF["TurretStoragePrice"] * CF["ShipDevInstallCoeff"];
 
 				--print (insturs)
 				--print (instl)
 
-				CF_DrawString("Turret storage:", pos + Vector(8, 24), 140, 40);
-				CF_DrawString("" .. actturs .. "/" .. maxturs, pos + Vector(8 + 90, 24), 140, 40);
+				CF["DrawString"]("Turret storage:", pos + Vector(8, 24), 140, 40);
+				CF["DrawString"]("" .. actturs .. "/" .. maxturs, pos + Vector(8 + 90, 24), 140, 40);
 
 				-- Bomb bays
-				local newbmbb = CF_VesselStartBombBays[id];
+				local newbmbb = CF["VesselStartBombBays"][id];
 				local oldbmbb = tonumber(self.GS["Player0VesselBombBays"]);
-				local maxbmbb = CF_VesselMaxBombBays[id];
+				local maxbmbb = CF["VesselMaxBombBays"][id];
 				local actbmbb = newbmbb + oldbmbb;
 				local excbmbb = 0;
 				if actbmbb > maxbmbb then
@@ -1805,19 +1805,19 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					insbmbb = 0;
 				end
 
-				bonus = bonus + excbmbb * CF_BombBayPrice * CF_ShipSellCoeff;
-				instl = instl + insbmbb * CF_BombBayPrice * CF_ShipDevInstallCoeff;
+				bonus = bonus + excbmbb * CF["BombBayPrice"] * CF["ShipSellCoeff"];
+				instl = instl + insbmbb * CF["BombBayPrice"] * CF["ShipDevInstallCoeff"];
 
 				--print (insbmbb)
 				--print (instl)
 
-				CF_DrawString("Bomb bays:", pos + Vector(8, 36), 140, 40);
-				CF_DrawString("" .. actbmbb .. "/" .. maxbmbb, pos + Vector(8 + 90, 36), 140, 40);
+				CF["DrawString"]("Bomb bays:", pos + Vector(8, 36), 140, 40);
+				CF["DrawString"]("" .. actbmbb .. "/" .. maxbmbb, pos + Vector(8 + 90, 36), 140, 40);
 
 				-- Bombs storage
-				local newbmbs = CF_VesselStartBombStorage[id];
+				local newbmbs = CF["VesselStartBombStorage"][id];
 				local oldbmbs = tonumber(self.GS["Player0VesselBombStorage"]);
-				local maxbmbs = CF_VesselMaxBombStorage[id];
+				local maxbmbs = CF["VesselMaxBombStorage"][id];
 				local actbmbs = newbmbs + oldbmbs;
 				local excbmbs = 0;
 				if actbmbs > maxbmbs then
@@ -1830,44 +1830,44 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					insbmbs = 0;
 				end
 
-				bonus = bonus + excbmbs * CF_BombStoragePrice * CF_ShipSellCoeff;
-				instl = instl + insbmbs * CF_BombStoragePrice * CF_ShipDevInstallCoeff;
+				bonus = bonus + excbmbs * CF["BombStoragePrice"] * CF["ShipSellCoeff"];
+				instl = instl + insbmbs * CF["BombStoragePrice"] * CF["ShipDevInstallCoeff"];
 
 				--print (insbmbs)
 				--print (instl)
 
-				CF_DrawString("Bomb storage:", pos + Vector(8, 48), 140, 40);
-				CF_DrawString("" .. actbmbs .. "/" .. maxbmbs, pos + Vector(8 + 90, 48), 140, 40);
+				CF["DrawString"]("Bomb storage:", pos + Vector(8, 48), 140, 40);
+				CF["DrawString"]("" .. actbmbs .. "/" .. maxbmbs, pos + Vector(8 + 90, 48), 140, 40);
 
 				bonus = math.floor(bonus);
 				instl = math.floor(instl);
 
 				total = price + instl - bonus;
 
-				CF_DrawString("BASE PRICE:", pos + Vector(8, 48) + Vector(-140, 0), 140, 40);
-				CF_DrawString(tostring(price) .. "oz", pos + Vector(76, 48) + Vector(-140, 0), 140, 40);
+				CF["DrawString"]("BASE PRICE:", pos + Vector(8, 48) + Vector(-140, 0), 140, 40);
+				CF["DrawString"](tostring(price) .. "oz", pos + Vector(76, 48) + Vector(-140, 0), 140, 40);
 
-				--CF_DrawString("INSTALL:", pos + Vector(8, 36), 140, 40)
-				--CF_DrawString(tostring(instl).."oz", pos + Vector(70, 36), 140, 40)
+				--CF["DrawString"]("INSTALL:", pos + Vector(8, 36), 140, 40)
+				--CF["DrawString"](tostring(instl).."oz", pos + Vector(70, 36), 140, 40)
 
-				--CF_DrawString("TRADE-IN:", pos + Vector(8, 48), 140, 40)
-				--CF_DrawString(tostring(bonus).."oz", pos + Vector(70, 48), 140, 40)
+				--CF["DrawString"]("TRADE-IN:", pos + Vector(8, 48), 140, 40)
+				--CF["DrawString"](tostring(bonus).."oz", pos + Vector(70, 48), 140, 40)
 
-				CF_DrawString("YOUR PRICE:", pos + Vector(8, 60) + Vector(-140, 0), 140, 40);
-				CF_DrawString(tostring(total) .. "oz", pos + Vector(76, 60) + Vector(-140, 0), 140, 40);
+				CF["DrawString"]("YOUR PRICE:", pos + Vector(8, 60) + Vector(-140, 0), 140, 40);
+				CF["DrawString"](tostring(total) .. "oz", pos + Vector(76, 60) + Vector(-140, 0), 140, 40);
 
-				if total > CF_GetPlayerGold(self.GS, 0) then
+				if total > CF["GetPlayerGold"](self.GS, 0) then
 					if self.Time % 2 == 0 then
-						CF_DrawString(
-							"FUNDS: " .. CF_GetPlayerGold(self.GS, 0) .. " oz",
+						CF["DrawString"](
+							"FUNDS: " .. CF["GetPlayerGold"](self.GS, 0) .. " oz",
 							pos + Vector(-62 - 71, -46),
 							270,
 							40
 						);
 					end
 				else
-					CF_DrawString(
-						"FUNDS: " .. CF_GetPlayerGold(self.GS, 0) .. " oz",
+					CF["DrawString"](
+						"FUNDS: " .. CF["GetPlayerGold"](self.GS, 0) .. " oz",
 						pos + Vector(-62 - 71, -46),
 						270,
 						40
@@ -1880,19 +1880,19 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 						local ok = true;
 
-						if CF_CountUsedClonesInArray(self.Clones) > actcryo then
+						if CF["CountUsedClonesInArray"](self.Clones) > actcryo then
 							self.ShipControlLastMessageTime = self.Time;
 							self.ShipControlMessageText = "Not enough storage to transfer clones";
 							ok = false;
 						end
 
-						if CF_CountUsedStorageInArray(self.StorageItems) > actstor then
+						if CF["CountUsedStorageInArray"](self.StorageItems) > actstor then
 							self.ShipControlLastMessageTime = self.Time;
 							self.ShipControlMessageText = "Not enough storage to transfer items";
 							ok = false;
 						end
 
-						if CF_GetPlayerGold(self.GS, 0) < total then
+						if CF["GetPlayerGold"](self.GS, 0) < total then
 							self.ShipControlLastMessageTime = self.Time;
 							self.ShipControlMessageText = "Not enough gold";
 							ok = false;
@@ -1900,7 +1900,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 						if ok then
 							-- Pay
-							CF_SetPlayerGold(self.GS, 0, CF_GetPlayerGold(self.GS, 0) - total);
+							CF["SetPlayerGold"](self.GS, 0, CF["GetPlayerGold"](self.GS, 0) - total);
 
 							-- Clear turrets pos
 							local count = tonumber(self.GS["Player0VesselTurrets"]);
@@ -1922,7 +1922,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							self.GS["Player0VesselBombBays"] = actbmbb;
 							self.GS["Player0VesselBombStorage"] = actbmbs;
 
-							self.GS["Scene"] = CF_VesselScene[self.GS["Player0Vessel"]];
+							self.GS["Scene"] = CF["VesselScene"][self.GS["Player0Vessel"]];
 
 							-- Save everything and restart script
 							self:SaveActors(true);
@@ -1940,15 +1940,15 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					self.FirePressed[player] = false;
 				end
 
-				CF_DrawString("Buy new ship", pos + Vector(-62 - 71, -78), 270, 40);
+				CF["DrawString"]("Buy new ship", pos + Vector(-62 - 71, -78), 270, 40);
 				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(-71, 0));
 				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(70, 0));
 
 				if self.Time < self.ShipControlLastMessageTime + self.ShipControlMessageIntrval then
 					self:PutGlow("ControlPanel_Ship_HorizontalPanelRed", pos + Vector(0, 78));
-					CF_DrawString(self.ShipControlMessageText, pos + Vector(-130, 78), 300, 10);
+					CF["DrawString"](self.ShipControlMessageText, pos + Vector(-130, 78), 300, 10);
 				else
-					CF_DrawString("U/D - Select ship, L/R - Mode, FIRE - Buy ship", pos + Vector(-62 - 71, 78), 270, 40);
+					CF["DrawString"]("U/D - Select ship, L/R - Mode, FIRE - Buy ship", pos + Vector(-62 - 71, 78), 270, 40);
 					self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, 78));
 				end
 
@@ -1972,7 +1972,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					self.ShipSelectedItem = 1;
 					self.LastShipSelectedItem = 0;
 
-					if CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.SHIPYARD) then
+					if CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].SHIPYARD) then
 						if self.ShipControlMode == 8 then
 							self.ShipControlMode = self.ShipControlPanelModes.SHIPYARD;
 						end
@@ -1990,7 +1990,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 	if showidle and self.ShipControlPanelPos ~= nil and self.ShipControlPanelActor ~= nil then
 		self:PutGlow("ControlPanel_Ship", self.ShipControlPanelPos);
-		--CF_DrawString("BRIDGE",self.ShipControlPanelPos + Vector(-15,0),120,20 )
+		--CF["DrawString"]("BRIDGE",self.ShipControlPanelPos + Vector(-15,0),120,20 )
 		resetlists = true;
 	end
 

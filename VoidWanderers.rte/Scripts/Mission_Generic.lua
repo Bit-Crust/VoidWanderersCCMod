@@ -17,20 +17,20 @@
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionCreate()
 	-- Spawn random wandering enemies
-	local set = CF_GetRandomMissionPointsSet(self.Pts, "Deploy")
+	local set = CF["GetRandomMissionPointsSet"](self.Pts, "Deploy")
 
 	-- Spawn crates
-	local enm = CF_GetPointsArray(self.Pts, "Deploy", set, "AmbientEnemy")
-	self.MissionLZs = CF_GetPointsArray(self.Pts, "Deploy", set, "EnemyLZ")
-	local amount = math.ceil(CF_AmbientEnemyRate * #enm)
+	local enm = CF["GetPointsArray"](self.Pts, "Deploy", set, "AmbientEnemy")
+	self.MissionLZs = CF["GetPointsArray"](self.Pts, "Deploy", set, "EnemyLZ")
+	local amount = math.ceil(CF["AmbientEnemyRate"] * #enm)
 	--print ("Crates: "..amount)
-	local enmpos = CF_SelectRandomPoints(enm, amount)
+	local enmpos = CF["SelectRandomPoints"](enm, amount)
 
 	-- We should not spawn player-selected faction unless we have bad relation with  it
 	local selection = {}
 	for i = 1, tonumber(self.GS["ActiveCPUs"]) do
 		if i == 1 then
-			if tonumber(self.GS["Player" .. i .. "Reputation"]) < CF_ReputationHuntThreshold then
+			if tonumber(self.GS["Player" .. i .. "Reputation"]) < CF["ReputationHuntThreshold"] then
 				selection[#selection + 1] = i
 			end
 		else
@@ -44,7 +44,7 @@ function VoidWanderers:MissionCreate()
 	local selection = {}
 	for i = 1, tonumber(self.GS["ActiveCPUs"]) do
 		if i == 1 then
-			if tonumber(self.GS["Player" .. i .. "Reputation"]) < CF_ReputationHuntThreshold then
+			if tonumber(self.GS["Player" .. i .. "Reputation"]) < CF["ReputationHuntThreshold"] then
 				selection[#selection + 1] = i
 			end
 		else
@@ -56,14 +56,14 @@ function VoidWanderers:MissionCreate()
 
 	p2 = selection[math.random(#selection)]
 
-	local diff = CF_GetLocationDifficulty(self.GS, self.GS["Location"])
+	local diff = CF["GetLocationDifficulty"](self.GS, self.GS["Location"])
 
 	self.MissionDifficulty = diff
 
 	--print ("DIFF: "..self.MissionDifficulty)
 
-	CF_CreateAIUnitPresets(self.GS, p1, CF_GetTechLevelFromDifficulty(self.GS, p1, diff, CF_MaxDifficulty))
-	CF_CreateAIUnitPresets(self.GS, p2, CF_GetTechLevelFromDifficulty(self.GS, p2, diff, CF_MaxDifficulty))
+	CF["CreateAIUnitPresets"](self.GS, p1, CF["GetTechLevelFromDifficulty"](self.GS, p1, diff, CF["MaxDifficulty"]))
+	CF["CreateAIUnitPresets"](self.GS, p2, CF["GetTechLevelFromDifficulty"](self.GS, p2, diff, CF["MaxDifficulty"]))
 
 	self.MissionCPUPlayers = {}
 	self.MissionCPUTeams = {}
@@ -85,12 +85,12 @@ function VoidWanderers:MissionCreate()
 			tm = 3
 		end
 
-		local pre = math.random(CF_PresetTypes.ENGINEER)
+		local pre = math.random(CF["PresetTypes"].ENGINEER)
 		local nw = {}
 		nw["Preset"] = pre
 		nw["Team"] = tm
 		nw["Player"] = plr
-		if pre == CF_PresetTypes.ENGINEER then
+		if pre == CF["PresetTypes"].ENGINEER then
 			nw["AIMode"] = Actor.AIMODE_GOLDDIG
 		else
 			nw["AIMode"] = math.random() < 0.7 and Actor.AIMODE_SENTRY or Actor.AIMODE_PATROL
@@ -100,8 +100,8 @@ function VoidWanderers:MissionCreate()
 		table.insert(self.SpawnTable, nw)
 
 		-- Spawn another engineer
-		if math.random() < CF_AmbientEnemyDoubleSpawn then
-			local pre = CF_PresetTypes.ENGINEER
+		if math.random() < CF["AmbientEnemyDoubleSpawn"] then
+			local pre = CF["PresetTypes"].ENGINEER
 			local nw = {}
 			nw["Preset"] = pre
 			nw["Team"] = tm
@@ -116,10 +116,10 @@ function VoidWanderers:MissionCreate()
 	self.DropShipCount = 0
 
 	self.MissionStart = self.Time
-	self.MissionNextDropShip = self.Time + CF_AmbientReinforcementsInterval
+	self.MissionNextDropShip = self.Time + CF["AmbientReinforcementsInterval"]
 
 	-- Find player's enemy
-	self.AngriestPlayer, rep = CF_GetAngriestPlayer(self.GS)
+	self.AngriestPlayer, rep = CF["GetAngriestPlayer"](self.GS)
 	if self.AngriestPlayer ~= nil then
 		if self.AngriestPlayer ~= p1 and self.AngriestPlayer ~= p2 then
 			self.AngriestDifficulty = math.floor(math.abs(rep) / 1000)
@@ -128,16 +128,16 @@ function VoidWanderers:MissionCreate()
 				self.AngriestDifficulty = 1
 			end
 
-			if self.AngriestDifficulty > CF_MaxDifficulty then
-				self.AngriestDifficulty = CF_MaxDifficulty
+			if self.AngriestDifficulty > CF["MaxDifficulty"] then
+				self.AngriestDifficulty = CF["MaxDifficulty"]
 			end
 
-			CF_CreateAIUnitPresets(
+			CF["CreateAIUnitPresets"](
 				self.GS,
 				self.AngriestPlayer,
-				CF_GetTechLevelFromDifficulty(self.GS, self.AngriestPlayer, self.AngriestDifficulty, CF_MaxDifficulty)
+				CF["GetTechLevelFromDifficulty"](self.GS, self.AngriestPlayer, self.AngriestDifficulty, CF["MaxDifficulty"])
 			)
-			print("TEAM 2: " .. CF_GetPlayerFaction(self.GS, self.AngriestPlayer) .. " - " .. self.AngriestDifficulty)
+			print("TEAM 2: " .. CF["GetPlayerFaction"](self.GS, self.AngriestPlayer) .. " - " .. self.AngriestDifficulty)
 		else
 			self.AngriestPlayer = nil
 		end
@@ -145,11 +145,11 @@ function VoidWanderers:MissionCreate()
 
 	--print (self.AngriestPlayer)
 
-	self.MissionNextDropShip2 = self.Time + CF_AmbientReinforcementsInterval * 2.5
+	self.MissionNextDropShip2 = self.Time + CF["AmbientReinforcementsInterval"] * 2.5
 	--self.MissionNextDropShip2 = self.Time + 10 -- Debug
 
-	print("TEAM 3: " .. CF_GetPlayerFaction(self.GS, p1))
-	print("TEAM 4: " .. CF_GetPlayerFaction(self.GS, p2))
+	print("TEAM 3: " .. CF["GetPlayerFaction"](self.GS, p1))
+	print("TEAM 4: " .. CF["GetPlayerFaction"](self.GS, p2))
 end
 -----------------------------------------------------------------------------------------
 --
@@ -171,11 +171,11 @@ function VoidWanderers:MissionUpdate()
 
 	--print (self.MissionNextDropShip - self.Time)
 	if self.Time > self.MissionNextDropShip and #self.MissionLZs > 0 then
-		self.MissionNextDropShip = self.Time + CF_AmbientReinforcementsInterval + math.random(13)
+		self.MissionNextDropShip = self.Time + CF["AmbientReinforcementsInterval"] + math.random(13)
 
 		self.DropShipCount = self.DropShipCount + 1
 
-		if MovableMan:GetMOIDCount() < CF_MOIDLimit then
+		if MovableMan:GetMOIDCount() < CF["MOIDLimit"] then
 			local sel
 
 			if math.random() < 0.5 then
@@ -196,11 +196,11 @@ function VoidWanderers:MissionUpdate()
 
 				count = math.random(count)
 
-				local f = CF_GetPlayerFaction(self.GS, self.MissionCPUPlayers[sel])
-				local ship = CF_MakeActor(CF_Crafts[f], CF_CraftClasses[f], CF_CraftModules[f])
+				local f = CF["GetPlayerFaction"](self.GS, self.MissionCPUPlayers[sel])
+				local ship = CF["MakeActor"](CF["Crafts"][f], CF["CraftClasses"][f], CF["CraftModules"][f])
 				if ship then
 					for i = 1, count do
-						local actor = CF_SpawnAIUnit(
+						local actor = CF["SpawnAIUnit"](
 							self.GS,
 							self.MissionCPUPlayers[sel],
 							self.MissionCPUTeams[sel],
@@ -227,26 +227,26 @@ function VoidWanderers:MissionUpdate()
 		and self.Time > self.MissionNextDropShip2
 		and #self.MissionLZs > 0
 	then
-		self.MissionNextDropShip2 = self.Time + (CF_AmbientReinforcementsInterval + math.random(13)) * 2.75
+		self.MissionNextDropShip2 = self.Time + (CF["AmbientReinforcementsInterval"] + math.random(13)) * 2.75
 
-		if MovableMan:GetMOIDCount() < CF_MOIDLimit then
+		if MovableMan:GetMOIDCount() < CF["MOIDLimit"] then
 			local count = 3
 
-			local f = CF_GetPlayerFaction(self.GS, self.AngriestPlayer)
-			local ship = CF_MakeActor(CF_Crafts[f], CF_CraftClasses[f], CF_CraftModules[f])
+			local f = CF["GetPlayerFaction"](self.GS, self.AngriestPlayer)
+			local ship = CF["MakeActor"](CF["Crafts"][f], CF["CraftClasses"][f], CF["CraftModules"][f])
 			if ship then
 				for i = 1, count do
-					local actor = CF_SpawnAIUnit(self.GS, self.AngriestPlayer, 1, nil, nil)
+					local actor = CF["SpawnAIUnit"](self.GS, self.AngriestPlayer, 1, nil, nil)
 					if actor then
 						if math.random(100) <= self.MissionDifficulty then
 							actor:AddInventoryItem(
-								CreateHeldDevice((math.random() < 0.25 and "Black" or "Blue") .. "print", CF_ModuleName)
+								CreateHeldDevice((math.random() < 0.25 and "Black" or "Blue") .. "print", CF["ModuleName"])
 							)
 						end
 						ship:AddInventoryItem(actor)
 					end
 				end
-				ship.Team = CF_CPUTeam
+				ship.Team = CF["CPUTeam"]
 				ship.Pos = Vector(self.MissionLZs[math.random(#self.MissionLZs)].X, -10)
 				ship.AIMode = Actor.AIMODE_DELIVER
 				MovableMan:AddActor(ship)
@@ -263,11 +263,11 @@ function VoidWanderers:MissionUpdate()
 
 	-- Enumerate actors and select potential actors and miners
 	for actor in MovableMan.Actors do
-		if actor.Team ~= CF_PlayerTeam and actor.ClassName == "ACDropShip" then
+		if actor.Team ~= CF["PlayerTeam"] and actor.ClassName == "ACDropShip" then
 			self:AddObjectivePoint(
 				"INCOMING\nDROP SHIP",
 				actor.Pos + Vector(0, -50),
-				CF_PlayerTeam,
+				CF["PlayerTeam"],
 				GameActivity.ARROWDOWN
 			)
 		end
@@ -310,12 +310,12 @@ function VoidWanderers:MissionUpdate()
 			local rndact = acts[math.random(#acts)]
 
 			local assignable = true
-			local f = CF_GetPlayerFaction(self.GS, self.MissionCPUPlayers[sel])
+			local f = CF["GetPlayerFaction"](self.GS, self.MissionCPUPlayers[sel])
 
 			-- Check if unit is playable
-			if CF_UnassignableUnits[f] ~= nil then
-				for i = 1, #CF_UnassignableUnits[f] do
-					if rndact.PresetName == CF_UnassignableUnits[f][i] then
+			if CF["UnassignableUnits"][f] ~= nil then
+				for i = 1, #CF["UnassignableUnits"][f] do
+					if rndact.PresetName == CF["UnassignableUnits"][f][i] then
 						assignable = false
 					end
 				end
@@ -326,7 +326,7 @@ function VoidWanderers:MissionUpdate()
 				local nearest
 
 				for i = 1, #dest do
-					local d = CF_Dist(rndact.Pos, dest[i].Pos)
+					local d = CF["Dist"](rndact.Pos, dest[i].Pos)
 					if d < mindist then
 						mindist = d
 						nearest = dest[i].Pos

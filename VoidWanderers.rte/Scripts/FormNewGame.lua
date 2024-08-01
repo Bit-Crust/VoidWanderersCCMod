@@ -13,16 +13,16 @@ function VoidWanderers:FormLoad()
 	self.FactionButtons = {};
 	self.LargestFactionDescriptionHeight = 0;
 
-	for i = 1, #CF_Factions do
-		if CF_FactionPlayable[CF_Factions[i]] then
+	for i = 1, #CF["Factions"] do
+		if CF["FactionPlayable"][CF["Factions"][i]] then
 			self.PlayableFactionCount = self.PlayableFactionCount + 1;
 			self.FactionButtons[self.PlayableFactionCount] = {};
 
-			self.FactionButtons[self.PlayableFactionCount]["Description"] = CF_FactionDescriptions[CF_Factions[i]];
-			self.LargestFactionDescriptionHeight = math.max(CF_GetStringPixelWidth(CF_FactionDescriptions[CF_Factions[i]]) / 400, self.LargestFactionDescriptionHeight);
+			self.FactionButtons[self.PlayableFactionCount]["Description"] = CF["FactionDescriptions"][CF["Factions"][i]];
+			self.LargestFactionDescriptionHeight = math.max(CF["GetStringPixelWidth"](CF["FactionDescriptions"][CF["Factions"][i]]) / 400, self.LargestFactionDescriptionHeight);
 			
-			self.FactionButtons[self.PlayableFactionCount]["FactionName"] = CF_FactionNames[CF_Factions[i]];
-			self.FactionButtons[self.PlayableFactionCount]["FactionId"] = CF_Factions[i];
+			self.FactionButtons[self.PlayableFactionCount]["FactionName"] = CF["FactionNames"][CF["Factions"][i]];
+			self.FactionButtons[self.PlayableFactionCount]["FactionId"] = CF["Factions"][i];
 			self.FactionButtons[self.PlayableFactionCount]["Width"] = self.TileW;
 			self.FactionButtons[self.PlayableFactionCount]["Height"] = self.TileH;
 			self.FactionButtons[self.PlayableFactionCount]["Selected"] = false;
@@ -32,7 +32,7 @@ function VoidWanderers:FormLoad()
 	
 	self.LargestFactionDescriptionHeight = math.ceil(self.LargestFactionDescriptionHeight) * 10 + 20;
 
-	self.MaxCPUPlayersSelectable = #CF_Factions - 1;
+	self.MaxCPUPlayersSelectable = #CF["Factions"] - 1;
 
 	self.FactionButtonsPerRow = math.floor(FrameMan.PlayerScreenWidth / (self.TileW + 1)); -- Plates per row
 
@@ -134,7 +134,7 @@ function VoidWanderers:FormLoad()
 	self.UI[#self.UI + 1] = el;
 	self.BtnOk = el;
 
-	if CF_IsFileExists(self.ModuleName, STATE_CONFIG_FILE) then
+	if CF["IsFileExists"](self.ModuleName, STATE_CONFIG_FILE) then
 		el = {};
 		el["Type"] = self.ElementTypes.LABEL;
 		el["Preset"] = nil;
@@ -175,7 +175,7 @@ function VoidWanderers:FormLoad()
 	self:RedrawFactionButtons();
 
 	for i = 1, self.PlayableFactionCount do
-		local actor = CF_SpawnRandomInfantry(
+		local actor = CF["SpawnRandomInfantry"](
 			-1,
 			self.FactionButtons[i]["Pos"],
 			self.FactionButtons[i]["FactionId"],
@@ -308,7 +308,7 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:BtnOk_OnClick()
-	--CF_StopUIProcessing = true
+	--CF["StopUIProcessing"] = true
 
 	-- Create new game file
 	local config = {};
@@ -343,14 +343,14 @@ function VoidWanderers:BtnOk_OnClick()
 
 	-- Create new game data
 	dofile(LIB_PATH .. "Lib_NewGameData.lua");
-	config = CF_MakeNewConfig(CHOSEN_DIFFICULTY, CHOSEN_AISKILLPLAYER, CHOSEN_AISKILLCPU, player, cpu, self);
-	CF_MakeNewConfig = nil;
+	config = CF["MakeNewConfig"](CHOSEN_DIFFICULTY, CHOSEN_AISKILLPLAYER, CHOSEN_AISKILLCPU, player, cpu, self);
+	CF["MakeNewConfig"] = nil;
 
-	CF_WriteConfigFile(config, self.ModuleName, STATE_CONFIG_FILE);
+	CF["WriteConfigFile"](config, self.ModuleName, STATE_CONFIG_FILE);
 
 	self:FormClose();
 
-	--CF_LaunchMission(config["Scene"], "Tactics.lua")
+	--CF["LaunchMission"](config["Scene"], "Tactics.lua")
 	self:LaunchScript(config["Scene"], "Tactics.lua");
 end
 
@@ -395,7 +395,7 @@ function VoidWanderers:FormClick()
 		if self.Phase == 0 then
 			self.SelectedPlayerFaction = f;
 
-			local actor = CF_SpawnRandomInfantry(
+			local actor = CF["SpawnRandomInfantry"](
 				-1,
 				self.SelectionButtons[1]["Pos"],
 				self.FactionButtons[f]["FactionId"],
@@ -414,7 +414,7 @@ function VoidWanderers:FormClick()
 			-- self.SelectedCPUFactions[self.Phase] = f
 			-- self.LblPhase["Text"] = "SELECT CPU " .. self.Phase .. " FACTION"
 
-			-- local actor = CF_SpawnRandomInfantry(
+			-- local actor = CF["SpawnRandomInfantry"](
 			-- 	-1,
 			-- 	self.SelectionButtons[self.Phase + 1]["Pos"],
 			-- 	self.FactionButtons[f]["FactionId"],
@@ -454,7 +454,7 @@ function VoidWanderers:FormClick()
 					self.BtnOk["Visible"] = true;
 				end
 
-				local actor = CF_SpawnRandomInfantry(
+				local actor = CF["SpawnRandomInfantry"](
 					-1,
 					self.SelectionButtons[self.Phase + 1]["Pos"],
 					self.FactionButtons[f]["FactionId"],
@@ -533,7 +533,7 @@ function VoidWanderers:FormClick()
 			-- 		self.SelectedCPUFactions[self.Phase] = f
 			-- 		self.LblPhase["Text"] = "PRESS OK TO START NEW GAME"
 
-			-- 		local actor = CF_SpawnRandomInfantry(
+			-- 		local actor = CF["SpawnRandomInfantry"](
 			-- 			-1,
 			-- 			self.SelectionButtons[self.Phase + 1]["Pos"],
 			-- 			self.FactionButtons[f]["FactionId"],
@@ -588,9 +588,9 @@ function VoidWanderers:FormUpdate()
 	for i = 0, self.MaxCPUPlayersSelectable do
 		if self.NoMOIDPlaceholders[i] then
 			local s = "No MOIDs";
-			local l = CF_GetStringPixelWidth(s);
+			local l = CF["GetStringPixelWidth"](s);
 
-			CF_DrawString(s, self.SelectionButtons[i + 1]["Pos"] + Vector(-l / 2, 0), 100, 100);
+			CF["DrawString"](s, self.SelectionButtons[i + 1]["Pos"] + Vector(-l / 2, 0), 100, 100);
 		end
 	end
 end

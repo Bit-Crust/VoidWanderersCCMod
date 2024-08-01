@@ -19,7 +19,7 @@ function VoidWanderers:InitItemShopControlPanelUI()
 			self.ItemShopControlPanelActor = CreateActor("Item Shop Control Panel");
 			if self.ItemShopControlPanelActor ~= nil then
 				self.ItemShopControlPanelActor.Pos = self.ItemShopControlPanelPos;
-				self.ItemShopControlPanelActor.Team = CF_PlayerTeam;
+				self.ItemShopControlPanelActor.Team = CF["PlayerTeam"];
 				MovableMan:AddActor(self.ItemShopControlPanelActor);
 			end
 		end
@@ -60,13 +60,13 @@ function VoidWanderers:InitItemShopControlPanelUI()
 	self.ItemShopTradeStar = false;
 	self.ItemShopBlackMarket = false;
 
-	if CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.TRADESTAR) then
-		self.ItemShopItems, self.ItemShopFilters = CF_GetItemShopArray(self.GS, true);
+	if CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].TRADESTAR) then
+		self.ItemShopItems, self.ItemShopFilters = CF["GetItemShopArray"](self.GS, true);
 		self.ItemShopTradeStar = true;
 	end
 
-	if CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.BLACKMARKET) then
-		self.ItemShopItems, self.ItemShopFilters = CF_GetItemBlackMarketArray(self.GS, true);
+	if CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].BLACKMARKET) then
+		self.ItemShopItems, self.ItemShopFilters = CF["GetItemBlackMarketArray"](self.GS, true);
 		self.ItemShopBlackMarket = true;
 	end
 end
@@ -118,7 +118,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 			self:PutGlow("ControlPanel_Storage_HorizontalPanel", pos + Vector(20, 78));
 
 			-- Print help text
-			CF_DrawString("L/R - Change filter, U/D - Select, FIRE - Buy", pos + Vector(-130, 78), 300, 10);
+			CF["DrawString"]("L/R - Change filter, U/D - Select, FIRE - Buy", pos + Vector(-130, 78), 300, 10);
 
 			-- Process controls
 			local cont = act:GetController();
@@ -135,7 +135,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 				down = true;
 			end
 
-			if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
+			if self.HoldTimer:IsPastSimMS(CF["KeyRepeatDelay"]) then
 				self.HoldTimer:Reset();
 
 				if cont:IsState(Controller.HOLD_UP) then
@@ -212,13 +212,13 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 				if itm ~= nil then
 					-- Get item description
 					self.ItemShopSelectedItemDescription = self.ItemShopItems[itm]["Description"];
-					self.ItemShopSelectedItemManufacturer = CF_FactionNames[self.ItemShopItems[itm]["Faction"]];
+					self.ItemShopSelectedItemManufacturer = CF["FactionNames"][self.ItemShopItems[itm]["Faction"]];
 					self.ItemShopSelectedItemPrice = self.ItemShopItems[itm]["Price"];
 					self.ItemShopSelectedItemType = self.ItemShopItems[itm]["Type"];
 
 					-- Create new item object
 					if self.ItemShopItems[itm]["Preset"] then
-						self.ItemShopControlPanelObject = CF_MakeItem(
+						self.ItemShopControlPanelObject = CF["MakeItem"](
 							self.ItemShopItems[itm]["Preset"],
 							self.ItemShopItems[itm]["Class"],
 							self.ItemShopItems[itm]["Module"]
@@ -245,52 +245,52 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 						local itm = self.ItemShopFilters[self.ItemShopControlMode][self.ItemShopSelectedItem];
 
 						if itm ~= nil then
-							if self.ItemShopItems[itm]["Type"] == CF_WeaponTypes.BOMB then
+							if self.ItemShopItems[itm]["Type"] == CF["WeaponTypes"].BOMB then
 								if
-									CF_CountUsedBombsInArray(self.Bombs)
+									CF["CountUsedBombsInArray"](self.Bombs)
 										< tonumber(self.GS["Player0VesselBombStorage"])
-									and self.ItemShopSelectedItemPrice <= CF_GetPlayerGold(self.GS, 0)
+									and self.ItemShopSelectedItemPrice <= CF["GetPlayerGold"](self.GS, 0)
 								then
-									CF_PutBombToStorageArray(
+									CF["PutBombToStorageArray"](
 										self.Bombs,
 										self.ItemShopItems[itm]["Preset"],
 										self.ItemShopItems[itm]["Class"],
 										self.ItemShopItems[itm]["Module"]
 									);
-									CF_SetBombsArray(self.GS, self.Bombs);
-									CF_SetPlayerGold(
+									CF["SetBombsArray"](self.GS, self.Bombs);
+									CF["SetPlayerGold"](
 										self.GS,
 										0,
-										CF_GetPlayerGold(self.GS, 0) - self.ItemShopSelectedItemPrice
+										CF["GetPlayerGold"](self.GS, 0) - self.ItemShopSelectedItemPrice
 									);
 								end
 							else
 								if
 									self.ItemShopItems[itm]["Preset"]
-									and CF_CountUsedStorageInArray(self.StorageItems) < tonumber(
+									and CF["CountUsedStorageInArray"](self.StorageItems) < tonumber(
 										self.GS["Player0VesselStorageCapacity"]
 									)
-									and self.ItemShopSelectedItemPrice <= CF_GetPlayerGold(self.GS, 0)
+									and self.ItemShopSelectedItemPrice <= CF["GetPlayerGold"](self.GS, 0)
 								then
-									local needrefresh = CF_PutItemToStorageArray(
+									local needrefresh = CF["PutItemToStorageArray"](
 										self.StorageItems,
 										self.ItemShopItems[itm]["Preset"],
 										self.ItemShopItems[itm]["Class"],
 										self.ItemShopItems[itm]["Module"]
 									);
 
-									CF_SetPlayerGold(
+									CF["SetPlayerGold"](
 										self.GS,
 										0,
-										CF_GetPlayerGold(self.GS, 0) - self.ItemShopSelectedItemPrice
+										CF["GetPlayerGold"](self.GS, 0) - self.ItemShopSelectedItemPrice
 									);
 
 									-- Store everything
-									CF_SetStorageArray(self.GS, self.StorageItems);
+									CF["SetStorageArray"](self.GS, self.StorageItems);
 
 									-- Refresh storage items array and filters
 									if needrefresh then
-										self.StorageItems, self.StorageFilters = CF_GetStorageArray(self.GS, true);
+										self.StorageItems, self.StorageFilters = CF["GetStorageArray"](self.GS, true);
 									end
 								end
 							end
@@ -306,7 +306,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 					local itm = self.ItemShopFilters[self.ItemShopControlMode][i];
 					local loc = i - self.ItemShopControlItemsListStart;
 
-					CF_DrawString(
+					CF["DrawString"](
 						(i == self.ItemShopSelectedItem and "> " or "")
 							.. (self.ItemShopItems[itm]["Preset"] or "SHIPPING ERROR"),
 						pos + Vector(-130, -26) + Vector(0, loc * 12),
@@ -321,7 +321,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 							priceString = tostring(math.floor(self.ItemShopItems[itm]["Price"] * 0.01) * 0.1) .. "k";
 						end
 					end
-					CF_DrawString(priceString, pos + Vector(-130, -26) + Vector(110, loc * 12), 90, 10);
+					CF["DrawString"](priceString, pos + Vector(-130, -26) + Vector(110, loc * 12), 90, 10);
 				end
 			end
 
@@ -351,11 +351,11 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 
 			-- Print description
 			if self.ItemShopSelectedItemDescription ~= nil then
-				CF_DrawString(self.ItemShopSelectedItemDescription, pos + Vector(10, -10), 170, 70);
+				CF["DrawString"](self.ItemShopSelectedItemDescription, pos + Vector(10, -10), 170, 70);
 			end
 
 			-- Print manufacturer
-			CF_DrawString(
+			CF["DrawString"](
 				"Manufacturer: " .. (self.ItemShopSelectedItemManufacturer or "Unknown"),
 				pos + Vector(10, -25),
 				170,
@@ -363,7 +363,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 			);
 
 			-- Print Selected mode text
-			CF_DrawString(
+			CF["DrawString"](
 				self.ItemShopControlPanelModesTexts[self.ItemShopControlMode],
 				pos + Vector(-130, -77),
 				170,
@@ -372,10 +372,10 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 
 			-- Print ItemShop capacity
 			-- Print defferent capacity and storage for bombs
-			if self.ItemShopSelectedItemType ~= nil and self.ItemShopSelectedItemType == CF_WeaponTypes.BOMB then
-				CF_DrawString(
+			if self.ItemShopSelectedItemType ~= nil and self.ItemShopSelectedItemType == CF["WeaponTypes"].BOMB then
+				CF["DrawString"](
 					"Bomb capacity: "
-						.. CF_CountUsedBombsInArray(self.Bombs)
+						.. CF["CountUsedBombsInArray"](self.Bombs)
 						.. "/"
 						.. self.GS["Player0VesselBombStorage"],
 					pos + Vector(-130, -60),
@@ -383,9 +383,9 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 					10
 				);
 			else
-				CF_DrawString(
+				CF["DrawString"](
 					"Capacity: "
-						.. CF_CountUsedStorageInArray(self.StorageItems)
+						.. CF["CountUsedStorageInArray"](self.StorageItems)
 						.. "/"
 						.. self.GS["Player0VesselStorageCapacity"],
 					pos + Vector(-130, -60),
@@ -393,13 +393,13 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 					10
 				);
 			end
-			CF_DrawString("Gold: " .. CF_GetPlayerGold(self.GS, 0) .. " oz", pos + Vector(-130, -44), 300, 10);
+			CF["DrawString"]("Gold: " .. CF["GetPlayerGold"](self.GS, 0) .. " oz", pos + Vector(-130, -44), 300, 10);
 		end
 	end
 
 	if showidle and self.ItemShopControlPanelPos ~= nil and self.ItemShopControlPanelActor ~= nil then
 		self:PutGlow("ControlPanel_ItemShop", self.ItemShopControlPanelPos);
-		--CF_DrawString("Item\nStore ",self.ItemShopControlPanelPos + Vector(-16,0), 120, 20)
+		--CF["DrawString"]("Item\nStore ",self.ItemShopControlPanelPos + Vector(-16,0), 120, 20)
 
 		self.ItemShopControlPanelInitialized = false;
 

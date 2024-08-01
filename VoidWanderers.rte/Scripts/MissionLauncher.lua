@@ -14,10 +14,11 @@ function VoidWanderers:StartActivity()
 	BASE_PATH = self.ModuleName .. "/Scripts/"
 
 	if SKIP_LIBRARIES == nil then
+		dofile(LIB_PATH .. "Lib_Generic.lua")
 		dofile(LIB_PATH .. "Lib_Brain.lua")
 		dofile(LIB_PATH .. "Lib_Config.lua")
-		dofile(LIB_PATH .. "Lib_Generic.lua")
 		dofile(LIB_PATH .. "Lib_ExtensionsData.lua")
+		dofile(LIB_PATH .. "Lib_Messages.lua")
 		dofile(LIB_PATH .. "Lib_Spawn.lua")
 		dofile(LIB_PATH .. "Lib_Storage.lua")
 		dofile(LIB_PATH .. "Lib_Encounters.lua")
@@ -43,7 +44,7 @@ function VoidWanderers:StartActivity()
 	SKIP_LIBRARIES = nil
 
 	-- Load custom AI
-	--print (CF_UseCustomAI)
+	--print (CF["UseCustomAI"])
 
 	if TRANSFER_IN_PROGRESS == nil then
 		TRANSFER_IN_PROGRESS = false
@@ -123,8 +124,8 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:EndActivity()
 	print("END! -- VoidWanderers:EndActivity()!")
-	CF_Self = nil
-	CF_GS = nil
+	CF["Self"] = nil
+	CF["GS"] = nil
 end
 -----------------------------------------------------------------------------------------
 -- Update Activity
@@ -139,33 +140,33 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:LoadCurrentGameState()
-	if CF_IsFileExists(self.ModuleName, STATE_CONFIG_FILE) then
-		self.GS = CF_ReadConfigFile(self.ModuleName, STATE_CONFIG_FILE)
+	if CF["IsFileExists"](self.ModuleName, STATE_CONFIG_FILE) then
+		self.GS = CF["ReadConfigFile"](self.ModuleName, STATE_CONFIG_FILE)
 
 		self.Time = tonumber(self.GS["Time"])
 
 		-- Move ship to tradestar if last location was removed
-		if CF_PlanetName[self.GS["Planet"]] == nil then
+		if CF["PlanetName"][self.GS["Planet"]] == nil then
 			--print (self.GS["Location"].." not found. Relocated to tradestar.")
 
-			self.GS["Planet"] = CF_Planet[1]
+			self.GS["Planet"] = CF["Planet"][1]
 			self.GS["Location"] = nil
 		end
 
 		if self.GS["Difficulty"] then
-			CF_Difficulty = tonumber(self.GS["Difficulty"])
+			CF["Difficulty"] = tonumber(self.GS["Difficulty"])
 		end
 		if self.GS["AISkillPlayer"] then
-			CF_AISkillPlayer = tonumber(self.GS["AISkillPlayer"])
+			CF["AISkillPlayer"] = tonumber(self.GS["AISkillPlayer"])
 		end
 		if self.GS["AISkillCPU"] then
-			CF_AISkillCPU = tonumber(self.GS["AISkillCPU"])
+			CF["AISkillCPU"] = tonumber(self.GS["AISkillCPU"])
 		end
 
 		-- Check missions for missing scenes, if any of them found - recreate missions
-		for i = 1, CF_MaxMissions do
-			if CF_LocationName[self.GS["Mission" .. i .. "Location"]] == nil then
-				CF_GenerateRandomMissions(self.GS)
+		for i = 1, CF["MaxMissions"] do
+			if CF["LocationName"][self.GS["Mission" .. i .. "Location"]] == nil then
+				CF["GenerateRandomMissions"](self.GS)
 				break
 			end
 		end
@@ -244,29 +245,29 @@ function VoidWanderers:LoadCurrentGameState()
 			end
 		end
 
-		local arr = CF_GetAvailableQuantumItems(self.GS)
+		local arr = CF["GetAvailableQuantumItems"](self.GS)
 		if #arr == 0 then
-			CF_UnlockRandomQuantumItem(self.GS)
+			CF["UnlockRandomQuantumItem"](self.GS)
 		end
 
 		local val = self.GS["Player0VesselTurrets"]
 		if val == nil then
-			self.GS["Player0VesselTurrets"] = CF_VesselStartTurrets[self.GS["Player0Vessel"]]
+			self.GS["Player0VesselTurrets"] = CF["VesselStartTurrets"][self.GS["Player0Vessel"]]
 		end
 
 		local val = self.GS["Player0VesselTurretStorage"]
 		if val == nil then
-			self.GS["Player0VesselTurretStorage"] = CF_VesselStartTurretStorage[self.GS["Player0Vessel"]]
+			self.GS["Player0VesselTurretStorage"] = CF["VesselStartTurretStorage"][self.GS["Player0Vessel"]]
 		end
 
 		local val = self.GS["Player0VesselBombBays"]
 		if val == nil then
-			self.GS["Player0VesselBombBays"] = CF_VesselStartBombBays[self.GS["Player0Vessel"]]
+			self.GS["Player0VesselBombBays"] = CF["VesselStartBombBays"][self.GS["Player0Vessel"]]
 		end
 
 		local val = self.GS["Player0VesselBombStorage"]
 		if val == nil then
-			self.GS["Player0VesselBombStorage"] = CF_VesselStartBombStorage[self.GS["Player0Vessel"]]
+			self.GS["Player0VesselBombStorage"] = CF["VesselStartBombStorage"][self.GS["Player0Vessel"]]
 		end
 	end
 end
@@ -275,7 +276,7 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:SaveCurrentGameState()
 	self.GS["Time"] = tostring(self.Time)
-	CF_WriteConfigFile(self.GS, self.ModuleName, STATE_CONFIG_FILE)
+	CF["WriteConfigFile"](self.GS, self.ModuleName, STATE_CONFIG_FILE)
 end
 -----------------------------------------------------------------------------------------
 --
