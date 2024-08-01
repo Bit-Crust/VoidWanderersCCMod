@@ -1,41 +1,4 @@
-CF = {}
-
-LIB_PATH = ActivityMan:GetActivity().ModuleName .. "/Scripts/";
-dofile(LIB_PATH .. "Lib_Isolated.lua");
-
-local tempvar = nil;
-
-function GS_Read(self, key) 
-	tempvar = nil;
-	ActivityMan:GetActivity():SendMessage("read_from_GS", {self, key});
-	return tempvar;
-end
-
-function GS_Write(key, value) 
-	ActivityMan:GetActivity():SendMessage("write_to_GS", {key, value});
-end
-
-function CF_Read(self, keys) 
-	tempvar = nil;
-	ActivityMan:GetActivity():SendMessage("read_from_CF", {self, keys});
-	return tempvar;
-end
-
-function CF_Write(keys, value) 
-	ActivityMan:GetActivity():SendMessage("write_to_CF", {keys, value});
-end
-
-function CF_Call(self, keys, arguments) 
-	tempvar = nil;
-	ActivityMan:GetActivity():SendMessage("call_in_CF", {self, keys, arguments});
-	return tempvar;
-end
-
-function OnMessage(self, message, context)
-	if message == "return_from_activity" then
-		tempvar = context;
-	end
-end
+dofile(ActivityMan:GetActivity().ModuleName .. "/Scripts/" .. "Lib_Messages.lua");
 
 function PackBrainForConfig(self)
 	return {BrainNumber = self.BrainNumber, RepairCount = self.RepairCount, HealCount = self.HealCount, SelfHealCount = self.SelfHealCount, QuantumStorage = self.QuantumStorage}
@@ -223,7 +186,7 @@ function Create(self)
 
 				local pos = string.find(s, "QCAP")
 				if pos ~= nil then
-					self.QuantumCapacity = CF_Read(self, "QuantumCapacityPerLevel")
+					self.QuantumCapacity = CF_Read(self, {"QuantumCapacityPerLevel"})
 						+ tonumber(string.sub(s, pos + 4, pos + 4)) * CF_Read(self, {"QuantumCapacityPerLevel"})
 				end
 
@@ -236,8 +199,9 @@ function Create(self)
 
 		self.ScanEnabled = true
 		self.ScanRange = 200 + self.ScanLevel * 160
-
+		
 		self.ThisActor.Health = self.MaxHealth
+		self.ThisActor.MaxHealth = self.MaxHealth
 		local levelRatio = 1 - self.HealCount / 5
 		self.healTimer = Timer()
 		self.baseHealDelay = 40 + 200 * levelRatio
@@ -256,11 +220,6 @@ function Create(self)
 
 		self.maxHealRange = 50 + self.HealCount * 10
 		self.healTargets = {}
-
-		--print (self.ThisActor.PresetName)
-		--print ("Shield: "..self.ShieldLvl)
-		--print ("Kinesis: "..self.TelekinesisLvl)
-		--print ("MaxHealth: "..self.MaxHealth)
 
 		-- Create skills menu
 		self.Skills = {}
@@ -293,7 +252,7 @@ function Create(self)
 			self.Skills[count]["Count"] = self.RepairCount
 			self.Skills[count]["Function"] = rpgbrain_skill_repair
 		end
-		--[[
+		
 		if self.HealCount > 0 then
 			count = count + 1
 			self.Skills[count] = {}
@@ -302,8 +261,7 @@ function Create(self)
 			self.Skills[count]["Count"] = self.HealCount
 			self.Skills[count]["Function"] = rpgbrain_skill_healstart
 			self.Skills[count]["ActorDetectRange"] = self.HealRange
-		end]]
-		--
+		end
 
 		if self.SelfHealCount > 0 then
 			count = count + 1
@@ -477,7 +435,7 @@ function Create(self)
 			G_VW_Shields = shields
 			G_VW_Active = active
 			G_VW_Pressure = pressure
-			G_VW_Power = power --]]--
+			G_VW_Power = power
 
 			--print ("Shield count: "..#G_VW_Shields)
 		end
@@ -1006,7 +964,7 @@ function Update(self)-- Don't do anything when in edit mode
 				rpgbrain_skill_selfhealstart(self)
 			end
 
-			--[[ Heal nearby actors
+			-- Heal nearby actors
 			if self.HealTarget == nil then
 				local a = nil
 				local dist = self.HealRange
@@ -1014,7 +972,7 @@ function Update(self)-- Don't do anything when in edit mode
 
 				for actor in MovableMan.Actors do
 					if actor.Team == self.ThisActor.Team and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
-						local d = CF["Dist"](self.ThisActor.Pos, actor.Pos)
+						local d = SceneMan:ShortestDistance(self.ThisActor.Pos, actor.Pos, SceneMan.SceneWrapsX).Magnitude
 						if d <= dist then
 							if actor.Health < hlth then
 								a = actor;
@@ -1029,8 +987,7 @@ function Update(self)-- Don't do anything when in edit mode
 					self.SkillTargetActor = a
 					rpgbrain_skill_healstart(self)
 				end
-			end]]
-			--
+			end
 		end
 	end
 end
@@ -1458,7 +1415,7 @@ function do_rpgbrain_pda(self)
 		self.FirePressed = false
 	end
 end
---[[
+
 function rpgbrain_skill_healstart(self)
 	if self.HealCount > 0 and self.HealTarget == nil then
 		if self.SkillTargetActor ~= nil and MovableMan:IsActor(self.SkillTargetActor) and self.SkillTargetActor.Health > 0 then
@@ -1468,12 +1425,11 @@ function rpgbrain_skill_healstart(self)
 			
 			self.HealCount = self.HealCount - 1
 			self.ActiveMenu[self.SelectedMenuItem]["Count"] = self.HealCount
-			CF["SaveThisBrainSupplies"](CF["GS"], self)
+			CF_Call(self, {"SaveThisBrainSupplies"}, {CF_Read(self, {"GS"}), PackBrainForConfig(self)})
 		end
 	end
 end
-]]
---
+
 function rpgbrain_skill_selfhealstart(self)
 	if self.SelfHealCount > 0 and self.HealTarget == nil then
 		if
@@ -1497,7 +1453,6 @@ function rpgbrain_skill_healend(self)
 		local presets, classes, modules
 		if self.HealTarget.ClassName == "AHuman" then
 			presets, classes, modules = unpack(CF_Call(self, {"GetInventory"}, {self.HealTarget}))
-			print(presets, classes, modules)
 		end
 		local preset = self.HealTarget.PresetName
 		local oldpreset = self.HealTarget.PresetName
@@ -1535,6 +1490,10 @@ function rpgbrain_skill_healend(self)
 
 			actor.Pos = Vector(self.HealTarget.Pos.X, self.HealTarget.Pos.Y)
 			MovableMan:AddActor(actor)
+			if self.HealTarget:IsInGroup("Brains") then
+				ActivityMan:GetActivity():SwitchToActor(actor, self.BrainNumber, CF_Read(self, {"PlayerTeam"}));
+				ActivityMan:GetActivity():SetPlayerBrain(actor, self.BrainNumber);
+			end
 		end
 		self.HealTarget.Pos = Vector(0, -1000)
 		self.HealTarget.ToDelete = true
