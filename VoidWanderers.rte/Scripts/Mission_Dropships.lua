@@ -59,39 +59,39 @@ function VoidWanderers:MissionCreate()
 		+ (self.MissionSettings["TargetGold"] - self.MissionSettings["EnemyBudget"]) * 0.20
 	self.MissionLastFailWarning = 0
 
-	self:SetTeamFunds(self.MissionSettings["EnemyBudget"], CF_CPUTeam)
+	self:SetTeamFunds(self.MissionSettings["EnemyBudget"], CF["CPUTeam"])
 
 	-- Use generic enemy set
-	local set = CF_GetRandomMissionPointsSet(self.Pts, "Mine")
+	local set = CF["GetRandomMissionPointsSet"](self.Pts, "Mine")
 
 	-- Get LZs
-	self.MissionLZs = CF_GetPointsArray(self.Pts, "Mine", set, "MinerLZ")
+	self.MissionLZs = CF["GetPointsArray"](self.Pts, "Mine", set, "MinerLZ")
 
 	--print (#self.MissionLZs)
 
 	local count
 
 	-- Get miner locations
-	local miners = CF_GetPointsArray(self.Pts, "Mine", set, "Miners")
+	local miners = CF["GetPointsArray"](self.Pts, "Mine", set, "Miners")
 	count = math.ceil(#miners * self.MissionSettings["SpawnRate"])
 	if count < 0 then
 		count = 1
 	end
-	miners = CF_SelectRandomPoints(miners, count)
+	miners = CF["SelectRandomPoints"](miners, count)
 
 	-- Get security locations
-	local security = CF_GetPointsArray(self.Pts, "Mine", set, "MinerSentries")
+	local security = CF["GetPointsArray"](self.Pts, "Mine", set, "MinerSentries")
 	count = math.ceil(#security * self.MissionSettings["SpawnRate"])
 	if count < 0 then
 		count = 1
 	end
-	security = CF_SelectRandomPoints(security, count)
+	security = CF["SelectRandomPoints"](security, count)
 
 	-- Spawn miners with double rate
 	for i = 1, #miners do
 		local nw = {}
-		nw["Preset"] = CF_PresetTypes.ENGINEER
-		nw["Team"] = CF_CPUTeam
+		nw["Preset"] = CF["PresetTypes"].ENGINEER
+		nw["Team"] = CF["CPUTeam"]
 		nw["Player"] = self.MissionTargetPlayer
 		nw["AIMode"] = Actor.AIMODE_GOLDDIG
 		nw["Pos"] = miners[i]
@@ -102,8 +102,8 @@ function VoidWanderers:MissionCreate()
 	-- Spawn security
 	for i = 1, #security do
 		local nw = {}
-		nw["Preset"] = math.random(CF_PresetTypes.HEAVY2)
-		nw["Team"] = CF_CPUTeam
+		nw["Preset"] = math.random(CF["PresetTypes"].HEAVY2)
+		nw["Team"] = CF["CPUTeam"]
 		nw["Player"] = self.MissionTargetPlayer
 		nw["AIMode"] = Actor.AIMODE_SENTRY
 		nw["Pos"] = security[i]
@@ -112,12 +112,12 @@ function VoidWanderers:MissionCreate()
 	end
 
 	-- Spawn a few snipers finally
-	local snipers = CF_GetPointsArray(self.Pts, "Enemy", set, "Sniper")
+	local snipers = CF["GetPointsArray"](self.Pts, "Enemy", set, "Sniper")
 	for i = 1, #snipers do
 		if math.random() < self.MissionSettings["SpawnRate"] / 3 then
 			local nw = {}
-			nw["Preset"] = CF_PresetTypes.SNIPER
-			nw["Team"] = CF_CPUTeam
+			nw["Preset"] = CF["PresetTypes"].SNIPER
+			nw["Team"] = CF["CPUTeam"]
 			nw["Player"] = self.MissionTargetPlayer
 			nw["AIMode"] = Actor.AIMODE_SENTRY
 			nw["Pos"] = snipers[i]
@@ -137,7 +137,7 @@ function VoidWanderers:MissionUpdate()
 		self.MissionFailed = true
 		local minerCount = 0
 		local shipCount = 0
-		local enemyFunds = self:GetTeamFunds(CF_CPUTeam)
+		local enemyFunds = self:GetTeamFunds(CF["CPUTeam"])
 
 		if enemyFunds > 0 then
 			-- Show gold warnings from time to time
@@ -152,13 +152,13 @@ function VoidWanderers:MissionUpdate()
 			end
 
 			if self.Time < self.MissionLastFailWarning then
-				for p = 0, self.PlayerCount - 1 do
-					FrameMan:ClearScreenText(p)
+				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+					FrameMan:ClearScreenText(player)
 					FrameMan:SetScreenText(
 						"STOP ENEMY MINING OPERATION\n"
 							.. self.MissionSettings["TargetGold"] - math.ceil(enemyFunds)
 							.. "oz OF GOLD LEFT TO MINE",
-						p,
+						player,
 						0,
 						1000,
 						true
@@ -174,7 +174,7 @@ function VoidWanderers:MissionUpdate()
 		end
 
 		for actor in MovableMan.Actors do
-			if actor.Team == CF_CPUTeam then
+			if actor.Team == CF["CPUTeam"] then
 				if actor:HasObjectInGroup("Tools - Diggers") then
 					minerCount = minerCount + 1
 
@@ -182,17 +182,17 @@ function VoidWanderers:MissionUpdate()
 						actor.AIMode = Actor.AIMODE_GOLDDIG
 					end
 
-					if not SceneMan:IsUnseen(actor.Pos.X, actor.Pos.Y, CF_PlayerTeam) then
-						self:AddObjectivePoint("KILL", actor.AboveHUDPos, CF_PlayerTeam, GameActivity.ARROWDOWN)
+					if not SceneMan:IsUnseen(actor.Pos.X, actor.Pos.Y, CF["PlayerTeam"]) then
+						self:AddObjectivePoint("KILL", actor.AboveHUDPos, CF["PlayerTeam"], GameActivity.ARROWDOWN)
 					end
 				end
 
 				if actor.ClassName == "ACDropShip" or actor.ClassName == "ACRocket" then
-					if not SceneMan:IsUnseen(actor.Pos.X, actor.Pos.Y, CF_PlayerTeam) then
+					if not SceneMan:IsUnseen(actor.Pos.X, actor.Pos.Y, CF["PlayerTeam"]) then
 						self:AddObjectivePoint(
 							"TAKE DOWN\nDROP SHIP",
 							actor.AboveHUDPos,
-							CF_PlayerTeam,
+							CF["PlayerTeam"],
 							GameActivity.ARROWDOWN
 						)
 					end
@@ -222,22 +222,22 @@ function VoidWanderers:MissionUpdate()
 			and minerCount < 3
 			and self.Time >= self.MissionLastReinforcements + self.MissionSettings["Interval"]
 		then
-			if MovableMan:GetMOIDCount() < CF_MOIDLimit then
+			if MovableMan:GetMOIDCount() < CF["MOIDLimit"] then
 				self.MissionLastReinforcements = self.Time
 				self.MissionSettings["EnemyDropShips"] = self.MissionSettings["EnemyDropShips"] - 1
 
 				local presets = {}
-				presets[1] = CF_PresetTypes.ENGINEER
-				presets[2] = math.random(CF_PresetTypes.SHOTGUN)
-				presets[3] = math.random(CF_PresetTypes.HEAVY2)
+				presets[1] = CF["PresetTypes"].ENGINEER
+				presets[2] = math.random(CF["PresetTypes"].SHOTGUN)
+				presets[3] = math.random(CF["PresetTypes"].HEAVY2)
 
 				local modes = {}
 				modes[1] = Actor.AIMODE_GOLDDIG
 				modes[2] = Actor.AIMODE_SENTRY
 				modes[3] = Actor.AIMODE_PATROL
 
-				local f = CF_GetPlayerFaction(self.GS, self.MissionTargetPlayer)
-				local ship = CF_MakeActor(CF_Crafts[f], CF_CraftClasses[f], CF_CraftModules[f])
+				local f = CF["GetPlayerFaction"](self.GS, self.MissionTargetPlayer)
+				local ship = CF["MakeActor"](CF["Crafts"][f], CF["CraftClasses"][f], CF["CraftModules"][f])
 				if ship then
 					local unitCount = enemyFunds
 								> (self.MissionSettings["EnemyBudget"] + self.MissionSettings["EnemyBudget"]) * 0.5
@@ -245,10 +245,10 @@ function VoidWanderers:MissionUpdate()
 						or 1
 					for i = 1, unitCount do
 						local pre = math.random(#presets)
-						local actor = CF_SpawnAIUnitWithPreset(
+						local actor = CF["SpawnAIUnitWithPreset"](
 							self.GS,
 							self.MissionTargetPlayer,
-							CF_CPUTeam,
+							CF["CPUTeam"],
 							nil,
 							modes[pre],
 							presets[pre]
@@ -257,10 +257,10 @@ function VoidWanderers:MissionUpdate()
 							ship:AddInventoryItem(actor)
 						end
 					end
-					ship.Team = CF_CPUTeam
+					ship.Team = CF["CPUTeam"]
 					ship.Pos = Vector(self.MissionLZs[math.random(#self.MissionLZs)].X, -10)
 					ship.AIMode = Actor.AIMODE_DELIVER
-					self:SetTeamFunds(enemyFunds - ship:GetTotalValue(0, 1), CF_CPUTeam)
+					self:SetTeamFunds(enemyFunds - ship:GetTotalValue(0, 1), CF["CPUTeam"])
 					MovableMan:AddActor(ship)
 				end
 			end
@@ -268,27 +268,27 @@ function VoidWanderers:MissionUpdate()
 	elseif self.MissionStage == self.MissionStages.COMPLETED then
 		self.MissionStatus = "MISSION COMPLETED"
 		if not self.MissionEndMusicPlayed then
-			self:StartMusic(CF_MusicTypes.VICTORY)
+			self:StartMusic(CF["MusicTypes"].VICTORY)
 			self.MissionEndMusicPlayed = true
 		end
 
-		if self.Time < self.MissionStatusShowStart + CF_MissionResultShowInterval then
-			for p = 0, self.PlayerCount - 1 do
-				FrameMan:ClearScreenText(p)
-				FrameMan:SetScreenText(self.MissionStatus, p, 0, 1000, true)
+		if self.Time < self.MissionStatusShowStart + CF["MissionResultShowInterval"] then
+			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+				FrameMan:ClearScreenText(player)
+				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
 			end
 		end
 	elseif self.MissionStage == self.MissionStages.FAILED then
 		self.MissionStatus = "MISSION FAILED"
 		if not self.MissionEndMusicPlayed then
-			self:StartMusic(CF_MusicTypes.DEFEAT)
+			self:StartMusic(CF["MusicTypes"].DEFEAT)
 			self.MissionEndMusicPlayed = true
 		end
 
-		if self.Time < self.MissionStatusShowStart + CF_MissionResultShowInterval then
-			for p = 0, self.PlayerCount - 1 do
-				FrameMan:ClearScreenText(p)
-				FrameMan:SetScreenText(self.MissionStatus, p, 0, 1000, true)
+		if self.Time < self.MissionStatusShowStart + CF["MissionResultShowInterval"] then
+			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+				FrameMan:ClearScreenText(player)
+				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
 			end
 		end
 	end
@@ -297,7 +297,7 @@ end
 --[[
 -----------------------------------------------------------------------------------------
 function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
-	if orbitedCraft.Team == CF_CPUTeam then
+	if orbitedCraft.Team == CF["CPUTeam"] then
 		self.MissionSettings["EnemyDropShips"] = self.MissionSettings["EnemyDropShips"] + 1
 	end
 end

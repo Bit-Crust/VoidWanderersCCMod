@@ -1,29 +1,29 @@
-function CF_InitExtensionsData(activity)
+CF["InitExtensionsData"] = function(activity)
 	-- Init planet data structures
-	CF_Planet = {}
-	CF_PlanetName = {}
-	CF_PlanetGlow = {}
-	CF_PlanetGlowModule = {}
-	CF_PlanetPos = {}
-	CF_PlanetScale = {} -- Used just to show realistic km distances when traveling near moons or stations
+	CF["Planet"] = {}
+	CF["PlanetName"] = {}
+	CF["PlanetGlow"] = {}
+	CF["PlanetGlowModule"] = {}
+	CF["PlanetPos"] = {}
+	CF["PlanetScale"] = {} -- Used just to show realistic km distances when traveling near moons or stations
 
 	-- Init locations data structures
-	CF_Location = {}
-	CF_LocationName = {}
-	CF_LocationPos = {}
-	CF_LocationDescription = {}
-	CF_LocationSecurity = {}
-	CF_LocationGoldPresent = {}
-	CF_LocationRemoveDoors = {}
-	CF_LocationScenes = {}
-	CF_LocationPlanet = {}
-	CF_LocationScript = {}
-	CF_LocationAmbientScript = {}
-	CF_LocationMissions = {}
-	CF_LocationPlayable = {} -- Used by scene editor to discard service locations
-	CF_LocationAttributes = {}
+	CF["Location"] = {}
+	CF["LocationName"] = {}
+	CF["LocationPos"] = {}
+	CF["LocationDescription"] = {}
+	CF["LocationSecurity"] = {}
+	CF["LocationGoldPresent"] = {}
+	CF["LocationRemoveDoors"] = {}
+	CF["LocationScenes"] = {}
+	CF["LocationPlanet"] = {}
+	CF["LocationScript"] = {}
+	CF["LocationAmbientScript"] = {}
+	CF["LocationMissions"] = {}
+	CF["LocationPlayable"] = {} -- Used by scene editor to discard service locations
+	CF["LocationAttributes"] = {}
 
-	CF_LocationAttributeTypes = {
+	CF["LocationAttributeTypes"] = {
 		BLACKMARKET = 0,
 		TRADESTAR = 1,
 		SHIPYARD = 2,
@@ -41,102 +41,102 @@ function CF_InitExtensionsData(activity)
 		NOBOMBS = 14,
 	}
 
-	CF_AssaultDifficultyVesselClass = {}
-	CF_AssaultDifficultyVesselClass[1] = CF_LocationAttributeTypes.SCOUT
-	CF_AssaultDifficultyVesselClass[2] = CF_LocationAttributeTypes.CORVETTE
-	CF_AssaultDifficultyVesselClass[3] = CF_LocationAttributeTypes.FRIGATE
-	CF_AssaultDifficultyVesselClass[4] = CF_LocationAttributeTypes.DESTROYER
-	CF_AssaultDifficultyVesselClass[5] = CF_LocationAttributeTypes.CRUISER
-	CF_AssaultDifficultyVesselClass[6] = CF_LocationAttributeTypes.BATTLESHIP
+	CF["AssaultDifficultyVesselClass"] = {}
+	CF["AssaultDifficultyVesselClass"][1] = CF["LocationAttributeTypes"].SCOUT
+	CF["AssaultDifficultyVesselClass"][2] = CF["LocationAttributeTypes"].CORVETTE
+	CF["AssaultDifficultyVesselClass"][3] = CF["LocationAttributeTypes"].FRIGATE
+	CF["AssaultDifficultyVesselClass"][4] = CF["LocationAttributeTypes"].DESTROYER
+	CF["AssaultDifficultyVesselClass"][5] = CF["LocationAttributeTypes"].CRUISER
+	CF["AssaultDifficultyVesselClass"][6] = CF["LocationAttributeTypes"].BATTLESHIP
 
 	-- Init ship data structures
-	CF_Vessel = {}
-	CF_VesselName = {}
-	CF_VesselScene = {}
-	CF_VesselModule = {}
+	CF["Vessel"] = {}
+	CF["VesselName"] = {}
+	CF["VesselScene"] = {}
+	CF["VesselModule"] = {}
 
 	-- Price of the vesel
-	CF_VesselPrice = {}
+	CF["VesselPrice"] = {}
 
 	-- Amount of bodies which can be stored on the ship
-	CF_VesselMaxClonesCapacity = {}
-	CF_VesselStartClonesCapacity = {}
+	CF["VesselMaxClonesCapacity"] = {}
+	CF["VesselStartClonesCapacity"] = {}
 
 	-- Amount of items which can be stored on the ship
-	CF_VesselMaxStorageCapacity = {}
-	CF_VesselStartStorageCapacity = {}
+	CF["VesselMaxStorageCapacity"] = {}
+	CF["VesselStartStorageCapacity"] = {}
 
 	-- How many units can be active on the ship simultaneously
-	CF_VesselMaxLifeSupport = {}
-	CF_VesselStartLifeSupport = {}
+	CF["VesselMaxLifeSupport"] = {}
+	CF["VesselStartLifeSupport"] = {}
 
 	-- How many units can be active on the planet surface simultaneously
-	CF_VesselMaxCommunication = {}
-	CF_VesselStartCommunication = {}
+	CF["VesselMaxCommunication"] = {}
+	CF["VesselStartCommunication"] = {}
 
-	CF_VesselMaxSpeed = {}
-	CF_VesselStartSpeed = {}
+	CF["VesselMaxSpeed"] = {}
+	CF["VesselStartSpeed"] = {}
 
-	CF_VesselMaxTurrets = {}
-	CF_VesselStartTurrets = {}
+	CF["VesselMaxTurrets"] = {}
+	CF["VesselStartTurrets"] = {}
 
-	CF_VesselMaxTurretStorage = {}
-	CF_VesselStartTurretStorage = {}
+	CF["VesselMaxTurretStorage"] = {}
+	CF["VesselStartTurretStorage"] = {}
 
-	CF_VesselMaxBombBays = {}
-	CF_VesselStartBombBays = {}
+	CF["VesselMaxBombBays"] = {}
+	CF["VesselStartBombBays"] = {}
 
-	CF_VesselMaxBombStorage = {}
-	CF_VesselStartBombStorage = {}
+	CF["VesselMaxBombStorage"] = {}
+	CF["VesselStartBombStorage"] = {}
 
-	CF_Mission = {}
+	CF["Mission"] = {}
 
-	CF_MissionName = {}
-	CF_MissionRequiredData = {}
-	CF_MissionScript = {}
-	CF_MissionMinReputation = {}
-	CF_MissionBriefingText = {}
-	CF_MissionGoldRewardPerDifficulty = {}
-	CF_MissionReputationRewardPerDifficulty = {}
-	CF_MissionMaxSets = {}
+	CF["MissionName"] = {}
+	CF["MissionRequiredData"] = {}
+	CF["MissionScript"] = {}
+	CF["MissionMinReputation"] = {}
+	CF["MissionBriefingText"] = {}
+	CF["MissionGoldRewardPerDifficulty"] = {}
+	CF["MissionReputationRewardPerDifficulty"] = {}
+	CF["MissionMaxSets"] = {}
 
 	-- Artifact items
-	CF_ArtItmPresets = {}
-	CF_ArtItmModules = {}
-	CF_ArtItmClasses = {}
-	CF_ArtItmPrices = {}
-	CF_ArtItmDescriptions = {}
+	CF["ArtItmPresets"] = {}
+	CF["ArtItmModules"] = {}
+	CF["ArtItmClasses"] = {}
+	CF["ArtItmPrices"] = {}
+	CF["ArtItmDescriptions"] = {}
 
 	-- Artifact actors
-	CF_ArtActPresets = {}
-	CF_ArtActModules = {}
-	CF_ArtActClasses = {}
-	CF_ArtActPrices = {}
-	CF_ArtActDescriptions = {}
+	CF["ArtActPresets"] = {}
+	CF["ArtActModules"] = {}
+	CF["ArtActClasses"] = {}
+	CF["ArtActPrices"] = {}
+	CF["ArtActDescriptions"] = {}
 
 	-- Black Market items
-	CF_BlackMarketItmPresets = {}
-	CF_BlackMarketItmModules = {}
-	CF_BlackMarketItmClasses = {}
-	CF_BlackMarketItmPrices = {}
-	CF_BlackMarketItmDescriptions = {}
+	CF["BlackMarketItmPresets"] = {}
+	CF["BlackMarketItmModules"] = {}
+	CF["BlackMarketItmClasses"] = {}
+	CF["BlackMarketItmPrices"] = {}
+	CF["BlackMarketItmDescriptions"] = {}
 
 	-- Quantum items
-	CF_QuantumItems = {}
-	CF_QuantumItmPresets = {}
-	CF_QuantumItmModules = {}
-	CF_QuantumItmClasses = {}
-	CF_QuantumItmPrices = {}
+	CF["QuantumItems"] = {}
+	CF["QuantumItmPresets"] = {}
+	CF["QuantumItmModules"] = {}
+	CF["QuantumItmClasses"] = {}
+	CF["QuantumItmPrices"] = {}
 
 	-- Random encounters
-	CF_RandomEncounters = {}
-	CF_RandomEncounterIDs = {}
+	CF["RandomEncounters"] = {}
+	CF["RandomEncounterIDs"] = {}
 
-	CF_RandomEncountersInitialTexts = {}
-	CF_RandomEncountersInitialVariants = {}
-	CF_RandomEncountersVariantsInterval = {}
-	CF_RandomEncountersFunctions = {}
-	CF_RandomEncountersOneTime = {}
+	CF["RandomEncountersInitialTexts"] = {}
+	CF["RandomEncountersInitialVariants"] = {}
+	CF["RandomEncountersVariantsInterval"] = {}
+	CF["RandomEncountersFunctions"] = {}
+	CF["RandomEncountersOneTime"] = {}
 
-	CF_ItemReplacements = {}
+	CF["ItemReplacements"] = {}
 end

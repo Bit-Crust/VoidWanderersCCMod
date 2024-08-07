@@ -57,25 +57,25 @@ function VoidWanderers:MissionCreate()
 	self.MissionSourcePlayer = self.AssaultEnemyPlayer
 
 	-- Use generic enemy set
-	local set = CF_GetRandomMissionPointsSet(self.Pts, "Enemy")
+	local set = CF["GetRandomMissionPointsSet"](self.Pts, "Enemy")
 
 	self:DeployGenericMissionEnemies(
 		set,
 		"Enemy",
 		self.MissionSourcePlayer,
-		CF_CPUTeam,
+		CF["CPUTeam"],
 		self.MissionSettings["SpawnRate"]
 	)
 
 	-- Spawn commander
-	local cmndrpts = CF_GetPointsArray(self.Pts, "Assassinate", set, "Commander")
+	local cmndrpts = CF["GetPointsArray"](self.Pts, "Assassinate", set, "Commander")
 	local cpos = cmndrpts[math.random(#cmndrpts)]
 
-	self.MissionBrain = CF_MakeBrain(self.GS, self.MissionSourcePlayer, CF_CPUTeam, cpos, true)
+	self.MissionBrain = CF["MakeBrain"](self.GS, self.MissionSourcePlayer, CF["CPUTeam"], cpos, true)
 	if self.MissionBrain then
 		MovableMan:AddActor(self.MissionBrain)
-		if math.random(CF_MaxDifficulty) <= self.MissionDifficulty then
-			self.MissionBrain:AddInventoryItem(CreateHeldDevice("Blueprint", CF_ModuleName))
+		if math.random(CF["MaxDifficulty"]) <= self.MissionDifficulty then
+			self.MissionBrain:AddInventoryItem(CreateHeldDevice("Blueprint", CF["ModuleName"]))
 		end
 	else
 		error("Can't create CPU brain")
@@ -83,7 +83,7 @@ function VoidWanderers:MissionCreate()
 
 	for actor in MovableMan.Actors do
 		if actor.ClassName == "ADoor" then
-			actor.Team = CF_CPUTeam
+			actor.Team = CF["CPUTeam"]
 		end
 	end
 
@@ -105,8 +105,8 @@ function VoidWanderers:MissionUpdate()
 		-- Start checking for victory only when all units were spawned
 		if self.SpawnTable == nil then
 			if MovableMan:IsActor(self.MissionBrain) then
-				if not SceneMan:IsUnseen(self.MissionBrain.Pos.X, self.MissionBrain.Pos.Y, CF_PlayerTeam) then
-					self:AddObjectivePoint("KILL", self.MissionBrain.AboveHUDPos, CF_PlayerTeam, GameActivity.ARROWDOWN)
+				if not SceneMan:IsUnseen(self.MissionBrain.Pos.X, self.MissionBrain.Pos.Y, CF["PlayerTeam"]) then
+					self:AddObjectivePoint("KILL", self.MissionBrain.AboveHUDPos, CF["PlayerTeam"], GameActivity.ARROWDOWN)
 				end
 				if
 					self.MissionReinforcementsTriggered
@@ -121,7 +121,7 @@ function VoidWanderers:MissionUpdate()
 				end
 			else
 				for actor in MovableMan.Actors do
-					if actor.Team == CF_CPUTeam then
+					if actor.Team == CF["CPUTeam"] then
 						-- Kill some of the actors
 						if math.random() * actor.MaxHealth * 1.5 > actor.Health then
 							if math.random() < 0.5 then
@@ -135,13 +135,13 @@ function VoidWanderers:MissionUpdate()
 							end
 						else
 							-- The rest will scatter
-							CF_HuntForActors(actor, Activity.NOTEAM)
+							CF["HuntForActors"](actor, Activity.NOTEAM)
 						end
 					end
 				end
 
-				self.MissionReputationReward = CF_CalculateReward(
-					CF_ReputationPerDifficulty * 0.5,
+				self.MissionReputationReward = CF["CalculateReward"](
+					CF["ReputationPerDifficulty"] * 0.5,
 					self.MissionDifficulty
 				)
 				self.MissionGoldReward = 0
@@ -156,7 +156,7 @@ function VoidWanderers:MissionUpdate()
 
 		-- Trigger reinforcements
 		for actor in MovableMan.Actors do
-			if actor.Team == CF_CPUTeam and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
+			if actor.Team == CF["CPUTeam"] and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
 				if
 					not self.MissionReinforcementsTriggered
 					and (
@@ -171,7 +171,7 @@ function VoidWanderers:MissionUpdate()
 				then
 					self.MissionReinforcementsTriggered = true
 					print("The enemy has been alerted!")
-					self:MakeAlertSound()
+					self:MakeAlertSound(1)
 
 					self.MissionLastReinforcements = self.Time
 				end
@@ -187,16 +187,16 @@ function VoidWanderers:MissionUpdate()
 			and self.MissionSettings["Reinforcements"] > 0
 			and self.Time >= self.MissionLastReinforcements + self.MissionSettings["Interval"]
 		then
-			if MovableMan:GetMOIDCount() < CF_MOIDLimit then
+			if MovableMan:GetMOIDCount() < CF["MOIDLimit"] then
 				self.MissionLastReinforcements = self.Time
 
 				local count = math.min(math.random(2), self.MissionSettings["Reinforcements"])
 				for i = 1, count do
 					self.MissionSettings["Reinforcements"] = self.MissionSettings["Reinforcements"] - 1
-					local actor = CF_SpawnAIUnit(
+					local actor = CF["SpawnAIUnit"](
 						self.GS,
 						self.AssaultEnemyPlayer,
-						CF_CPUTeam,
+						CF["CPUTeam"],
 						self.MissionLZs[math.random(#self.MissionLZs)],
 						Actor.AIMODE_BRAINHUNT
 					)
@@ -218,27 +218,27 @@ function VoidWanderers:MissionUpdate()
 			local count = 0
 
 			for actor in MovableMan.Actors do
-				if actor.Team == CF_CPUTeam and not actor:IsInGroup("Brains") then
-					CF_HuntForActors(actor, CF_PlayerTeam)
+				if actor.Team == CF["CPUTeam"] and not actor:IsInGroup("Brains") then
+					CF["HuntForActors"](actor, CF["PlayerTeam"])
 				end
 			end
 		end
 	elseif self.MissionStage == self.MissionStages.COMPLETED then
 		self.MissionStatus = "MISSION COMPLETED"
 		if not self.MissionEndMusicPlayed then
-			self:StartMusic(CF_MusicTypes.VICTORY)
+			self:StartMusic(CF["MusicTypes"].VICTORY)
 			self.MissionEndMusicPlayed = true
 		end
 
-		if self.Time < self.MissionStatusShowStart + CF_MissionResultShowInterval then
-			for p = 0, self.PlayerCount - 1 do
-				FrameMan:ClearScreenText(p)
-				FrameMan:SetScreenText(self.MissionStatus, p, 0, 1000, true)
+		if self.Time < self.MissionStatusShowStart + CF["MissionResultShowInterval"] then
+			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+				FrameMan:ClearScreenText(player)
+				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
 			end
 		end
 
 		for actor in MovableMan.Actors do
-			if actor.Team == CF_CPUTeam then
+			if actor.Team == CF["CPUTeam"] then
 				if actor.AIMode == Actor.AIMODE_SENTRY then
 					actor.AIMode = Actor.AIMODE_PATROL
 				end

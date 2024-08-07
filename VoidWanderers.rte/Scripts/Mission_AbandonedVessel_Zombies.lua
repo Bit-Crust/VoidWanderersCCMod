@@ -6,38 +6,38 @@ function VoidWanderers:MissionCreate()
 	print("ABANDONED VESSEL ZOMBIES CREATE")
 
 	-- Spawn random wandering enemies
-	local set = CF_GetRandomMissionPointsSet(self.Pts, "Deploy")
+	local set = CF["GetRandomMissionPointsSet"](self.Pts, "Deploy")
 
-	local enm = CF_GetPointsArray(self.Pts, "Deploy", set, "AmbientEnemy")
-	local amount = math.ceil(CF_AmbientEnemyRate / 2 * #enm)
-	local enmpos = CF_SelectRandomPoints(enm, amount)
+	local enm = CF["GetPointsArray"](self.Pts, "Deploy", set, "AmbientEnemy")
+	local amount = math.ceil(CF["AmbientEnemyRate"] / 2 * #enm)
+	local enmpos = CF["SelectRandomPoints"](enm, amount)
 
-	self.MissionLZs = CF_GetPointsArray(self.Pts, "Deploy", set, "EnemyLZ")
+	self.MissionLZs = CF["GetPointsArray"](self.Pts, "Deploy", set, "EnemyLZ")
 
 	-- Select faction
 	local ok = false
 
 	while not ok do
-		self.MissionSelectedFaction = CF_Factions[math.random(#CF_Factions)]
-		if CF_FactionPlayable[self.MissionSelectedFaction] then
+		self.MissionSelectedFaction = CF["Factions"][math.random(#CF["Factions"])]
+		if CF["FactionPlayable"][self.MissionSelectedFaction] then
 			ok = true
 		end
 	end
 
-	self.MissionFakePlayer = CF_MaxCPUPlayers + 1
+	self.MissionFakePlayer = CF["MaxCPUPlayers"] + 1
 	self.GS["Player" .. self.MissionFakePlayer .. "Faction"] = self.MissionSelectedFaction
 
-	local diff = CF_GetLocationDifficulty(self.GS, self.GS["Location"])
+	local diff = CF["GetLocationDifficulty"](self.GS, self.GS["Location"])
 	self.MissionDifficulty = diff
 
 	self.MissionZombieRespawnInterval = 14 - self.MissionDifficulty
 	self.MissionZombieRespawnTime = self.Time
 	self.MissionZombieCount = math.random(15, 20) + self.MissionDifficulty
-	self.MissionArtifactSpawned = false --math.random(CF_MaxDifficulty) > self.MissionDifficulty
+	self.MissionArtifactSpawned = false --math.random(CF["MaxDifficulty"]) > self.MissionDifficulty
 
 	local rifles, snipers, pistols, grenades
 	if PresetMan:GetModuleID("4Z.rte") ~= -1 then
-		if self.MissionDifficulty < CF_MaxDifficulty * 0.5 then
+		if self.MissionDifficulty < CF["MaxDifficulty"] * 0.5 then
 			self.Zombies = { "4Zombie", "4Zombie", "4Zombie", "4Zombie Spitter", "4Zombie Bloater" }
 		else
 			self.Zombies = { "4Zombie", "4Zombie Spitter", "4Zombie Bloater", "4Zombie Mantis" }
@@ -45,29 +45,29 @@ function VoidWanderers:MissionCreate()
 	else
 		self.Zombies = { "Culled Clone", "Thin Culled Clone", "Fat Culled Clone" }
 		-- Build random weapon lists
-		rifles = CF_MakeListOfMostPowerfulWeapons(
+		rifles = CF["MakeListOfMostPowerfulWeapons"](
 			self.GS,
 			self.MissionFakePlayer,
-			CF_WeaponTypes.RIFLE,
-			CF_GetTechLevelFromDifficulty(self.GS, self.MissionFakePlayer, self.MissionDifficulty, CF_MaxDifficulty)
+			CF["WeaponTypes"].RIFLE,
+			CF["GetTechLevelFromDifficulty"](self.GS, self.MissionFakePlayer, self.MissionDifficulty, CF["MaxDifficulty"])
 		)
-		snipers = CF_MakeListOfMostPowerfulWeapons(
+		snipers = CF["MakeListOfMostPowerfulWeapons"](
 			self.GS,
 			self.MissionFakePlayer,
-			CF_WeaponTypes.SNIPER,
-			CF_GetTechLevelFromDifficulty(self.GS, self.MissionFakePlayer, self.MissionDifficulty, CF_MaxDifficulty)
+			CF["WeaponTypes"].SNIPER,
+			CF["GetTechLevelFromDifficulty"](self.GS, self.MissionFakePlayer, self.MissionDifficulty, CF["MaxDifficulty"])
 		)
-		pistols = CF_MakeListOfMostPowerfulWeapons(
+		pistols = CF["MakeListOfMostPowerfulWeapons"](
 			self.GS,
 			self.MissionFakePlayer,
-			CF_WeaponTypes.PISTOL,
-			CF_GetTechLevelFromDifficulty(self.GS, self.MissionFakePlayer, self.MissionDifficulty, CF_MaxDifficulty)
+			CF["WeaponTypes"].PISTOL,
+			CF["GetTechLevelFromDifficulty"](self.GS, self.MissionFakePlayer, self.MissionDifficulty, CF["MaxDifficulty"])
 		)
-		grenades = CF_MakeListOfMostPowerfulWeapons(
+		grenades = CF["MakeListOfMostPowerfulWeapons"](
 			self.GS,
 			self.MissionFakePlayer,
-			CF_WeaponTypes.GRENADE,
-			CF_GetTechLevelFromDifficulty(self.GS, self.MissionFakePlayer, self.MissionDifficulty, CF_MaxDifficulty)
+			CF["WeaponTypes"].GRENADE,
+			CF["GetTechLevelFromDifficulty"](self.GS, self.MissionFakePlayer, self.MissionDifficulty, CF["MaxDifficulty"])
 		)
 	end
 	self.MissionWeapons = {}
@@ -95,7 +95,7 @@ function VoidWanderers:MissionCreate()
 
 	-- Spawn some random zombies
 	for i = 1, #enmpos do
-		if MovableMan:GetMOIDCount() < CF_MOIDLimit and #self.MissionLZs > 0 then
+		if MovableMan:GetMOIDCount() < CF["MOIDLimit"] and #self.MissionLZs > 0 then
 			local a = CreateAHuman(self.Zombies[math.random(#self.Zombies)])
 			if a then
 				a.Pos = enmpos[i]
@@ -108,7 +108,7 @@ function VoidWanderers:MissionCreate()
 					local i = self.MissionWeapons[r1][r2]["Item"]
 					local f = self.MissionWeapons[r1][r2]["Faction"]
 
-					local w = CF_MakeItem(CF_ItmPresets[f][i], CF_ItmClasses[f][i], CF_ItmModules[f][i])
+					local w = CF["MakeItem"](CF["ItmPresets"][f][i], CF["ItmClasses"][f][i], CF["ItmModules"][f][i])
 					if w ~= nil then
 						a:AddInventoryItem(w)
 					end
@@ -117,11 +117,11 @@ function VoidWanderers:MissionCreate()
 					not self.MissionArtifactSpawned
 					and math.random() < (self.AGS == nil and 0.02 or 0.01) * self.MissionDifficulty
 				then
-					a:AddInventoryItem(CreateHeldDevice("Blackprint", CF_ModuleName))
+					a:AddInventoryItem(CreateHeldDevice("Blackprint", CF["ModuleName"]))
 					self.MissionArtifactSpawned = true
 				end
 				MovableMan:AddActor(a)
-				CF_HuntForActors(a, Activity.NOTEAM)
+				CF["HuntForActors"](a, Activity.NOTEAM)
 			end
 		end
 	end
@@ -144,7 +144,7 @@ function VoidWanderers:MissionUpdate()
 
 	if self.MissionZombieCount > 0 and self.Time >= self.MissionZombieRespawnTime then
 		self.MissionZombieRespawnTime = self.Time + self.MissionZombieRespawnInterval + math.random(4)
-		if MovableMan:GetMOIDCount() < CF_MOIDLimit and #self.MissionLZs > 0 then
+		if MovableMan:GetMOIDCount() < CF["MOIDLimit"] and #self.MissionLZs > 0 then
 			local a = CreateAHuman(self.Zombies[math.random(#self.Zombies)])
 			if a then
 				a.Pos = self.MissionLZs[math.random(#self.MissionLZs)]
@@ -157,7 +157,7 @@ function VoidWanderers:MissionUpdate()
 					local i = self.MissionWeapons[r1][r2]["Item"]
 					local f = self.MissionWeapons[r1][r2]["Faction"]
 
-					local w = CF_MakeItem(CF_ItmPresets[f][i], CF_ItmClasses[f][i], CF_ItmModules[f][i])
+					local w = CF["MakeItem"](CF["ItmPresets"][f][i], CF["ItmClasses"][f][i], CF["ItmModules"][f][i])
 					if w ~= nil then
 						a:AddInventoryItem(w)
 					end
@@ -166,11 +166,11 @@ function VoidWanderers:MissionUpdate()
 					not self.MissionArtifactSpawned
 					and math.random() < (self.AGS == nil and 0.01 or 0.005) * self.MissionDifficulty
 				then
-					a:AddInventoryItem(CreateHeldDevice("Blackprint", CF_ModuleName))
+					a:AddInventoryItem(CreateHeldDevice("Blackprint", CF["ModuleName"]))
 					self.MissionArtifactSpawned = true
 				end
 				MovableMan:AddActor(a)
-				CF_HuntForActors(a, CF_PlayerTeam)
+				CF["HuntForActors"](a, CF["PlayerTeam"])
 				self.MissionZombieCount = self.MissionZombieCount - 1
 			end
 		end

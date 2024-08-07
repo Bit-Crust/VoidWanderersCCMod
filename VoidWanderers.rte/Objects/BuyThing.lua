@@ -3,7 +3,7 @@ function Create(self)
 	self.cost = self:GetGoldValue(0, 1, 1)
 	self.text = "Open for " .. self.cost .. " gold"
 	self.drop = CreateMOSRotating(self.PresetName .. " Item Spawn", "VoidWanderers.rte")
-	--self.drop:SetNumberValue("VWOpenCrate", 0.5);
+	--self.drop:SetNumberValue("VWOpenCrate", 0.5)
 	self.interactDist = 25
 
 	self.pieSliceToAdd = CreatePieSlice("VW Case PieSlice")
@@ -15,7 +15,7 @@ function VWOpenCrate(actor, menu, slice)
 	slice.Enabled = false
 end
 function Update(self)
-	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT do
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		local currentUser = self.currentUsers[player]
 		currentUser = MovableMan:IsActor(currentUser) and currentUser or nil
 		-- Handle the current user for each player - reset recharge if it's taken an item, and remove the added PieSlice if it's too far or not player controlled

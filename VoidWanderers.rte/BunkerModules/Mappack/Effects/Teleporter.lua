@@ -78,8 +78,8 @@ function Update(self)
 						for actor in MovableMan.Actors do
 							for _, target in pairs(targets) do
 								if SceneMan:ShortestDistance(actor.Pos, pos, SceneMan.SceneWrapsX):MagnitudeIsLessThan(5) then
-									actor:GibThis();
-									break;
+									actor:GibThis()
+									break
 								end
 							end
 						end]]

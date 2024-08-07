@@ -14,19 +14,17 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 		return
 	end
 
-	local showidle = true
-	for plr = 0, self.PlayerCount - 1 do
-		local act = self:GetControlledActor(plr)
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		local act = self:GetControlledActor(player)
 
 		if act and MovableMan:IsActor(act) then
 			-- Process brain detachment
 			if act.PresetName == "Brain Case" then
-				showidle = false
 
 				self:AddObjectivePoint(
 					"Press DOWN to detach",
-					act.Pos + Vector(0, 46),
-					CF_PlayerTeam,
+					act.Pos + Vector(0, -56 + (player + 1) * 8),
+					CF.PlayerTeam,
 					GameActivity.ARROWDOWN
 				)
 
@@ -35,22 +33,20 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 
 				if cont:IsState(Controller.PRESS_DOWN) then
 					-- Determine which player's brain it is
-					local bplr
+					-- I don't know why this was ever a concern, we know who's brain it is because we got the brain by who's it was
+					-- it was probably a necessary step somehow, TODO: find out if this could be at all necessary, somehow
+					local bplayer = player
 
-					for b = 0, self.PlayerCount - 1 do
-						if MovableMan:IsActor(self.CreatedBrains[b]) and self.CreatedBrains[b].ID == act.ID then
-							bplr = b
-						end
-					end
+					local tough = math.max(math.min(tonumber(self.GS["Brain" .. player .. "Toughness"]), 5), 0)
 
-					local tough = math.max(math.min(tonumber(self.GS["Brain" .. plr .. "Toughness"]), 5), 0)
-
-					local rb, candidate
+					local mo = SceneMan:CastMORay(act.Pos, Vector(0, 250), act.ID, Activity.NOTEAM, rte.airID, false, 5)
+					
+					--[[local rb, candidate
 					local mo = SceneMan:CastMORay(act.Pos, Vector(0, 250), act.ID, Activity.NOTEAM, rte.airID, false, 5)
 					if mo ~= rte.NoMOID then
 						candidate = MovableMan:GetMOFromID(mo)
 						if
-							candidate.Team == CF_PlayerTeam
+							candidate.Team == CF.PlayerTeam
 							and IsAHuman(candidate)
 							and ToAHuman(candidate).Status < Actor.INACTIVE
 						then
@@ -65,21 +61,30 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 						rb = candidate
 					else
 						rb = CreateAHuman("RPG Brain Robot LVL" .. tough .. " PLR" .. bplr)
-						rb.Team = CF_PlayerTeam
+						rb.Team = CF.PlayerTeam
 						rb.Vel = Vector(0, 4)
 						MovableMan:AddActor(rb)
-					end
+					end]]
+
+					local rb = CreateAHuman("RPG Brain Robot LVL" .. tough .. " PLR" .. bplayer)
+					rb.Team = CF.PlayerTeam
+					rb.Vel = Vector(0, 4)
+					MovableMan:AddActor(rb)
+
 					if rb then
 						rb.AIMode = Actor.AIMODE_SENTRY
 						rb.Health = act.Health
 
+						-- Make this brain's player known
+						rb:SetNumberValue("Identity", player)
+
 						-- Give items
-						for j = 1, CF_MaxSavedItemsPerActor do
-							if self.GS["Brain" .. bplr .. "Item" .. j .. "Preset"] ~= nil then
-								local itm = CF_MakeItem(
-									self.GS["Brain" .. bplr .. "Item" .. j .. "Preset"],
-									self.GS["Brain" .. bplr .. "Item" .. j .. "Class"],
-									self.GS["Brain" .. bplr .. "Item" .. j .. "Module"]
+						for j = 1, CF.MaxSavedItemsPerActor do
+							if self.GS["Brain" .. bplayer .. "Item" .. j .. "Preset"] ~= nil then
+								local itm = CF.MakeItem(
+									self.GS["Brain" .. bplayer .. "Item" .. j .. "Preset"],
+									self.GS["Brain" .. bplayer .. "Item" .. j .. "Class"],
+									self.GS["Brain" .. bplayer .. "Item" .. j .. "Module"]
 								)
 								if itm then
 									rb:AddInventoryItem(itm)
@@ -90,11 +95,12 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 						end
 
 						rb.Pos = act.Pos + Vector(0, 20)
-						self:SwitchToActor(rb, plr, CF_PlayerTeam)
+						self:SwitchToActor(rb, player, CF.PlayerTeam)
+						self:SetPlayerBrain(rb, player)
 
-						self.GS["Brain" .. bplr .. "Detached"] = "True"
-						CF_ClearAllBrainsSupplies(self.GS, bplr)
-						self.CreatedBrains[bplr] = nil
+						self.GS["Brain" .. bplayer .. "Detached"] = "True"
+						CF.ClearAllBrainsSupplies(self.GS, bplayer)
+						self.CreatedBrains[bplayer] = nil
 						act.ToDelete = true
 					end
 				end
@@ -104,27 +110,27 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 				local pos = string.find(s, "RPG Brain Robot")
 				if pos == 1 then
 					-- Determine which player's brain it is
-					local bplr = tonumber(string.sub(s, string.len(s), string.len(s)))
+					local bplayer = tonumber(string.sub(s, string.len(s), string.len(s)))
 					local readytoattach = false
 
 					if
-						act.Pos.X > self.BrainPos[bplr + 1].X - 10
-						and act.Pos.X < self.BrainPos[bplr + 1].X + 10
-						and act.Pos.Y > self.BrainPos[bplr + 1].Y
-						and CF_DistUnder(act.Pos, self.BrainPos[bplr + 1], 100)
+						act.Pos.X > self.BrainPos[bplayer + 1].X - 10
+						and act.Pos.X < self.BrainPos[bplayer + 1].X + 10
+						and act.Pos.Y > self.BrainPos[bplayer + 1].Y
+						and CF.DistUnder(act.Pos, self.BrainPos[bplayer + 1], 100)
 					then
 						readytoattach = true
 						self:AddObjectivePoint(
 							"Press UP to attach",
-							self.BrainPos[bplr + 1] + Vector(0, 6 + (bplr + 1) * 6),
-							CF_PlayerTeam,
+							self.BrainPos[bplayer + 1] + Vector(0, 6 + (bplayer + 1) * 8),
+							CF.PlayerTeam,
 							GameActivity.ARROWUP
 						)
 					else
 						self:AddObjectivePoint(
 							"Attach brain",
-							self.BrainPos[bplr + 1] + Vector(0, 6 + (bplr + 1) * 6),
-							CF_PlayerTeam,
+							self.BrainPos[bplayer + 1] + Vector(0, 6 + (bplayer + 1) * 8),
+							CF.PlayerTeam,
 							GameActivity.ARROWUP
 						)
 					end
@@ -134,52 +140,52 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 					if cont:IsState(Controller.PRESS_UP) and readytoattach then
 						local rb = CreateActor("Brain Case")
 						if rb then
-							rb.Team = CF_PlayerTeam
-							rb.Pos = self.BrainPos[bplr + 1]
-							rb.Health = act.Health
+							rb.Team = CF.PlayerTeam
+							rb.Pos = self.BrainPos[bplayer + 1]
+							rb.Health = act.Health/act.MaxHealth * rb.MaxHealth
 							MovableMan:AddActor(rb)
-							self:SwitchToActor(rb, plr, CF_PlayerTeam)
+							self:SwitchToActor(rb, bplayer, CF.PlayerTeam)
+							self:SetPlayerBrain(rb, bplayer)
 
 							-- Clear inventory
-							for j = 1, CF_MaxSavedItemsPerActor do
-								self.GS["Brain" .. bplr .. "Item" .. j .. "Preset"] = nil
-								self.GS["Brain" .. bplr .. "Item" .. j .. "Class"] = nil
-								self.GS["Brain" .. bplr .. "Item" .. j .. "Module"] = nil
+							for j = 1, CF.MaxSavedItemsPerActor do
+								self.GS["Brain" .. bplayer .. "Item" .. j .. "Preset"] = nil
+								self.GS["Brain" .. bplayer .. "Item" .. j .. "Class"] = nil
+								self.GS["Brain" .. bplayer .. "Item" .. j .. "Module"] = nil
 							end
 
 							-- Save inventory
-							local pre, cls, mdl = CF_GetInventory(act)
+							local pre, cls, mdl = CF.GetInventory(act)
 
 							for j = 1, #pre do
-								self.GS["Brain" .. bplr .. "Item" .. j .. "Preset"] = pre[j]
-								self.GS["Brain" .. bplr .. "Item" .. j .. "Class"] = cls[j]
-								self.GS["Brain" .. bplr .. "Item" .. j .. "Module"] = mdl[j]
+								self.GS["Brain" .. bplayer .. "Item" .. j .. "Preset"] = pre[j]
+								self.GS["Brain" .. bplayer .. "Item" .. j .. "Class"] = cls[j]
+								self.GS["Brain" .. bplayer .. "Item" .. j .. "Module"] = mdl[j]
 							end
 
-							self.GS["Brain" .. bplr .. "Detached"] = "False"
-							self.CreatedBrains[bplr] = rb
+							self.GS["Brain" .. bplayer .. "Detached"] = "False"
+							self.CreatedBrains[bplayer] = rb
 							--[[
 							if IsAHuman(act) and ToAHuman(act).Head then
-								act = ToAHuman(act);
-								act.DeathSound = nil;
-								act.Vel = Vector(0, 4) - SceneMan.GlobalAcc;
-								act.AngularVel = 0;
-								act.HUDVisible = false;
-								act.Lifetime = act.Age + 400;
+								act = ToAHuman(act)
+								act.DeathSound = nil
+								act.Vel = Vector(0, 4) - SceneMan.GlobalAcc
+								act.AngularVel = 0
+								act.HUDVisible = false
+								act.Lifetime = act.Age + 400
 								
 								if act.EquippedItem then
-									act.EquippedItem.Lifetime = act.EquippedItem.Age + 1;
+									act.EquippedItem.Lifetime = act.EquippedItem.Age + 1
 								end
 								if act.EquippedBGItem then
-									act.EquippedBGItem.Lifetime = act.EquippedBGItem.Age + 1;
+									act.EquippedBGItem.Lifetime = act.EquippedBGItem.Age + 1
 								end
 								
-								act:RemoveAttachable(act.Head, false, true);
+								act:RemoveAttachable(act.Head, false, true)
 							else
-							]]
-							--
+							]]--
 							if act.GoldCarried > 0 then
-								CF_SetPlayerGold(self.GS, 0, CF_GetPlayerGold(self.GS, 0) + act.GoldCarried)
+								CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + act.GoldCarried)
 							end
 							act.ToDelete = true
 							--end

@@ -3,3 +3,6 @@
 VoidWanderers.rte/CampaignData
 .vscode
 *.dat
+/.vs
+/*.rte
+!VoidWanderers.rte

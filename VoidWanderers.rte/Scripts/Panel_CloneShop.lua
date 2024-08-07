@@ -19,7 +19,7 @@ function VoidWanderers:InitCloneShopControlPanelUI()
 			self.CloneShopControlPanelActor = CreateActor("Clone Shop Control Panel")
 			if self.CloneShopControlPanelActor ~= nil then
 				self.CloneShopControlPanelActor.Pos = self.CloneShopControlPanelPos
-				self.CloneShopControlPanelActor.Team = CF_PlayerTeam
+				self.CloneShopControlPanelActor.Team = CF["PlayerTeam"]
 				MovableMan:AddActor(self.CloneShopControlPanelActor)
 			end
 		end
@@ -42,13 +42,13 @@ function VoidWanderers:InitCloneShopControlPanelUI()
 	self.CloneShopTradeStar = false
 	self.CloneShopBlackMarket = false
 
-	if CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.TRADESTAR) then
-		self.CloneShopItems, self.CloneShopFilters = CF_GetCloneShopArray(self.GS, true)
+	if CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].TRADESTAR) then
+		self.CloneShopItems, self.CloneShopFilters = CF["GetCloneShopArray"](self.GS, true)
 		self.CloneShopTradeStar = true
 	end
 
-	if CF_IsLocationHasAttribute(self.GS["Location"], CF_LocationAttributeTypes.BLACKMARKET) then
-		self.CloneShopItems, self.CloneShopFilters = CF_GetCloneBlackMarketArray(self.GS, true)
+	if CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].BLACKMARKET) then
+		self.CloneShopItems, self.CloneShopFilters = CF["GetCloneBlackMarketArray"](self.GS, true)
 		self.CloneShopBlackMarket = true
 	end
 end
@@ -67,8 +67,8 @@ end
 function VoidWanderers:ProcessCloneShopControlPanelUI()
 	local showidle = true
 
-	for plr = 0, self.PlayerCount - 1 do
-		local act = self:GetControlledActor(plr)
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		local act = self:GetControlledActor(player)
 
 		if act and MovableMan:IsActor(act) and act.PresetName == "Clone Shop Control Panel" then
 			showidle = false
@@ -95,7 +95,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 			self:PutGlow("ControlPanel_Storage_HorizontalPanel", pos + Vector(20, 78))
 
 			-- Print help text
-			CF_DrawString("L/R - Change filter, U/D - Select, FIRE - Buy", pos + Vector(-130, 78), 300, 10)
+			CF["DrawString"]("L/R - Change filter, U/D - Select, FIRE - Buy", pos + Vector(-130, 78), 300, 10)
 
 			-- Process controls
 			local cont = act:GetController()
@@ -112,7 +112,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 				down = true
 			end
 
-			if self.HoldTimer:IsPastSimMS(CF_KeyRepeatDelay) then
+			if self.HoldTimer:IsPastSimMS(CF["KeyRepeatDelay"]) then
 				self.HoldTimer:Reset()
 
 				if cont:IsState(Controller.HOLD_UP) then
@@ -174,7 +174,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 				if cln ~= nil then
 					-- Get item description
 					self.CloneShopSelectedCloneDescription = self.CloneShopItems[cln]["Description"]
-					self.CloneShopSelectedCloneManufacturer = CF_FactionNames[self.CloneShopItems[cln]["Faction"]]
+					self.CloneShopSelectedCloneManufacturer = CF["FactionNames"][self.CloneShopItems[cln]["Faction"]]
 					self.CloneShopSelectedClonePrice = self.CloneShopItems[cln]["Price"]
 				else
 					self.CloneShopSelectedCloneDescription = ""
@@ -185,18 +185,18 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 
 			-- Dispense/sell/dump items
 			if cont:IsState(Controller.WEAPON_FIRE) then
-				if not self.FirePressed[plr] then
-					self.FirePressed[plr] = true
+				if not self.FirePressed[player] then
+					self.FirePressed[player] = true
 
 					if self.CloneShopSelectedClone > 0 then
 						local cln = self.CloneShopFilters[self.CloneShopControlMode][self.CloneShopSelectedClone]
 
 						if cln ~= nil then
-							if self.CloneShopItems[cln]["Type"] == CF_ActorTypes.TURRET then
+							if self.CloneShopItems[cln]["Type"] == CF["ActorTypes"].TURRET then
 								if
-									CF_CountUsedTurretsInArray(self.Turrets)
+									CF["CountUsedTurretsInArray"](self.Turrets)
 										< tonumber(self.GS["Player0VesselTurretStorage"])
-									and self.CloneShopSelectedClonePrice <= CF_GetPlayerGold(self.GS, 0)
+									and self.CloneShopSelectedClonePrice <= CF["GetPlayerGold"](self.GS, 0)
 								then
 									--[[local c = #self.Turrets + 1
 									
@@ -205,40 +205,40 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 									self.Turrets[c]["Class"] = self.CloneShopItems[cln]["Class"]--]]
 									--
 
-									CF_PutTurretToStorageArray(
+									CF["PutTurretToStorageArray"](
 										self.Turrets,
 										self.CloneShopItems[cln]["Preset"],
 										self.CloneShopItems[cln]["Class"],
 										self.CloneShopItems[cln]["Module"]
 									)
 
-									CF_SetTurretsArray(self.GS, self.Turrets)
-									CF_SetPlayerGold(
+									CF["SetTurretsArray"](self.GS, self.Turrets)
+									CF["SetPlayerGold"](
 										self.GS,
 										0,
-										CF_GetPlayerGold(self.GS, 0) - self.CloneShopSelectedClonePrice
+										CF["GetPlayerGold"](self.GS, 0) - self.CloneShopSelectedClonePrice
 									)
 								end
 							else
 								if
-									CF_CountUsedClonesInArray(self.Clones)
+									CF["CountUsedClonesInArray"](self.Clones)
 										< tonumber(self.GS["Player0VesselClonesCapacity"])
-									and self.CloneShopSelectedClonePrice <= CF_GetPlayerGold(self.GS, 0)
+									and self.CloneShopSelectedClonePrice <= CF["GetPlayerGold"](self.GS, 0)
 								then
 									local c = #self.Clones + 1
-
+									
 									self.Clones[c] = {}
 									self.Clones[c]["Preset"] = self.CloneShopItems[cln]["Preset"]
 									self.Clones[c]["Class"] = self.CloneShopItems[cln]["Class"]
 									self.Clones[c]["Module"] = self.CloneShopItems[cln]["Module"]
 									self.Clones[c]["Items"] = {}
 
-									CF_SetClonesArray(self.GS, self.Clones)
+									CF["SetClonesArray"](self.GS, self.Clones)
 
-									CF_SetPlayerGold(
+									CF["SetPlayerGold"](
 										self.GS,
 										0,
-										CF_GetPlayerGold(self.GS, 0) - self.CloneShopSelectedClonePrice
+										CF["GetPlayerGold"](self.GS, 0) - self.CloneShopSelectedClonePrice
 									)
 								end
 							end
@@ -248,7 +248,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 					end
 				end
 			else
-				self.FirePressed[plr] = false
+				self.FirePressed[player] = false
 			end
 
 			-- Draw items list
@@ -258,14 +258,14 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 					local loc = i - self.CloneShopControlItemsListStart
 
 					if i == self.CloneShopSelectedClone then
-						CF_DrawString(
+						CF["DrawString"](
 							"> " .. self.CloneShopItems[cln]["Preset"],
 							pos + Vector(-130, -26) + Vector(0, loc * 12),
 							90,
 							10
 						)
 					else
-						CF_DrawString(
+						CF["DrawString"](
 							self.CloneShopItems[cln]["Preset"],
 							pos + Vector(-130, -26) + Vector(0, loc * 12),
 							90,
@@ -280,17 +280,17 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 							priceString = tostring(math.floor(self.CloneShopItems[cln]["Price"] * 0.01) * 0.1) .. "k"
 						end
 					end
-					CF_DrawString(priceString, pos + Vector(-130, -26) + Vector(110, loc * 12), 90, 10)
+					CF["DrawString"](priceString, pos + Vector(-130, -26) + Vector(110, loc * 12), 90, 10)
 				end
 			end
 
 			-- Print description
 			if self.CloneShopSelectedCloneDescription ~= nil then
-				CF_DrawString(self.CloneShopSelectedCloneDescription, pos + Vector(10, -40), 170, 140)
+				CF["DrawString"](self.CloneShopSelectedCloneDescription, pos + Vector(10, -40), 170, 140)
 			end
 
 			-- Print manufacturer
-			CF_DrawString(
+			CF["DrawString"](
 				"Manufacturer: " .. (self.CloneShopSelectedCloneManufacturer or "Unknown"),
 				pos + Vector(10, -58),
 				170,
@@ -298,7 +298,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 			)
 
 			-- Print Selected mode text
-			CF_DrawString(
+			CF["DrawString"](
 				self.CloneShopControlPanelModesTexts[self.CloneShopControlMode],
 				pos + Vector(-130, -77),
 				170,
@@ -308,10 +308,10 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 			-- Print CloneShop capacity
 			local cln = self.CloneShopFilters[self.CloneShopControlMode][self.CloneShopSelectedClone]
 
-			if cln ~= nil and self.CloneShopItems[cln]["Type"] == CF_ActorTypes.TURRET then
-				CF_DrawString(
+			if cln ~= nil and self.CloneShopItems[cln]["Type"] == CF["ActorTypes"].TURRET then
+				CF["DrawString"](
 					"Turrets: "
-						.. CF_CountUsedTurretsInArray(self.Turrets)
+						.. CF["CountUsedTurretsInArray"](self.Turrets)
 						.. "/"
 						.. self.GS["Player0VesselTurretStorage"],
 					pos + Vector(-130, -60),
@@ -319,9 +319,9 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 					10
 				)
 			else
-				CF_DrawString(
+				CF["DrawString"](
 					"Capacity: "
-						.. CF_CountUsedClonesInArray(self.Clones)
+						.. CF["CountUsedClonesInArray"](self.Clones)
 						.. "/"
 						.. self.GS["Player0VesselClonesCapacity"],
 					pos + Vector(-130, -60),
@@ -329,13 +329,13 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 					10
 				)
 			end
-			CF_DrawString("Gold: " .. CF_GetPlayerGold(self.GS, 0) .. " oz", pos + Vector(-130, -44), 300, 10)
+			CF["DrawString"]("Gold: " .. CF["GetPlayerGold"](self.GS, 0) .. " oz", pos + Vector(-130, -44), 300, 10)
 		end
 	end
 
 	if showidle and self.CloneShopControlPanelPos ~= nil and self.CloneShopControlPanelActor ~= nil then
 		self:PutGlow("ControlPanel_CloneShop", self.CloneShopControlPanelPos)
-		--CF_DrawString("Body\nStore ",self.CloneShopControlPanelPos + Vector(-16,0), 120, 20)
+		--CF["DrawString"]("Body\nStore ",self.CloneShopControlPanelPos + Vector(-16,0), 120, 20)
 
 		self.CloneShopControlPanelInitialized = false
 	end

@@ -5,19 +5,27 @@
 function VoidWanderers:StartActivity()
 	print("VoidWanderers:StrategyScreen:StartActivity")
 
-	self.player1Controller = self:GetPlayerController(Activity.PLAYER_1)
-
-	if self.PlayerCount > 1 or self.player1Controller:IsKeyboardOnlyControlled() then
-		CF_EnableKeyboardControls = true
-	else
-		CF_EnableKeyboardControls = false
+	self.MenuNavigationSchemes = { KEYBOARD = 0, MOUSE = 1, GAMEPAD = 2 }
+	CF.MenuNavigationScheme = self.MenuNavigationSchemes.KEYBOARD
+	CF.FirstActivePlayer = Activity.PLAYER_NONE
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self:PlayerActive(player) and self:PlayerHuman(player) then
+			CF.FirstActivePlayer = player
+			CF.FirstActivePlayerController = self:GetPlayerController(player);
+			if self:GetPlayerController(player):IsMouseControlled() then
+				CF.MenuNavigationScheme = self.MenuNavigationSchemes.MOUSE
+			elseif self:GetPlayerController(player):IsGamepadControlled() then
+				CF.MenuNavigationScheme = self.MenuNavigationSchemes.GAMEPAD
+			end
+			break
+		else
+			print("WARNING: You are playing with a setup this mod is not yet able to accomodate.")
+		end
 	end
 
 	if self.IsInitialized == nil then
 		self.IsInitialized = false
-	end
-
-	if self.IsInitialized then
+	elseif self.IsInitialized == true then
 		return
 	end
 
@@ -27,11 +35,11 @@ function VoidWanderers:StartActivity()
 
 	self.GS = {}
 
+	CF.InitFactions(self)
+
 	self:LoadCurrentGameState()
 
-	CF_InitFactions(self)
-
-	---- -- -- self.ModuleName = "VoidWanderers.rte";
+	---- -- -- self.ModuleName = "VoidWanderers.rte"
 
 	self.MidX = SceneMan.Scene.Width / 2
 	self.MidY = SceneMan.Scene.Height / 2
@@ -45,17 +53,14 @@ function VoidWanderers:StartActivity()
 
 	self.Mouse = self.Mid
 
-	for plr = 0, self.PlayerCount - 1 do
-		self:SetPlayerBrain(nil, Activity.TEAM_1)
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		self:SetPlayerBrain(nil, player)
+		FrameMan:ClearScreenText(self:ScreenOfPlayer(player))
 	end
 
 	self.brain = nil
 
 	self.ObserverPos = nil
-
-	for plr = 0, self.PlayerCount - 1 do
-		FrameMan:ClearScreenText(plr)
-	end
 
 	self:CreateActors()
 
@@ -66,7 +71,7 @@ function VoidWanderers:StartActivity()
 
 	self.MessageTimer = Timer()
 	self.MessageTimer:Reset()
-	self.MessageInterval = CF_MessageInterval
+	self.MessageInterval = CF.MessageInterval
 	self.MessagePos = self.Mid + Vector(-75, self.ResY2 - 48)
 
 	self.Messages = {}
@@ -100,7 +105,7 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:PauseActivity(pause) end
 -----------------------------------------------------------------------------------------
--- End Activity
+-- Create actors used by scene editor
 -----------------------------------------------------------------------------------------
 function VoidWanderers:CreateActors()
 	--Make an invisible brain.
@@ -118,6 +123,7 @@ function VoidWanderers:CreateActors()
 	MovableMan:AddActor(self.brain)
 	self:SetPlayerBrain(self.brain, Activity.TEAM_1)
 	self:SwitchToActor(self.brain, Activity.PLAYER_1, Activity.TEAM_1)
+	CameraMan:SetScroll(self.Mid, self:ScreenOfPlayer(Activity.PLAYER_1))
 
 	--[[if MovableMan:IsActor(G_CursorActor) then
 		G_CursorActor.ToDelete = true
@@ -127,7 +133,7 @@ function VoidWanderers:CreateActors()
 
 	G_CursorActor = CreateActor("VW_Cursor")
 	if G_CursorActor then
-		G_CursorActor.Team = CF_PlayerTeam
+		G_CursorActor.Team = CF["PlayerTeam"]
 		local curactor = self:GetControlledActor(Activity.PLAYER_1)
 
 		if act and MovableMan:IsActor(curactor) then
@@ -155,15 +161,15 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:LoadCurrentGameState()
-	if CF_IsFileExists(self.ModuleName, STATE_CONFIG_FILE) then
-		self.GS = CF_ReadConfigFile(self.ModuleName, STATE_CONFIG_FILE)
+	if CF.IsFileExists(self.ModuleName, STATE_CONFIG_FILE) then
+		self.GS = CF.ReadConfigFile(self.ModuleName, STATE_CONFIG_FILE)
 	end
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:SaveCurrentGameState()
-	CF_WriteConfigFile(self.GS, self.ModuleName, STATE_CONFIG_FILE)
+	CF.WriteConfigFile(self.GS, self.ModuleName, STATE_CONFIG_FILE)
 end
 -----------------------------------------------------------------------------------------
 --
@@ -194,14 +200,14 @@ function VoidWanderers:DrawLabel(el, state)
 		end
 
 		if centered then
-			CF_DrawString(
+			CF.DrawString(
 				el["Text"],
-				Vector(el.Pos.X - (CF_GetStringPixelWidth(el["Text"]) / 2) + 2, el.Pos.Y),
+				Vector(el.Pos.X - (CF.GetStringPixelWidth(el["Text"]) / 2) + 2, el.Pos.Y),
 				el["Width"] - 8,
 				el["Height"]
 			)
 		else
-			CF_DrawString(el["Text"], el.Pos, el["Width"], el["Height"])
+			CF.DrawString(el["Text"], el.Pos, el["Width"], el["Height"])
 		end
 	end
 end
@@ -212,7 +218,7 @@ function VoidWanderers:DrawButton(el, state, drawthistime)
 	local isvisible = true
 	local presetprefix
 
-	if CF_LowPerformance then
+	if CF.LowPerformance then
 		presetprefix = "Ln"
 	else
 		presetprefix = ""
@@ -232,9 +238,9 @@ function VoidWanderers:DrawButton(el, state, drawthistime)
 		end
 
 		if el["Text"] then
-			CF_DrawString(
+			CF.DrawString(
 				el["Text"],
-				Vector(el.Pos.X - (CF_GetStringPixelWidth(el["Text"]) / 2) + 2, el.Pos.Y),
+				Vector(el.Pos.X - (CF.GetStringPixelWidth(el["Text"]) / 2) + 2, el.Pos.Y),
 				el["Width"] - 8,
 				el["Height"]
 			)
@@ -279,8 +285,8 @@ function VoidWanderers:RedrawKnownFormElements()
 	for i = 1, #self.UI do
 		drawthistime = true
 
-		if CF_LowPerformance then
-			if CF_FrameCounter % 2 == i % 2 then
+		if CF.LowPerformance then
+			if CF.FrameCounter % 2 == i % 2 then
 				drawthistime = true
 			else
 				drawthistime = false
@@ -339,7 +345,7 @@ function VoidWanderers:UpdateActivity()
 		return
 	end
 
-	if CF_StopUIProcessing then
+	if CF.StopUIProcessing then
 		return
 	end
 
@@ -348,37 +354,40 @@ function VoidWanderers:UpdateActivity()
 	end
 
 	-- Set the screen of disabled 4-th player when we're playing in 3-player mode
-	if self.ObserverPos ~= nil and self:PlayerHuman(Activity.PLAYER_4) then
+	-- this should never happen, and we specifically defined this as nil anyways
+	--[[if self.ObserverPos ~= nil and self:PlayerHuman(Activity.PLAYER_4) then
 		CameraMan:SetScrollTarget(self.ObserverPos, 0.04, self:ScreenOfPlayer(Activity.PLAYER_4))
-	end
+	end]]
 
-	--Read standard input, ugly but at least it will be operational if mouse fail for whatever reason
+	local cont = self.brain:GetController()
 
-	if CF_EnableKeyboardControls then
-		if self.player1Controller:IsState(Controller.MOVE_LEFT) then
+	if CF.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
+		if cont:IsState(Controller.MOVE_LEFT) then
 			self.Mouse = self.Mouse + Vector(-5, 0)
 		end
 
-		if self.player1Controller:IsState(Controller.MOVE_RIGHT) then
+		if cont:IsState(Controller.MOVE_RIGHT) then
 			self.Mouse = self.Mouse + Vector(5, 0)
 		end
 
-		if self.player1Controller:IsState(Controller.MOVE_UP) then
+		if cont:IsState(Controller.MOVE_UP) then
 			self.Mouse = self.Mouse + Vector(0, -5)
 		end
 
-		if self.player1Controller:IsState(Controller.MOVE_DOWN) then
+		if cont:IsState(Controller.MOVE_DOWN) then
 			self.Mouse = self.Mouse + Vector(0, 5)
 		end
-	else
+	elseif CF.MenuNavigationScheme == self.MenuNavigationSchemes.MOUSE then
 		-- Read mouse input
-		self.Mouse = self.Mouse + UInputMan:GetMouseMovement(0)
+		self.Mouse = self.Mouse + UInputMan:GetMouseMovement(CF.FirstActivePlayer)
+	else
+		self.Mouse = self.Mouse + CF.FirstActivePlayerController.AnalogMove * 5
 	end
 
 	-- Debug Toggle low performance flag on/off
 	--if UInputMan:KeyPressed(28) then
-	--	CF_LowPerformance = not CF_LowPerformance
-	--	print (CF_LowPerformance)
+	--	CF.LowPerformance = not CF.LowPerformance
+	--	print (CF.LowPerformance)
 	--end
 
 	-- Find out info about UInputMan buttons
@@ -432,7 +441,7 @@ function VoidWanderers:UpdateActivity()
 	end
 
 	-- Process mouse hovers and presses -- TODO: UInputMan doesn't seem to register the mouse press functions?
-	if true or CF_EnableKeyboardControls then
+	if true or CF.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
 		self.MouseOverElement = self:GetMouseOverKnownFormElements()
 
 		if self.MouseOverElement then
@@ -442,7 +451,7 @@ function VoidWanderers:UpdateActivity()
 		end
 
 		-- Process standard input
-		if self.player1Controller:IsState(Controller.WEAPON_FIRE) then
+		if cont:IsState(Controller.WEAPON_FIRE) then
 			if not self.MouseFirePressed then
 				self.MousePressedElement = self:GetMouseOverKnownFormElements()
 
@@ -518,18 +527,18 @@ function VoidWanderers:UpdateActivity()
 		end
 	end
 
-	--print(self.MouseOverElement);
-	--print(self.MousePressedElement);
+	--print(self.MouseOverElement)
+	--print(self.MousePressedElement)
 
 	self:RedrawKnownFormElements()
 	self:FormUpdate()
 	self:FormDraw()
 
-	-- Count frames for low performance version of CF_DrawString
-	CF_FrameCounter = CF_FrameCounter + 1
+	-- Count frames for low performance version of CF["DrawString"]
+	CF["FrameCounter"] = CF["FrameCounter"] + 1
 
-	if CF_FrameCounter >= 10000 then
-		CF_FrameCounter = 0
+	if CF["FrameCounter"] >= 10000 then
+		CF["FrameCounter"] = 0
 	end
 
 	--print (self.Mouse - self.Mid)--]]--

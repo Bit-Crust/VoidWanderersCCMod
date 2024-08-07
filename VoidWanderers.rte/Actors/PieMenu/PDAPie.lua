@@ -1,4 +1,6 @@
-function PDACall(slice, menu, actor)
+function PDACall(pieMenuOwner, pieMenu, pieSlice)
 	-- Activate PDA
-	CF_PDAInitiator = actor
+	if IsAHuman(pieMenuOwner) and ToAHuman(pieMenuOwner).Head then
+		ToAHuman(pieMenuOwner).Head:SetNumberValue("EnablePDA", 1)
+	end
 end

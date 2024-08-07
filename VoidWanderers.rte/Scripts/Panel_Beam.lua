@@ -33,7 +33,7 @@ function VoidWanderers:InitBeamControlPanelUI()
 			self.BeamControlPanelActor = CreateActor("Beam Control Panel")
 			if self.BeamControlPanelActor ~= nil then
 				self.BeamControlPanelActor.Pos = self.BeamControlPanelPos
-				self.BeamControlPanelActor.Team = CF_PlayerTeam
+				self.BeamControlPanelActor.Team = CF["PlayerTeam"]
 				MovableMan:AddActor(self.BeamControlPanelActor)
 			end
 		else
@@ -56,8 +56,8 @@ end
 function VoidWanderers:ProcessBeamControlPanelUI()
 	local showidle = true
 
-	for plr = 0, self.PlayerCount - 1 do
-		local act = self:GetControlledActor(plr)
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		local act = self:GetControlledActor(player)
 
 		if act and MovableMan:IsActor(act) and act.PresetName == "Beam Control Panel" then
 			showidle = false
@@ -71,7 +71,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 			local count = 0
 			for actor in MovableMan.Actors do
 				if actor.GetsHitByMOs and self.BeamControlPanelBox:IsWithinBox(actor.Pos) then
-					-- Create particle eddect around actors
+					-- Create particle effect around actors
 					local part = CreateMOSParticle("Tiny Blue Glow", self.ModuleName)
 					part.Pos = actor.Pos
 						+ Vector(0, actor.IndividualRadius * 0.5)
@@ -96,13 +96,13 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 			--	self.TeleportEffectTimer:Reset()
 			--end
 
-			--print (CF_LocationName[ self.GS["Location"] ])
+			--print (CF["LocationName"][ self.GS["Location"] ])
 
 			-- Search for detached brains
 			local anybraindetached = false
 
-			for p = 0, self.PlayerCount - 1 do
-				if self.GS["Brain" .. p .. "Detached"] == "True" then
+			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+				if self.GS["Brain" .. player .. "Detached"] == "True" then
 					anybraindetached = true
 				end
 			end
@@ -113,35 +113,35 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 			end
 
 			if anybraindetached and braincount < self.PlayerCount then
-				CF_DrawString("All brains must be on the landing deck", pos + Vector(-54, -6), 124, 36)
+				CF["DrawString"]("All brains must be on the landing deck", pos + Vector(-54, -6), 124, 36)
 				canbeam = false
 			else
-				local locname = CF_LocationName[self.GS["Location"]]
+				local locname = CF["LocationName"][self.GS["Location"]]
 				if locname ~= nil then
 					if
-						CF_LocationPlayable[self.GS["Location"]] == nil
-						or CF_LocationPlayable[self.GS["Location"]] == true
+						CF["LocationPlayable"][self.GS["Location"]] == nil
+						or CF["LocationPlayable"][self.GS["Location"]] == true
 					then
 						if count <= limit then
 							if count > 0 then
-								CF_DrawString(
-									"Deploy away team on " .. CF_LocationName[self.GS["Location"]],
+								CF["DrawString"](
+									"Deploy away team on " .. CF["LocationName"][self.GS["Location"]],
 									pos + Vector(-55, -6),
 									120,
 									36
 								)
 								canbeam = true
 							else
-								CF_DrawString("No units on the landing deck", pos + Vector(-50, -6), 120, 36)
+								CF["DrawString"]("No units on the landing deck", pos + Vector(-50, -6), 120, 36)
 								canbeam = false
 							end
 						else
-							CF_DrawString("Too many units!", pos + Vector(-35, -6), 120, 36)
+							CF["DrawString"]("Too many units!", pos + Vector(-35, -6), 120, 36)
 							canbeam = false
 						end
 					else
-						CF_DrawString(
-							"Can't deploy to " .. CF_LocationName[self.GS["Location"]],
+						CF["DrawString"](
+							"Can't deploy to " .. CF["LocationName"][self.GS["Location"]],
 							pos + Vector(-50, -6),
 							120,
 							36
@@ -149,36 +149,36 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 						canbeam = false
 					end
 				else
-					CF_DrawString("Can't deploy units into space", pos + Vector(-50, 0), 120, 36)
+					CF["DrawString"]("Can't deploy units into space", pos + Vector(-50, 0), 120, 36)
 					canbeam = false
 				end
 			end
 
 			if not anybraindetached then
-				CF_DrawString(
+				CF["DrawString"](
 					"DEPLOY [ " .. tostring(count) .. "/" .. self.GS["Player0VesselCommunication"] .. " ]",
 					pos + Vector(-30, -16),
 					130,
 					36
 				)
 			else
-				CF_DrawString("DEPLOY", pos + Vector(-16, -16), 130, 36)
+				CF["DrawString"]("DEPLOY", pos + Vector(-16, -16), 130, 36)
 			end
 
 			-- Deploy units
 			if cont:IsState(Controller.WEAPON_FIRE) and canbeam then
-				if not self.FirePressed[plr] then
-					self.FirePressed[plr] = true
+				if not self.FirePressed[player] then
+					self.FirePressed[player] = true
 
 					local savedactor = 1
 
 					-- Save all items
 					for item in MovableMan.Items do
 						if IsHeldDevice(item) and not ToHeldDevice(item).UnPickupable then
-							local count = CF_CountUsedStorageInArray(self.StorageItems)
+							local count = CF["CountUsedStorageInArray"](self.StorageItems)
 
 							if count < tonumber(self.GS["Player0VesselStorageCapacity"]) then
-								CF_PutItemToStorageArray(
+								CF["PutItemToStorageArray"](
 									self.StorageItems,
 									item.PresetName,
 									item.ClassName,
@@ -190,7 +190,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 						end
 					end
 
-					CF_SetStorageArray(self.GS, self.StorageItems)
+					CF["SetStorageArray"](self.GS, self.StorageItems)
 
 					-- Clean previously saved actors and inventories in config
 					self:ClearActors()
@@ -204,7 +204,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 							and actor.PresetName ~= "Brain Case"
 							and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 						then
-							local pre, cls, mdl = CF_GetInventory(actor)
+							local pre, cls, mdl = CF["GetInventory"](actor)
 
 							-- These actors must be deployed
 							if self.BeamControlPanelBox:IsWithinBox(actor.Pos) then
@@ -220,14 +220,14 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 								self.DeployedActors[n]["InventoryPresets"] = pre
 								self.DeployedActors[n]["InventoryClasses"] = cls
 								self.DeployedActors[n]["InventoryModules"] = mdl
-								for j = 1, #CF_LimbID do
-									self.DeployedActors[n][CF_LimbID[j]] = CF_GetLimbData(actor, j)
+								for j = 1, #CF["LimbID"] do
+									self.DeployedActors[n][CF["LimbID"][j]] = CF["GetLimbData"](actor, j)
 								end
 								--[[
-								local attCount = 0;
+								local attCount = 0
 								for att in actor.Attachables do
-									attCount = attCount + 1;
-									self.DeployedActors[n]["Attachable"..attCount] = att.PresetName;
+									attCount = attCount + 1
+									self.DeployedActors[n]["Attachable"..attCount] = att.PresetName
 								end
 								]]
 								--
@@ -242,8 +242,8 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 								self.GS["Actor" .. savedactor .. "Name"] = actor:GetStringValue("VW_Name")
 								self.GS["Actor" .. savedactor .. "X"] = math.floor(actor.Pos.X)
 								self.GS["Actor" .. savedactor .. "Y"] = math.floor(actor.Pos.Y)
-								for j = 1, #CF_LimbID do
-									self.GS["Actor" .. savedactor .. CF_LimbID[j]] = CF_GetLimbData(actor, j)
+								for j = 1, #CF["LimbID"] do
+									self.GS["Actor" .. savedactor .. CF["LimbID"][j]] = CF["GetLimbData"](actor, j)
 								end
 
 								for j = 1, #pre do
@@ -259,8 +259,8 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 
 					-- Prepare for transfer
 					-- Select scene
-					local r = math.random(#CF_LocationScenes[self.GS["Location"]])
-					local scene = CF_LocationScenes[self.GS["Location"]][r]
+					local r = math.random(#CF["LocationScenes"][self.GS["Location"]])
+					local scene = CF["LocationScenes"][self.GS["Location"]][r]
 
 					if anybraindetached then
 						self.GS["BrainsOnMission"] = "True"
@@ -282,7 +282,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 					return
 				end
 			else
-				self.FirePressed[plr] = false
+				self.FirePressed[player] = false
 			end
 
 			-- Draw background
@@ -296,7 +296,6 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 
 	if showidle and self.BeamControlPanelPos ~= nil and self.BeamControlPanelActor ~= nil then
 		self:PutGlow("ControlPanel_Beam", self.BeamControlPanelPos)
-		--CF_DrawString("DEPLOY",self.BeamControlPanelPos + Vector(-16,0),120,20 )
 	end
 
 	if MovableMan:IsActor(self.BeamControlPanelActor) then

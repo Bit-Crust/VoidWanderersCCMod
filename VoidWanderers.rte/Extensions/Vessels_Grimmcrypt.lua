@@ -1,22 +1,22 @@
 -- Define Gryphon vessel
 local id = "Ager 9th"
-CF_Vessel[#CF_Vessel + 1] = id
-CF_VesselPrice[id] = 25000
-CF_VesselName[id] = "Ager 9th"
-CF_VesselScene[id] = "Vessel Ager 9th"
-CF_VesselModule[id] = "VoidWanderers.rte"
+CF["Vessel"][#CF["Vessel"] + 1] = id
+CF["VesselPrice"][id] = 25000
+CF["VesselName"][id] = "Ager 9th"
+CF["VesselScene"][id] = "Vessel Ager 9th"
+CF["VesselModule"][id] = "VoidWanderers.rte"
 
-CF_VesselMaxClonesCapacity[id] = 15
-CF_VesselStartClonesCapacity[id] = 8
+CF["VesselMaxClonesCapacity"][id] = 15
+CF["VesselStartClonesCapacity"][id] = 8
 
-CF_VesselMaxStorageCapacity[id] = 100
-CF_VesselStartStorageCapacity[id] = 40
+CF["VesselMaxStorageCapacity"][id] = 100
+CF["VesselStartStorageCapacity"][id] = 40
 
-CF_VesselMaxLifeSupport[id] = 10
-CF_VesselStartLifeSupport[id] = 4
+CF["VesselMaxLifeSupport"][id] = 10
+CF["VesselStartLifeSupport"][id] = 4
 
-CF_VesselMaxCommunication[id] = 6
-CF_VesselStartCommunication[id] = 4
+CF["VesselMaxCommunication"][id] = 6
+CF["VesselStartCommunication"][id] = 4
 
-CF_VesselMaxSpeed[id] = 50
-CF_VesselStartSpeed[id] = 20
+CF["VesselMaxSpeed"][id] = 50
+CF["VesselStartSpeed"][id] = 20

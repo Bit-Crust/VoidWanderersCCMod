@@ -5,12 +5,12 @@
 --
 
 local id = "REAVERS"
-CF_RandomEncounters[#CF_RandomEncounters + 1] = id
-CF_RandomEncountersInitialTexts[id] = ""
-CF_RandomEncountersInitialVariants[id] = { "Fight the bastards!", "Stay low", "RUN!!!" }
-CF_RandomEncountersVariantsInterval[id] = 24
-CF_RandomEncountersOneTime[id] = false
-CF_RandomEncountersFunctions[id] = 
+CF["RandomEncounters"][#CF["RandomEncounters"] + 1] = id
+CF["RandomEncountersInitialTexts"][id] = ""
+CF["RandomEncountersInitialVariants"][id] = { "Fight the bastards!", "Stay low", "RUN!!!" }
+CF["RandomEncountersVariantsInterval"][id] = 24
+CF["RandomEncountersOneTime"][id] = false
+CF["RandomEncountersFunctions"][id] = 
 function(self, variant)
 	if not self.RandomEncounterIsInitialized then
 		self.RandomEncounterReavers = {}
@@ -29,42 +29,42 @@ function(self, variant)
 
 		self.RandomEncounterReaversInterval = 8
 
-		local id = CF_Vessel[math.random(#CF_Vessel)]
+		local id = CF["Vessel"][math.random(#CF["Vessel"])]
 
 		self.RandomEncounterShipId = id
 		self.RandomEncounterSpeed = math.random(
-			CF_VesselStartSpeed[id],
-			math.max(math.ceil(CF_VesselMaxSpeed[id] * 0.5), CF_VesselStartSpeed[id])
+			CF["VesselStartSpeed"][id],
+			math.max(math.ceil(CF["VesselMaxSpeed"][id] * 0.5), CF["VesselStartSpeed"][id])
 		) + 1
 
 		self.RandomEncounterDistance = math.random(300, 400) - self.RandomEncounterSpeed
 		self.RandomEncounterMaxDistance = math.random(400, 500)
 		-- Eat the rich!
-		self.RandomEncounterPlayerGoldScalar = math.sqrt(1 + CF_GetPlayerGold(self.GS, 0) * 0.001)
-		local maxCapacity = math.ceil(CF_VesselMaxClonesCapacity[id] * 0.5)
-		local minCapacity = math.ceil(math.max(maxCapacity * 0.5, CF_VesselStartClonesCapacity[id] * 0.5))
+		self.RandomEncounterPlayerGoldScalar = math.sqrt(1 + CF["GetPlayerGold"](self.GS, 0) * 0.001)
+		local maxCapacity = math.ceil(CF["VesselMaxClonesCapacity"][id] * 0.5)
+		local minCapacity = math.ceil(math.max(maxCapacity * 0.5, CF["VesselStartClonesCapacity"][id] * 0.5))
 		self.RandomEncounterReaversUnitCount = math.random(minCapacity, maxCapacity)
 		self.RandomEncounterDifficulty = math.min(
 			math.max(math.floor(self.RandomEncounterReaversUnitCount * 0.2), 0),
-			CF_MaxDifficulty
+			CF["MaxDifficulty"]
 		)
 
 		if self.RandomEncounterPlayerGoldScalar > 25 then
 			self.RandomEncounterText = "The Reavers can smell your money! An incoming "
-				.. CF_VesselName[id]
+				.. CF["VesselName"][id]
 				.. " class ship has been detected, hiding will not be easy..."
 		elseif self.RandomEncounterPlayerGoldScalar > 10 then
 			self.RandomEncounterText = "The Reavers are after our gold! An incoming "
-				.. CF_VesselName[id]
+				.. CF["VesselName"][id]
 				.. " class ship has been detected, what should we do?"
 		else
 			self.RandomEncounterText = "An unknown "
-				.. CF_VesselName[id]
+				.. CF["VesselName"][id]
 				.. " class ship detected, it must be Reavers!! If we hide everything, they might think it's a dead ship."
 		end
 		self.RandomEncounterScanTimeMax = math.ceil(math.random(20, 25) / math.sqrt(self.RandomEncounterDifficulty))
 		self.RandomEncounterScanTime = math.random(
-			math.min(CF_CountActors(CF_PlayerTeam) * 5 + 10, self.RandomEncounterScanTimeMax - 1),
+			math.min(CF["CountActors"](CF["PlayerTeam"]) * 5 + 10, self.RandomEncounterScanTimeMax - 1),
 			self.RandomEncounterScanTimeMax
 		)
 
@@ -138,7 +138,7 @@ function(self, variant)
 		local prob = math.min(
 			math.floor(
 				self.RandomEncounterPlayerGoldScalar
-					+ CF_CountActors(CF_PlayerTeam) * math.max(self.RandomEncounterPlayerGoldScalar, 5)
+					+ CF["CountActors"](CF["PlayerTeam"]) * math.max(self.RandomEncounterPlayerGoldScalar, 5)
 			),
 			99
 		)
@@ -171,7 +171,7 @@ function(self, variant)
 				self.MissionReport = {}
 				self.MissionReport[#self.MissionReport + 1] = prob > 90 and "They must be blind..."
 					or "We tricked them. Lucky we are."
-				CF_SaveMissionReport(self.GS, self.MissionReport)
+				CF["SaveMissionReport"](self.GS, self.MissionReport)
 
 				self.RandomEncounterText = ""
 
@@ -221,7 +221,7 @@ function(self, variant)
 				then
 					self.MissionReport = {}
 					self.MissionReport[#self.MissionReport + 1] = "They stopped chasing us. Lucky we are."
-					CF_SaveMissionReport(self.GS, self.MissionReport)
+					CF["SaveMissionReport"](self.GS, self.MissionReport)
 
 					self.RandomEncounterText = ""
 
@@ -256,7 +256,7 @@ function(self, variant)
 			self.RandomEncounterNextAttackTime = self.Time + self.RandomEncounterReaversInterval
 
 			-- Create assault bot
-			if MovableMan:GetMOIDCount() < CF_MOIDLimit and self.RandomEncounterReaversUnitCount > 0 then
+			if MovableMan:GetMOIDCount() < CF["MOIDLimit"] and self.RandomEncounterReaversUnitCount > 0 then
 				local rocket = CreateACRocket("Reaver Rocklet")
 				if rocket then
 					rocket.HFlipped = rocket.RandomEncounterDir == 1
@@ -267,7 +267,7 @@ function(self, variant)
 					rocket.Vel = Vector(-math.random(8, 16) * self.RandomEncounterDir, 0)
 					rocket.RotAngle = math.pi * 0.49 * self.RandomEncounterDir
 
-					rocket.Team = CF_CPUTeam
+					rocket.Team = CF["CPUTeam"]
 					rocket.AIMode = Actor.AIMODE_DELIVER
 					rocket.Health = math.random(33, 66)
 
@@ -283,7 +283,7 @@ function(self, variant)
 								self.RandomEncounterReaversActMod[r1]
 							)
 							if actor then
-								actor.Team = CF_CPUTeam
+								actor.Team = CF["CPUTeam"]
 								actor.RotAngle = rocket.RotAngle
 								actor.HFlipped = rocket.HFlipped
 								actor.Jetpack.JetTimeTotal = actor.Jetpack.JetTimeTotal * 3
@@ -371,7 +371,7 @@ function(self, variant)
 								startPos,
 								Vector(-(50 + self.RandomEncounterGatesDistance), 0),
 								rocket.ID,
-								CF_CPUTeam,
+								CF["CPUTeam"],
 								rte.grassID,
 								true,
 								5
@@ -379,7 +379,7 @@ function(self, variant)
 						)
 						if findMO and findMO:GetRootParent().ClassName == "ADoor" then
 							local expl = CreateAEmitter("Reaver RPG")
-							expl.Team = CF_CPUTeam
+							expl.Team = CF["CPUTeam"]
 							expl.IgnoresTeamHits = true
 							expl.Pos = startPos
 							expl.LifeTime = self.RandomEncounterGatesDistance
@@ -443,7 +443,7 @@ function(self, variant)
 		if
 			self.RandomEncounterReaversUnitCount <= 0
 			and self.RandomEncounterRocket == nil
-			and CF_CountActors(CF_CPUTeam) == 0
+			and CF["CountActors"](CF["CPUTeam"]) == 0
 		then
 			self.MissionReport = {}
 			self.MissionReport[#self.MissionReport + 1] = "Those were the last of them."
@@ -453,7 +453,7 @@ function(self, variant)
 			-- Finish encounter
 			self.RandomEncounterAttackLaunched = nil
 			self.RandomEncounterID = nil
-			CF_SaveMissionReport(self.GS, self.MissionReport)
+			CF["SaveMissionReport"](self.GS, self.MissionReport)
 			-- Rebuild destroyed consoles
 			self:InitStorageControlPanelUI()
 			--self:InitClonesControlPanelUI()
@@ -463,7 +463,7 @@ function(self, variant)
 			for actor in MovableMan.Actors do
 				local boundsDist = self.RandomEncounterGatesDistance - actor.IndividualRadius
 				--Reavers in danger of flying out of bounds
-				if actor.Team == CF_CPUTeam and IsAHuman(actor) and not self.Ship:IsInside(actor.Pos) then --(actor.Pos.X > SceneMan.SceneWidth - boundsDist or actor.Pos.X < boundsDist) then
+				if actor.Team == CF["CPUTeam"] and IsAHuman(actor) and not self.Ship:IsInside(actor.Pos) then --(actor.Pos.X > SceneMan.SceneWidth - boundsDist or actor.Pos.X < boundsDist) then
 					local active = actor.Status < Actor.INACTIVE
 					if active then
 						actor.Status = Actor.UNSTABLE

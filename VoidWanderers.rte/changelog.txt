@@ -82,3 +82,14 @@
 
 04/2024
 	- moved to VoidWanderersCCMod Github repository, changelog no longer seriously maintained
+
+07/2024
+	Whatever-date-it-is-right-now update
+	- RPG brain powers and abilities should be largely functional now
+	- any player/control configuration should be supported, please report any bugs
+	- small improvements to UI and menu UX
+	- items outside the storage bay will take longer to collect
+	- storage sweeps accelerate as they go
+	- clone storage is now capable of nullifying dead actor jetpacks
+	- clone storage also grabs dead actors and dampens their velocity
+	- detaching brain D E A D flash fixed

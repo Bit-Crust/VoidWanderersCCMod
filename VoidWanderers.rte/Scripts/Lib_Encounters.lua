@@ -1,9 +1,9 @@
 -----------------------------------------------------------------------------
 -- Save mission report
 -----------------------------------------------------------------------------
-function CF_SaveMissionReport(c, rep)
+CF["SaveMissionReport"] = function(c, rep)
 	-- Dump mission report to config to be saved
-	for i = 1, CF_MaxMissionReportLines do
+	for i = 1, CF["MaxMissionReportLines"] do
 		c["MissionReport" .. i] = nil
 	end
 

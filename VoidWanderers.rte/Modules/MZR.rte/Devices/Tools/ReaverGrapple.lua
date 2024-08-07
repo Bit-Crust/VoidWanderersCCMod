@@ -248,7 +248,7 @@ function Update(self)
 								)
 							)
 
-						target:AddAbsForce(targetforce, self.Pos) --target.Pos + SceneMan:ShortestDistance(target.Pos, self.Pos, self.mapWrapsX));
+						target:AddAbsForce(targetforce, self.Pos) --target.Pos + SceneMan:ShortestDistance(target.Pos, self.Pos, self.mapWrapsX))
 						target.AngularVel = target.AngularVel * 0.99
 
 						self.lastVel = Vector(self.Pos.X, self.Pos.Y)

@@ -8,7 +8,7 @@ end
 function VWOpenCrate(actor)
 	ToActor(actor):SetNumberValue("VWOpenCrate", 1)
 	ToGameActivity(ActivityMan:GetActivity()):RemovePieMenuSlice("Open Crate", "VWOpenCrate")
-	--ToGameActivity(ActivityMan:GetActivity()):AddPieMenuSlice("Open Crate", "VWOpenCrate", Slice.UP, false);
+	--ToGameActivity(ActivityMan:GetActivity()):AddPieMenuSlice("Open Crate", "VWOpenCrate", Slice.UP, false)
 end
 function Update(self)
 	if self.user and MovableMan:IsActor(self.user) then

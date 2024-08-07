@@ -1,7 +1,7 @@
 function Create(self)
 	local itm
-	if CF_PlayerTeam ~= nil then
-		if not self:NumberValueExists("VWOpenCrate") and math.random(50, 1000) < CF_Difficulty then
+	if CF["PlayerTeam"] ~= nil then
+		if not self:NumberValueExists("VWOpenCrate") and math.random(50, 1000) < CF["Difficulty"] then
 			for i = 1, math.random(3) do
 				itm = CreateTDExplosive("Base.rte/Frag Grenade")
 				itm.Pos = self.Pos
@@ -10,36 +10,36 @@ function Create(self)
 				MovableMan:AddItem(itm)
 			end
 		else
-			if #CF_ArtItmPresets == 0 then
-				CF_ArtifactItemRate = 0
+			if #CF["ArtItmPresets"] == 0 then
+				CF["ArtifactItemRate"] = 0
 			end
-			local artifactChance = CF_ArtifactItemRate - (CF_ArtifactItemRate / (0.5 + math.sqrt(#CF_ArtItmPresets)))
+			local artifactChance = CF["ArtifactItemRate"] - (CF["ArtifactItemRate"] / (0.5 + math.sqrt(#CF["ArtItmPresets"])))
 
-			local wtypes = { CF_WeaponTypes.RIFLE, CF_WeaponTypes.SHOTGUN, CF_WeaponTypes.SNIPER, CF_WeaponTypes.HEAVY }
+			local wtypes = { CF["WeaponTypes"].RIFLE, CF["WeaponTypes"].SHOTGUN, CF["WeaponTypes"].SNIPER, CF["WeaponTypes"].HEAVY }
 			local f
 			local ok = false
 
 			while not ok do
-				f = CF_Factions[math.random(#CF_Factions)]
-				if CF_FactionPlayable[f] then
+				f = CF["Factions"][math.random(#CF["Factions"])]
+				if CF["FactionPlayable"][f] then
 					ok = true
 				end
 			end
 
-			-- We need this fake cfg because CF_MakeList operates only on configs to get data
+			-- We need this fake cfg because CF["MakeList"] operates only on configs to get data
 			local cfg = {}
 			cfg["Player0Faction"] = f
 
 			--print (cfg)
-			local weaps = CF_MakeListOfMostPowerfulWeapons(cfg, 0, wtypes[math.random(#wtypes)], 100000)
+			local weaps = CF["MakeListOfMostPowerfulWeapons"](cfg, 0, wtypes[math.random(#wtypes)], 100000)
 
 			if math.random() < artifactChance or weaps == nil then
-				local r = math.random(#CF_ArtItmPresets)
-				itm = CF_MakeItem(CF_ArtItmPresets[r], CF_ArtItmClasses[r], CF_ArtItmModules[r])
+				local r = math.random(#CF["ArtItmPresets"])
+				itm = CF["MakeItem"](CF["ArtItmPresets"][r], CF["ArtItmClasses"][r], CF["ArtItmModules"][r])
 			else
 				local r = #weaps > 1 and math.random(#weaps) or 1
 				local itmindex = weaps[r]["Item"]
-				itm = CF_MakeItem(CF_ItmPresets[f][itmindex], CF_ItmClasses[f][itmindex], CF_ItmModules[f][itmindex])
+				itm = CF["MakeItem"](CF["ItmPresets"][f][itmindex], CF["ItmClasses"][f][itmindex], CF["ItmModules"][f][itmindex])
 			end
 			if itm then
 				itm.AngularVel = 0

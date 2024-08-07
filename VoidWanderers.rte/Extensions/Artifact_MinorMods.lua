@@ -6,10 +6,10 @@
 --
 
 if PresetMan:GetModuleID("Deployable Turret.rte") ~= -1 then
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "Deployable Turret"
-	CF_ArtItmModules[id] = "Deployable Turret.rte"
-	CF_ArtItmClasses[id] = "TDExplosive"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "Deployable Turret"
+	CF["ArtItmModules"][id] = "Deployable Turret.rte"
+	CF["ArtItmClasses"][id] = "TDExplosive"
 end
 
 -------------------------------------------------------------------------------
@@ -22,10 +22,10 @@ end
 --
 
 if PresetMan:GetModuleID("HIWS.rte") ~= -1 then
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "HIWS"
-	CF_ArtItmModules[id] = "HIWS.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "HIWS"
+	CF["ArtItmModules"][id] = "HIWS.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 end
 
 -------------------------------------------------------------------------------
@@ -38,10 +38,10 @@ end
 --
 
 if PresetMan:GetModuleID("HEPP.rte") ~= -1 then
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "HEPP"
-	CF_ArtItmModules[id] = "HEPP.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "HEPP"
+	CF["ArtItmModules"][id] = "HEPP.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 end
 
 -------------------------------------------------------------------------------
@@ -55,17 +55,17 @@ end
 
 -- Add items
 if PresetMan:GetModuleID("DummyAPRL.rte") ~= -1 then
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "Dummy APR Launcher"
-	CF_ArtItmModules[id] = "DummyAPRL.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "Dummy APR Launcher"
+	CF["ArtItmModules"][id] = "DummyAPRL.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 end
 
 if PresetMan:GetModuleID("DummyMRlauncher.rte") ~= -1 then
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "Dummy MR Launcher"
-	CF_ArtItmModules[id] = "DummyMRlauncher.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "Dummy MR Launcher"
+	CF["ArtItmModules"][id] = "DummyMRlauncher.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 end
 -------------------------------------------------------------------------------
 
@@ -77,20 +77,20 @@ end
 --
 
 if PresetMan:GetModuleID("ATech.rte") ~= -1 then
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "Rail Sniper Rifle"
-	CF_ArtItmModules[id] = "ATech.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "Rail Sniper Rifle"
+	CF["ArtItmModules"][id] = "ATech.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "Pacifier Battle Rifle"
-	CF_ArtItmModules[id] = "ATech.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "Pacifier Battle Rifle"
+	CF["ArtItmModules"][id] = "ATech.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "Jotun Grenade Launcher"
-	CF_ArtItmModules[id] = "ATech.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "Jotun Grenade Launcher"
+	CF["ArtItmModules"][id] = "ATech.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 end
 -------------------------------------------------------------------------------
 
@@ -103,60 +103,60 @@ end
 
 -- Add items
 if PresetMan:GetModuleID("Khandari.rte") ~= -1 then
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "Jia Z-KK"
-	CF_ArtItmModules[id] = "Khandari.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "Jia Z-KK"
+	CF["ArtItmModules"][id] = "Khandari.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "SKorpion"
-	CF_ArtItmModules[id] = "Khandari.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "SKorpion"
+	CF["ArtItmModules"][id] = "Khandari.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "Dune Spider"
-	CF_ArtItmModules[id] = "Khandari.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "Dune Spider"
+	CF["ArtItmModules"][id] = "Khandari.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "Talon KV"
-	CF_ArtItmModules[id] = "Khandari.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "Talon KV"
+	CF["ArtItmModules"][id] = "Khandari.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "Aurochs T52"
-	CF_ArtItmModules[id] = "Khandari.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "Aurochs T52"
+	CF["ArtItmModules"][id] = "Khandari.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "RAM T98"
-	CF_ArtItmModules[id] = "Khandari.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "RAM T98"
+	CF["ArtItmModules"][id] = "Khandari.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 
 	-- Add actors
-	local id = #CF_ArtActPresets + 1
-	CF_ArtActPresets[id] = "Khandastar Medium Infantry"
-	CF_ArtActModules[id] = "Khandari.rte"
-	CF_ArtActClasses[id] = "AHuman"
+	local id = #CF["ArtActPresets"] + 1
+	CF["ArtActPresets"][id] = "Khandastar Medium Infantry"
+	CF["ArtActModules"][id] = "Khandari.rte"
+	CF["ArtActClasses"][id] = "AHuman"
 
 	-- Add pirates only if pirate encounters are loaded
-	if CF_RandomEncountersInitialTexts["PIRATE_GENERIC"] ~= nil then
-		local pid = #CF_RandomEncounterPirates + 1
-		CF_RandomEncounterPirates[pid] = {}
-		CF_RandomEncounterPirates[pid]["Captain"] = "Major"
-		CF_RandomEncounterPirates[pid]["Ship"] = "Jizzrah"
-		CF_RandomEncounterPirates[pid]["Org"] = "The Continent-Republic of Khandastar"
-		CF_RandomEncounterPirates[pid]["FeeInc"] = 650
+	if CF["RandomEncountersInitialTexts"]["PIRATE_GENERIC"] ~= nil then
+		local pid = #CF["RandomEncounterPirates"] + 1
+		CF["RandomEncounterPirates"][pid] = {}
+		CF["RandomEncounterPirates"][pid]["Captain"] = "Major"
+		CF["RandomEncounterPirates"][pid]["Ship"] = "Jizzrah"
+		CF["RandomEncounterPirates"][pid]["Org"] = "The Continent-Republic of Khandastar"
+		CF["RandomEncounterPirates"][pid]["FeeInc"] = 650
 
-		CF_RandomEncounterPirates[pid]["Act"] = { "Khandastar Medium Infantry" }
-		CF_RandomEncounterPirates[pid]["ActMod"] = { "Khandari.rte" }
+		CF["RandomEncounterPirates"][pid]["Act"] = { "Khandastar Medium Infantry" }
+		CF["RandomEncounterPirates"][pid]["ActMod"] = { "Khandari.rte" }
 
-		CF_RandomEncounterPirates[pid]["Itm"] = { "RAM T98", "Talon KV" }
-		CF_RandomEncounterPirates[pid]["ItmMod"] = { "Khandari.rte", "Khandari.rte" }
+		CF["RandomEncounterPirates"][pid]["Itm"] = { "RAM T98", "Talon KV" }
+		CF["RandomEncounterPirates"][pid]["ItmMod"] = { "Khandari.rte", "Khandari.rte" }
 
-		CF_RandomEncounterPirates[pid]["Units"] = 5
-		CF_RandomEncounterPirates[pid]["Burst"] = 1
-		CF_RandomEncounterPirates[pid]["Interval"] = 16
+		CF["RandomEncounterPirates"][pid]["Units"] = 5
+		CF["RandomEncounterPirates"][pid]["Burst"] = 1
+		CF["RandomEncounterPirates"][pid]["Interval"] = 16
 	end
 end
 
@@ -173,61 +173,61 @@ end
 
 --[[if PresetMan:GetModuleID("SteamNon.rte") ~= -1 then
 	-- Add items
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "Heavy Cannon"
-	CF_ArtItmModules[id] = "SteamNon.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "Heavy Cannon"
+	CF["ArtItmModules"][id] = "SteamNon.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "MacKinmiad Dueling Devai'l"
-	CF_ArtItmModules[id] = "SteamNon.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "MacKinmiad Dueling Devai'l"
+	CF["ArtItmModules"][id] = "SteamNon.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "M3 ShotGatler"
-	CF_ArtItmModules[id] = "SteamNon.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "M3 ShotGatler"
+	CF["ArtItmModules"][id] = "SteamNon.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "Needle Gun"
-	CF_ArtItmModules[id] = "SteamNon.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "Needle Gun"
+	CF["ArtItmModules"][id] = "SteamNon.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "SOGR"
-	CF_ArtItmModules[id] = "SteamNon.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "SOGR"
+	CF["ArtItmModules"][id] = "SteamNon.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "Vista Nova"
-	CF_ArtItmModules[id] = "SteamNon.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "Vista Nova"
+	CF["ArtItmModules"][id] = "SteamNon.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "Walden BN-76"
-	CF_ArtItmModules[id] = "SteamNon.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "Walden BN-76"
+	CF["ArtItmModules"][id] = "SteamNon.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "Walden Model 3"
-	CF_ArtItmModules[id] = "SteamNon.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "Walden Model 3"
+	CF["ArtItmModules"][id] = "SteamNon.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 
 	-- Add actors
-	local id = #CF_ArtActPresets + 1
-	CF_ArtActPresets[id] = "Steamer"
-	CF_ArtActModules[id] = "SteamNon.rte"
-	CF_ArtActClasses[id] = "AHuman"
+	local id = #CF["ArtActPresets"] + 1
+	CF["ArtActPresets"][id] = "Steamer"
+	CF["ArtActModules"][id] = "SteamNon.rte"
+	CF["ArtActClasses"][id] = "AHuman"
 
-	local id = #CF_ArtActPresets + 1
-	CF_ArtActPresets[id] = "Dampf"
-	CF_ArtActModules[id] = "SteamNon.rte"
-	CF_ArtActClasses[id] = "AHuman"
+	local id = #CF["ArtActPresets"] + 1
+	CF["ArtActPresets"][id] = "Dampf"
+	CF["ArtActModules"][id] = "SteamNon.rte"
+	CF["ArtActClasses"][id] = "AHuman"
 
-	local id = #CF_ArtActPresets + 1
-	CF_ArtActPresets[id] = "Barton"
-	CF_ArtActModules[id] = "SteamNon.rte"
-	CF_ArtActClasses[id] = "AHuman"
+	local id = #CF["ArtActPresets"] + 1
+	CF["ArtActPresets"][id] = "Barton"
+	CF["ArtActModules"][id] = "SteamNon.rte"
+	CF["ArtActClasses"][id] = "AHuman"
 end--]]
 --
 
@@ -241,8 +241,8 @@ end--]]
 --
 
 if PresetMan:GetModuleID("Dummy Particle Accelerator.rte") ~= -1 then
-	local id = #CF_ArtItmPresets + 1
-	CF_ArtItmPresets[id] = "Dummy Particle Accelerator"
-	CF_ArtItmModules[id] = "Dummy Particle Accelerator.rte"
-	CF_ArtItmClasses[id] = "HDFirearm"
+	local id = #CF["ArtItmPresets"] + 1
+	CF["ArtItmPresets"][id] = "Dummy Particle Accelerator"
+	CF["ArtItmModules"][id] = "Dummy Particle Accelerator.rte"
+	CF["ArtItmClasses"][id] = "HDFirearm"
 end
