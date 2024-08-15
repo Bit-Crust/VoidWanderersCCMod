@@ -104,33 +104,6 @@ function VoidWanderers:FormLoad()
 
 	el["OnClick"] = self.BtnOk_OnClick
 
-	--[[add actors for traversing the scene vertically
-	local max_off_center = 1
-	for i = 1, max_off_center do
-		local a = CreateActor("Fake Brain Case", "VoidWanderers.rte")
-		if a then
-			a.Team = Activity.PLAYER_1
-			a.HitsMOs = false
-			a.GetsHitByMOs = false
-			a.Scale = 0
-			a.Pos = Vector(self.MidX - i, (self.MidY) - ((self.MidY * i)) + 2)
-			a.Health = 1
-			MovableMan:AddActor(a)
-		end
-		local b = CreateActor("Fake Brain Case", "VoidWanderers.rte")
-		if b then
-			b.Team = Activity.PLAYER_1
-			b.Pos = Vector(self.MidX + i, (self.MidY) + (self.MidY * i) - 2)
-			b.HitsMOs = false
-			b.GetsHitByMOs = false
-			b.Scale = 0
-			b.Health = 1
-			MovableMan:AddActor(b)
-		end
-		print("Adding off-center selectables")
-	end
-	]]--
-
 	self.UI[#self.UI + 1] = el
 	self.BtnOk = el
 

@@ -1,47 +1,68 @@
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF.MakeRPGBrain = function(c, p, team, pos, level)
-	local levels = {}
-	levels[1] = {}
-	levels[1]["BrainBasicPreset"] = "RPG Brain Robot Base LVL0"
-	levels[1]["BrainPresetRename"] = "RPG Brain Robot Base LVL0::HLTH1"
+CF.MakeRPGBrain = function(c, p, team, pos, level, giveweapons)
+	if giveweapons == nil then
+		giveweapons = true
+	end
 
-	levels[2] = {}
-	levels[2]["BrainBasicPreset"] = "RPG Brain Robot Base LVL1"
-	levels[2]["BrainPresetRename"] = "RPG Brain Robot Base LVL1::HLTH3 SHLD1 TLKN1 HEAL1 RGEN1 STOR1 QCAP1"
-
-	levels[3] = {}
-	levels[3]["BrainBasicPreset"] = "RPG Brain Robot Base LVL2"
-	levels[3]["BrainPresetRename"] = "RPG Brain Robot Base LVL2::HLTH5 SHLD2 TLKN2 HEAL2 RGEN2 STOR2 QCAP2"
-
-	levels[4] = {}
-	levels[4]["BrainBasicPreset"] = "RPG Brain Robot Base LVL3"
-	levels[4]["BrainPresetRename"] = "RPG Brain Robot Base LVL3::HLTH7 SHLD3 TLKN3 HEAL3 RGEN3 STOR3 QCAP3"
-
-	levels[5] = {}
-	levels[5]["BrainBasicPreset"] = "RPG Brain Robot Base LVL4"
-	levels[5]["BrainPresetRename"] = "RPG Brain Robot Base LVL4::HLTH9 SHLD4 TLKN4 HEAL4 RGEN4 STOR4 QCAP4"
-
-	levels[6] = {}
-	levels[6]["BrainBasicPreset"] = "RPG Brain Robot Base LVL5"
-	levels[6]["BrainPresetRename"] = "RPG Brain Robot Base LVL5::HLTH9 SHLD5 TLKN5 HEAL5 RGEN5 STOR5 QCAP5"
-
-	--print ("CF.MakeBrain")
 	local f = CF.GetPlayerFaction(c, p)
-	local brain = CF.MakeBrainWithPreset(
+	local brain = CF.MakeBrain(
 		c,
 		p,
 		team,
 		pos,
-		levels[level]["BrainBasicPreset"],
-		"AHuman",
-		CF.ModuleName,
 		true
 	)
+
 	if brain then
-		brain.PresetName = levels[level]["BrainPresetRename"]
+		-- Generate a skill set, randomly distribute available points
+		local skillset = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+		local availableSkills = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+		print(level * 10)
+		for i = 1, level * 10 do
+			local index = math.random(#availableSkills)
+			if skillset[availableSkills[index]] < 5 then
+				skillset[availableSkills[index]] = skillset[availableSkills[index]] + 1
+			else
+				table.remove(availableSkills, index)
+				i = i - 1
+			end
+			if #availableSkills == 0 then
+				print("Exhausted skills, should only occur with maximum security spec ops units.")
+				break
+			end
+		end
+		
+		-- Actually assign the skills
+		brain:SetNumberValue("VW_PreassignedSkills", 1)
+		local i = 1
+		brain:SetNumberValue("VW_ToughSkill", skillset[i])
+		i = i + 1
+		brain:SetNumberValue("VW_ShieldSkill", skillset[i])
+		i = i + 1
+		brain:SetNumberValue("VW_TelekenesisSkill", skillset[i])
+		i = i + 1
+		brain:SetNumberValue("VW_HealthSkill", math.min(skillset[i] * 20 + math.random(20), 100))
+		i = i + 1
+		brain:SetNumberValue("VW_RepairSkill", skillset[i])
+		i = i + 1
+		brain:SetNumberValue("VW_HealSkill", skillset[i])
+		i = i + 1
+		brain:SetNumberValue("VW_SelfHealSkill", skillset[i])
+		i = i + 1
+		brain:SetNumberValue("VW_ScannerSkill", skillset[i])
+		i = i + 1
+		brain:SetNumberValue("VW_SplitterSkill", skillset[i])
+		i = i + 1
+		brain:SetNumberValue("VW_QuantumSkill", skillset[i])
+		
+		-- Make the brain put it's skills to work, and give it the correct pie slice for consistency
+		brain:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
+		brain:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
+		brain.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
 	end
+
 	return brain
 end
 -----------------------------------------------------------------------------------------
@@ -50,40 +71,40 @@ end
 CF.MakeBrain = function(c, p, team, pos, giveWeapons)
 	--print ("CF.MakeBrain")
 	local f = CF.GetPlayerFaction(c, p)
-	return CF.MakeBrainWithPreset(c, p, team, pos, CF["Brains"][f], CF.BrainClasses[f], CF.BrainModules[f], giveWeapons)
+	return CF.MakeBrainWithPreset(c, p, team, pos, CF.Brains[f], CF.BrainClasses[f], CF.BrainModules[f], giveWeapons)
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
 CF.MakeBrainWithPreset = function(c, p, team, pos, preset, class, module, giveWeapons)
-	--print ("CF["MakeBrainWithPreset"]")
+	--print ("CF.MakeBrainWithPreset")
 
-	local f = CF["GetPlayerFaction"](c, p)
+	local f = CF.GetPlayerFaction(c, p)
 
-	local actor = CF["MakeActor"](preset, class, module)
+	local actor = CF.MakeActor(preset, class, module)
 
 	if actor ~= nil then
 		if giveWeapons then
 			local weapon = nil
 			local weaponsgiven = 0
 			-- Create list of prefered weapons for brains
-			local list = CF["PreferedBrainInventory"][f] or { CF["WeaponTypes"].RIFLE, CF["WeaponTypes"].DIGGER }
+			local list = CF.PreferedBrainInventory[f] or { CF.WeaponTypes.RIFLE, CF.WeaponTypes.DIGGER }
 			for i = 1, #list do
 				local weaps
 				-- Try to give brain most powerful prefered weapon
-				weaps = CF["MakeListOfMostPowerfulWeapons"](c, p, list[i], 100000)
+				weaps = CF.MakeListOfMostPowerfulWeapons(c, p, list[i], 100000)
 
 				if weaps ~= nil then
 					local wf = weaps[1]["Faction"]
-					weapon = CF["MakeItem"](
-						CF["ItmPresets"][wf][weaps[1]["Item"]],
-						CF["ItmClasses"][wf][weaps[1]["Item"]],
-						CF["ItmModules"][wf][weaps[1]["Item"]]
+					weapon = CF.MakeItem(
+						CF.ItmPresets[wf][weaps[1]["Item"]],
+						CF.ItmClasses[wf][weaps[1]["Item"]],
+						CF.ItmModules[wf][weaps[1]["Item"]]
 					)
 					if weapon ~= nil then
 						actor:AddInventoryItem(weapon)
 
-						if list[i] ~= CF["WeaponTypes"].DIGGER and list[i] ~= CF["WeaponTypes"].TOOL then
+						if list[i] ~= CF.WeaponTypes.DIGGER and list[i] ~= CF.WeaponTypes.TOOL then
 							weaponsgiven = weaponsgiven + 1
 						end
 					end
@@ -93,30 +114,30 @@ CF.MakeBrainWithPreset = function(c, p, team, pos, preset, class, module, giveWe
 			if weaponsgiven == 0 then
 				-- If we didn't get any weapins try to give other weapons, rifles
 				if weaps == nil then
-					weaps = CF["MakeListOfMostPowerfulWeapons"](c, p, CF["WeaponTypes"].RIFLE, 100000)
+					weaps = CF.MakeListOfMostPowerfulWeapons(c, p, CF.WeaponTypes.RIFLE, 100000)
 				end
 
 				-- Sniper rifles
 				if weaps == nil then
-					weaps = CF["MakeListOfMostPowerfulWeapons"](c, p, CF["WeaponTypes"].SNIPER, 100000)
+					weaps = CF.MakeListOfMostPowerfulWeapons(c, p, CF.WeaponTypes.SNIPER, 100000)
 				end
 
 				-- No luck - heavies then
 				if weaps == nil then
-					weaps = CF["MakeListOfMostPowerfulWeapons"](c, p, CF["WeaponTypes"].HEAVY, 100000)
+					weaps = CF.MakeListOfMostPowerfulWeapons(c, p, CF.WeaponTypes.HEAVY, 100000)
 				end
 
 				-- No luck - pistols then
 				if weaps == nil then
-					weaps = CF["MakeListOfMostPowerfulWeapons"](c, p, CF["WeaponTypes"].PISTOL, 100000)
+					weaps = CF.MakeListOfMostPowerfulWeapons(c, p, CF.WeaponTypes.PISTOL, 100000)
 				end
 
 				if weaps ~= nil then
 					local wf = weaps[1]["Faction"]
-					weapon = CF["MakeItem"](
-						CF["ItmPresets"][wf][weaps[1]["Item"]],
-						CF["ItmClasses"][wf][weaps[1]["Item"]],
-						CF["ItmModules"][wf][weaps[1]["Item"]]
+					weapon = CF.MakeItem(
+						CF.ItmPresets[wf][weaps[1]["Item"]],
+						CF.ItmClasses[wf][weaps[1]["Item"]],
+						CF.ItmModules[wf][weaps[1]["Item"]]
 					)
 					if weapon ~= nil then
 						actor:AddInventoryItem(weapon)
@@ -155,9 +176,9 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF["SpawnAIUnit"] = function(c, p, team, pos, aimode)
-	local pre = math.random(CF["PresetTypes"].ENGINEER) --The last two presets are ENGINEER and DEFENDER
-	local act = CF["MakeUnitFromPreset"](c, p, pre)
+CF.SpawnAIUnit = function(c, p, team, pos, aimode)
+	local pre = math.random(CF.PresetTypes.ENGINEER) --The last two presets are ENGINEER and DEFENDER
+	local act = CF.MakeUnitFromPreset(c, p, pre)
 
 	if act ~= nil then
 		act.Team = team
@@ -177,13 +198,13 @@ end
 -----------------------------------------------------------------------------------------
 --	Spawns some random infantry of specified faction, tries to spawn AHuman
 -----------------------------------------------------------------------------------------
-CF["SpawnRandomInfantry"] = function(team, pos, faction, aimode)
-	--print ("CF["SpawnRandomInfantry"]")
+CF.SpawnRandomInfantry = function(team, pos, faction, aimode)
+	--print ("CF.SpawnRandomInfantry")
 	local actor = nil
 	local r1, r2
 	local item
 
-	if MovableMan:GetMOIDCount() < CF["MOIDLimit"] then
+	if MovableMan:GetMOIDCount() < CF.MOIDLimit then
 		-- Find AHuman
 		local ok = false
 		-- Emergency counter in case we don't have AHumans in factions
@@ -191,7 +212,7 @@ CF["SpawnRandomInfantry"] = function(team, pos, faction, aimode)
 
 		while not ok do
 			ok = false
-			r1 = #CF["ActNames"][faction] > 0 and math.random(#CF["ActNames"][faction]) or 0
+			r1 = #CF.ActNames[faction] > 0 and math.random(#CF.ActNames[faction]) or 0
 
 			if
 				(CF["ActClasses"][faction][r1] == nil or CF["ActClasses"][faction][r1] == "AHuman")
@@ -890,7 +911,7 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["GenerateRandomMission"] = function(c, ally_faction_override, enemy_faction_override)
+CF.GenerateRandomMission = function(c, ally_faction_override, enemy_faction_override)
 	local cpus = tonumber(c["ActiveCPUs"])
 	local mission = {}
 
@@ -926,10 +947,10 @@ CF["GenerateRandomMission"] = function(c, ally_faction_override, enemy_faction_o
 
 	local missions = {}
 
-	for m = 1, #CF["Mission"] do
-		local msnid = CF["Mission"][m]
+	for m = 1, #CF.Mission do
+		local msnid = CF.Mission[m]
 
-		if CF["MissionMinReputation"][msnid] <= rep then
+		if CF.MissionMinReputation[msnid] <= rep then
 			local newmsn = #missions + 1
 
 			missions[newmsn] = {}

@@ -421,6 +421,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 											self.Clones[self.SelectedClone]["Module"],
 											self.Clones[self.SelectedClone]["XP"],
 											self.Clones[self.SelectedClone]["Identity"],
+											self.Clones[self.SelectedClone]["Player"],
 											self.Clones[self.SelectedClone]["Prestige"],
 											self.Clones[self.SelectedClone]["Name"],
 											limbData
@@ -909,6 +910,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 								self.Clones[c]["Module"] = actor.ModuleName
 								self.Clones[c]["XP"] = actor:GetNumberValue("VW_XP")
 								self.Clones[c]["Identity"] = actor:GetNumberValue("Identity")
+								self.Clones[c]["Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
 								self.Clones[c]["Prestige"] = actor:GetNumberValue("VW_Prestige")
 								self.Clones[c]["Name"] = actor:GetStringValue("VW_Name")
 								for j = 1, #CF["LimbID"] do

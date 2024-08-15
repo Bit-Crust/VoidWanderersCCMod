@@ -70,8 +70,7 @@ function VoidWanderers:StartActivity()
 	-- Artificial Gravity System
 	self.AGS = Vector(0, rte.PxTravelledPerFrame / (1 + SceneMan.Scene.GlobalAcc.Y))
 
-	self.reputationErosionInterval = 150
-	self.distanceToAttemptEvent = 75 - CF.Difficulty * 0.5
+	self.distanceToAttemptEvent = 100 - CF.Difficulty * 0.5
 
 	-- Read brain location data
 	if self.GS["SceneType"] == "Vessel" then
@@ -148,6 +147,7 @@ function VoidWanderers:StartActivity()
 					self.GS["Actor" .. i .. "Module"],
 					self.GS["Actor" .. i .. "XP"],
 					self.GS["Actor" .. i .. "Identity"],
+					self.GS["Actor" .. i .. "Player"],
 					self.GS["Actor" .. i .. "Prestige"],
 					self.GS["Actor" .. i .. "Name"],
 					limbData
@@ -190,14 +190,12 @@ function VoidWanderers:StartActivity()
 						actor.Status = Actor.DEAD
 					end
 
-					-- If it's a brain that should exist, give the player control of it as soon as it's in the scene
-					local player = nil;
+					local player = nil
 
-					if actor:IsInGroup("Brains") and string.find(actor.PresetName, "RPG") ~= nil then
-						player = string.find(actor.PresetName, "PLR")
-						player = tonumber(string.sub(actor.PresetName, player + 3, player + 4))
+					if actor:IsInGroup("Brains") and (actor:GetNumberValue("VW_BrainOfPlayer") - 1) ~= Activity.PLAYER_NONE then
+						player = actor:GetNumberValue("VW_BrainOfPlayer") - 1
 						-- If the case exists or the player isn't active, store it's things and remove it
-						if not (self:PlayerActive(player) and self:PlayerHuman(player)) or IsActor(self.CreatedBrains[player]) then
+						if not (self:PlayerActive(player) and self:PlayerHuman(player)) or IsActor(self.CreatedBrains[player]) and player ~= Activity.PLAYER_NONE then
 							for j = 1, CF.MaxSavedItemsPerActor do
 								self.GS["Brain" .. player .. "Item" .. j .. "Preset"] = nil
 								self.GS["Brain" .. player .. "Item" .. j .. "Class"] = nil
@@ -222,14 +220,19 @@ function VoidWanderers:StartActivity()
 						end
 					end
 
+					-- If it wasn't a faulty player-owned brain, then it is something we can put in the scene
 					if IsActor(actor) then
 						MovableMan:AddActor(actor)
 						self:AddPreEquippedItemsToRemovalQueue(actor)
 						spawnedactors = spawnedactors + 1
 
+						-- If if it was a player owned brain, then put it in the scene
 						if player ~= nil then
 							self:SetPlayerBrain(actor, player)
 							self:SwitchToActor(actor, player, CF.PlayerTeam)
+							actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
+							actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
+							actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
 						end
 					end
 				end
@@ -255,6 +258,7 @@ function VoidWanderers:StartActivity()
 					self.DeployedActors[i]["Module"],
 					self.DeployedActors[i]["XP"],
 					self.DeployedActors[i]["Identity"],
+					self.DeployedActors[i]["Player"],
 					self.DeployedActors[i]["Prestige"],
 					self.DeployedActors[i]["Name"],
 					limbData
@@ -272,6 +276,7 @@ function VoidWanderers:StartActivity()
 					self.GS["Actor" .. spawnedactors .. "Y"] = math.ceil(actor.Pos.Y)
 					self.GS["Actor" .. spawnedactors .. "XP"] = actor:GetNumberValue("VW_XP")
 					self.GS["Actor" .. spawnedactors .. "Identity"] = actor:GetNumberValue("Identity")
+					self.GS["Actor" .. spawnedactors .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
 					self.GS["Actor" .. spawnedactors .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
 					self.GS["Actor" .. spawnedactors .. "Name"] = actor:GetStringValue("VW_Name")
 					for j = 1, #CF.LimbID do
@@ -308,12 +313,14 @@ function VoidWanderers:StartActivity()
 					self:AddPreEquippedItemsToRemovalQueue(actor)
 
 					-- If it is an RPG brain
-					if actor:IsInGroup("Brains") and string.find(actor.PresetName, "RPG") ~= nil then
-						player = string.find(actor.PresetName, "PLR")
-						player = tonumber(string.sub(actor.PresetName, player + 3, player + 4))
-
+					if actor:IsInGroup("Brains") and (actor:GetNumberValue("VW_BrainOfPlayer") - 1) ~= Activity.PLAYER_NONE then
+						player = actor:GetNumberValue("VW_BrainOfPlayer") - 1
+						
 						self:SetPlayerBrain(actor, player)
 						self:SwitchToActor(actor, player, CF.PlayerTeam)
+						actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
+						actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
+						actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
 					end
 
 					spawnedactors = spawnedactors + 1
@@ -383,6 +390,7 @@ function VoidWanderers:StartActivity()
 				self.DeployedActors[i]["Module"],
 				self.DeployedActors[i]["XP"],
 				self.DeployedActors[i]["Identity"],
+				self.DeployedActors[i]["Player"],
 				self.DeployedActors[i]["Prestige"],
 				self.DeployedActors[i]["Name"],
 				limbData
@@ -411,12 +419,14 @@ function VoidWanderers:StartActivity()
 				self:AddPreEquippedItemsToRemovalQueue(actor)
 
 				-- If it is an RPG brain
-				if actor:IsInGroup("Brains") and string.find(actor.PresetName, "RPG") ~= nil then
-					player = string.find(actor.PresetName, "PLR")
-					player = tonumber(string.sub(actor.PresetName, player + 3, player + 4))
+				if actor:IsInGroup("Brains") and (actor:GetNumberValue("VW_BrainOfPlayer") - 1) ~= Activity.PLAYER_NONE then
+					player = actor:GetNumberValue("VW_BrainOfPlayer") - 1
 
 					self:SetPlayerBrain(actor, player)
 					self:SwitchToActor(actor, player, CF.PlayerTeam)
+					actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
+					actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
+					actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
 				end
 			end
 
@@ -721,11 +731,7 @@ function VoidWanderers:StartActivity()
 
 	self.AssaultTime = -1
 	self.AttemptAssaultTime = 0
-
-	self.BrainSwitchTimer = Timer()
-	self.BrainSwitchTimer:Reset()
-
-	self:DoBrainSelection()
+	
 	self.EnableBrainSelection = true
 
 	-- Icon display data
@@ -1114,12 +1120,7 @@ function VoidWanderers:TriggerShipAssault()
 				CF.MaxDifficulty
 			)
 
-			local r = math.random(CF.MaxDifficulty * 45)
-			local tgt = (self.AssaultDifficulty * 5) + 10
-
-			--print (CF.GetPlayerFaction(self.GS, self.AssaultEnemyPlayer).." D - "..self.AssaultDifficulty.." R - "..r.." TGT - "..tgt)
-
-			if r < tgt then
+			if math.random(100) < 5 then
 				toassault = true
 			end
 		end
@@ -1145,10 +1146,6 @@ function VoidWanderers:TriggerShipAssault()
 			self.AssaultEnemyPlayer,
 			CF.GetTechLevelFromDifficulty(self.GS, self.AssaultEnemyPlayer, self.AssaultDifficulty, CF.MaxDifficulty)
 		)
-
-		-- Remove some panel actors
-		self.ShipControlPanelActor.ToDelete = true
-		self.BeamControlPanelActor.ToDelete = true
 	else
 		-- Trigger random encounter
 		if math.random() < CF.RandomEncounterProbability and #CF.RandomEncounters > 0 then
@@ -1211,7 +1208,7 @@ function VoidWanderers:TriggerShipAssault()
 				local bridgeempty = true
 				local plrtoswitch = -1
 
-				for player = Activity.PLAYER_1, Activity.PLAYER_4 do
+				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					local act = self:GetControlledActor(player)
 
 					if act and MovableMan:IsActor(act) then
@@ -1306,6 +1303,7 @@ function VoidWanderers:ClearActors()
 		self.GS["Actor" .. i .. "Y"] = nil
 		self.GS["Actor" .. i .. "XP"] = nil
 		self.GS["Actor" .. i .. "Identity"] = nil
+		self.GS["Actor" .. i .. "Player"] = nil
 		self.GS["Actor" .. i .. "Prestige"] = nil
 		self.GS["Actor" .. i .. "Name"] = nil
 		for j = 1, #CF.LimbID do
@@ -1338,6 +1336,7 @@ function VoidWanderers:SaveActors(clearpos)
 			self.GS["Actor" .. savedactor .. "Module"] = actor.ModuleName
 			self.GS["Actor" .. savedactor .. "XP"] = actor:GetNumberValue("VW_XP")
 			self.GS["Actor" .. savedactor .. "Identity"] = actor:GetNumberValue("Identity")
+			self.GS["Actor" .. savedactor .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
 			self.GS["Actor" .. savedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
 			self.GS["Actor" .. savedactor .. "Name"] = actor:GetStringValue("VW_Name")
 			for j = 1, #CF.LimbID do
@@ -1788,6 +1787,8 @@ function VoidWanderers:UpdateActivity()
 
 			-- Remove control actors
 			self:DestroyStorageControlPanelUI()
+			self:DestroyShipControlPanelUI()
+			self:DestroyBeamControlPanelUI()
 			--self:DestroyClonesControlPanelUI()
 			self:DestroyBeamControlPanelUI()
 			self:DestroyItemShopControlPanelUI()
@@ -1806,7 +1807,7 @@ function VoidWanderers:UpdateActivity()
 				self:RemoveDeployedTurrets()
 			end
 		end
-	end --]]--
+	end
 
 	local flightSpeed = tonumber(self.GS["Player0VesselSpeed"])
 	local engineBurst = false
@@ -2134,21 +2135,6 @@ function VoidWanderers:UpdateActivity()
 		self.Time = self.Time + 1
 		self.TickTimer:Reset()
 
-		-- Reputation erosion
-		--[[if self.Time % self.reputationErosionInterval == 0 then
-			for i = 1, tonumber(self.GS["ActiveCPUs"]) do
-				local rep = tonumber(self.GS["Player" .. i .. "Reputation"])
-
-				if rep > 0 then
-					rep = rep - 1
-				elseif rep < 0 then
-					rep = rep + 1
-				end
-
-				self.GS["Player" .. i .. "Reputation"] = rep
-			end
-		end]]
-
 		-- Give passive experience points for non-brain actors
 		for actor in MovableMan.Actors do
 			if self:IsPlayerUnit(actor) then
@@ -2451,14 +2437,14 @@ function VoidWanderers:UpdateActivity()
 
 					self:AddObjectivePoint("CONNECTION LOST", actor.AboveHUDPos, CF.PlayerTeam, GameActivity.ARROWUP)
 				end
-				if actor:IsInGroup("Brains") or actor:HasObjectInGroup("Brains") then
+				if (actor:GetNumberValue("VW_BrainOfPlayer") - 1) ~= Activity.PLAYER_NONE then
 					braincount = braincount + 1
 				end
 			end
 		end
 
 		-- Check losing conditions
-		if self.GS["BrainsOnMission"] ~= "False" and self.ActivityState ~= Activity.OVER then
+		if self.GS["BrainsOnMission"] == "True" and self.ActivityState ~= Activity.OVER then
 			if
 				braincount < self.PlayerCount
 				and self.EnableBrainSelection
@@ -2488,12 +2474,12 @@ function VoidWanderers:UpdateActivity()
 		)
 		local controlledActor = self:GetControlledActor(CF.TypingPlayer)
 		local controller = controlledActor:GetController()
+		for i = 0, Controller.CONTROLSTATECOUNT - 1 do -- Go through and disable the gameplay-related controller states
+			controller:SetState(i, false)
+		end
 		if controlledActor.UniqueID ~= CF.TypingActor.UniqueID then
 			self:SwitchToActor(CF.TypingActor, controller.Player, controlledActor.Team)
 		else
-			for i = 0, 29 do -- Go through and disable the gameplay-related controller states
-				controller:SetState(i, false)
-			end
 			if UInputMan:AnyPress() then
 				for i = 1, #self.keyString do
 					if (i == Key.DELETE) and UInputMan:KeyPressed(i) then
@@ -2526,13 +2512,15 @@ function VoidWanderers:UpdateActivity()
 		self.nameString = {}
 	end
 
-	if self.EnableBrainSelection then
-		self:DoBrainSelection()
-	end
 	self:CheckWinningConditions()
 	self:YSortObjectivePoints()
 
 	for actor in MovableMan.AddedActors do
+		-- No dead unit settles immediately, TODO enable meat shielding by allowing you to pick them up
+		if IsAHuman(actor) or IsACrab(actor) and actor.Status ~= Actor.STABLE then
+			actor.RestThreshold = -1
+			actor:EnableDeepCheck(false)
+		end
 		-- Space out spawned-in craft
 		if actor.Pos.Y <= 0 then
 			local dir = 0
@@ -2550,7 +2538,6 @@ function VoidWanderers:UpdateActivity()
 			end
 		end
 		if self:IsPlayerUnit(actor) then
-			actor.RestThreshold = -1
 			if actor:HasScript("VoidWanderers.rte/Scripts/Carry.lua") then
 				actor:EnableScript("VoidWanderers.rte/Scripts/Carry.lua")
 			else
@@ -2594,55 +2581,6 @@ function VoidWanderers:GetItemPrice(itmpreset, itmclass)
 	end
 
 	return price
-end
------------------------------------------------------------------------------------------
--- Brain selection and gameover conditions check
------------------------------------------------------------------------------------------
-function VoidWanderers:DoBrainSelection()
-	if self.ActivityState ~= Activity.OVER then
-		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				local team = self:GetTeamOfPlayer(player)
-				local brain = self:GetPlayerBrain(player)
-
-				if not brain or not MovableMan:IsActor(brain) or not brain:HasObjectInGroup("Brains") then
-					if team == CF.PlayerTeam then
-						self.PlayerBrainDead = true
-					end
-
-					self:SetPlayerBrain(nil, player)
-					local newBrain = MovableMan:GetUnassignedBrain(team)
-					if newBrain then
-						self:SetPlayerBrain(newBrain, player)
-						self:SwitchToActor(newBrain, player, team)
-						-- Looks like a brain actor can't become a brain actor if it can't hit MOs
-						-- so we'll define LZ actors as hittable but then change this once our brains are assigned to cheat
-						if newBrain.PresetName == "LZ Control Panel" then
-							newBrain.HitsMOs = false
-							newBrain.GetsHitByMOs = false
-						end
-						if team == CF.PlayerTeam then
-							self.PlayerBrainDead = false
-							self:GetBanner(GUIBanner.RED, Activity.PLAYER_1):ClearText()
-						end
-					else
-						for actor in MovableMan.Actors do
-							if actor.Team == team and actor:HasObjectInGroup("Brains") then
-								self:SetPlayerBrain(actor, player)
-								self:SwitchToActor(actor, player, team)
-								if team == CF.PlayerTeam then
-									self.PlayerBrainDead = false
-								end
-								self:GetBanner(GUIBanner.RED, Activity.PLAYER_1):ClearText()
-							end
-						end
-					end
-				else
-					self:SetObservationTarget(brain.Pos, player)
-				end
-			end
-		end
-	end
 end
 -----------------------------------------------------------------------------------------
 --
@@ -2922,7 +2860,7 @@ function VoidWanderers:GiveMissionRewards(disablepenalties)
 				.. "x"
 		end
 	end
-	self.MissionFailed = false
+	self.MissionCompleted = true
 end
 -----------------------------------------------------------------------------------------
 --

@@ -1,5 +1,6 @@
 -----------------------------------------------------------------------------------------
--- Message handling related functions to add to library
+-- Message handling related functions to add to library on VW startup
+-- and anything that wants to interface with Activity facing variables.
 -----------------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------------------
@@ -9,10 +10,10 @@
 VWHandleMessage = function(message, context)
 	if message == "read_from_GS" and IsValidGSReadRequest(context) then
 		local target = ToMOSRotating(context[1])
-		local information = CF["GS"][context[2]]
+		local information = CF.GS[context[2]]
 		target:SendMessage("return_from_activity", information)
 	elseif message == "write_to_GS" and IsValidGSWriteRequest(context) then
-		CF["GS"][context[1]] = context[2]
+		CF.GS[context[1]] = context[2]
 	elseif message == "read_from_CF" and IsValidCFReadRequest(context) then
 		local temp = CF
 		local flag = false
@@ -20,14 +21,20 @@ VWHandleMessage = function(message, context)
 		-- Run down the path, flag for failure and break if something before the last step is nil or we run into a function
 		for i = 1, #context[2] do
 			temp = temp[context[2][i]]
-			if (not temp and i ~= #context[2]) or type(temp) == "function" then
-				flag = true
+			if (not temp and i ~= #context[2]) then
+				flag = -1
+				break
+			elseif type(temp) == "function" then
+				flag = -2
 				break
 			end
 		end
 
 		if flag then
-			print("ERROR: Malformed path.")
+			local message = "Default CF read error, I dunno."
+			if flag == -1 then message = "Malformed path on CF read." end
+			if flag == -2 then message = "Trying to read function value on CF read, try call_in_CF instead, see if you can figure it out." end
+			error(message)
 			return
 		end
 		
@@ -39,14 +46,20 @@ VWHandleMessage = function(message, context)
 		-- Run down the path, flag for failure and break if something before the last step is nil or we run into a function
 		for i = 1, #context[1] - 1 do
 			temp = temp[context[1][i]]
-			if (not temp) or type(temp) == "function" then
-				flag = true
+			if (not temp) then
+				flag = -1
+				break
+			elseif type(temp) == "function" then
+				flag = -2
 				break
 			end
 		end
 
 		if flag then
-			print("ERROR: Malformed path or trying to overwrite function with value.")
+			local message = "Default CF write error, I dunno."
+			if flag == -1 then message = "Malformed path on CF write." end
+			if flag == -2 then message = "Trying to overwrite function with value on CF write." end
+			error(message)
 			return
 		end
 
@@ -59,18 +72,24 @@ VWHandleMessage = function(message, context)
 		
 		for i = 1, #context[2] do
 			temp = temp[context[2][i]]
-			if not temp then
-				flag = true
+			if (not temp) then
+				flag = -1
+				break
+			elseif type(temp) ~= "function" then
+				flag = -2
 				break
 			end
 		end
 
-		if flag or type(temp) ~= "function" then
-			print("Your index does not produce an existing value, unless nil might be what you're looking for.")
+		if flag then
+			local message = "Default CF call error, I dunno."
+			if flag == -1 then message = "Malformed path on CF remote call." end
+			if flag == -2 then message = "Trying to execute non-function value on CF remote call." end
+			error(message)
 			return
 		end
 		
-		target:SendMessage("return_from_activity", PackReturnForMessage(temp(unpack(context[3]))))
+		target:SendMessage("return_from_activity", {temp(unpack(context[3]))})
 	end
 end
 -----------------------------------------------------------------------------------------
@@ -116,12 +135,6 @@ IsValidCFCallRequest = function(context)
 		validName = validName and type(context[2][i]) == "string"
 	end
 	return IsMovableObject(context[1]) and validName
-end
------------------------------------------------------------------------------------------
--- Unpack exists but we need to define pack for the return trip
------------------------------------------------------------------------------------------
-PackReturnForMessage = function(...)
-	return {...}
 end
 -----------------------------------------------------------------------------------------
 -- 

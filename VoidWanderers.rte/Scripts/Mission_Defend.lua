@@ -98,7 +98,7 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	if self.MissionStage == self.MissionStages.ACTIVE then
-		self.MissionFailed = true
+		self.MissionCompleted = false
 		local friends = 0
 		local enemies = 0
 

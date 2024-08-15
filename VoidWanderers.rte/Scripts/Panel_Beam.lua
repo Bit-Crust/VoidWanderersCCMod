@@ -33,7 +33,7 @@ function VoidWanderers:InitBeamControlPanelUI()
 			self.BeamControlPanelActor = CreateActor("Beam Control Panel")
 			if self.BeamControlPanelActor ~= nil then
 				self.BeamControlPanelActor.Pos = self.BeamControlPanelPos
-				self.BeamControlPanelActor.Team = CF["PlayerTeam"]
+				self.BeamControlPanelActor.Team = CF.PlayerTeam
 				MovableMan:AddActor(self.BeamControlPanelActor)
 			end
 		else
@@ -113,35 +113,35 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 			end
 
 			if anybraindetached and braincount < self.PlayerCount then
-				CF["DrawString"]("All brains must be on the landing deck", pos + Vector(-54, -6), 124, 36)
+				CF.DrawString("All brains must be on the landing deck", pos + Vector(-54, -6), 124, 36)
 				canbeam = false
 			else
-				local locname = CF["LocationName"][self.GS["Location"]]
+				local locname = CF.LocationName[self.GS["Location"]]
 				if locname ~= nil then
 					if
-						CF["LocationPlayable"][self.GS["Location"]] == nil
-						or CF["LocationPlayable"][self.GS["Location"]] == true
+						CF.LocationPlayable[self.GS["Location"]] == nil
+						or CF.LocationPlayable[self.GS["Location"]] == true
 					then
 						if count <= limit then
 							if count > 0 then
-								CF["DrawString"](
-									"Deploy away team on " .. CF["LocationName"][self.GS["Location"]],
+								CF.DrawString(
+									"Deploy away team on " .. CF.LocationName[self.GS["Location"]],
 									pos + Vector(-55, -6),
 									120,
 									36
 								)
 								canbeam = true
 							else
-								CF["DrawString"]("No units on the landing deck", pos + Vector(-50, -6), 120, 36)
+								CF.DrawString("No units on the landing deck", pos + Vector(-50, -6), 120, 36)
 								canbeam = false
 							end
 						else
-							CF["DrawString"]("Too many units!", pos + Vector(-35, -6), 120, 36)
+							CF.DrawString("Too many units!", pos + Vector(-35, -6), 120, 36)
 							canbeam = false
 						end
 					else
-						CF["DrawString"](
-							"Can't deploy to " .. CF["LocationName"][self.GS["Location"]],
+						CF.DrawString(
+							"Can't deploy to " .. CF.LocationName[self.GS["Location"]],
 							pos + Vector(-50, -6),
 							120,
 							36
@@ -149,20 +149,20 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 						canbeam = false
 					end
 				else
-					CF["DrawString"]("Can't deploy units into space", pos + Vector(-50, 0), 120, 36)
+					CF.DrawString("Can't deploy units into space", pos + Vector(-50, 0), 120, 36)
 					canbeam = false
 				end
 			end
 
 			if not anybraindetached then
-				CF["DrawString"](
+				CF.DrawString(
 					"DEPLOY [ " .. tostring(count) .. "/" .. self.GS["Player0VesselCommunication"] .. " ]",
 					pos + Vector(-30, -16),
 					130,
 					36
 				)
 			else
-				CF["DrawString"]("DEPLOY", pos + Vector(-16, -16), 130, 36)
+				CF.DrawString("DEPLOY", pos + Vector(-16, -16), 130, 36)
 			end
 
 			-- Deploy units
@@ -175,10 +175,10 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 					-- Save all items
 					for item in MovableMan.Items do
 						if IsHeldDevice(item) and not ToHeldDevice(item).UnPickupable then
-							local count = CF["CountUsedStorageInArray"](self.StorageItems)
+							local count = CF.CountUsedStorageInArray(self.StorageItems)
 
 							if count < tonumber(self.GS["Player0VesselStorageCapacity"]) then
-								CF["PutItemToStorageArray"](
+								CF.PutItemToStorageArray(
 									self.StorageItems,
 									item.PresetName,
 									item.ClassName,
@@ -190,7 +190,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 						end
 					end
 
-					CF["SetStorageArray"](self.GS, self.StorageItems)
+					CF.SetStorageArray(self.GS, self.StorageItems)
 
 					-- Clean previously saved actors and inventories in config
 					self:ClearActors()
@@ -215,6 +215,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 								self.DeployedActors[n]["Module"] = actor.ModuleName
 								self.DeployedActors[n]["XP"] = actor:GetNumberValue("VW_XP")
 								self.DeployedActors[n]["Identity"] = actor:GetNumberValue("Identity")
+								self.DeployedActors[n]["Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
 								self.DeployedActors[n]["Prestige"] = actor:GetNumberValue("VW_Prestige")
 								self.DeployedActors[n]["Name"] = actor:GetStringValue("VW_Name")
 								self.DeployedActors[n]["InventoryPresets"] = pre
@@ -238,6 +239,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 								self.GS["Actor" .. savedactor .. "Module"] = actor.ModuleName
 								self.GS["Actor" .. savedactor .. "XP"] = actor:GetNumberValue("VW_XP")
 								self.GS["Actor" .. savedactor .. "Identity"] = actor:GetNumberValue("Identity")
+								self.GS["Actor" .. savedactor .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
 								self.GS["Actor" .. savedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
 								self.GS["Actor" .. savedactor .. "Name"] = actor:GetStringValue("VW_Name")
 								self.GS["Actor" .. savedactor .. "X"] = math.floor(actor.Pos.X)
@@ -259,8 +261,8 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 
 					-- Prepare for transfer
 					-- Select scene
-					local r = math.random(#CF["LocationScenes"][self.GS["Location"]])
-					local scene = CF["LocationScenes"][self.GS["Location"]][r]
+					local r = math.random(#CF.LocationScenes[self.GS["Location"]])
+					local scene = CF.LocationScenes[self.GS["Location"]][r]
 
 					if anybraindetached then
 						self.GS["BrainsOnMission"] = "True"

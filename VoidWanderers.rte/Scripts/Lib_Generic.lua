@@ -11,7 +11,7 @@ CF.InitFactions = function(activity)
 	print("CF.InitFactions")
 	CF.CPUTeam = Activity.TEAM_2
 	CF.PlayerTeam = Activity.TEAM_1
-	CF.RogueTeam = Activity.PLAYER_NONE
+	CF.RogueTeam = Activity.NOTEAM
 	CF.MOIDLimit = math.huge
 	CF.ModuleName = "VoidWanderers.rte"
 
@@ -48,7 +48,7 @@ CF.InitFactions = function(activity)
 
 	CF.KeyRepeatDelay = 100
 
-	CF.MaxLevel = 100
+	CF.MaxLevel = 150
 	CF.ExpPerLevel = 250
 
 	CF.Ranks = { 50, 125, 250, 500, 1000 }
@@ -896,9 +896,9 @@ CF["MakeItem"] = function(preset, class, module)
 	return item
 end
 -----------------------------------------------------------------------------------------
--- Make actor of specified preset, class, module, rank and identity
+-- Make actor of specified preset, class, module, rank, identity, and player
 -----------------------------------------------------------------------------------------
-CF["MakeActor"] = function(item, class, module, xp, identity, prestige, name, limbs)
+CF["MakeActor"] = function(item, class, module, xp, identity, player, prestige, name, limbs)
 	local actor
 	if class == nil then
 		class = "AHuman"
@@ -929,6 +929,9 @@ CF["MakeActor"] = function(item, class, module, xp, identity, prestige, name, li
 		actor.AngularVel = 0
 		if identity then
 			actor:SetNumberValue("Identity", tonumber(identity))
+		end
+		if player then
+			actor:SetNumberValue("VW_BrainOfPlayer", tonumber(player))
 		end
 		if prestige then
 			actor:SetNumberValue("VW_Prestige", tonumber(prestige))
@@ -1352,7 +1355,7 @@ CF.GenerateRandomName = function()
 	if not CF.RandomNames then
 		CF.RandomNames = {}
 		CF.RandomNames[1] = { "Big", "Just", "Killer", "Lt.", "Little", "Mad", "Major", "MC", "Sgt.", "Serious", }
-		CF.RandomNames[2] = { "Alex", "Ban", "Billy", "Brian", "Chad", "Charlie", "Dick", "Dixie", "Frankie", "Gordon",
+		CF.RandomNames[2] = { "Alex", "Ban", "Billy", "Brian", "Buck", "Chad", "Charlie", "Chuck", "Dick", "Dixie", "Frankie", "Gordon",
 								"George", "Joe", "John", "Jordan", "Mack", "Mal", "Max", "Miles", "Morgan", "Pepper",
 								"Roger", "Sam", "Smoke", }
 		CF.RandomNames[3] = { "Davis", "Freeman", "Function", "Griffin", "Hammer", "Hawkins", "Johnson", "McGee",

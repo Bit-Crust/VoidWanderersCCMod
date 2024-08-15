@@ -62,10 +62,10 @@ function VoidWanderers:MissionCreate()
 	self.MissionStage = self.MissionStages.ACTIVE
 
 	-- Spawn commander
-	self.MissionBrain = CF["MakeRPGBrain"](self.GS, self.MissionTargetPlayer, CF["CPUTeam"], brain[1], self.MissionDifficulty)
+	self.MissionBrain = CF.MakeRPGBrain(self.GS, self.MissionTargetPlayer, CF.CPUTeam, brain[1], self.MissionDifficulty)
 	if self.MissionBrain then
 		MovableMan:AddActor(self.MissionBrain)
-		self.MissionBrain:AddInventoryItem(CreateHeldDevice("Blueprint", CF["ModuleName"]))
+		self.MissionBrain:AddInventoryItem(CreateHeldDevice("Blueprint", CF.ModuleName))
 	end
 	self.sentryRadius = 100 + math.sqrt(FrameMan.PlayerScreenHeight ^ 2 + FrameMan.PlayerScreenWidth ^ 2) * 0.5
 
@@ -100,7 +100,7 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	if self.MissionStage == self.MissionStages.ACTIVE then
-		self.MissionFailed = true
+		self.MissionCompleted = false
 		local count = 0
 
 		local enemydist = 100000

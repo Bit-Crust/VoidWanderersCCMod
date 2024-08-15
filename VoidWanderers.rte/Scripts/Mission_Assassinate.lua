@@ -73,21 +73,18 @@ function VoidWanderers:MissionCreate()
 	local cmndrpts = CF["GetPointsArray"](self.Pts, "Assassinate", set, "Commander")
 	local cpos = cmndrpts[math.random(#cmndrpts)]
 
-	self.MissionBrain = CF["MakeBrain"](self.GS, self.MissionTargetPlayer, CF["CPUTeam"], cpos, true)
-	local setRank = math.min(self.MissionDifficulty - 1, CF["Ranks"][#CF["Ranks"]])
-	self.MissionBrain:SetNumberValue("VW_Rank", setRank)
-	CF["BuffActor"](self.MissionBrain, setRank, 0)
+	self.MissionBrain = CF.MakeRPGBrain(self.GS, self.MissionTargetPlayer, CF.CPUTeam, cpos, math.floor(self.MissionDifficulty / 3), true)
 
 	if self.MissionBrain then
 		self.MissionBrain:AddToGroup("MissionBrain")
-		--self.MissionBrain:RemoveFromGroup("Brains")
 		MovableMan:AddActor(self.MissionBrain)
-		if math.random(CF["MaxDifficulty"]) <= self.MissionDifficulty then
-			self.MissionBrain:AddInventoryItem(CreateHeldDevice("Blueprint", CF["ModuleName"]))
+		if math.random(CF.MaxDifficulty) <= self.MissionDifficulty then
+			self.MissionBrain:AddInventoryItem(CreateHeldDevice("Blueprint", CF.ModuleName))
 		end
 	else
 		error("Can't create CPU brain")
 	end
+
 	self.MissionCraft = nil
 	self.MissionCraftCheckTime = self.Time
 
@@ -102,7 +99,7 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	if self.MissionStage == self.MissionStages.ACTIVE then
-		self.MissionFailed = true --??
+		self.MissionCompleted = false
 		local count = 0
 
 		-- Start checking for victory only when all units were spawned
