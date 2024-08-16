@@ -112,7 +112,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 				limit = 1000
 			end
 
-			if anybraindetached and braincount < self.PlayerCount then
+			if braincount > 0 and braincount < self.PlayerCount then
 				CF.DrawString("All brains must be on the landing deck", pos + Vector(-54, -6), 124, 36)
 				canbeam = false
 			else
@@ -264,7 +264,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 					local r = math.random(#CF.LocationScenes[self.GS["Location"]])
 					local scene = CF.LocationScenes[self.GS["Location"]][r]
 
-					if anybraindetached then
+					if braincount == self.PlayerCount then
 						self.GS["BrainsOnMission"] = "True"
 					else
 						self.GS["BrainsOnMission"] = "False"

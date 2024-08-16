@@ -322,6 +322,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 				local unsafeUnits = {}
 				local enemyPos = {}
 				local brainUnsafe = 0
+				local clearToLeave = true
 
 				for actor in MovableMan.Actors do
 					if
@@ -337,6 +338,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 								unsafeUnits[#unsafeUnits + 1] = actor
 								if actor:HasObjectInGroup("Brains") then
 									brainUnsafe = brainUnsafe + 1
+									clearToLeave = false
 								end
 							end
 						end
@@ -409,7 +411,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					self:PutGlow("ControlPanel_LZ_ButtonRed", pos)
 					if #unsafeUnits > 0 then
 						if brainUnsafe > 0 then
-							CF.DrawString("AND ABANDON BRAIN", pos + Vector(-54, 4), 130, 20)
+							CF.DrawString("CAN'T ABANDON BRAIN", pos + Vector(-54, 4), 130, 20)
 						else
 							CF.DrawString(
 								"AND ABANDON " .. #unsafeUnits .. " UNIT" .. (#unsafeUnits > 1 and "S" or ""),
@@ -485,6 +487,9 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					if self.ControlPanelLZPressTime == nil then
 						self.ControlPanelLZPressTime = self.Time
 					end
+					if self.ControlPanelLZPressTime + CF.TeamReturnDelay <= self.Time then
+						self.ControlPanelLZPressTime = self.Time - CF.TeamReturnDelay
+					end
 					CF.DrawString(
 						"RETURN IN T-" .. tostring(self.ControlPanelLZPressTime + CF.TeamReturnDelay - self.Time),
 						pos + Vector(-30, -10),
@@ -493,7 +498,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					)
 
 					-- Return to ship
-					if self.ControlPanelLZPressTime + CF.TeamReturnDelay == self.Time then
+					if self.ControlPanelLZPressTime + CF.TeamReturnDelay == self.Time and clearToLeave then
 						self.DeployedActors = {}
 
 						local actors = {}
