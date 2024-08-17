@@ -115,37 +115,32 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 			if self.SelectedClone ~= 0 then
 				if cont:IsState(Controller.PRESS_LEFT) then
 					self.ClonesControlMode = self.ClonesControlMode - 1
-
-					if self.ClonesControlMode == -1 then
-						self.ClonesControlMode = 0
-					end
-
-					if self.SelectedClone > 0 then
-						if #self.Clones[self.SelectedClone]["Items"] < self.ClonesInventorySelectedItem then
-							self.ClonesInventorySelectedItem = #self.Clones[self.SelectedClone]["Items"]
-						end
-
-						if self.ClonesInventorySelectedItem < 1 and #self.Clones[self.SelectedClone]["Items"] > 0 then
-							self.ClonesInventorySelectedItem = 1
-						end
-					end
 				end
 
 				if cont:IsState(Controller.PRESS_RIGHT) then
 					self.ClonesControlMode = self.ClonesControlMode + 1
+				end
 
-					if self.ClonesControlMode == 4 then
-						self.ClonesControlMode = 3
+				if self.ClonesControlMode <= self.ClonesControlPanelModes.SELL - 1 then
+					self.ClonesControlMode = self.ClonesControlPanelModes.SELL
+				end
+
+				-- don't let players dump bodies during assaults, that would not be good
+				if self.GS["Mode"] ~= "Assault" and self.ClonesControlMode <= self.ClonesControlPanelModes.CLONES - 1 then
+					self.ClonesControlMode = self.ClonesControlPanelModes.CLONES
+				end
+
+				if self.ClonesControlMode >= self.ClonesControlPanelModes.ITEMS + 1 then
+					self.ClonesControlMode = self.ClonesControlPanelModes.ITEMS
+				end
+
+				if self.SelectedClone > 0 then
+					if #self.Clones[self.SelectedClone]["Items"] < self.ClonesInventorySelectedItem then
+						self.ClonesInventorySelectedItem = #self.Clones[self.SelectedClone]["Items"]
 					end
 
-					if self.SelectedClone > 0 then
-						if #self.Clones[self.SelectedClone]["Items"] < self.ClonesInventorySelectedItem then
-							self.ClonesInventorySelectedItem = #self.Clones[self.SelectedClone]["Items"]
-						end
-
-						if self.ClonesInventorySelectedItem < 1 and #self.Clones[self.SelectedClone]["Items"] > 0 then
-							self.ClonesInventorySelectedItem = 1
-						end
+					if self.ClonesInventorySelectedItem < 1 and #self.Clones[self.SelectedClone]["Items"] > 0 then
+						self.ClonesInventorySelectedItem = 1
 					end
 				end
 			end
