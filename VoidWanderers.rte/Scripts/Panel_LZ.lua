@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------------------
 function VoidWanderers:InitLZControlPanelUI()
 	self.LZControlPanelActor = {}
+	self.ControlPanelLZPressTimes = {}
 
 	self.BombsControlPanelInBombMode = false
 
@@ -21,37 +22,27 @@ function VoidWanderers:InitLZControlPanelUI()
 	local panelPos = Vector()
 
 	local brainsAbsent = self.GS["BrainsOnMission"] == "False"
-	local activePlayers = 1
-
+	
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		if self:PlayerActive(player) and self:PlayerHuman(player) and (brainsAbsent or player == Activity.PLAYER_1) then
+		--print("PLAYER #" .. player .. ": " .. tostring(brainsAbsent and self:PlayerActive(player) and self:PlayerHuman(player)) .. " " .. tostring(not brainsAbsent and player == Activity.PLAYER_1))
+		if (brainsAbsent and self:PlayerActive(player) and self:PlayerHuman(player)) or (not brainsAbsent and player == Activity.PLAYER_1) then
 			-- Create actor
 			if not MovableMan:IsActor(self.LZControlPanelActor[player + 1]) then
 				self.LZControlPanelActor[player + 1] = CreateActor("LZ Control Panel")
 				if self.LZControlPanelActor[player + 1] ~= nil then
-					self.LZControlPanelActor[player + 1].Pos = self.LZControlPanelPos[activePlayers]
+					self.LZControlPanelActor[player + 1].Pos = self.LZControlPanelPos[player + 1]
 					self.LZControlPanelActor[player + 1].Team = CF.PlayerTeam
 					MovableMan:AddActor(self.LZControlPanelActor[player + 1])
 					if brainsAbsent then
 						self:SetPlayerBrain(self.LZControlPanelActor[player + 1], player)
 						self:SwitchToActor(self.LZControlPanelActor[player + 1], player, CF.PlayerTeam)
 					end
-					panelPos = self.LZControlPanelPos[activePlayers]
+					panelPos = self.LZControlPanelPos[player + 1]
 				end
-				self.BombsControlPanelSelectedModes[player] = self.BombsControlPanelModes.RETURN
+				self.BombsControlPanelSelectedModes[player + 1] = self.BombsControlPanelModes.RETURN
 			end
-			activePlayers = activePlayers + 1
 		end
 	end
-
-	--[[self.LZControlPanelActor = CreateActor("LZ Control Panel")
-	if self.LZControlPanelActor ~= nil then
-		self.LZControlPanelActor.Pos = self.LZControlPanelPos[1]
-		self.LZControlPanelActor.Team = CF.PlayerTeam
-		MovableMan:AddActor(self.LZControlPanelActor)
-		panelPos = self.LZControlPanelPos[1]
-	end
-	self.BombsControlPanelSelectedMode = self.BombsControlPanelModes.RETURN]]
 
 	local screenDim = Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight)
 	self.lzBox = Box(panelPos + screenDim * -0.5, panelPos + screenDim * 0.5)
@@ -60,6 +51,7 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
+	print("Halp")
 	if orbitedCraft.PresetName ~= "Fake Drop Ship MK1" and self.GS["Mode"] ~= "Vessel" then
 		if orbitedCraft.Team == CF.PlayerTeam and orbitedCraft:HasObjectInGroup("Brains") then
 			self.DeployedActors = {}
@@ -237,69 +229,34 @@ function VoidWanderers:ProcessLZControlPanelUI()
 	end
 
 	-- Re-create dead LZs
+	local brainsAbsent = self.GS["BrainsOnMission"] == "False"
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		if self:PlayerActive(player) and self:PlayerHuman(player) then
+		--print("PLAYER #" .. player .. ": " .. tostring(brainsAbsent and self:PlayerActive(player) and self:PlayerHuman(player)) .. " " .. tostring(not brainsAbsent and player == Activity.PLAYER_1))
+		if (brainsAbsent and self:PlayerActive(player) and self:PlayerHuman(player)) or (not brainsAbsent and player == Activity.PLAYER_1) then
 			if not MovableMan:IsActor(self.LZControlPanelActor[player + 1]) then
 				self.LZControlPanelActor[player + 1] = CreateActor("LZ Control Panel")
-
 				if self.LZControlPanelActor[player + 1] ~= nil then
 					self.LZControlPanelActor[player + 1].Pos = self.LZControlPanelPos[player + 1]
 					self.LZControlPanelActor[player + 1].Team = CF.PlayerTeam
 					MovableMan:AddActor(self.LZControlPanelActor[player + 1])
+					if brainsAbsent then
+						self:SetPlayerBrain(self.LZControlPanelActor[player + 1], player)
+						self:SwitchToActor(self.LZControlPanelActor[player + 1], player, CF.PlayerTeam)
+					end
 				end
 			end
 		end
 	end
 
-	--[[if not MovableMan:IsActor(self.LZControlPanelActor) then
-		self.LZControlPanelActor = CreateActor("LZ Control Panel")
-
-		if self.LZControlPanelActor ~= nil then
-			self.LZControlPanelActor.Pos = self.LZControlPanelPos[1]
-			self.LZControlPanelActor.Team = CF.PlayerTeam
-			MovableMan:AddActor(self.LZControlPanelActor)
-		end
-	end]]
-
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self.LZControlPanelActor[player + 1] then
-			local showidle = true
-			local act = self:GetControlledActor(player)
-
-			if
-				act
-				and MovableMan:IsActor(act)
-				and act.PresetName == "LZ Control Panel"
-				and act.ID == self.LZControlPanelActor[player + 1].ID
-			then
-				showidle = false
-			end
-
-			if showidle then
+			if not self.LZControlPanelActor[player + 1]:GetController():IsPlayerControlled(Activity.PLAYER_NONE) then
 				self:PutGlow("ControlPanel_LZ", self.LZControlPanelPos[player + 1])
-				--CF.DrawString("RETURN",self.LZControlPanelPos[i] + Vector(-13,0),120,20 )
 			end
 		end
 	end
-
-	--[[if self.LZControlPanelActor then
-		local showidle = true
-		local act = self.LZControlPanelActor:GetController().Player
-
-		if
-			act > -1
-		then
-			showidle = false
-		end
-
-		if showidle then
-			self:PutGlow("ControlPanel_LZ", self.LZControlPanelPos[1])
-			--CF.DrawString("RETURN",self.LZControlPanelPos[i] + Vector(-13,0),120,20 )
-		end
-	end]]
 	
 	local anypanelselected = false
-	local panelsaccounted = 0
 	local safe = false
 	local totalGoldCarried = 0
 
@@ -309,20 +266,18 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		if act and MovableMan:IsActor(act) and act.PresetName == "LZ Control Panel" then
 			local cont = act:GetController()
 			local pos = act.Pos
-			local selectedpanel = 0
+			local selectedpanel = 1
 			anypanelselected = true
-			panelsaccounted = panelsaccounted + 1
 
-			if act.ID == self.LZControlPanelActor[player + 1].ID then
-				selectedpanel = player
+			if self.LZControlPanelActor[player + 1] and act.ID == self.LZControlPanelActor[player + 1].ID then
+				selectedpanel = player + 1
 			end
 
-			if self.BombsControlPanelSelectedModes[player] == self.BombsControlPanelModes.RETURN then
+			if self.BombsControlPanelSelectedModes[selectedpanel] == self.BombsControlPanelModes.RETURN then
 				local safeUnits = {}
 				local unsafeUnits = {}
 				local enemyPos = {}
 				local brainUnsafe = 0
-				local clearToLeave = true
 
 				for actor in MovableMan.Actors do
 					if
@@ -338,7 +293,6 @@ function VoidWanderers:ProcessLZControlPanelUI()
 								unsafeUnits[#unsafeUnits + 1] = actor
 								if actor:HasObjectInGroup("Brains") then
 									brainUnsafe = brainUnsafe + 1
-									clearToLeave = false
 								end
 							end
 						end
@@ -446,59 +400,59 @@ function VoidWanderers:ProcessLZControlPanelUI()
 				end
 
 				if cont:IsState(Controller.PRESS_LEFT) then
-					self.BombsControlPanelSelectedModes[player] = self.BombsControlPanelSelectedModes[player]
+					self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelSelectedModes[selectedpanel]
 						- 1
 
-					if self.BombsControlPanelSelectedModes[player] < self.BombsControlPanelModes.RETURN then
-						self.BombsControlPanelSelectedModes[player] = self.BombsControlPanelModes.BOMB
+					if self.BombsControlPanelSelectedModes[selectedpanel] < self.BombsControlPanelModes.RETURN then
+						self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelModes.BOMB
 					end
 
-					if self.BombsControlPanelSelectedModes[player] == self.BombsControlPanelModes.BOMB then
+					if self.BombsControlPanelSelectedModes[selectedpanel] == self.BombsControlPanelModes.BOMB then
 						if
 							self.BombsControlPanelInBombMode
 							or CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.NOBOMBS)
 						then
-							self.BombsControlPanelSelectedModes[player] = self.BombsControlPanelSelectedModes[player]
+							self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelSelectedModes[selectedpanel]
 								- 1
 						end
 					end
 				end
 
 				if cont:IsState(Controller.PRESS_RIGHT) then
-					self.BombsControlPanelSelectedModes[player] = self.BombsControlPanelSelectedModes[player]
+					self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelSelectedModes[selectedpanel]
 						+ 1
 
-					if self.BombsControlPanelSelectedModes[player] == self.BombsControlPanelModes.BOMB then
+					if self.BombsControlPanelSelectedModes[selectedpanel] == self.BombsControlPanelModes.BOMB then
 						if
 							self.BombsControlPanelInBombMode
 							or CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.NOBOMBS)
 						then
-							self.BombsControlPanelSelectedModes[player] = self.BombsControlPanelSelectedModes[player]
+							self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelSelectedModes[selectedpanel]
 								+ 1
 						end
 					end
 
-					if self.BombsControlPanelSelectedModes[player] > self.BombsControlPanelModes.BOMB then
-						self.BombsControlPanelSelectedModes[player] = self.BombsControlPanelModes.RETURN
+					if self.BombsControlPanelSelectedModes[selectedpanel] > self.BombsControlPanelModes.BOMB then
+						self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelModes.RETURN
 					end
 				end
 
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if self.ControlPanelLZPressTime == nil then
-						self.ControlPanelLZPressTime = self.Time
+					if self.ControlPanelLZPressTimes[player + 1] == nil then
+						self.ControlPanelLZPressTimes[player + 1] = self.Time
 					end
-					if self.ControlPanelLZPressTime + CF.TeamReturnDelay <= self.Time then
-						self.ControlPanelLZPressTime = self.Time - CF.TeamReturnDelay
+					if self.ControlPanelLZPressTimes[player + 1] + CF.TeamReturnDelay <= self.Time then
+						self.ControlPanelLZPressTimes[player + 1] = self.Time - CF.TeamReturnDelay
 					end
 					CF.DrawString(
-						"RETURN IN T-" .. tostring(self.ControlPanelLZPressTime + CF.TeamReturnDelay - self.Time),
+						"RETURN IN T-" .. tostring(self.ControlPanelLZPressTimes[player + 1] + CF.TeamReturnDelay - self.Time),
 						pos + Vector(-30, -10),
 						130,
 						20
 					)
 
 					-- Return to ship
-					if self.ControlPanelLZPressTime + CF.TeamReturnDelay == self.Time and clearToLeave then
+					if self.ControlPanelLZPressTimes[player + 1] + CF.TeamReturnDelay == self.Time and (brainUnsafe <= 0 or safe) then
 						self.DeployedActors = {}
 
 						local actors = {}
@@ -566,14 +520,14 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					end
 				else
 					CF.DrawString("HOLD FIRE TO RETURN", pos + Vector(-50, -10), 130, 20)
-					self.ControlPanelLZPressTime = nil
+					self.ControlPanelLZPressTimes[player + 1] = nil
 				end
 
 				if self.MissionStatus ~= nil then
 					local l = CF.GetStringPixelWidth(self.MissionStatus)
 					CF.DrawString(self.MissionStatus, pos + Vector(-l / 2, 16), 130, 25)
 				end
-			elseif self.BombsControlPanelSelectedModes[player] == self.BombsControlPanelModes.BOMB then
+			elseif self.BombsControlPanelSelectedModes[selectedpanel] == self.BombsControlPanelModes.BOMB then
 				if not self.BombsControlPanelInBombMode then
 					self.BombsControlPanelSelectedItem = 1
 
@@ -603,21 +557,21 @@ function VoidWanderers:ProcessLZControlPanelUI()
 
 				if cont:IsState(Controller.PRESS_LEFT) then
 					self.BombsControlPanelInBombMode = false
-					self.BombsControlPanelSelectedModes[player] = self.BombsControlPanelSelectedModes[player]
+					self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelSelectedModes[selectedpanel]
 						- 1
 
-					if self.BombsControlPanelSelectedModes[player] < self.BombsControlPanelModes.RETURN then
-						self.BombsControlPanelSelectedModes[player] = self.BombsControlPanelModes.BOMB
+					if self.BombsControlPanelSelectedModes[selectedpanel] < self.BombsControlPanelModes.RETURN then
+						self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelModes.BOMB
 					end
 				end
 
 				if cont:IsState(Controller.PRESS_RIGHT) then
 					self.BombsControlPanelInBombMode = false
-					self.BombsControlPanelSelectedModes[player] = self.BombsControlPanelSelectedModes[player]
+					self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelSelectedModes[selectedpanel]
 						+ 1
 
-					if self.BombsControlPanelSelectedModes[player] > self.BombsControlPanelModes.BOMB then
-						self.BombsControlPanelSelectedModes[player] = self.BombsControlPanelModes.RETURN
+					if self.BombsControlPanelSelectedModes[selectedpanel] > self.BombsControlPanelModes.BOMB then
+						self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelModes.RETURN
 					end
 				end
 
@@ -631,7 +585,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 								and #self.BombPayload > 0
 							then
 								-- Start targeting
-								self.BombsControlPanelSelectedModes[player] = self.BombsControlPanelModes.RETURN
+								self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelModes.RETURN
 								self:InitBombsControlPanelUI()
 								if MovableMan:IsActor(self.BombsControlPanelActor) then
 									-- Remove orbital strike option from bombs array because bombing actor will commit changes made here
@@ -715,15 +669,6 @@ function VoidWanderers:ProcessLZControlPanelUI()
 				end
 			end
 		end
-
-		if not (self:PlayerActive(player) and self:PlayerHuman(player)) then
-			panelsaccounted = panelsaccounted + 1
-		end
-	end
-
-	-- If a panel exists but isn't in use, don't let anyone leave
-	if panelsaccounted ~= 4 then
-		self.ControlPanelLZPressTime = nil
 	end
 
 	-- Reset panel states when they are not selected
@@ -731,7 +676,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		self.BombsControlPanelInBombMode = false
 
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-			self.BombsControlPanelSelectedModes[player] = self.BombsControlPanelModes.RETURN
+			self.BombsControlPanelSelectedModes[player + 1] = self.BombsControlPanelModes.RETURN
 		end
 	end
 

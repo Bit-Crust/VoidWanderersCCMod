@@ -137,6 +137,19 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 						act.ToDelete = true
 
 						MovableMan:AddActor(rb)
+
+						--[[local reference = CF.MakeBrain(self.GS, 0, CF.PlayerTeam, act.Pos + Vector(0, 20), false)
+						if not reference:IsOrganic() and IsAHuman(reference) then
+							local decoHead = CreateAttachable(reference.Head.PresetName)
+							decoHead.RotAngle = math.pi
+							decoHead.HFlipped = true
+							decoHead.IgnoreTerrain = true
+							decoHead:EnableDeepCheck(false)
+							rb.IgnoreTerrain = true
+							rb.Scale = 0
+							rb:AddAttachable(decoHead, Vector(0, decoHead:GetSpriteHeight()/2))
+						end]]
+
 						self:SwitchToActor(rb, player, CF.PlayerTeam)
 						self:SetPlayerBrain(rb, player)
 					end
