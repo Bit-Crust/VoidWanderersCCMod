@@ -1,4 +1,26 @@
-dofile("VoidWanderers.rte/Scripts/Lib_Messages.lua")
+local tempvar = nil
+
+function CF_Read(self, keys) 
+	tempvar = nil
+	ActivityMan:GetActivity():SendMessage("read_from_CF", {self, keys})
+	return tempvar
+end
+
+function CF_Write(keys, value) 
+	ActivityMan:GetActivity():SendMessage("write_to_CF", {keys, value})
+end
+
+function CF_Call(self, keys, arguments) 
+	tempvar = nil
+	ActivityMan:GetActivity():SendMessage("call_in_CF", {self, keys, arguments})
+	return tempvar
+end
+
+function OnMessage(self, message, context)
+	if message == "return_from_activity" then
+		tempvar = context
+	end
+end
 
 function PackBrainForConfig(self)
 	return {BrainNumber = self.BrainNumber, RepairCount = self.RepairCount, HealCount = self.HealCount, SelfHealCount = self.SelfHealCount, QuantumStorage = self.QuantumStorage}
@@ -64,20 +86,20 @@ function Create(self)
 	if self.BrainNumber ~= Activity.PLAYER_NONE then -- If player controlled
 		local player = self.BrainNumber
 
-		local val = tonumber(GS_Read(self, "Brain" .. player .. "Level"))
+		local val = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Level"}))
 		self.MaxHealth = self.MaxHealth * (100 + val) / 100
 		self.Health = self.MaxHealth
 		self.RegenInterval = 1500 - val * 10
 			
-		self.ToughnessLevel = tonumber(GS_Read(self, "Brain" .. player .. "Toughness"))
-		self.ShieldLevel = tonumber(GS_Read(self, "Brain" .. player .. "Field"))
-		self.TelekinesisLevel = tonumber(GS_Read(self, "Brain" .. player .. "Telekinesis"))
-		self.ScannerLevel = tonumber(GS_Read(self, "Brain" .. player .. "Scanner"))
-		self.HealLevel = tonumber(GS_Read(self, "Brain" .. player .. "Heal"))
-		self.SelfHealLevel = tonumber(GS_Read(self, "Brain" .. player .. "SelfHeal"))
-		self.RepairLevel = tonumber(GS_Read(self, "Brain" .. player .. "Fix"))
-		self.SplitterLevel = tonumber(GS_Read(self, "Brain" .. player .. "Splitter"))
-		self.QuantumStorageLevel = tonumber(GS_Read(self, "Brain" .. player .. "QuantumCapacity"))
+		self.ToughnessLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Toughness"}))
+		self.ShieldLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Field"}))
+		self.TelekinesisLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Telekinesis"}))
+		self.ScannerLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Scanner"}))
+		self.HealLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Heal"}))
+		self.SelfHealLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "SelfHeal"}))
+		self.RepairLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Fix"}))
+		self.SplitterLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Splitter"}))
+		self.QuantumStorageLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "QuantumCapacity"}))
 	elseif self:GetNumberValue("VW_PreassignedSkills") ~= 0 then -- If preset with values
 		local val = self:GetNumberValue("VW_HealthSkill")
 		self.MaxHealth = self.MaxHealth * (100 + val) / 100
@@ -105,13 +127,13 @@ function Create(self)
 	-- If player, get existing power uses
 	if self.BrainNumber ~= Activity.PLAYER_NONE then
 		-- Record potentially unknown identity
-		if GS_Read(self, "Brain" .. self.BrainNumber .. "Identity") == nil then
-			GS_Write(self, "Brain" .. self.BrainNumber .. "Identity", self:GetNumberValue("Identity"))
+		if CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "Identity"}) == nil then
+			CF_Write({"GS", "Brain" .. self.BrainNumber .. "Identity"}, self:GetNumberValue("Identity"))
 		end
-		self.RepairCount = tonumber(GS_Read(self, "Brain" .. self.BrainNumber .. "Fix_Count")) or self.RepairCount
-		self.HealCount = tonumber(GS_Read(self, "Brain" .. self.BrainNumber .. "Heal_Count")) or self.HealCount
-		self.SelfHealCount = tonumber(GS_Read(self, "Brain" .. self.BrainNumber .. "SelfHeal_Count")) or self.SelfHealCount
-		self.QuantumStorage = tonumber(GS_Read(self, "Brain" .. self.BrainNumber .. "QuantumStorage")) or self.QuantumStorage
+		self.RepairCount = tonumber(CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "Fix_Count"})) or self.RepairCount
+		self.HealCount = tonumber(CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "Heal_Count"})) or self.HealCount
+		self.SelfHealCount = tonumber(CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "SelfHeal_Count"})) or self.SelfHealCount
+		self.QuantumStorage = tonumber(CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"})) or self.QuantumStorage
 	end
 
 	-- Determine enabled abilities
@@ -216,7 +238,7 @@ function Create(self)
 
 		self.ScannerSkillIndex = count
 
-		if GS_Read(self, "Brain" .. self.BrainNumber .. "ScannerEnabled") == "true" then
+		if CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "ScannerEnabled"}) == "true" then
 			self.Skills[self.ScannerSkillIndex]["State"] = "On"
 			self.ScannerEnabled = true
 		else
@@ -277,7 +299,7 @@ function Create(self)
 		for i = 1, #quantumItems do
 			local id = quantumItems[i]
 
-			if GS_Read(self, "QuantumItemUnlocked_" .. id) == "True" then
+			if CF_Read(self, {"GS", "QuantumItemUnlocked_" .. id}) == "True" then
 				local n = #items + 1
 				items[n] = {}
 				items[n]["ID"] = id
@@ -1263,9 +1285,9 @@ end
 function rpgbrain_skill_scanner(self)
 	self.ScannerEnabled = not self.ScannerEnabled
 
-	local enabled = GS_Read(self, "Brain" .. self.BrainNumber .. "ScannerEnabled") == "true";
+	local enabled = CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "ScannerEnabled"}) == "true";
 
-	GS_Write("Brain" .. self.BrainNumber .. "ScannerEnabled", tostring(not enabled))
+	CF_Write({"GS", "Brain" .. self.BrainNumber .. "ScannerEnabled"}, tostring(not enabled))
 	self.Skills[self.ScannerSkillIndex]["State"] = enabled and "Off" or "On"
 end
 

@@ -1,3 +1,27 @@
+local tempvar = nil
+
+function CF_Read(self, keys) 
+	tempvar = nil
+	ActivityMan:GetActivity():SendMessage("read_from_CF", {self, keys})
+	return tempvar
+end
+
+function CF_Write(keys, value) 
+	ActivityMan:GetActivity():SendMessage("write_to_CF", {keys, value})
+end
+
+function CF_Call(self, keys, arguments) 
+	tempvar = nil
+	ActivityMan:GetActivity():SendMessage("call_in_CF", {self, keys, arguments})
+	return tempvar
+end
+
+function OnMessage(self, message, context)
+	if message == "return_from_activity" then
+		tempvar = context
+	end
+end
+
 function Create(self)
 	local itm
 

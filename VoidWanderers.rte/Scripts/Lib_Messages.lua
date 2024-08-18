@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------------------------
--- Message handling related functions to add to library on VW startup
--- and anything that wants to interface with Activity facing variables.
+-- Message handling related functions to add to library on VW startup.
+-- See the bottom for how you can recieve and send messages for data rather conveniently.
+-- As though you could read and write, in fact.
 -----------------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------------------
@@ -8,13 +9,7 @@
 -- that isn't VW itself, so don't do that, it will not work.
 -----------------------------------------------------------------------------------------
 VWHandleMessage = function(message, context)
-	if message == "read_from_GS" and IsValidGSReadRequest(context) then
-		local target = ToMOSRotating(context[1])
-		local information = CF.GS[context[2]]
-		target:SendMessage("return_from_activity", information)
-	elseif message == "write_to_GS" and IsValidGSWriteRequest(context) then
-		CF.GS[context[1]] = context[2]
-	elseif message == "read_from_CF" and IsValidCFReadRequest(context) then
+	if message == "read_from_CF" and IsValidCFReadRequest(context) then
 		local temp = CF
 		local flag = false
 		
@@ -98,18 +93,6 @@ VWHandleMessage = function(message, context)
 	end
 end
 -----------------------------------------------------------------------------------------
--- First argument should be a MO to return to, second should be the name of the value
------------------------------------------------------------------------------------------
-IsValidGSReadRequest = function(context)
-	return IsMovableObject(context[1])
-end
------------------------------------------------------------------------------------------
--- First argument should be the name of the value, second doesn't really matter
------------------------------------------------------------------------------------------
-IsValidGSWriteRequest = function(context)
-	return true
-end
------------------------------------------------------------------------------------------
 -- First argument should be a MO to return to, second should be the path to the value
 -----------------------------------------------------------------------------------------
 IsValidCFReadRequest = function(context)
@@ -127,31 +110,17 @@ end
 -- to pass, which won't even be checked for existence, being assumed nil in absence
 -----------------------------------------------------------------------------------------
 IsValidCFCallRequest = function(context)
-	local validName = true
-	for i = 1, #context[2] do
-		validName = validName and type(context[2][i]) == "string"
-	end
-	return IsMovableObject(context[1]) and validName
-end
------------------------------------------------------------------------------------------
--- 
------------------------------------------------------------------------------------------
-local tempvar = nil
-
-function GS_Read(self, key) 
-	tempvar = nil
-	ActivityMan:GetActivity():SendMessage("read_from_GS", {self, key})
-	return tempvar
+	return IsMovableObject(context[1])
 end
 
-function GS_Write(key, value) 
-	ActivityMan:GetActivity():SendMessage("write_to_GS", {key, value})
-end
+-----------------------------------------------------------------------------------------
+-- Just copy paste this into your code if you want to use it.
+-----------------------------------------------------------------------------------------
+--[[local tempvar = nil
 
 function CF_Read(self, keys) 
 	tempvar = nil
 	ActivityMan:GetActivity():SendMessage("read_from_CF", {self, keys})
-	--print(tempvar)
 	return tempvar
 end
 
@@ -165,14 +134,11 @@ function CF_Call(self, keys, arguments)
 	return tempvar
 end
 
--- The recommended way to receive messages, otherwise values can not be returned from calls or reads
-
 function OnMessage(self, message, context)
 	if message == "return_from_activity" then
-		--print("I am a " .. self.PresetName .. " recieving a message reading " .. message .. " containing " .. tostring(context))
 		tempvar = context
 	end
-end
+end]]
 -----------------------------------------------------------------------------------------
 -- 
 -----------------------------------------------------------------------------------------
