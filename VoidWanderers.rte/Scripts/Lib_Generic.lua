@@ -1405,7 +1405,7 @@ CF.HuntForActors = function(hunter, targetTeam)
 					closestDistance = dist.Magnitude
 					closestActor = target
 				end
-				if target:HasObjectInGroup("Brains") then
+				if target:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
 					table.insert(brains, target)
 				end
 			end
@@ -1577,7 +1577,7 @@ CF["CountActors"] = function(team)
 		if
 			actor.Team == team
 			and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-			and not (actor:IsInGroup("Brains") or actor:NumberValueExists("VW_Ally"))
+			and not (actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") or actor:NumberValueExists("VW_Ally"))
 		then
 			c = c + 1
 		end

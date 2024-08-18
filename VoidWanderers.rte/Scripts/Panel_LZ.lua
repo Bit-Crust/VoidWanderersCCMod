@@ -53,7 +53,7 @@ end
 function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 	print("Halp")
 	if orbitedCraft.PresetName ~= "Fake Drop Ship MK1" and self.GS["Mode"] ~= "Vessel" then
-		if orbitedCraft.Team == CF.PlayerTeam and orbitedCraft:HasObjectInGroup("Brains") then
+		if orbitedCraft.Team == CF.PlayerTeam and orbitedCraft:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
 			self.DeployedActors = {}
 
 			-- Bring back actors
@@ -202,7 +202,6 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					for actor in MovableMan.Actors do
 						if
 							actor.Team ~= CF.PlayerTeam
-							and not actor:IsInGroup("Brains")
 							and actor.AIMode == Actor.AIMODE_SENTRY
 							and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 						then
@@ -291,7 +290,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 								safeUnits[#safeUnits + 1] = actor
 							else
 								unsafeUnits[#unsafeUnits + 1] = actor
-								if actor:HasObjectInGroup("Brains") then
+								if actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
 									brainUnsafe = brainUnsafe + 1
 								end
 							end

@@ -1,13 +1,15 @@
-if _G["VW_TeleporterList"] == nil then
-	_G["VW_TeleporterList"] = {}
-end
+dofile("VoidWanderers.rte/Scripts/Lib_Messages.lua")
+
 function Create(self)
-	if _G["VW_TeleporterList"][self.PresetName] == nil then
-		_G["VW_TeleporterList"][self.PresetName] = {}
+	if CF_Read(self, {"VW_TeleporterList"}) == nil then
+		CF_Write({"VW_TeleporterList"}, {})
+	end
+	if CF_Read(self, {"VW_TeleporterList", self.PresetName}) == nil then
+		CF_Write({"VW_TeleporterList", self.PresetName}, {})
 	end
 	--The number ID of this teleporter, used for communicating with other teleporters
-	self.listID = #_G["VW_TeleporterList"][self.PresetName] + 1
-	_G["VW_TeleporterList"][self.PresetName][self.listID] = self
+	self.listID = #CF_Read(self, {"VW_TeleporterList", self.PresetName}) + 1
+	CF_Write({"VW_TeleporterList", self.PresetName, self.listID}, self)
 
 	self.portTime = 2000
 	self.portTimer = Timer()
@@ -99,14 +101,14 @@ function Update(self)
 			end
 		else
 			self:EnableEmission(false)
-			for i = 0, #_G["VW_TeleporterList"][self.PresetName] - 1 do
-				local id = ((self.listID + i) % #_G["VW_TeleporterList"][self.PresetName]) + 1
+			for i = 0, #CF_Read(self, {"VW_TeleporterList", self.PresetName}) - 1 do
+				local id = ((self.listID + i) % #CF_Read(self, {"VW_TeleporterList", self.PresetName})) + 1
 				if
 					id ~= self.listID
-					and _G["VW_TeleporterList"][self.PresetName][id]
-					and MovableMan:IsParticle(_G["VW_TeleporterList"][self.PresetName][id])
+					and CF_Read(self, {"VW_TeleporterList", self.PresetName, id})
+					and MovableMan:IsParticle(CF_Read(self, {"VW_TeleporterList", self.PresetName, id}))
 				then
-					self.partner = _G["VW_TeleporterList"][self.PresetName][id]
+					self.partner = CF_Read(self, {"VW_TeleporterList", self.PresetName, id})
 					break
 				end
 			end
@@ -115,5 +117,5 @@ function Update(self)
 end
 
 function Destroy(self)
-	_G["VW_TeleporterList"][self.PresetName][self.listID] = nil
+	CF_Write({"VW_TeleporterList", self.PresetName, self.listID}, nil)
 end

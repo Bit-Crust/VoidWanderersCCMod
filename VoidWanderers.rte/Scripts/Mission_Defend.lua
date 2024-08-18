@@ -303,7 +303,7 @@ function VoidWanderers:MissionDefendFireSuperWeapon(active, ownerteam, enemyteam
 				if
 					actor.Team == enemyteam
 					and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-					and not actor:IsInGroup("Brains")
+					and not actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua")
 				then
 					target = actor
 					targetok = self:MissionDefendIsTargetReachable(target)

@@ -126,7 +126,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 				end
 
 				-- don't let players dump bodies during assaults, that would not be good
-				if self.GS["Mode"] ~= "Assault" and self.ClonesControlMode <= self.ClonesControlPanelModes.CLONES - 1 then
+				if self.GS["Mode"] == "Assault" and self.ClonesControlMode <= self.ClonesControlPanelModes.CLONES - 1 then
 					self.ClonesControlMode = self.ClonesControlPanelModes.CLONES
 				end
 
@@ -883,7 +883,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 						moving = false
 					end
 
-					if not moving and actor.PresetName ~= "Clones Control Panel" and not actor:IsInGroup("Brains") then
+					if not moving and actor.PresetName ~= "Clones Control Panel" and not actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
 						toresettimer = false
 
 						if actorDead then

@@ -80,7 +80,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 
 					count = count + 1
 
-					if actor:IsInGroup("Brains") then
+					if actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
 						braincount = braincount + 1
 					end
 				end

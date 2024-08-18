@@ -246,7 +246,7 @@ function VoidWanderers:MissionUpdate()
 
 			-- Attempt to find another commander
 			for actor in MovableMan.Actors do
-				if actor.Team == CF["CPUTeam"] and actor:IsInGroup("Brains") then
+				if actor.Team == CF["CPUTeam"] and actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
 					self.MissionBrain = actor
 					brainwasfound = false
 					break

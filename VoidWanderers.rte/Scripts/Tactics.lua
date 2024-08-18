@@ -192,7 +192,7 @@ function VoidWanderers:StartActivity()
 
 					local player = nil
 
-					if actor:IsInGroup("Brains") and (actor:GetNumberValue("VW_BrainOfPlayer") - 1) ~= Activity.PLAYER_NONE then
+					if actor:GetNumberValue("VW_BrainOfPlayer") - 1 ~= Activity.PLAYER_NONE then
 						player = actor:GetNumberValue("VW_BrainOfPlayer") - 1
 						-- If the case exists or the player isn't active, store it's things and remove it
 						if not (self:PlayerActive(player) and self:PlayerHuman(player)) or IsActor(self.CreatedBrains[player]) and player ~= Activity.PLAYER_NONE then
@@ -313,7 +313,7 @@ function VoidWanderers:StartActivity()
 					self:AddPreEquippedItemsToRemovalQueue(actor)
 
 					-- If it is an RPG brain
-					if actor:IsInGroup("Brains") and (actor:GetNumberValue("VW_BrainOfPlayer") - 1) ~= Activity.PLAYER_NONE then
+					if actor:GetNumberValue("VW_BrainOfPlayer") - 1 ~= Activity.PLAYER_NONE then
 						player = actor:GetNumberValue("VW_BrainOfPlayer") - 1
 						
 						self:SetPlayerBrain(actor, player)
@@ -419,7 +419,7 @@ function VoidWanderers:StartActivity()
 				self:AddPreEquippedItemsToRemovalQueue(actor)
 
 				-- If it is an RPG brain
-				if actor:IsInGroup("Brains") and (actor:GetNumberValue("VW_BrainOfPlayer") - 1) ~= Activity.PLAYER_NONE then
+				if actor:GetNumberValue("VW_BrainOfPlayer") - 1 ~= Activity.PLAYER_NONE then
 					player = actor:GetNumberValue("VW_BrainOfPlayer") - 1
 
 					self:SetPlayerBrain(actor, player)
@@ -2161,7 +2161,6 @@ function VoidWanderers:UpdateActivity()
 					for actor in MovableMan.Actors do
 						if
 							(actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-							and not actor:IsInGroup("Brains")
 						then
 							actor.Health = actor.Health
 								- math.ceil(
@@ -2193,7 +2192,6 @@ function VoidWanderers:UpdateActivity()
 				if
 					(actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 					and not self.Ship:IsInside(actor.Pos)
-					and not actor:IsInGroup("Brains")
 				then
 					actor.Health = actor.Health
 						- math.ceil(50 / math.sqrt(1 + math.abs(actor.Mass + actor.Material.StructuralIntegrity)))
@@ -2919,7 +2917,7 @@ end
 -- Whether an actor is the brain or otherwise prestigious
 -----------------------------------------------------------------------------------------
 function VoidWanderers:IsCommander(actor)
-	return (actor:IsInGroup("Brains") or actor:GetNumberValue("VW_Prestige") ~= 0)
+	return (actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") or actor:GetNumberValue("VW_Prestige") ~= 0)
 end
 -----------------------------------------------------------------------------------------
 -- Whether an actor is a player-controllable, non-brain unit
@@ -2927,7 +2925,7 @@ end
 function VoidWanderers:IsPlayerUnit(actor)
 	return (IsAHuman(actor) or IsACrab(actor))
 		and actor.Team == CF.PlayerTeam
-		and not (actor:HasObjectInGroup("Brains") or self:IsAlly(actor))
+		and not (actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") or self:IsAlly(actor))
 end
 -----------------------------------------------------------------------------------------
 --

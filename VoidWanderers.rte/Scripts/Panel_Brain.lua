@@ -77,7 +77,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 					end
 				end
 				-- Process brain attachment
-			elseif act:IsInGroup("Brains") and (act:GetNumberValue("VW_BrainOfPlayer") - 1) ~= Activity.PLAYER_NONE then
+			elseif act:GetNumberValue("VW_BrainOfPlayer") - 1 ~= Activity.PLAYER_NONE then
 				local readytoattach = false
 
 				if

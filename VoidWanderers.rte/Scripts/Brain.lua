@@ -1,4 +1,4 @@
-dofile("VoidWanderers.rte/Scripts/Lib_Messages.lua");
+dofile("VoidWanderers.rte/Scripts/Lib_Messages.lua")
 
 function PackBrainForConfig(self)
 	return {BrainNumber = self.BrainNumber, RepairCount = self.RepairCount, HealCount = self.HealCount, SelfHealCount = self.SelfHealCount, QuantumStorage = self.QuantumStorage}
@@ -44,6 +44,22 @@ function Create(self)
 	
 	self.BrainNumber = self:GetNumberValue("VW_BrainOfPlayer") - 1
 
+	-- Defaults are basically nothing but slight regen
+	local val = 0
+	self.MaxHealth = self.MaxHealth * (100 + val) / 100
+	self.Health = self.MaxHealth
+	self.RegenInterval = 2000 - val * 10
+
+	self.ToughnessLevel = 0
+	self.ShieldLevel = 0
+	self.TelekinesisLevel = 0
+	self.ScannerLevel = 0
+	self.HealLevel = 0
+	self.SelfHealLevel = 0
+	self.RepairLevel = 0
+	self.SplitterLevel = 0
+	self.QuantumStorageLevel = 0
+
 	-- Obtain brain capabilities depending on type
 	if self.BrainNumber ~= Activity.PLAYER_NONE then -- If player controlled
 		local player = self.BrainNumber
@@ -77,21 +93,6 @@ function Create(self)
 		self.RepairLevel = self:GetNumberValue("VW_RepairSkill")
 		self.SplitterLevel = self:GetNumberValue("VW_SplitterSkill")
 		self.QuantumStorageLevel = self:GetNumberValue("VW_QuantumSkill")
-	else -- If defaulting, give em something
-		local val = math.random(20)
-		self.MaxHealth = self.MaxHealth * (100 + val) / 100
-		self.Health = self.MaxHealth
-		self.RegenInterval = 1500 - val * 10
-
-		self.ToughnessLevel = 1
-		self.ShieldLevel = 1
-		self.TelekinesisLevel = 1
-		self.ScannerLevel = 1
-		self.HealLevel = 1
-		self.SelfHealLevel = 1
-		self.RepairLevel = 1
-		self.SplitterLevel = 1
-		self.QuantumStorageLevel = 1
 	end
 
 	-- Default power uses
@@ -344,8 +345,7 @@ function Update(self)
 	-- Search for nearby actors
 	if self.Energy >= 15 and self.CoolDownTimer:IsPastSimMS(self.CoolDownInterval) then
 		for actor in MovableMan.Actors do
-			-- Search for friends to amplify power
-			if actor.Team ~= self.Team and not actor:IsInGroup("Brains") and actor.Health > 0 then
+			if actor.Team ~= self.Team and not actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") and actor.Health > 0 then
 				-- Search for enemies to find threat
 				local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX)
 
@@ -943,7 +943,7 @@ function do_rpgbrain_pda(self)
 				if
 					actor.Team == self.Team
 					and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-					and (self.ActiveMenu[self.SelectedMenuItem]["AffectsBrains"] == actor:IsInGroup("Brains"))
+					and (self.ActiveMenu[self.SelectedMenuItem]["AffectsBrains"] == actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua"))
 					and detectionRange >= SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX).Magnitude
 				then
 					self.SkillTargetActor = actor
@@ -959,7 +959,7 @@ function do_rpgbrain_pda(self)
 				if
 					actor.Team == self.Team
 					and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-					and (self.ActiveMenu[self.SelectedMenuItem]["AffectsBrains"] == actor:IsInGroup("Brains"))
+					and (self.ActiveMenu[self.SelectedMenuItem]["AffectsBrains"] == actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua"))
 					and detectionRange >= SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX).Magnitude
 				then
 					self.SkillTargetActors[#self.SkillTargetActors + 1] = actor

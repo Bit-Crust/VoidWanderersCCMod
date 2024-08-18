@@ -28,6 +28,7 @@ VWHandleMessage = function(message, context)
 				flag = -2
 				break
 			end
+			print("READ STEP " .. i .. " : " .. context[2][i])
 		end
 
 		if flag then
@@ -42,6 +43,7 @@ VWHandleMessage = function(message, context)
 	elseif message == "write_to_CF" and IsValidCFWriteRequest(context) then
 		local temp = CF
 		local flag = false
+		local printConcat = ""
 		
 		-- Run down the path, flag for failure and break if something before the last step is nil or we run into a function
 		for i = 1, #context[1] - 1 do
@@ -53,6 +55,7 @@ VWHandleMessage = function(message, context)
 				flag = -2
 				break
 			end
+			printConcat = printConcat .. context[1][i] .. "."
 		end
 
 		if flag then
@@ -62,7 +65,8 @@ VWHandleMessage = function(message, context)
 			error(message)
 			return
 		end
-
+		
+		print("writing to CF." .. printConcat .. context[1][#context[1]])
 		temp[context[1][#context[1]]] = context[2]
 	elseif message == "call_in_CF" and IsValidCFCallRequest(context) then
 		local target = ToMOSRotating(context[1])
@@ -96,33 +100,25 @@ end
 -- First argument should be a MO to return to, second should be the name of the value
 -----------------------------------------------------------------------------------------
 IsValidGSReadRequest = function(context)
-	return IsMovableObject(context[1]) and type(context[2]) == "string"
+	return IsMovableObject(context[1])
 end
 -----------------------------------------------------------------------------------------
 -- First argument should be the name of the value, second doesn't really matter
 -----------------------------------------------------------------------------------------
 IsValidGSWriteRequest = function(context)
-	return type(context[1]) == "string"
+	return true
 end
 -----------------------------------------------------------------------------------------
 -- First argument should be a MO to return to, second should be the path to the value
 -----------------------------------------------------------------------------------------
 IsValidCFReadRequest = function(context)
-	local validName = true
-	for i = 1, #context[2] do
-		validName = validName and type(context[2][i]) == "string"
-	end
-	return IsMovableObject(context[1]) and validName
+	return IsMovableObject(context[1])
 end
 -----------------------------------------------------------------------------------------
 -- All you really need is a valid path, any value works
 -----------------------------------------------------------------------------------------
 IsValidCFWriteRequest = function(context)
-	local validName = true
-	for i = 1, #context[1] do
-		validName = validName and type(context[1][i]) == "string"
-	end
-	return validName
+	return true
 end
 -----------------------------------------------------------------------------------------
 -- First argument should be MO to return to, second should be the list of nestings
