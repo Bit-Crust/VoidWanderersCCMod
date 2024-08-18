@@ -12,7 +12,7 @@ for module in PresetMan.Modules do
 				and ToHeldDevice(entity).RandomWeight ~= 0
 			then
 				entity = ToHeldDevice(entity)
-				if entity:HasObjectInGroup("Payloads") or entity:HasObjectInGroup("Bombs") then
+				if entity:HasObjectInGroup("Payloads") then
 					n = #CF["BombNames"] + 1
 					CF["BombNames"][n] = entity:GetModuleAndPresetName()
 					CF["BombPresets"][n] = entity.PresetName
@@ -26,7 +26,6 @@ for module in PresetMan.Modules do
 					CF["BombUnlockData"][n] = 0
 				else
 					id = #CF["ArtItmPresets"] + 1
-					print(entity.PresetName)
 					CF["ArtItmPresets"][id] = entity.PresetName
 					CF["ArtItmModules"][id] = module.FileName
 					CF["ArtItmClasses"][id] = entity.ClassName
@@ -39,7 +38,6 @@ for module in PresetMan.Modules do
 				and ToActor(entity).RandomWeight ~= 0
 			then
 				id = #CF["ArtActPresets"] + 1
-				print(entity.PresetName)
 				CF["ArtActPresets"][id] = entity.PresetName
 				CF["ArtActModules"][id] = module.FileName
 				CF["ArtActClasses"][id] = entity.ClassName
