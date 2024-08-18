@@ -1,4 +1,29 @@
 function VoidWanderers:StartActivity()
+	-- TODO: Remove by pre 7, make em figure it out themselves
+	-- Localize substring function so that we're not indexing any tables in the table indexing handler
+	sub = string.sub
+
+	mt = {}
+	
+	-- Intercept indexes to CF_ anything and route them to the table instead
+	mt.__index = function(table, key)
+		if sub(key, 1, 3) == "CF_" and CF then
+			return rawget(CF, sub(key, 4, -1))
+		end
+		return rawget(table, key)
+	end
+	mt.__newindex = function(table, key, value)
+		if sub(key, 1, 3) == "CF_" and CF then
+			rawset(CF, sub(key, 4, -1), value)
+			return
+		end
+		rawset(table, key, value)
+		return
+	end
+
+	-- Change the global metatable
+	setmetatable(_G, mt)
+
 	---- -- -- self.ModuleName = "VoidWanderers.rte"
 	self.IsInitialized = false
 	self.BuyMenuEnabled = false

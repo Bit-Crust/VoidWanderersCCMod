@@ -190,6 +190,7 @@ function Create(self)
 	if self.BGArm then
 		self.BGArm.GibWoundLimit = self.BGArm.GibWoundLimit * toughnessFactor
 		self.BGArm.GibImpulseLimit = self.BGArm.GibImpulseLimit * toughnessFactor
+		self.BGArm.GripStrength = 400000
 	end
 	if self.FGArm then
 		self.FGArm.GibWoundLimit = self.FGArm.GibWoundLimit * toughnessFactor
@@ -199,7 +200,6 @@ function Create(self)
 	if self.BGLeg then
 		self.BGLeg.GibWoundLimit = self.BGLeg.GibWoundLimit * toughnessFactor
 		self.BGLeg.GibImpulseLimit = self.BGLeg.GibImpulseLimit * toughnessFactor
-		self.BGArm.GripStrength = 400000
 	end
 	if self.FGLeg then
 		self.FGLeg.GibWoundLimit = self.FGLeg.GibWoundLimit * toughnessFactor
