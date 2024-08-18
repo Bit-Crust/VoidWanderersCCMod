@@ -28,7 +28,7 @@ VWHandleMessage = function(message, context)
 				flag = -2
 				break
 			end
-			print("READ STEP " .. i .. " : " .. context[2][i])
+			--print("READ STEP " .. i .. " : " .. context[2][i])
 		end
 
 		if flag then
@@ -40,6 +40,7 @@ VWHandleMessage = function(message, context)
 		end
 		
 		ToMOSRotating(context[1]):SendMessage("return_from_activity", temp)
+		--print("SENDING " .. tostring(temp) .. ";" .. ToMOSRotating(context[1]).PresetName)
 	elseif message == "write_to_CF" and IsValidCFWriteRequest(context) then
 		local temp = CF
 		local flag = false
@@ -66,7 +67,7 @@ VWHandleMessage = function(message, context)
 			return
 		end
 		
-		print("writing to CF." .. printConcat .. context[1][#context[1]])
+		--print("writing to CF." .. printConcat .. context[1][#context[1]])
 		temp[context[1][#context[1]]] = context[2]
 	elseif message == "call_in_CF" and IsValidCFCallRequest(context) then
 		local target = ToMOSRotating(context[1])
@@ -150,6 +151,7 @@ end
 function CF_Read(self, keys) 
 	tempvar = nil
 	ActivityMan:GetActivity():SendMessage("read_from_CF", {self, keys})
+	--print(tempvar)
 	return tempvar
 end
 
@@ -167,6 +169,7 @@ end
 
 function OnMessage(self, message, context)
 	if message == "return_from_activity" then
+		--print("I am a " .. self.PresetName .. " recieving a message reading " .. message .. " containing " .. tostring(context))
 		tempvar = context
 	end
 end

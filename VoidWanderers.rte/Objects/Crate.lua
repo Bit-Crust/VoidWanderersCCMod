@@ -1,7 +1,23 @@
+dofile("VoidWanderers.rte/Scripts/Lib_Messages.lua")
+
 function Create(self)
 	local act, itm
-	if CF["PlayerTeam"] ~= nil then
-		if not self:NumberValueExists("VWOpenCrate") and math.random(50, 1000) < CF["Difficulty"] then
+
+	local playerTeam = CF_Read(self, {"PlayerTeam"})
+	local difficulty = CF_Read(self, {"Difficulty"})
+	local artifactActorRate = 0
+	local actorTypes = CF_Read(self, {"ActorTypes"})
+	local factions = CF_Read(self, {"Factions"})
+	local factionPlayable = CF_Read(self, {"FactionPlayable"})
+	local artActPresets = CF_Read(self, {"ArtActPresets"})
+	local artActClasses = CF_Read(self, {"ArtActClasses"})
+	local artActModules = CF_Read(self, {"ArtActModules"})
+	local actPresets = CF_Read(self, {"ActPresets"})
+	local actClasses = CF_Read(self, {"ActClasses"})
+	local actModules = CF_Read(self, {"ActModules"})
+
+	if playerTeam ~= nil then
+		if not self:NumberValueExists("VWOpenCrate") and math.random(50, 1000) < difficulty then
 			if math.random() < 0.9 then
 				act = CreateACrab("Crab", "Base.rte")
 				act.Pos = self.Pos
@@ -23,18 +39,18 @@ function Create(self)
 				end
 			end
 		else
-			if #CF["ArtActPresets"] == 0 then
-				CF["ArtifactActorRate"] = 0
+			if #artActPresets == 0 then
+				CF_Write({"ArtifactActorRate"}, 0)
 			end
-			local artifactChance = CF["ArtifactActorRate"] - (CF["ArtifactActorRate"] / (0.5 + math.sqrt(#CF["ArtActPresets"])))
+			artifactActorRate = CF_Read(self, {"ArtifactActorRate"})
+			local artifactChance = artifactActorRate - (artifactActorRate / (0.5 + math.sqrt(#artActPresets)))
 
-			local atypes = { CF["ActorTypes"].LIGHT, CF["ActorTypes"].HEAVY, CF["ActorTypes"].HEAVY, CF["ActorTypes"].ARMOR }
 			local f
 			local ok = false
 
 			while not ok do
-				f = CF["Factions"][math.random(#CF["Factions"])]
-				if CF["FactionPlayable"][f] then
+				f = factions[math.random(#factions)]
+				if factionPlayable[f] then
 					ok = true
 				end
 			end
@@ -45,21 +61,22 @@ function Create(self)
 
 			--print (cfg)
 
-			local acts = CF["MakeListOfMostPowerfulActors"](cfg, 0, atypes[math.random(#atypes)], 100000)
+			local acts = CF_Call(self, {"MakeListOfMostPowerfulActors"}, {cfg, 0, actorTypes[math.random(#actorTypes)], 100000})[1]
 
 			if math.random() < artifactChance or acts == nil then
-				local r = math.random(#CF["ArtActPresets"])
-				act = CF["MakeActor"](CF["ArtActPresets"][r], CF["ArtActClasses"][r], CF["ArtActModules"][r])
+				local r = math.random(#artActPresets)
+				act = CF_Call(self, {"MakeActor"}, {artActPresets[r], artActClasses[r], artActModules[r]})[1]:Clone()
 			else
 				local r = #acts > 1 and math.random(#acts) or 1
 				local actindex = acts[r]["Actor"]
-				act = CF["MakeActor"](CF["ActPresets"][f][actindex], CF["ActClasses"][f][actindex], CF["ActModules"][f][actindex])
+				act = CF_Call(self, {"MakeActor"}, {actPresets[f][actindex], actClasses[f][actindex], actModules[f][actindex]})[1]:Clone()
 			end
+			print(act)
 			if act then
 				act.AngularVel = 0
 				act.Vel = Vector(0, -3)
 				act.Pos = self.Pos + Vector(0, -10)
-				act.Team = CF["PlayerTeam"]
+				act.Team = playerTeam
 				act.AIMode = Actor.AIMODE_SENTRY
 				MovableMan:AddActor(act)
 			end

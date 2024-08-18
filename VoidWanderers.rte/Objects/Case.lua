@@ -1,7 +1,21 @@
 function Create(self)
 	local itm
-	if CF["PlayerTeam"] ~= nil then
-		if not self:NumberValueExists("VWOpenCrate") and math.random(50, 1000) < CF["Difficulty"] then
+
+	local playerTeam = CF_Read(self, {"PlayerTeam"})
+	local difficulty = CF_Read(self, {"Difficulty"})
+	local artifactActorRate = 0
+	local weaponTypes = CF_Read(self, {"WeaponTypes"})
+	local factions = CF_Read(self, {"Factions"})
+	local factionPlayable = CF_Read(self, {"FactionPlayable"})
+	local artItmPresets = CF_Read(self, {"ArtItmPresets"})
+	local artItmClasses = CF_Read(self, {"ArtItmClasses"})
+	local artItmModules = CF_Read(self, {"ArtItmModules"})
+	local itmPresets = CF_Read(self, {"ItmPresets"})
+	local itmClasses = CF_Read(self, {"ItmClasses"})
+	local itmModules = CF_Read(self, {"ItmModules"})
+
+	if playerTeam ~= nil then
+		if not self:NumberValueExists("VWOpenCrate") and math.random(50, 1000) < difficulty then
 			for i = 1, math.random(3) do
 				itm = CreateTDExplosive("Base.rte/Frag Grenade")
 				itm.Pos = self.Pos
@@ -10,18 +24,18 @@ function Create(self)
 				MovableMan:AddItem(itm)
 			end
 		else
-			if #CF["ArtItmPresets"] == 0 then
-				CF["ArtifactItemRate"] = 0
+			if #artItmPresets == 0 then
+				CF_Write({"ArtifactItemRate"}, 0)
 			end
-			local artifactChance = CF["ArtifactItemRate"] - (CF["ArtifactItemRate"] / (0.5 + math.sqrt(#CF["ArtItmPresets"])))
+			artifactActorRate = CF_Read(self, {"ArtifactItemRate"})
+			local artifactChance =artifactActorRate - (artifactActorRate / (0.5 + math.sqrt(#artItmPresets)))
 
-			local wtypes = { CF["WeaponTypes"].RIFLE, CF["WeaponTypes"].SHOTGUN, CF["WeaponTypes"].SNIPER, CF["WeaponTypes"].HEAVY }
 			local f
 			local ok = false
 
 			while not ok do
-				f = CF["Factions"][math.random(#CF["Factions"])]
-				if CF["FactionPlayable"][f] then
+				f = factions[math.random(#factions)]
+				if factionPlayable[f] then
 					ok = true
 				end
 			end
@@ -31,15 +45,15 @@ function Create(self)
 			cfg["Player0Faction"] = f
 
 			--print (cfg)
-			local weaps = CF["MakeListOfMostPowerfulWeapons"](cfg, 0, wtypes[math.random(#wtypes)], 100000)
+			local weaps = CF_Call(self, {"MakeListOfMostPowerfulWeapons"}, {cfg, 0, weaponTypes[math.random(#weaponTypes)], 100000})[1]
 
 			if math.random() < artifactChance or weaps == nil then
-				local r = math.random(#CF["ArtItmPresets"])
-				itm = CF["MakeItem"](CF["ArtItmPresets"][r], CF["ArtItmClasses"][r], CF["ArtItmModules"][r])
+				local r = math.random(#artItmPresets)
+				itm = CF_Call(self, {"MakeItem"}, {artItmPresets[r], artItmClasses[r], artItmModules[r]})[1]:Clone()
 			else
 				local r = #weaps > 1 and math.random(#weaps) or 1
 				local itmindex = weaps[r]["Item"]
-				itm = CF["MakeItem"](CF["ItmPresets"][f][itmindex], CF["ItmClasses"][f][itmindex], CF["ItmModules"][f][itmindex])
+				itm = CF_Call(self, {"MakeItem"}, {itmPresets[f][itmindex], itmClasses[f][itmindex], itmModules[f][itmindex]})[1]:Clone()
 			end
 			if itm then
 				itm.AngularVel = 0
