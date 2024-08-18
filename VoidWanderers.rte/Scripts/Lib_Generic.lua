@@ -1100,17 +1100,6 @@ CF["ReplaceLimbs"] = function(actor, limbs)
 	if IsAHuman(actor) then
 		actor = ToAHuman(actor)
 		for j = 1, #CF["LimbID"] do
-			local jetTime
-			local jetReplenishRate
-			local particlesPerMinute
-
-			if j == 6 and actor.Jetpack then
-				-- ugly ugly ugly ugly codeeee
-				jetTime = actor.Jetpack.JetTimeTotal
-				jetReplenishRate = actor.Jetpack.JetReplenishRate
-				particlesPerMinute = actor.Jetpack.ParticlesPerMinute
-			end
-
 			local targetLimb = j == 1 and actor.FGArm
 				or (
 					j == 2 and actor.BGArm
@@ -1159,10 +1148,13 @@ CF["ReplaceLimbs"] = function(actor, limbs)
 				elseif j == 5 then
 					actor.Head = newLimb
 				elseif j == 6 then
+					if actor.Jetpack then
+						newLimb.JetTimeTotal = actor.Jetpack.JetTimeTotal
+						newLimb.JetReplenishRate = actor.Jetpack.JetReplenishRate
+						newLimb.ParticlesPerMinute = actor.Jetpack.ParticlesPerMinute
+					end
+
 					actor.Jetpack = newLimb
-					actor.Jetpack.JetTimeTotal = jetTime
-					actor.Jetpack.JetReplenishRate = jetReplenishRate
-					actor.Jetpack.ParticlesPerMinute = particlesPerMinute
 				end
 			elseif targetLimb then
 				actor:RemoveAttachable(targetLimb, false, false)
