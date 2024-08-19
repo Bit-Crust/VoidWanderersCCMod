@@ -37,15 +37,16 @@ function VoidWanderers:InitLZControlPanelUI()
 						self:SetPlayerBrain(self.LZControlPanelActor[player + 1], player)
 						self:SwitchToActor(self.LZControlPanelActor[player + 1], player, CF.PlayerTeam)
 					end
-					panelPos = self.LZControlPanelPos[player + 1]
 				end
 				self.BombsControlPanelSelectedModes[player + 1] = self.BombsControlPanelModes.RETURN
 			end
 		end
 	end
-
+	
+	local zoneLeft = Vector(math.min(self.LZControlPanelPos[1].X, self.LZControlPanelPos[4].X), math.min(self.LZControlPanelPos[1].Y, self.LZControlPanelPos[4].Y))
+	local zoneRight = Vector(math.max(self.LZControlPanelPos[1].X, self.LZControlPanelPos[4].X), math.max(self.LZControlPanelPos[1].Y, self.LZControlPanelPos[4].Y))
 	local screenDim = Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight)
-	self.lzBox = Box(panelPos + screenDim * -0.5, panelPos + screenDim * 0.5)
+	self.lzBox = Box(zoneLeft + screenDim * -0.5, zoneRight + screenDim * 0.5)
 end
 -----------------------------------------------------------------------------------------
 --

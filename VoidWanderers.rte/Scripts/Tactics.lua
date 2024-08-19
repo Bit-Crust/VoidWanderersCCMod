@@ -2518,6 +2518,7 @@ function VoidWanderers:UpdateActivity()
 		if IsAHuman(actor) or IsACrab(actor) and actor.Status ~= Actor.STABLE then
 			actor.RestThreshold = -1
 			actor:EnableDeepCheck(false)
+			actor.ToSettle = false
 		end
 		-- Space out spawned-in craft
 		if actor.Pos.Y <= 0 then
