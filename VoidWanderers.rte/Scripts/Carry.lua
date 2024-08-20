@@ -150,6 +150,7 @@ function Update(self)
 							self.pickedUpObjectName = displayName
 							self.objectInReach = nil
 							local actorItem = CreateHeldDevice("Null Item", "Base.rte")
+							self.pickedUpObject.Team = self.Team
 							if IsActor(self.pickedUpObject) then
 								self.pickedUpObject = ToActor(self.pickedUpObject)
 								local sound = self.pickedUpObject.AlarmSound or self.pickedUpObject.PainSound
@@ -169,7 +170,6 @@ function Update(self)
 									"Carriable",
 									self.pickedUpObject:GetNumberValue("Carriable") + 1
 								)
-								self.pickedUpObject.Team = self.Team
 								self.pickedUpObject.IgnoresTeamHits = true
 								actorItem.StanceOffset = Vector(armToUse.MaxLength * 0.66, armToUse.MaxLength * 0.33)
 							end

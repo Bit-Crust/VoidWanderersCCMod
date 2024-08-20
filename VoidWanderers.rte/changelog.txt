@@ -84,7 +84,6 @@
 	- moved to VoidWanderersCCMod Github repository, changelog no longer seriously maintained
 
 07/2024
-	Whatever-date-it-is-right-now update
 	- RPG brain powers and abilities are re-enabled
 	- any player/control configuration should be supported
 	- small improvements to UI and menu UX

@@ -5,4 +5,5 @@ VoidWanderers.rte/CampaignData
 *.dat
 /.vs
 /*.rte
+Extensions/
 !VoidWanderers.rte

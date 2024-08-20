@@ -137,6 +137,17 @@ function VoidWanderers:StartActivity()
 		-- Spawn previously saved actors
 		for i = 1, CF.MaxSavedActors do
 			if self.GS["Actor" .. i .. "Preset"] then
+				local preset = self.GS["Actor" .. i .. "Preset"]
+				if preset:find("RPG Brain Robot") then
+					local reference = CF.MakeBrain(self.GS, 0, CF.PlayerTeam, Vector(0, 0), false)
+					self.GS["Actor" .. i .. "Player"] = preset:sub(preset:find("PLR") + 3, preset:find("PLR") + 3) + 1
+					self.GS["Actor" .. i .. "Preset"] = reference.PresetName
+					self.GS["Actor" .. i .. "Class"] = reference.ClassName
+					self.GS["Actor" .. i .. "Module"] = reference.ModuleName
+					for j = 1, #CF.LimbID do
+						self.GS["Actor" .. i .. CF.LimbID[j]] = CF.GetLimbData(reference, j)
+					end
+				end
 				local limbData = {}
 				for j = 1, #CF.LimbID do
 					limbData[j] = self.GS["Actor" .. i .. CF.LimbID[j]]
