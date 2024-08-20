@@ -7,7 +7,7 @@ function VoidWanderers:FormLoad()
 	local el
 	self.UI = {}
 
-	if false and CF.IsFileExists(self.ModuleName, STATE_CONFIG_FILE) then
+	if CF.IsFileExists(self.ModuleName, STATE_CONFIG_FILE) then
 		el = {}
 		el["Type"] = self.ElementTypes.BUTTON
 		el["Presets"] = {}
@@ -85,13 +85,10 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:BtnContinueGame_OnClick()
-	config = CF.ReadConfigFile(self.ModuleName, STATE_CONFIG_FILE)
-	self:LaunchScript(config["Scene"], "Tactics.lua")
-
-	--self:FormClose()
-	--dofile(BASE_PATH.."FormDefault.lua")
-	--self:LoadCurrentGameState()
-	--self:FormLoad()
+	self:FormClose()
+	self:LoadCurrentGameState()
+	print(self.GS["Scene"])
+	self:LaunchScript(self.GS["Scene"], "Tactics.lua")
 end
 -----------------------------------------------------------------------------------------
 --

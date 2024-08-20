@@ -351,6 +351,9 @@ function Update(self)
 	end
 
 	if self.Status >= Actor.DYING then
+		if self.BrainNumber == Activity.PLAYER_NONE then
+			self:DisableScript("VoidWanderers.rte/Scripts/Brain.lua")
+		end
 		return
 	end
 
