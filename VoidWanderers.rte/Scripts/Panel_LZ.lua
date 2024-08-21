@@ -76,33 +76,34 @@ function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 						assignable = false
 					end
 
-					deployedactor = 1
+					self:ClearDeployed()
+					self.MissionReturningTroops = 1
 
 					if
 						assignable and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 					then
-						self.GS["Deployed" .. deployedactor .. "Preset"] = actor.PresetName
-						self.GS["Deployed" .. deployedactor .. "Class"] = actor.ClassName
-						self.GS["Deployed" .. deployedactor .. "Module"] = actor.ModuleName
-						self.GS["Deployed" .. deployedactor .. "XP"] = actor:GetNumberValue("VW_XP")
-						self.GS["Deployed" .. deployedactor .. "Identity"] = actor:GetNumberValue("Identity")
-						self.GS["Deployed" .. deployedactor .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
-						self.GS["Deployed" .. deployedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
-						self.GS["Deployed" .. deployedactor .. "Name"] = actor:GetStringValue("VW_Name")
-						self.GS["Deployed" .. deployedactor .. "InventoryPresets"] = pre
-						self.GS["Deployed" .. deployedactor .. "InventoryClasses"] = cls
-						self.GS["Deployed" .. deployedactor .. "InventoryModules"] = mdl
+						self.GS["Deployed" .. self.MissionReturningTroops .. "Preset"] = actor.PresetName
+						self.GS["Deployed" .. self.MissionReturningTroops .. "Class"] = actor.ClassName
+						self.GS["Deployed" .. self.MissionReturningTroops .. "Module"] = actor.ModuleName
+						self.GS["Deployed" .. self.MissionReturningTroops .. "XP"] = actor:GetNumberValue("VW_XP")
+						self.GS["Deployed" .. self.MissionReturningTroops .. "Identity"] = actor:GetNumberValue("Identity")
+						self.GS["Deployed" .. self.MissionReturningTroops .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
+						self.GS["Deployed" .. self.MissionReturningTroops .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
+						self.GS["Deployed" .. self.MissionReturningTroops .. "Name"] = actor:GetStringValue("VW_Name")
+						self.GS["Deployed" .. self.MissionReturningTroops .. "InventoryPresets"] = pre
+						self.GS["Deployed" .. self.MissionReturningTroops .. "InventoryClasses"] = cls
+						self.GS["Deployed" .. self.MissionReturningTroops .. "InventoryModules"] = mdl
 						for j = 1, #CF.LimbID do
-							self.GS["Deployed" .. deployedactor .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
+							self.GS["Deployed" .. self.MissionReturningTroops .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
 						end
 
 						for j = 1, #pre do
-							self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Preset"] = pre[j]
-							self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Class"] = cls[j]
-							self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Module"] = mdl[j]
+							self.GS["Deployed" .. self.MissionReturningTroops .. "Item" .. j .. "Preset"] = pre[j]
+							self.GS["Deployed" .. self.MissionReturningTroops .. "Item" .. j .. "Class"] = cls[j]
+							self.GS["Deployed" .. self.MissionReturningTroops .. "Item" .. j .. "Module"] = mdl[j]
 						end
 								
-						deployedactor = deployedactor + 1
+						self.MissionReturningTroops = self.MissionReturningTroops + 1
 					end
 				end
 			end
@@ -225,26 +226,6 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					self.BombingRange = nil
 					self.BombingCount = nil
 					self.BombsControlPanelInBombMode = false
-				end
-			end
-		end
-	end
-
-	-- Re-create dead LZs
-	local brainsAbsent = self.GS["BrainsOnMission"] == "False"
-	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		--print("PLAYER #" .. player .. ": " .. tostring(brainsAbsent and self:PlayerActive(player) and self:PlayerHuman(player)) .. " " .. tostring(not brainsAbsent and player == Activity.PLAYER_1))
-		if (brainsAbsent and self:PlayerActive(player) and self:PlayerHuman(player)) or (not brainsAbsent and player == Activity.PLAYER_1) then
-			if not MovableMan:IsActor(self.LZControlPanelActor[player + 1]) then
-				self.LZControlPanelActor[player + 1] = CreateActor("LZ Control Panel")
-				if self.LZControlPanelActor[player + 1] ~= nil then
-					self.LZControlPanelActor[player + 1].Pos = self.LZControlPanelPos[player + 1]
-					self.LZControlPanelActor[player + 1].Team = CF.PlayerTeam
-					MovableMan:AddActor(self.LZControlPanelActor[player + 1])
-					if brainsAbsent then
-						self:SetPlayerBrain(self.LZControlPanelActor[player + 1], player)
-						self:SwitchToActor(self.LZControlPanelActor[player + 1], player, CF.PlayerTeam)
-					end
 				end
 			end
 		end
@@ -454,8 +435,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					)
 
 					-- Return to ship
-					if self.ControlPanelLZPressTimes[player + 1] + CF.TeamReturnDelay == self.Time and (brainUnsafe <= 0 or safe) then
-						deployedactor = 1
+					if self.ControlPanelLZPressTimes[player + 1] + CF.TeamReturnDelay <= self.Time and (brainUnsafe <= 0 or safe) then
 
 						local actors = {}
 						-- Bring back actors
@@ -481,6 +461,10 @@ function VoidWanderers:ProcessLZControlPanelUI()
 								table.insert(actors, ToActor(actor))
 							end
 						end
+
+						self:ClearDeployed()
+						self.MissionReturningTroops = 1
+
 						for _, actor in pairs(actors) do
 							local assignable = true
 
@@ -503,28 +487,28 @@ function VoidWanderers:ProcessLZControlPanelUI()
 									if
 										assignable and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 									then
-										self.GS["Deployed" .. deployedactor .. "Preset"] = actor.PresetName
-										self.GS["Deployed" .. deployedactor .. "Class"] = actor.ClassName
-										self.GS["Deployed" .. deployedactor .. "Module"] = actor.ModuleName
-										self.GS["Deployed" .. deployedactor .. "XP"] = actor:GetNumberValue("VW_XP")
-										self.GS["Deployed" .. deployedactor .. "Identity"] = actor:GetNumberValue("Identity")
-										self.GS["Deployed" .. deployedactor .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
-										self.GS["Deployed" .. deployedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
-										self.GS["Deployed" .. deployedactor .. "Name"] = actor:GetStringValue("VW_Name")
-										self.GS["Deployed" .. deployedactor .. "InventoryPresets"] = pre
-										self.GS["Deployed" .. deployedactor .. "InventoryClasses"] = cls
-										self.GS["Deployed" .. deployedactor .. "InventoryModules"] = mdl
+										self.GS["Deployed" .. self.MissionReturningTroops .. "Preset"] = actor.PresetName
+										self.GS["Deployed" .. self.MissionReturningTroops .. "Class"] = actor.ClassName
+										self.GS["Deployed" .. self.MissionReturningTroops .. "Module"] = actor.ModuleName
+										self.GS["Deployed" .. self.MissionReturningTroops .. "XP"] = actor:GetNumberValue("VW_XP")
+										self.GS["Deployed" .. self.MissionReturningTroops .. "Identity"] = actor:GetNumberValue("Identity")
+										self.GS["Deployed" .. self.MissionReturningTroops .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
+										self.GS["Deployed" .. self.MissionReturningTroops .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
+										self.GS["Deployed" .. self.MissionReturningTroops .. "Name"] = actor:GetStringValue("VW_Name")
+										self.GS["Deployed" .. self.MissionReturningTroops .. "InventoryPresets"] = pre
+										self.GS["Deployed" .. self.MissionReturningTroops .. "InventoryClasses"] = cls
+										self.GS["Deployed" .. self.MissionReturningTroops .. "InventoryModules"] = mdl
 										for j = 1, #CF.LimbID do
-											self.GS["Deployed" .. deployedactor .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
+											self.GS["Deployed" .. self.MissionReturningTroops .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
 										end
 
 										for j = 1, #pre do
-											self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Preset"] = pre[j]
-											self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Class"] = cls[j]
-											self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Module"] = mdl[j]
+											self.GS["Deployed" .. self.MissionReturningTroops .. "Item" .. j .. "Preset"] = pre[j]
+											self.GS["Deployed" .. self.MissionReturningTroops .. "Item" .. j .. "Class"] = cls[j]
+											self.GS["Deployed" .. self.MissionReturningTroops .. "Item" .. j .. "Module"] = mdl[j]
 										end
 								
-										deployedactor = deployedactor + 1
+										self.MissionReturningTroops = self.MissionReturningTroops + 1
 									end
 								end
 
@@ -534,6 +518,8 @@ function VoidWanderers:ProcessLZControlPanelUI()
 								--print (#pre)
 							end
 						end
+
+						self.MissionReturning = true
 					end
 				else
 					CF.DrawString("HOLD FIRE TO RETURN", pos + Vector(-50, -10), 130, 20)
@@ -697,7 +683,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		end
 	end
 
-	if self.DeployedActors then
+	if self.MissionReturning then
 		if self.MissionAvailable and not self.MissionCompleted then
 			self:GiveMissionPenalties()
 		end
@@ -708,20 +694,25 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		end
 
 		-- Update casualties report
-		if self.MissionDeployedTroops > #self.DeployedActors then
+		if self.MissionDeployedTroops > self.MissionReturningTroops then
 			local s = ""
-			local a = ""
-			if self.MissionDeployedTroops - #self.DeployedActors > 1 then
-				s = "S"
-				a = "ALL "
-			end
+			local lost = self.MissionDeployedTroops - self.MissionReturningTroops
 
-			if #self.DeployedActors == 0 then
-				self.MissionReport[#self.MissionReport + 1] = a .. "UNIT" .. s .. " LOST"
+			if self.MissionReturningTroops == 0 then
+				self.MissionReport[#self.MissionReport + 1] = "ALL UNITS LOST"
+			elseif lost > 1 then
+				self.MissionReport[#self.MissionReport + 1] = lost .. " UNITS LOST"
 			else
-				self.MissionReport[#self.MissionReport + 1] = tostring(
-					self.MissionDeployedTroops - #self.DeployedActors
-				) .. " UNIT" .. s .. " LOST"
+				self.MissionReport[#self.MissionReport + 1] = "1 UNIT LOST"
+			end
+		elseif self.MissionDeployedTroops < self.MissionReturningTroops then
+			local s = ""
+			local recruited = self.MissionReturningTroops - self.MissionDeployedTroops
+
+			if recruited > 1 then
+				self.MissionReport[#self.MissionReport + 1] = recruited .. " UNITS GAINED"
+			else
+				self.MissionReport[#self.MissionReport + 1] = "1 UNIT GAINED"
 			end
 		else
 			self.MissionReport[#self.MissionReport + 1] = "NO CASUALTIES"

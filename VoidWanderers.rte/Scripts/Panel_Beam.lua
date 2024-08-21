@@ -195,7 +195,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 
 					-- Clean previously saved actors and inventories in config
 					self:ClearActors()
-					self:ClearDeployedUnits()
+					self:ClearDeployed()
 
 					-- Save actors to config and transfer them to scene
 					for actor in MovableMan.Actors do
@@ -206,8 +206,8 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 						then
 							local pre, cls, mdl = CF.GetInventory(actor)
 
-							-- These actors must be 
 							if self.BeamControlPanelBox:IsWithinBox(actor.Pos) then
+								-- Save actors to deployment config
 								self.GS["Deployed" .. deployedactor .. "Preset"] = actor.PresetName
 								self.GS["Deployed" .. deployedactor .. "Class"] = actor.ClassName
 								self.GS["Deployed" .. deployedactor .. "Module"] = actor.ModuleName
@@ -231,7 +231,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 								
 								deployedactor = deployedactor + 1
 							else
-								-- Save actors to config
+								-- Save actors to onboard config
 								self.GS["Actor" .. savedactor .. "Preset"] = actor.PresetName
 								self.GS["Actor" .. savedactor .. "Class"] = actor.ClassName
 								self.GS["Actor" .. savedactor .. "Module"] = actor.ModuleName

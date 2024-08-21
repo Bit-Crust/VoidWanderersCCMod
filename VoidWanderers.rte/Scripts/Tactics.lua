@@ -244,120 +244,125 @@ function VoidWanderers:StartActivity()
 			end
 		end
 
-		for i = 1, CF.MaxSavedActors do
-			if self.GS["Deployed" .. i .. "Preset"] then
-				local preset = self.GS["Deployed" .. i .. "Preset"]
-				if preset:find("RPG Brain Robot") then
-					local reference = CF.MakeBrain(self.GS, 0, CF.PlayerTeam, Vector(0, 0), false)
-					self.GS["Deployed" .. i .. "Player"] = preset:sub(preset:find("PLR") + 3, preset:find("PLR") + 3) + 1
-					self.GS["Deployed" .. i .. "Preset"] = reference.PresetName
-					self.GS["Deployed" .. i .. "Class"] = reference.ClassName
-					self.GS["Deployed" .. i .. "Module"] = reference.ModuleName
+		-- Spawn previously deployed actors
+		if self.MissionReturning then
+			self.MissionReturning = false
+		
+			for i = 1, CF.MaxSavedActors do
+				if self.GS["Deployed" .. i .. "Preset"] then
+					local preset = self.GS["Deployed" .. i .. "Preset"]
+					if preset:find("RPG Brain Robot") then
+						local reference = CF.MakeBrain(self.GS, 0, CF.PlayerTeam, Vector(0, 0), false)
+						self.GS["Deployed" .. i .. "Player"] = preset:sub(preset:find("PLR") + 3, preset:find("PLR") + 3) + 1
+						self.GS["Deployed" .. i .. "Preset"] = reference.PresetName
+						self.GS["Deployed" .. i .. "Class"] = reference.ClassName
+						self.GS["Deployed" .. i .. "Module"] = reference.ModuleName
+						for j = 1, #CF.LimbID do
+							self.GS["Deployed" .. i .. CF.LimbID[j]] = CF.GetLimbData(reference, j)
+						end
+						reference.ToDelete = true
+					end
+					local limbData = {}
 					for j = 1, #CF.LimbID do
-						self.GS["Deployed" .. i .. CF.LimbID[j]] = CF.GetLimbData(reference, j)
+						limbData[j] = self.GS["Deployed" .. i .. CF.LimbID[j]]
 					end
-					reference.ToDelete = true
-				end
-				local limbData = {}
-				for j = 1, #CF.LimbID do
-					limbData[j] = self.GS["Deployed" .. i .. CF.LimbID[j]]
-				end
-				local actor = CF.MakeActor(
-					self.GS["Deployed" .. i .. "Preset"],
-					self.GS["Deployed" .. i .. "Class"],
-					self.GS["Deployed" .. i .. "Module"],
-					self.GS["Deployed" .. i .. "XP"],
-					self.GS["Deployed" .. i .. "Identity"],
-					self.GS["Deployed" .. i .. "Player"],
-					self.GS["Deployed" .. i .. "Prestige"],
-					self.GS["Deployed" .. i .. "Name"],
-					limbData
-				)
-				if actor then
-					actor.AIMode = Actor.AIMODE_SENTRY
-					actor:ClearAIWaypoints()
+					local actor = CF.MakeActor(
+						self.GS["Deployed" .. i .. "Preset"],
+						self.GS["Deployed" .. i .. "Class"],
+						self.GS["Deployed" .. i .. "Module"],
+						self.GS["Deployed" .. i .. "XP"],
+						self.GS["Deployed" .. i .. "Identity"],
+						self.GS["Deployed" .. i .. "Player"],
+						self.GS["Deployed" .. i .. "Prestige"],
+						self.GS["Deployed" .. i .. "Name"],
+						limbData
+					)
+					if actor then
+						actor.AIMode = Actor.AIMODE_SENTRY
+						actor:ClearAIWaypoints()
 
-					actor.Team = CF.PlayerTeam
-					for j = 1, CF.MaxSavedItemsPerActor do
-						if self.GS["Deployed" .. i .. "Item" .. j .. "Preset"] then
-							local itm = CF.MakeItem(
-								self.GS["Deployed" .. i .. "Item" .. j .. "Preset"],
-								self.GS["Deployed" .. i .. "Item" .. j .. "Class"],
-								self.GS["Deployed" .. i .. "Item" .. j .. "Module"]
-							)
-							if itm then
-								actor:AddInventoryItem(itm)
+						actor.Team = CF.PlayerTeam
+						for j = 1, CF.MaxSavedItemsPerActor do
+							if self.GS["Deployed" .. i .. "Item" .. j .. "Preset"] then
+								local itm = CF.MakeItem(
+									self.GS["Deployed" .. i .. "Item" .. j .. "Preset"],
+									self.GS["Deployed" .. i .. "Item" .. j .. "Class"],
+									self.GS["Deployed" .. i .. "Item" .. j .. "Module"]
+								)
+								if itm then
+									actor:AddInventoryItem(itm)
+								end
+							else
+								break
 							end
+						end
+						local x = self.GS["Deployed" .. i .. "X"]
+						local y = self.GS["Deployed" .. i .. "Y"]
+
+						if x and y then
+							actor.Pos = Vector(tonumber(x), tonumber(y))
 						else
-							break
-						end
-					end
-					local x = self.GS["Deployed" .. i .. "X"]
-					local y = self.GS["Deployed" .. i .. "Y"]
+							actor.Pos = self.AwayTeamPos[dest]
+							dest = dest + 1
 
-					if x and y then
-						actor.Pos = Vector(tonumber(x), tonumber(y))
-					else
-						actor.Pos = self.AwayTeamPos[dest]
-						dest = dest + 1
-
-						if dest > #self.AwayTeamPos then
-							dest = 1
-						end
-					end
-
-					if IsAHuman(actor) and ToAHuman(actor).Head == nil then
-						actor.DeathSound = nil
-						actor.Status = Actor.DEAD
-					end
-
-					local player = nil
-
-					if actor:GetNumberValue("VW_BrainOfPlayer") - 1 ~= Activity.PLAYER_NONE then
-						player = actor:GetNumberValue("VW_BrainOfPlayer") - 1
-						-- If the case exists or the player isn't active, store it's things and remove it
-						if not (self:PlayerActive(player) and self:PlayerHuman(player)) or IsActor(self.CreatedBrains[player]) and player ~= Activity.PLAYER_NONE then
-							for j = 1, CF.MaxSavedItemsPerActor do
-								self.GS["Brain" .. player .. "Item" .. j .. "Preset"] = nil
-								self.GS["Brain" .. player .. "Item" .. j .. "Class"] = nil
-								self.GS["Brain" .. player .. "Item" .. j .. "Module"] = nil
+							if dest > #self.AwayTeamPos then
+								dest = 1
 							end
+						end
 
-							-- Save inventory
-							local pre, cls, mdl = CF.GetInventory(act)
+						if IsAHuman(actor) and ToAHuman(actor).Head == nil then
+							actor.DeathSound = nil
+							actor.Status = Actor.DEAD
+						end
 
-							for j = 1, #pre do
-								self.GS["Brain" .. player .. "Item" .. j .. "Preset"] = pre[j]
-								self.GS["Brain" .. player .. "Item" .. j .. "Class"] = cls[j]
-								self.GS["Brain" .. player .. "Item" .. j .. "Module"] = mdl[j]
+						local player = nil
+
+						if actor:GetNumberValue("VW_BrainOfPlayer") - 1 ~= Activity.PLAYER_NONE then
+							player = actor:GetNumberValue("VW_BrainOfPlayer") - 1
+							-- If the case exists or the player isn't active, store it's things and remove it
+							if not (self:PlayerActive(player) and self:PlayerHuman(player)) or IsActor(self.CreatedBrains[player]) and player ~= Activity.PLAYER_NONE then
+								for j = 1, CF.MaxSavedItemsPerActor do
+									self.GS["Brain" .. player .. "Item" .. j .. "Preset"] = nil
+									self.GS["Brain" .. player .. "Item" .. j .. "Class"] = nil
+									self.GS["Brain" .. player .. "Item" .. j .. "Module"] = nil
+								end
+
+								-- Save inventory
+								local pre, cls, mdl = CF.GetInventory(act)
+
+								for j = 1, #pre do
+									self.GS["Brain" .. player .. "Item" .. j .. "Preset"] = pre[j]
+									self.GS["Brain" .. player .. "Item" .. j .. "Class"] = cls[j]
+									self.GS["Brain" .. player .. "Item" .. j .. "Module"] = mdl[j]
+								end
+
+								self.GS["Brain" .. player .. "Detached"] = "False"
+								if actor.GoldCarried > 0 then
+									CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + actor.GoldCarried)
+								end
+								actor.ToDelete = true
+								actor = nil
 							end
+						end
 
-							self.GS["Brain" .. player .. "Detached"] = "False"
-							if actor.GoldCarried > 0 then
-								CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + actor.GoldCarried)
+						-- If it wasn't a faulty player-owned brain, then it is something we can put in the scene
+						if IsActor(actor) then
+							MovableMan:AddActor(actor)
+							self:AddPreEquippedItemsToRemovalQueue(actor)
+
+							-- If if it was a player owned brain, then put it in the scene
+							if player ~= nil then
+								self:SetPlayerBrain(actor, player)
+								self:SwitchToActor(actor, player, CF.PlayerTeam)
+								actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
+								actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
+								actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
 							end
-							actor.ToDelete = true
-							actor = nil
 						end
 					end
-
-					-- If it wasn't a faulty player-owned brain, then it is something we can put in the scene
-					if IsActor(actor) then
-						MovableMan:AddActor(actor)
-						self:AddPreEquippedItemsToRemovalQueue(actor)
-
-						-- If if it was a player owned brain, then put it in the scene
-						if player ~= nil then
-							self:SetPlayerBrain(actor, player)
-							self:SwitchToActor(actor, player, CF.PlayerTeam)
-							actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
-							actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
-							actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
-						end
-					end
+				else
+					break
 				end
-			else
-				break
 			end
 		end
 
@@ -370,8 +375,6 @@ function VoidWanderers:StartActivity()
 	-- Spawn away-team objects
 	if self.GS["Mode"] == "Mission" then
 		-- All mission related final message will be accumulated in mission report list
-		self.MissionDeployedTroops = 0
-
 		local scene = SceneMan.Scene.PresetName
 
 		self.Pts = CF.ReadPtsData(scene, self.SceneConfig)
@@ -398,6 +401,7 @@ function VoidWanderers:StartActivity()
 		local dsts = CF.GetPointsArray(self.Pts, "Deploy", self.MissionDeploySet, "PlayerUnit")
 
 		-- Spawn player troops
+		self.MissionDeployedTroops = 1
 		for i = 1, CF.MaxSavedActors do
 			if self.GS["Deployed" .. i .. "Preset"] then
 				local preset = self.GS["Deployed" .. i .. "Preset"]
@@ -511,11 +515,11 @@ function VoidWanderers:StartActivity()
 						end
 					end
 				end
+
+				self.MissionDeployedTroops = self.MissionDeployedTroops + 1
 			else
 				break
 			end
-
-			self.MissionDeployedTroops = self.MissionDeployedTroops + 1
 		end
 
 		local fowEnabled = self.GS["FogOfWar"] == "true"
@@ -1399,31 +1403,6 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:ClearDeployedUnits()
-	for i = 1, CF.MaxSavedActors do
-		self.GS["Deployed" .. i .. "Preset"] = nil
-		self.GS["Deployed" .. i .. "Class"] = nil
-		self.GS["Deployed" .. i .. "Module"] = nil
-		self.GS["Deployed" .. i .. "X"] = nil
-		self.GS["Deployed" .. i .. "Y"] = nil
-		self.GS["Deployed" .. i .. "XP"] = nil
-		self.GS["Deployed" .. i .. "Identity"] = nil
-		self.GS["Deployed" .. i .. "Player"] = nil
-		self.GS["Deployed" .. i .. "Prestige"] = nil
-		self.GS["Deployed" .. i .. "Name"] = nil
-		for j = 1, #CF.LimbID do
-			self.GS["Deployed" .. i .. CF.LimbID[j]] = nil
-		end
-		for j = 1, CF.MaxSavedItemsPerActor do
-			self.GS["Deployed" .. i .. "Item" .. j .. "Preset"] = nil
-			self.GS["Deployed" .. i .. "Item" .. j .. "Class"] = nil
-			self.GS["Deployed" .. i .. "Item" .. j .. "Module"] = nil
-		end
-	end
-end
------------------------------------------------------------------------------------------
---
------------------------------------------------------------------------------------------
 function VoidWanderers:SaveActors(clearpos)
 	self:ClearActors()
 
@@ -1464,6 +1443,74 @@ function VoidWanderers:SaveActors(clearpos)
 		end
 	end
 end
+-----------------------------------------------------------------------------------------
+--
+-----------------------------------------------------------------------------------------
+function VoidWanderers:ClearDeployed()
+	for i = 1, CF.MaxSavedActors do
+		self.GS["Deployed" .. i .. "Preset"] = nil
+		self.GS["Deployed" .. i .. "Class"] = nil
+		self.GS["Deployed" .. i .. "Module"] = nil
+		self.GS["Deployed" .. i .. "X"] = nil
+		self.GS["Deployed" .. i .. "Y"] = nil
+		self.GS["Deployed" .. i .. "XP"] = nil
+		self.GS["Deployed" .. i .. "Identity"] = nil
+		self.GS["Deployed" .. i .. "Player"] = nil
+		self.GS["Deployed" .. i .. "Prestige"] = nil
+		self.GS["Deployed" .. i .. "Name"] = nil
+		for j = 1, #CF.LimbID do
+			self.GS["Deployed" .. i .. CF.LimbID[j]] = nil
+		end
+		for j = 1, CF.MaxSavedItemsPerActor do
+			self.GS["Deployed" .. i .. "Item" .. j .. "Preset"] = nil
+			self.GS["Deployed" .. i .. "Item" .. j .. "Class"] = nil
+			self.GS["Deployed" .. i .. "Item" .. j .. "Module"] = nil
+		end
+	end
+end
+-----------------------------------------------------------------------------------------
+--
+-----------------------------------------------------------------------------------------
+--[[function VoidWanderers:SaveDeployed(clearpos)
+	self:ClearDeployed()
+
+	local saveddeployed = 0
+
+	for actor in MovableMan.Actors do
+		if actor.PresetName ~= "Brain Case" and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
+			local pre, cls, mdl = CF.GetInventory(actor)
+
+			saveddeployed = saveddeployed + 1
+
+			-- Save actors to config
+			self.GS["Deployed" .. saveddeployed .. "Preset"] = actor.PresetName
+			self.GS["Deployed" .. saveddeployed .. "Class"] = actor.ClassName
+			self.GS["Deployed" .. saveddeployed .. "Module"] = actor.ModuleName
+			self.GS["Deployed" .. saveddeployed .. "XP"] = actor:GetNumberValue("VW_XP")
+			self.GS["Deployed" .. saveddeployed .. "Identity"] = actor:GetNumberValue("Identity")
+			self.GS["Deployed" .. saveddeployed .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
+			self.GS["Deployed" .. saveddeployed .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
+			self.GS["Deployed" .. saveddeployed .. "Name"] = actor:GetStringValue("VW_Name")
+			for j = 1, #CF.LimbID do
+				self.GS["Deployed" .. saveddeployed .. CF.LimbID[j] ] = CF.GetLimbData(actor, j)
+			end
+
+			if clearpos then
+				self.GS["Deployed" .. saveddeployed .. "X"] = nil
+				self.GS["Deployed" .. saveddeployed .. "Y"] = nil
+			else
+				self.GS["Deployed" .. saveddeployed .. "X"] = math.floor(actor.Pos.X)
+				self.GS["Deployed" .. saveddeployed .. "Y"] = math.floor(actor.Pos.Y)
+			end
+
+			for j = 1, #pre do
+				self.GS["Deployed" .. saveddeployed .. "Item" .. j .. "Preset"] = pre[j]
+				self.GS["Deployed" .. saveddeployed .. "Item" .. j .. "Class"] = cls[j]
+				self.GS["Deployed" .. saveddeployed .. "Item" .. j .. "Module"] = mdl[j]
+			end
+		end
+	end
+end]]--
 -----------------------------------------------------------------------------------------
 -- Update Activity
 -----------------------------------------------------------------------------------------
@@ -2614,11 +2661,14 @@ function VoidWanderers:UpdateActivity()
 	self:YSortObjectivePoints()
 
 	for actor in MovableMan.AddedActors do
-		-- No dead unit settles immediately, TODO enable meat shielding by allowing you to pick them up
-		if (IsAHuman(actor) or IsACrab(actor)) then
+		-- No dead unit settles immediately and all can carry others, though most can't use it
+		if IsAHuman(actor) or IsACrab(actor) then
 			actor.RestThreshold = -1
-			actor:EnableDeepCheck(false)
-			--actor.CanBeSquished
+			if actor:HasScript("VoidWanderers.rte/Scripts/Carry.lua") then
+				actor:EnableScript("VoidWanderers.rte/Scripts/Carry.lua")
+			else
+				actor:AddScript("VoidWanderers.rte/Scripts/Carry.lua")
+			end
 		end
 		-- Space out spawned-in craft
 		if actor.Pos.Y <= 0 then
@@ -2637,11 +2687,6 @@ function VoidWanderers:UpdateActivity()
 			end
 		end
 		if self:IsPlayerUnit(actor) then
-			if actor:HasScript("VoidWanderers.rte/Scripts/Carry.lua") then
-				actor:EnableScript("VoidWanderers.rte/Scripts/Carry.lua")
-			else
-				actor:AddScript("VoidWanderers.rte/Scripts/Carry.lua")
-			end
 			if actor:GetNumberValue("VW_Prestige") ~= 0 then
 				if actor:HasScript("Base.rte/Actors/Shared/Scripts/SelfHeal.lua") then
 					actor:EnableScript("Base.rte/Actors/Shared/Scripts/SelfHeal.lua")
