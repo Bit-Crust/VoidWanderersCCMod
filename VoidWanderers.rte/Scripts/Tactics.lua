@@ -365,8 +365,6 @@ function VoidWanderers:StartActivity()
 		if CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TEMPLOCATION) then
 			self.GS["Location"] = nil
 		end
-
-		self.DeployedActors = nil
 	end
 
 	-- Spawn away-team objects
@@ -2617,10 +2615,10 @@ function VoidWanderers:UpdateActivity()
 
 	for actor in MovableMan.AddedActors do
 		-- No dead unit settles immediately, TODO enable meat shielding by allowing you to pick them up
-		if IsAHuman(actor) or IsACrab(actor) and actor.Status ~= Actor.STABLE then
+		if (IsAHuman(actor) or IsACrab(actor)) then
 			actor.RestThreshold = -1
 			actor:EnableDeepCheck(false)
-			actor.ToSettle = false
+			--actor.CanBeSquished
 		end
 		-- Space out spawned-in craft
 		if actor.Pos.Y <= 0 then

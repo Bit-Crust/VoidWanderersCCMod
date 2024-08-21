@@ -892,8 +892,13 @@ end
 
 function do_rpgbrain_shield(self)
 	if self.Health > 0 and self.Head and self.ShieldEnabled then
-		local maximumRadius = (self.ShieldRadius + self.ShieldLevel * self.ShieldRadiusPerPower)
-		local radius = math.max(0, maximumRadius - self.ShieldPressure / self.ShieldPressureAmp)
+		local maximumPressure = (self.ShieldRadius + self.ShieldLevel * self.ShieldRadiusPerPower) * self.ShieldPressureAmp
+
+		if self:IsStatus(Actor.UNSTABLE) then
+			self.ShieldPressure = maximumPressure
+		end
+
+		local radius = math.max(0, (maximumPressure - self.ShieldPressure) / self.ShieldPressureAmp)
 		local massindex = 1 + ((5 - self.ShieldLevel) * 0.20)
 
 		if radius > self.ShieldIneffectiveRadius then
@@ -919,7 +924,7 @@ function do_rpgbrain_shield(self)
 							projectile.Vel = tempVel:FlipX(true):GetRadRotatedCopy(incidentAngle + RangeRand(-0.1, 0.1))
 						end
 					
-						local pressureIncrement = ((projectile.Mass * massindex) * projectile.Vel.Magnitude) * math.cos(tempVel.AbsRadAngle)
+						local pressureIncrement = (projectile.Mass * massindex * projectile.Vel.Magnitude * projectile.Sharpness) * math.cos(tempVel.AbsRadAngle)
 						pressureTotal = pressureTotal + pressureIncrement
 
 						glowIndex = math.min(math.floor(pressureIncrement * 0.1), 15)
@@ -949,7 +954,7 @@ function do_rpgbrain_shield(self)
 		end
 
 		if self.DepressureTimer:IsPastSimMS(self.ShieldDepressureDelay) then
-			self.ShieldPressure = math.max(0, math.min(maximumRadius * self.ShieldPressureAmp, self.ShieldPressure - 3 * self.ShieldLevel))
+			self.ShieldPressure = math.max(0, math.min(maximumPressure, self.ShieldPressure - 3 * self.ShieldLevel))
 		end
 	end
 end

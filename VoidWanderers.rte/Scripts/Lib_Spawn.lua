@@ -644,12 +644,6 @@ CF.MakeUnitFromPreset = function(c, p, pre)
 							CF["RandomizeLimbs"](actor)
 						end
 					end
-					if actor.Head then
-						actor.Head:SetNumberValue("Carriable", 1)
-						actor.Head:AddScript(CF["ModuleName"] .. "/Items/AttachOnCollision.lua")
-						actor.RestThreshold = 10000
-						actor.Head.RestThreshold = -1
-					end
 					for i = 1, math.ceil(CF["MaxItemsPerPreset"] * RangeRand(0.5, 1.0)) do
 						if c["Player" .. p .. "Preset" .. pre .. "Item" .. i] ~= nil then
 							local w = tonumber(c["Player" .. p .. "Preset" .. pre .. "Item" .. i])

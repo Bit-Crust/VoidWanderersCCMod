@@ -55,7 +55,7 @@ function Update(self)
 			elseif armToUse then
 				local adjustedAimAngle = self:GetAimAngle(false) * self.FlipFactor
 
-				local reach = armToUse.MaxLength
+				local reach = armToUse.MaxLength * 1.5
 				local reachPoint = armToUse.JointPos
 
 				local itemMOID = SceneMan:CastMORay(
@@ -79,14 +79,6 @@ function Update(self)
 					if
 						IsAttachable(foundMO)
 						and ToAttachable(foundMO):NumberValueExists("Carriable")
-						and (
-							not IsActor(foundMO:GetRootParent())
-							or (
-								ToActor(foundMO:GetRootParent()).Status ~= Actor.STABLE
-								and ToAttachable(foundMO).JointStrength > 0
-								and ToAttachable(foundMO).JointStrength <= armToUse.GripStrength
-							)
-						)
 					then
 						foundMO = ToAttachable(foundMO)
 					else
