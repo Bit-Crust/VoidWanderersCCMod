@@ -4,6 +4,8 @@
 -----------------------------------------------------------------------------------------
 function VoidWanderers:StartActivity()
 	print("VoidWanderers:StrategyScreen:StartActivity")
+
+	self.AllowsUserSaving = false
 	
 	self.MenuNavigationSchemes = { KEYBOARD = 0, MOUSE = 1, GAMEPAD = 2 }
 	CF.MenuNavigationScheme = self.MenuNavigationSchemes.KEYBOARD
@@ -18,8 +20,6 @@ function VoidWanderers:StartActivity()
 				CF.MenuNavigationScheme = self.MenuNavigationSchemes.GAMEPAD
 			end
 			break
-		else
-			print("WARNING: You are playing with a setup this mod is not yet able to accomodate.")
 		end
 	end
 

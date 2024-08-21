@@ -6,24 +6,24 @@ function VoidWanderers:InitClonesControlPanelUI()
 	-- Clone Control Panel
 	local x, y
 
-	x = tonumber(self.LS["ClonesControlPanelX"])
-	y = tonumber(self.LS["ClonesControlPanelY"])
+	x = tonumber(self.SceneConfig["ClonesControlPanelX"])
+	y = tonumber(self.SceneConfig["ClonesControlPanelY"])
 	if x ~= nil and y ~= nil then
 		self.ClonesControlPanelPos = Vector(x, y)
 	else
 		self.ClonesControlPanelPos = nil
 	end
 
-	x = tonumber(self.LS["ClonesDeployX"])
-	y = tonumber(self.LS["ClonesDeployY"])
+	x = tonumber(self.SceneConfig["ClonesDeployX"])
+	y = tonumber(self.SceneConfig["ClonesDeployY"])
 	if x ~= nil and y ~= nil then
 		self.ClonesDeployPos = Vector(x, y)
 	else
 		self.ClonesDeployPos = nil
 	end
 
-	x = tonumber(self.LS["ClonesInputX"])
-	y = tonumber(self.LS["ClonesInputY"])
+	x = tonumber(self.SceneConfig["ClonesInputX"])
+	y = tonumber(self.SceneConfig["ClonesInputY"])
 	if x ~= nil and y ~= nil then
 		self.ClonesInputPos = Vector(x, y)
 	else

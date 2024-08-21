@@ -55,8 +55,6 @@ function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 	print("Halp")
 	if orbitedCraft.PresetName ~= "Fake Drop Ship MK1" and self.GS["Mode"] ~= "Vessel" then
 		if orbitedCraft.Team == CF.PlayerTeam and orbitedCraft:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
-			self.DeployedActors = {}
-
 			-- Bring back actors
 			for actor in orbitedCraft.Inventory do
 				if actor.Team == CF.PlayerTeam and IsActor(actor) and ToActor(actor).Health > 0 then
@@ -78,29 +76,33 @@ function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 						assignable = false
 					end
 
+					deployedactor = 1
+
 					if
-						assignable
-						and actor.PresetName ~= "LZ Control Panel"
-						and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
+						assignable and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 					then
-						local pre, cls, mdl = CF.GetInventory(actor)
-						-- These actors must be deployed
-						local n = #self.DeployedActors + 1
-						self.DeployedActors[n] = {}
-						self.DeployedActors[n]["Preset"] = actor.PresetName
-						self.DeployedActors[n]["Class"] = actor.ClassName
-						self.DeployedActors[n]["Module"] = actor.ModuleName
-						self.DeployedActors[n]["XP"] = actor:GetNumberValue("VW_XP")
-						self.DeployedActors[n]["Identity"] = actor:GetNumberValue("Identity")
-						self.DeployedActors[n]["Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
-						self.DeployedActors[n]["Prestige"] = actor:GetNumberValue("VW_Prestige")
-						self.DeployedActors[n]["Name"] = actor:GetStringValue("VW_Name")
-						self.DeployedActors[n]["InventoryPresets"] = pre
-						self.DeployedActors[n]["InventoryClasses"] = cls
-						self.DeployedActors[n]["InventoryModules"] = mdl
+						self.GS["Deployed" .. deployedactor .. "Preset"] = actor.PresetName
+						self.GS["Deployed" .. deployedactor .. "Class"] = actor.ClassName
+						self.GS["Deployed" .. deployedactor .. "Module"] = actor.ModuleName
+						self.GS["Deployed" .. deployedactor .. "XP"] = actor:GetNumberValue("VW_XP")
+						self.GS["Deployed" .. deployedactor .. "Identity"] = actor:GetNumberValue("Identity")
+						self.GS["Deployed" .. deployedactor .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
+						self.GS["Deployed" .. deployedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
+						self.GS["Deployed" .. deployedactor .. "Name"] = actor:GetStringValue("VW_Name")
+						self.GS["Deployed" .. deployedactor .. "InventoryPresets"] = pre
+						self.GS["Deployed" .. deployedactor .. "InventoryClasses"] = cls
+						self.GS["Deployed" .. deployedactor .. "InventoryModules"] = mdl
 						for j = 1, #CF.LimbID do
-							self.DeployedActors[n][CF.LimbID[j]] = CF.GetLimbData(actor, j)
+							self.GS["Deployed" .. deployedactor .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
 						end
+
+						for j = 1, #pre do
+							self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Preset"] = pre[j]
+							self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Class"] = cls[j]
+							self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Module"] = mdl[j]
+						end
+								
+						deployedactor = deployedactor + 1
 					end
 				end
 			end
@@ -757,7 +759,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		-- Set new operating mode
 		self.GS["Mode"] = "Vessel"
 		self.GS["SceneType"] = "Vessel"
-		self.GS["WasReset"] = "False"
+		self.GS["Scene"] = scene
 		
 		self:SaveCurrentGameState()
 

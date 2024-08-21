@@ -96,6 +96,7 @@ function VoidWanderers:StartActivity()
 
 	TRANSFER_IN_PROGRESS = false
 
+	-- TODO: what
 	for difficulty = GameActivity.MINDIFFICULTY, GameActivity.MAXDIFFICULTY do
 		if self.Difficulty <= difficulty then
 			self.Difficulty = difficulty
@@ -121,8 +122,6 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:LaunchScript(scene, script)
 	print("VoidWanderers-LaunchScript: " .. scene .. " / " .. script)
-	--print(scene)
-	--print(script)
 
 	self.IsInitialized = false
 
@@ -149,8 +148,6 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:EndActivity()
 	print("END! -- VoidWanderers:EndActivity()!")
-	CF["Self"] = nil
-	CF["GS"] = nil
 end
 -----------------------------------------------------------------------------------------
 -- Update Activity
@@ -160,6 +157,12 @@ function VoidWanderers:UpdateActivity()
 	if TRANSFER_IN_PROGRESS then
 		self:StartActivity()
 	end
+end
+---
+--
+---
+function VoidWanderers:OnSave(self)
+	
 end
 -----------------------------------------------------------------------------------------
 --
@@ -301,7 +304,7 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:SaveCurrentGameState()
 	self.GS["Time"] = tostring(self.Time)
-	CF["WriteConfigFile"](self.GS, self.ModuleName, STATE_CONFIG_FILE)
+	CF.WriteConfigFile(self.GS, self.ModuleName, STATE_CONFIG_FILE)
 end
 -----------------------------------------------------------------------------------------
 --

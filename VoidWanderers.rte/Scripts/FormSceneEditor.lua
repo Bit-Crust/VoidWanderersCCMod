@@ -144,7 +144,7 @@ function VoidWanderers:FormLoad()
 	self.LastTypeElement = #self.UI
 
 	-- Load level data
-	self.LS = CF["ReadSceneConfigFile"](self.ModuleName, SceneMan.Scene.PresetName .. ".dat")
+	self.SceneConfig = CF["ReadSceneConfigFile"](self.ModuleName, SceneMan.Scene.PresetName .. ".dat")
 
 	for k1 = 1, #self.Data do
 		local msntype = self.Data[k1]["Name"]
@@ -156,8 +156,8 @@ function VoidWanderers:FormLoad()
 				for k4 = 1, CF["MissionRequiredData"][msntype][k3]["Max"] do
 					local id = msntype .. tostring(k2) .. pttype .. tostring(k4)
 
-					local x = self.LS[id .. "X"]
-					local y = self.LS[id .. "Y"]
+					local x = self.SceneConfig[id .. "X"]
+					local y = self.SceneConfig[id .. "Y"]
 
 					if x ~= nil and y ~= nil then
 						if self.Pts[msntype] == nil then
@@ -248,22 +248,22 @@ function VoidWanderers:Save_OnClick()
 				local pnttype = CF["MissionRequiredData"][k][k3]["Name"]
 				-- Clear data
 				for i = 1, CF["MissionRequiredData"][k][k3]["Max"] do
-					self.LS[msntype .. setnum .. pnttype .. tostring(i) .. "X"] = nil
-					self.LS[msntype .. setnum .. pnttype .. tostring(i) .. "Y"] = nil
+					self.SceneConfig[msntype .. setnum .. pnttype .. tostring(i) .. "X"] = nil
+					self.SceneConfig[msntype .. setnum .. pnttype .. tostring(i) .. "Y"] = nil
 				end
 
 				-- Save data
 				for k4, v4 in pairs(v3) do -- Point vector
 					--print (k4)
 					--print (v4)
-					self.LS[msntype .. setnum .. pnttype .. tostring(k4) .. "X"] = v4.X
-					self.LS[msntype .. setnum .. pnttype .. tostring(k4) .. "Y"] = v4.Y
+					self.SceneConfig[msntype .. setnum .. pnttype .. tostring(k4) .. "X"] = v4.X
+					self.SceneConfig[msntype .. setnum .. pnttype .. tostring(k4) .. "Y"] = v4.Y
 				end
 			end
 		end
 	end
 
-	CF["WriteSceneConfigFile"](self.LS, CF["ModuleName"], SceneMan.Scene.PresetName .. ".dat")
+	CF["WriteSceneConfigFile"](self.SceneConfig, CF["ModuleName"], SceneMan.Scene.PresetName .. ".dat")
 end
 -----------------------------------------------------------------------------------------
 --

@@ -5,8 +5,8 @@ function VoidWanderers:InitShipControlPanelUI()
 	-- Ship Control Panel
 	local x, y
 
-	x = tonumber(self.LS["ShipControlPanelX"])
-	y = tonumber(self.LS["ShipControlPanelY"])
+	x = tonumber(self.SceneConfig["ShipControlPanelX"])
+	y = tonumber(self.SceneConfig["ShipControlPanelY"])
 	if x ~= nil and y ~= nil then
 		self.ShipControlPanelPos = Vector(x, y)
 	else

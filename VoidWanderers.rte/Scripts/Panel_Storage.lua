@@ -5,24 +5,24 @@ function VoidWanderers:InitStorageControlPanelUI()
 	-- Storage Control Panel
 	local x, y
 
-	x = tonumber(self.LS["StorageControlPanelX"])
-	y = tonumber(self.LS["StorageControlPanelY"])
+	x = tonumber(self.SceneConfig["StorageControlPanelX"])
+	y = tonumber(self.SceneConfig["StorageControlPanelY"])
 	if x ~= nil and y ~= nil then
 		self.StorageControlPanelPos = Vector(x, y)
 	else
 		self.StorageControlPanelPos = nil
 	end
 
-	x = tonumber(self.LS["StorageInputX"])
-	y = tonumber(self.LS["StorageInputY"])
+	x = tonumber(self.SceneConfig["StorageInputX"])
+	y = tonumber(self.SceneConfig["StorageInputY"])
 	if x ~= nil and y ~= nil then
 		self.StorageInputPos = Vector(x, y)
 	else
 		self.StorageInputPos = nil
 	end
 	--[[
-	x = tonumber(self.LS["StorageDeployX"])
-	y = tonumber(self.LS["StorageDeployY"])
+	x = tonumber(self.SceneConfig["StorageDeployX"])
+	y = tonumber(self.SceneConfig["StorageDeployY"])
 	if x~= nil and y ~= nil then
 		self.StorageDeployPos = Vector(x,y)
 	else

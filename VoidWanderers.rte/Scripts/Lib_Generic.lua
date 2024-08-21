@@ -898,7 +898,7 @@ end
 -----------------------------------------------------------------------------------------
 -- Make actor of specified preset, class, module, rank, identity, and player
 -----------------------------------------------------------------------------------------
-CF["MakeActor"] = function(item, class, module, xp, identity, player, prestige, name, limbs)
+CF.MakeActor = function(item, class, module, xp, identity, player, prestige, name, limbs)
 	local actor
 	if class == nil then
 		class = "AHuman"

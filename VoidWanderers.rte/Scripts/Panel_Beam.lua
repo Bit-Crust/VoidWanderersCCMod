@@ -5,8 +5,8 @@ function VoidWanderers:InitBeamControlPanelUI()
 	-- Beam Control Panel
 	local x, y
 
-	x = tonumber(self.LS["BeamControlPanelX"])
-	y = tonumber(self.LS["BeamControlPanelY"])
+	x = tonumber(self.SceneConfig["BeamControlPanelX"])
+	y = tonumber(self.SceneConfig["BeamControlPanelY"])
 	if x ~= nil and y ~= nil then
 		self.BeamControlPanelPos = Vector(x, y)
 	else
@@ -15,10 +15,10 @@ function VoidWanderers:InitBeamControlPanelUI()
 
 	local x1, y1, x2, y2
 
-	x1 = tonumber(self.LS["BeamBoxX1"])
-	y1 = tonumber(self.LS["BeamBoxY1"])
-	x2 = tonumber(self.LS["BeamBoxX2"])
-	y2 = tonumber(self.LS["BeamBoxY2"])
+	x1 = tonumber(self.SceneConfig["BeamBoxX1"])
+	y1 = tonumber(self.SceneConfig["BeamBoxY1"])
+	x2 = tonumber(self.SceneConfig["BeamBoxX2"])
+	y2 = tonumber(self.SceneConfig["BeamBoxY2"])
 
 	if x1 ~= nil and y1 ~= nil and x2 ~= nil and y2 ~= nil then
 		self.BeamControlPanelBox = Box(x1, y1, x2, y2)
@@ -171,6 +171,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 					self.FirePressed[player] = true
 
 					local savedactor = 1
+					local deployedactor = 1
 
 					-- Save all items
 					for item in MovableMan.Items do
@@ -194,8 +195,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 
 					-- Clean previously saved actors and inventories in config
 					self:ClearActors()
-
-					self.DeployedActors = {}
+					self:ClearDeployedUnits()
 
 					-- Save actors to config and transfer them to scene
 					for actor in MovableMan.Actors do
@@ -204,34 +204,32 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 							and actor.PresetName ~= "Brain Case"
 							and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 						then
-							local pre, cls, mdl = CF["GetInventory"](actor)
+							local pre, cls, mdl = CF.GetInventory(actor)
 
-							-- These actors must be deployed
+							-- These actors must be 
 							if self.BeamControlPanelBox:IsWithinBox(actor.Pos) then
-								local n = #self.DeployedActors + 1
-								self.DeployedActors[n] = {}
-								self.DeployedActors[n]["Preset"] = actor.PresetName
-								self.DeployedActors[n]["Class"] = actor.ClassName
-								self.DeployedActors[n]["Module"] = actor.ModuleName
-								self.DeployedActors[n]["XP"] = actor:GetNumberValue("VW_XP")
-								self.DeployedActors[n]["Identity"] = actor:GetNumberValue("Identity")
-								self.DeployedActors[n]["Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
-								self.DeployedActors[n]["Prestige"] = actor:GetNumberValue("VW_Prestige")
-								self.DeployedActors[n]["Name"] = actor:GetStringValue("VW_Name")
-								self.DeployedActors[n]["InventoryPresets"] = pre
-								self.DeployedActors[n]["InventoryClasses"] = cls
-								self.DeployedActors[n]["InventoryModules"] = mdl
-								for j = 1, #CF["LimbID"] do
-									self.DeployedActors[n][CF["LimbID"][j]] = CF["GetLimbData"](actor, j)
+								self.GS["Deployed" .. deployedactor .. "Preset"] = actor.PresetName
+								self.GS["Deployed" .. deployedactor .. "Class"] = actor.ClassName
+								self.GS["Deployed" .. deployedactor .. "Module"] = actor.ModuleName
+								self.GS["Deployed" .. deployedactor .. "XP"] = actor:GetNumberValue("VW_XP")
+								self.GS["Deployed" .. deployedactor .. "Identity"] = actor:GetNumberValue("Identity")
+								self.GS["Deployed" .. deployedactor .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
+								self.GS["Deployed" .. deployedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
+								self.GS["Deployed" .. deployedactor .. "Name"] = actor:GetStringValue("VW_Name")
+								self.GS["Deployed" .. deployedactor .. "InventoryPresets"] = pre
+								self.GS["Deployed" .. deployedactor .. "InventoryClasses"] = cls
+								self.GS["Deployed" .. deployedactor .. "InventoryModules"] = mdl
+								for j = 1, #CF.LimbID do
+									self.GS["Deployed" .. deployedactor .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
 								end
-								--[[
-								local attCount = 0
-								for att in actor.Attachables do
-									attCount = attCount + 1
-									self.DeployedActors[n]["Attachable"..attCount] = att.PresetName
+
+								for j = 1, #pre do
+									self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Preset"] = pre[j]
+									self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Class"] = cls[j]
+									self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Module"] = mdl[j]
 								end
-								]]
-								--
+								
+								deployedactor = deployedactor + 1
 							else
 								-- Save actors to config
 								self.GS["Actor" .. savedactor .. "Preset"] = actor.PresetName
@@ -244,8 +242,8 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 								self.GS["Actor" .. savedactor .. "Name"] = actor:GetStringValue("VW_Name")
 								self.GS["Actor" .. savedactor .. "X"] = math.floor(actor.Pos.X)
 								self.GS["Actor" .. savedactor .. "Y"] = math.floor(actor.Pos.Y)
-								for j = 1, #CF["LimbID"] do
-									self.GS["Actor" .. savedactor .. CF["LimbID"][j]] = CF["GetLimbData"](actor, j)
+								for j = 1, #CF.LimbID do
+									self.GS["Actor" .. savedactor .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
 								end
 
 								for j = 1, #pre do

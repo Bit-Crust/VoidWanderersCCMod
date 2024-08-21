@@ -5,8 +5,8 @@ function VoidWanderers:InitCloneShopControlPanelUI()
 	-- CloneShop Control Panel
 	local x, y
 
-	x = tonumber(self.LS["CloneShopControlPanelX"])
-	y = tonumber(self.LS["CloneShopControlPanelY"])
+	x = tonumber(self.SceneConfig["CloneShopControlPanelX"])
+	y = tonumber(self.SceneConfig["CloneShopControlPanelY"])
 	if x ~= nil and y ~= nil then
 		self.CloneShopControlPanelPos = Vector(x, y)
 	else
