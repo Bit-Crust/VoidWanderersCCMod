@@ -24,12 +24,11 @@ CF.MakeRPGBrain = function(c, p, team, pos, level, giveweapons)
 			local index = math.random(#availableSkills)
 			if skillset[availableSkills[index]] < 5 then
 				skillset[availableSkills[index]] = skillset[availableSkills[index]] + 1
-			else
-				table.remove(availableSkills, index)
-				i = i - 1
+				if skillset[availableSkills[index]] == 5 then
+					table.remove(availableSkills, index)
+				end
 			end
 			if #availableSkills == 0 then
-				print("Exhausted skills, should only occur with maximum security spec ops units.")
 				break
 			end
 		end
@@ -199,26 +198,55 @@ end
 --	Spawns some random infantry of specified faction, tries to spawn AHuman
 -----------------------------------------------------------------------------------------
 CF.SpawnRandomInfantry = function(team, pos, faction, aimode)
-	--print ("CF.SpawnRandomInfantry")
 	local actor = nil
-	local r1, r2
-	local item
+	local weapon = nil
+	local actorCandidateName = nil
+	local weaponCandidateName = nil
 
-	if MovableMan:GetMOIDCount() < CF.MOIDLimit then
-		-- Find AHuman
-		local ok = false
-		-- Emergency counter in case we don't have AHumans in factions
+	-- Emergency counter in case we don't have AHumans in factions
+	local counter = 0
+	while true do
+		actorCandidateName = #CF.ActNames[faction] > 0 and math.random(#CF.ActNames[faction]) or 0
+
+		if
+			(CF.ActClasses[faction][actorCandidateName] == nil
+			or CF.ActClasses[faction][actorCandidateName] == "AHuman")
+			and CF.ActTypes[faction][actorCandidateName] ~= CF.ActorTypes.ARMOR
+		then
+			break
+		end
+
+		-- Break to avoid endless loop
+		counter = counter + 1
+		if counter > 20 then
+			break
+		end
+	end
+
+	actor = CF.MakeActor(
+		CF.ActPresets[faction][actorCandidateName], 
+		CF.ActClasses[faction][actorCandidateName], 
+		CF.ActModules[faction][actorCandidateName]
+	)
+
+	if actor == nil then
+		return nil
+	end
+
+	-- Check if this is pre-equipped faction
+	if not CF.PreEquippedActors[faction] then
+		-- Emergency counter in case we don't have Rifles, Shotguns, or Snipers in faction
 		local counter = 0
 
-		while not ok do
-			ok = false
-			r1 = #CF.ActNames[faction] > 0 and math.random(#CF.ActNames[faction]) or 0
+		while true do
+			weaponCandidateName = math.random(#CF.ItmNames[faction])
 
 			if
-				(CF["ActClasses"][faction][r1] == nil or CF["ActClasses"][faction][r1] == "AHuman")
-				and CF["ActTypes"][faction][r1] ~= CF["ActorTypes"].ARMOR
+				CF.ItmTypes[faction][weaponCandidateName] == CF.WeaponTypes.RIFLE
+				or CF.ItmTypes[faction][weaponCandidateName] == CF.WeaponTypes.SHOTGUN
+				or CF.ItmTypes[faction][weaponCandidateName] == CF.WeaponTypes.SNIPER
 			then
-				ok = true
+				break
 			end
 
 			-- Break to avoid endless loop
@@ -228,81 +256,76 @@ CF.SpawnRandomInfantry = function(team, pos, faction, aimode)
 			end
 		end
 
-		actor = CF["MakeActor"](CF["ActPresets"][faction][r1], CF["ActClasses"][faction][r1], CF["ActModules"][faction][r1])
+		item = CF.MakeItem(
+			CF.ItmPresets[faction][weaponCandidateName], 
+			CF.ItmClasses[faction][weaponCandidateName], 
+			CF.ItmModules[faction][weaponCandidateName]
+		)
 
-		if actor ~= nil then
-			-- Check if this is pre-equipped faction
-			local preequipped = false
-
-			if CF["PreEquippedActors"][faction] ~= nil and CF["PreEquippedActors"][faction] then
-				preequpped = true
-			end
-
-			if not preequipped then
-				-- Find rifle
-				local ok = false
-				-- Emergency counter in case we don't have AHumans in factions
-				local counter = 0
-
-				while not ok do
-					ok = false
-					r2 = math.random(#CF["ItmNames"][faction])
-
-					if
-						CF["ItmTypes"][faction][r2] == CF["WeaponTypes"].RIFLE
-						or CF["ItmTypes"][faction][r2] == CF["WeaponTypes"].SHOTGUN
-						or CF["ItmTypes"][faction][r2] == CF["WeaponTypes"].SNIPER
-					then
-						ok = true
-					end
-
-					-- Break to avoid endless loop
-					counter = counter + 1
-					if counter > 40 then
-						break
-					end
-				end
-
-				item = CF["MakeItem"](CF["ItmPresets"][faction][r2], CF["ItmClasses"][faction][r2], CF["ItmModules"][faction][r2])
-
-				if item ~= nil then
-					actor:AddInventoryItem(item)
-				end
-			end
-
-			actor.AIMode = aimode
-			actor.Team = team
-
-			if pos ~= nil then
-				actor.Pos = pos
-				MovableMan:AddActor(actor)
-				return actor
-			else
-				return actor
-			end
+		if item ~= nil then
+			actor:AddInventoryItem(item)
 		end
+	end
+
+	actor.AIMode = aimode
+	actor.Team = team
+
+	if pos ~= nil then
+		actor.Pos = pos
+		MovableMan:AddActor(actor)
+		return actor
+	else
+		return actor
 	end
 
 	return nil
 end
 -----------------------------------------------------------------------------------------
+-- Create list of actors in faction of certain class.
+-----------------------------------------------------------------------------------------
+CF.MakeListOfMostPowerfulActorsOfClass = function(config, player, actorType, actorClass, maxTech)
+	local acts = CF.MakeListOfMostPowerfulActors(config, player, actorType, maxTech)
+	local f = CF.GetPlayerFaction(config, player)
+
+	if acts then
+		-- Filter only humans
+		local tempActs = {}
+
+		for i = 1, #acts do
+			local ind = acts[i]["Actor"]
+
+			if CF.ActClasses[f][ind] == actorClass then
+				table.insert(tempActs, acts[i])
+			end
+		end
+
+		if #tempActs == 0 then
+			acts = nil
+		else
+			acts = tempActs
+		end
+	end
+
+	return acts
+end
+-----------------------------------------------------------------------------------------
 -- Create list of weapons of wtype sorted by their power.
 -----------------------------------------------------------------------------------------
-CF["MakeListOfMostPowerfulWeapons"] = function(config, player, weaponType, maxTech)
+CF.MakeListOfMostPowerfulWeapons = function(config, player, weaponType, maxTech)
 	local weaps = {}
-	local f = CF["GetPlayerFaction"](config, player)
+	local f = CF.GetPlayerFaction(config, player)
 	-- Filter needed items
-	for i = 1, #CF["ItmNames"][f] do
+	for i = 1, #CF.ItmNames[f] do
 		if
-			CF["ItmPowers"][f][i] > 0
-			and CF["ItmUnlockData"][f][i] <= maxTech
-			and (CF["WeaponTypes"].ANY == weaponType or CF["ItmTypes"][f][i] == weaponType)
+			CF.ItmPowers[f][i] > 0
+			and CF.ItmUnlockData[f][i] <= maxTech
+			and (CF.WeaponTypes.ANY == weaponType or CF.ItmTypes[f][i] == weaponType)
 		then
 			local n = #weaps + 1
 			weaps[n] = {}
 			weaps[n]["Item"] = i
 			weaps[n]["Faction"] = f
-			weaps[n]["Power"] = CF["ItmPowers"][f][i]
+			weaps[n]["Power"] = CF.ItmPowers[f][i]
 		end
 	end
 	-- Sort them
@@ -315,24 +338,13 @@ CF["MakeListOfMostPowerfulWeapons"] = function(config, player, weaponType, maxTe
 			end
 		end
 	end
-	--[[ If no weapons were found, try other types?
-	if #weaps == 0 then
-		for i = 0, #CF["WeaponTypes"] - 1 do
-			weaps = CF["MakeListOfMostPowerfulWeapons"](config, player, i, maxTech)
-			if weaps then
-				break
-			end
-		end
-	end
-	]]
-	--
 	if #weaps == 0 then
 		weaps = nil
 	end
 	return weaps
 end
 -----------------------------------------------------------------------------------------
--- Create list of actors of atype sorted by their power.
+-- Create list of actors of a type sorted by their power.
 -----------------------------------------------------------------------------------------
 CF.MakeListOfMostPowerfulActors = function(config, player, actorType, maxTech)
 	local acts = {}
@@ -361,17 +373,6 @@ CF.MakeListOfMostPowerfulActors = function(config, player, actorType, maxTech)
 			end
 		end
 	end
-	--[[ If no actors were found, try other types?
-	if #acts == 0 then
-		for i = 0, #CF.ActorTypes - 1 do
-			acts = CF.MakeListOfMostPowerfulActors(config, player, i, maxTech)
-			if acts then
-				break
-			end
-		end
-	end
-	]]
-	--
 	if #acts == 0 then
 		acts = nil
 	end
@@ -615,57 +616,52 @@ CF.MakeUnitFromPreset = function(c, p, pre)
 	local offset = Vector()
 	local weapon = nil
 
-	if MovableMan:GetMOIDCount() < CF.MOIDLimit then
-		local a = c["Player" .. p .. "Preset" .. pre .. "Actor"]
-		if a ~= nil then
-			a = tonumber(a)
-			local f = c["Player" .. p .. "Preset" .. pre .. "Faction"]
-			local reputation = c["Player" .. p .. "Reputation"]
-			local setRank = 0
-			if reputation then
-				reputation = math.abs(tonumber(reputation))
-				setRank = math.min(
-					math.random(0, math.floor(#CF.Ranks * (reputation / (#CF["Ranks"] * CF["ReputationPerDifficulty"])))),
-					#CF["Ranks"]
-				)
-			end
+	local a = tonumber(c["Player" .. p .. "Preset" .. pre .. "Actor"])
+	if a ~= nil then
+		local f = c["Player" .. p .. "Preset" .. pre .. "Faction"]
+		local reputation = c["Player" .. p .. "Reputation"]
+		local setRank = 0
+		if reputation then
+			reputation = math.abs(tonumber(reputation))
+			setRank = math.min(
+				math.random(0, math.floor(#CF.Ranks * reputation / (#CF.Ranks * CF.ReputationPerDifficulty))),
+				#CF.Ranks
+			)
+		end
 
-			actor = CF["MakeActor"](CF["ActPresets"][f][a], CF["ActClasses"][f][a], CF["ActModules"][f][a], CF["Ranks"][setRank])
+		actor = CF.MakeActor(CF.ActPresets[f][a], CF.ActClasses[f][a], CF.ActModules[f][a], CF.Ranks[setRank])
 
-			if CF["ActOffsets"][f][a] then
-				offset = CF["ActOffsets"][f][a]
-			end
+		if CF.ActOffsets[f][a] then
+			offset = CF.ActOffsets[f][a]
+		end
 
-			if actor then
-				-- Give weapons to human actors
-				if actor.ClassName == "AHuman" then
-					if setRank ~= 0 then
-						if actor.ModuleID < 10 and math.random() + 0.5 < setRank / #CF["Ranks"] then
-							CF["RandomizeLimbs"](actor)
-						end
-					end
-					for i = 1, math.ceil(CF["MaxItemsPerPreset"] * RangeRand(0.5, 1.0)) do
-						if c["Player" .. p .. "Preset" .. pre .. "Item" .. i] ~= nil then
-							local w = tonumber(c["Player" .. p .. "Preset" .. pre .. "Item" .. i])
-							local wf = c["Player" .. p .. "Preset" .. pre .. "ItemFaction" .. i]
-
-							weapon = CF["MakeItem"](CF["ItmPresets"][wf][w], CF["ItmClasses"][wf][w], CF["ItmModules"][wf][w])
-
-							if weapon ~= nil then
-								actor:AddInventoryItem(weapon)
-							end
-						end
-					end
-					if math.random() < 0.5 / (1 + actor.InventorySize) then
-						actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"))
+		if actor then
+			-- Give weapons to human actors
+			if actor.ClassName == "AHuman" then
+				if setRank ~= 0 then
+					if actor.ModuleID < 10 and math.random() + 0.5 < setRank / #CF.Ranks then
+						CF.RandomizeLimbs(actor)
 					end
 				end
-				-- Set default AI mode
-				actor.AIMode = Actor.AIMODE_SENTRY
+				for i = 1, math.ceil(CF["MaxItemsPerPreset"] * RangeRand(0.5, 1.0)) do
+					if c["Player" .. p .. "Preset" .. pre .. "Item" .. i] ~= nil then
+						local w = tonumber(c["Player" .. p .. "Preset" .. pre .. "Item" .. i])
+						local wf = c["Player" .. p .. "Preset" .. pre .. "ItemFaction" .. i]
+
+						weapon = CF["MakeItem"](CF["ItmPresets"][wf][w], CF["ItmClasses"][wf][w], CF["ItmModules"][wf][w])
+
+						if weapon ~= nil then
+							actor:AddInventoryItem(weapon)
+						end
+					end
+				end
+				if math.random() < 0.5 / (1 + actor.InventorySize) then
+					actor:AddInventoryItem(CreateHDFirearm("Medikit", "Base.rte"))
+				end
 			end
+			-- Set default AI mode
+			actor.AIMode = Actor.AIMODE_SENTRY
 		end
-	else
-		print("Can't spawn unit from preset we've reached the MOID limit!! lol")
 	end
 
 	return actor, offset
@@ -673,32 +669,29 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["ReadPtsData"] = function(scene, ls)
-	local pts = {}
-
-	-- Create list of data objcets
-	-- Add generic mission types which must be present on any map
-	for i = 1, CF["GenericMissionCount"] do
-		pts[CF["Mission"][i]] = {}
+CF.ReadPtsData = function(sceneName, sceneConfig)
+	-- 
+	local points = {}
+	for i = 1, CF.GenericMissionCount do
+		points[CF.Mission[i]] = {}
 	end
-
-	for i = 1, #CF["LocationMissions"][scene] do
-		pts[CF["LocationMissions"][scene][i]] = {}
+	for i = 1, #CF.LocationMissions[sceneName] do
+		points[CF.LocationMissions[sceneName][i]] = {}
 	end
 
 	-- Load level data
-	for k1, v1 in pairs(pts) do
+	for k1, v1 in pairs(points) do
 		local msntype = k1
 
 		--print (msntype)
 
-		for k2 = 1, CF["MissionMaxSets"][msntype] do -- Enum sets
+		for k2 = 1, CF.MissionMaxSets[msntype] do -- Enum sets
 			local setnum = k2
 
 			--print ("  "..setnum)
 
-			for k3 = 1, #CF["MissionRequiredData"][msntype] do -- Enum Point types
-				local pttype = CF["MissionRequiredData"][msntype][k3]["Name"]
+			for k3 = 1, #CF.MissionRequiredData[msntype] do -- Enum Point types
+				local pttype = CF.MissionRequiredData[msntype][k3]["Name"]
 
 				--print ("    "..pttype)
 
@@ -706,62 +699,42 @@ CF["ReadPtsData"] = function(scene, ls)
 				--print (msntype)
 				--print (pttype)
 
-				for k4 = 1, CF["MissionRequiredData"][msntype][k3]["Max"] do -- Enum points
+				for k4 = 1, CF.MissionRequiredData[msntype][k3]["Max"] do -- Enum points
 					local id = msntype .. tostring(setnum) .. pttype .. tostring(k4)
 
-					local x = ls[id .. "X"]
-					local y = ls[id .. "Y"]
+					local x = sceneConfig[id .. "X"]
+					local y = sceneConfig[id .. "Y"]
 
 					if x ~= nil and y ~= nil then
-						if pts[msntype] == nil then
-							pts[msntype] = {}
+						if points[msntype] == nil then
+							points[msntype] = {}
 						end
-						if pts[msntype][setnum] == nil then
-							pts[msntype][setnum] = {}
+						if points[msntype][setnum] == nil then
+							points[msntype][setnum] = {}
 						end
-						if pts[msntype][setnum][pttype] == nil then
-							pts[msntype][setnum][pttype] = {}
+						if points[msntype][setnum][pttype] == nil then
+							points[msntype][setnum][pttype] = {}
 						end
-						if pts[msntype][setnum][pttype][k4] == nil then
-							pts[msntype][setnum][pttype][k4] = {}
+						if points[msntype][setnum][pttype][k4] == nil then
+							points[msntype][setnum][pttype][k4] = {}
 						end
 
-						pts[msntype][setnum][pttype][k4] = Vector(tonumber(x), tonumber(y))
+						points[msntype][setnum][pttype][k4] = Vector(tonumber(x), tonumber(y))
 					end
 				end
 			end
 		end
 	end
 
-	--print ("---")
-
-	--[[for k,v in pairs(pts) do
-		print (k)
-		
-		for k2,v2 in pairs(v) do
-			print ("  " .. k2)
-			
-			for k3,v3 in pairs(v2) do
-				print ("    " ..k3)
-				
-				for k4,v4 in pairs(v3) do
-					print (k4)
-					print (v4)
-				end
-			end
-		end
-	end	--]]
-	--
-
-	return pts
+	return points
 end
 -----------------------------------------------------------------------------
---	Returns available points set for specified mission from pts array
+--	Returns available points set for specified mission from points array
 -----------------------------------------------------------------------------
-CF["GetRandomMissionPointsSet"] = function(pts, msntype)
+CF.GetRandomMissionPointsSet = function(points, missionType)
 	local sets = {}
 
-	for k, v in pairs(pts[msntype]) do
+	for k, v in pairs(points[missionType]) do
 		sets[#sets + 1] = k
 	end
 	-- TODO: Sometimes only first set works, fix this!
@@ -773,315 +746,240 @@ end
 --	Returns int indexed array of vectors with available points of specified
 --	mission type, points set and points type
 -----------------------------------------------------------------------------
-CF["GetPointsArray"] = function(pts, msntype, setnum, ptstype)
+CF.GetPointsArray = function(points, missionType, presetType, pointsType)
 	local vectors = {}
 
-	--print (msntype)
-	--print (setnum)
-	--print (ptstype)
+	--print (missionType)
+	--print (presetType)
+	--print (pointsType)
 
-	if pts[msntype] and pts[msntype][setnum] and pts[msntype][setnum][ptstype] then
-		for k, v in pairs(pts[msntype][setnum][ptstype]) do
+	if
+		points[missionType]
+	and points[missionType][presetType]
+	and points[missionType][presetType][pointsType]
+	then
+		for k, v in pairs(points[missionType][presetType][pointsType]) do
 			vectors[#vectors + 1] = v
 		end
 	else
-		print('Mission points "' .. msntype .. ", " .. ptstype .. '" not found.')
+		print('Mission points "' .. missionType .. ", " .. presetType .. ", " .. pointsType .. '" not found.')
 	end
 
 	return vectors
 end
 -----------------------------------------------------------------------------
---	Returns array of n random points from array pts
+--	Returns array of n random points from array points
 -----------------------------------------------------------------------------
-CF["SelectRandomPoints"] = function(pts, n)
-	local res = {}
-	local isused = {}
-	local issued = 0
-	local retries
+CF.SelectRandomPoints = function(points, n)
+	local selection = {}
+	local remainder = {}
 
-	-- If length of array = n then we don't need to find random and can simply return this array
-	if #pts == n then
-		return pts
-	elseif #pts == 0 or n <= 0 then
-		return res
+	-- If points are same as number of set elements, return set
+	-- If empty set or no elements requested, return empty selection
+	-- If fewer points than requested, just stack them willy nilly
+	-- Otherwise, properly grab a handful
+	if #points == n then
+		return points
+	elseif #points == 0 or n <= 0 then
+		return selection
+	elseif #points < n then
+		for i = 1, n do
+			local index = math.random(#points)
+			selection[#selection + 1] = points[index]
+		end
 	else
-		-- Start selecting random values
-		for i = 1, #pts do
-			isused[i] = false
+		for i = 1, #points do
+			remainder[#remainder + 1] = i
 		end
 
-		local retries = 0
-
-		while issued < n do
-			retries = retries + 1
-			local good = false
-			local r = math.random(#pts)
-
-			if not isused[r] or retries > 50 then
-				isused[r] = true
-				good = true
-				issued = issued + 1
-				res[issued] = pts[r]
-			end
+		-- Pick a random index from those left
+		for i = 1, n do
+			local index = math.random(#remainder)
+			selection[#selection + 1] = points[remainder[index]]
+			table.remove(remainder, index)
 		end
 	end
 
-	return res
+	return selection
 end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["GetAngriestPlayer"] = function(c)
+CF.GetAngriestPlayer = function(gamestate)
 	local angriest
-	local rep = 0
+	local reputation = 0
 
-	for i = 1, CF["MaxCPUPlayers"] do
-		if c["Player" .. i .. "Active"] == "True" then
-			if tonumber(c["Player" .. i .. "Reputation"]) < rep then
+	for i = 1, CF.MaxCPUPlayers do
+		if gamestate["Player" .. i .. "Active"] == "True" then
+			if tonumber(gamestate["Player" .. i .. "Reputation"]) < reputation then
 				angriest = i
-				rep = tonumber(c["Player" .. i .. "Reputation"])
+				reputation = tonumber(gamestate["Player" .. i .. "Reputation"])
 			end
 		end
 	end
 
-	return angriest, rep
+	return angriest, reputation
 end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["GetLocationDifficulty"] = function(c, loc)
-	local diff = CF["MaxDifficulty"]
-	local sec = CF["GetLocationSecurity"](c, loc)
+CF.GetLocationSecurity = function(gamestate, location)
+	local securityLevel
 
-	diff = math.floor(sec / 10)
-	if diff > CF["MaxDifficulty"] then
-		diff = CF["MaxDifficulty"]
-	end
-
-	if diff < 1 then
-		diff = 1
-	end
-
-	return diff
-end
------------------------------------------------------------------------------
---
------------------------------------------------------------------------------
-CF["GetFullMissionDifficulty"] = function(c, loc, m)
-	local ld = CF["GetLocationDifficulty"](c, loc)
-	local md = tonumber(c["Mission" .. m .. "Difficulty"])
-	local diff = ld + md - 1
-
-	if diff > CF["MaxDifficulty"] then
-		diff = CF["MaxDifficulty"]
-	end
-
-	if diff < 1 then
-		diff = 1
-	end
-
-	return diff
-end
------------------------------------------------------------------------------
---
------------------------------------------------------------------------------
-CF["GetLocationSecurity"] = function(c, loc)
-	local sec
-
-	if c["Security_" .. loc] ~= nil then
-		sec = tonumber(c["Security_" .. loc])
+	if gamestate["Security_" .. location] ~= nil then
+		securityLevel = tonumber(gamestate["Security_" .. location])
 	else
-		sec = CF["LocationSecurity"][loc]
+		securityLevel = CF.LocationSecurity[location]
 	end
 
-	return sec
+	return securityLevel
 end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["SetLocationSecurity"] = function(c, loc, newsec)
-	c["Security_" .. loc] = newsec
+CF.GetLocationDifficulty = function(gamestate, location)
+	return math.min(CF.MaxDifficulty, math.max(1, math.floor(CF.GetLocationSecurity(gamestate, location) / 10)))
 end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF.GenerateRandomMission = function(c, ally_faction_override, enemy_faction_override)
-	local cpus = tonumber(c["ActiveCPUs"])
-	local mission = {}
+CF.GetFullMissionDifficulty = function(gamestate, location, missionID)
+	local locationDifficulty = CF.GetLocationDifficulty(gamestate, location)
+	local missionDifficulty = tonumber(gamestate["Mission" .. missionID .. "Difficulty"])
+	return math.min(CF.MaxDifficulty, math.max(1, locationDifficulty + missionDifficulty - 1))
+end
+-----------------------------------------------------------------------------
+--
+-----------------------------------------------------------------------------
+CF.SetLocationSecurity = function(gamestate, location, securityLevel)
+	gamestate["Security_" .. location] = securityLevel
+end
+-----------------------------------------------------------------------------
+-- Generate a random mission with ally/enemy/location overrides
+-----------------------------------------------------------------------------
+CF.GenerateRandomMission = function(gamestate, ally, enemy, prohibitedLocations)
+	local cpus = tonumber(gamestate["ActiveCPUs"])
 
-	-- Select CPUs to choose mission. We'll give a bit higher priorities to CPU's with better reputation
-	local selp = {}
-	local r
+	if not prohibitedLocations then
+		prohibitedLocations = {}
+	end
 
-	for i = 1, cpus do
-		local rep = tonumber(c["Player" .. i .. "Reputation"])
-
-		if rep < -2000 then
-			r = 0.15
-		elseif rep < -1000 then
-			r = 0.30
-		elseif rep < 0 then
-			r = 0.45
-		else
-			r = 1
+	-- Determine for whom we're working
+	local contractor = ally
+	if not contractor then
+		-- Build list of potential contractors' cumulative weights
+		local candidateContractors = {}
+		local sum = 0
+		for id = 1, cpus do
+			local rep = tonumber(gamestate["Player" .. id .. "Reputation"])
+			local weight = 1 / math.max(1, 1 - rep / 1000)
+			sum = sum + weight
+			table.insert(candidateContractors, {sum, id})
 		end
-
-		if math.random() < r then
-			selp[#selp + 1] = i
+		local pick = math.random() * sum
+		for id = 1, #candidateContractors do
+			if pick <= candidateContractors[id][1] then
+				contractor = candidateContractors[id][2]
+				break
+			end
+		end
+	end
+	
+	-- Determine for whom the bell tolls
+	local target = enemy
+	if not target then
+		-- Build list of potential targets' cumulative weights
+		local candidateTargets = {}
+		local sum = 0
+		for id = 1, cpus do
+			if id ~= contractor then
+				local rep = tonumber(gamestate["Player" .. id .. "Reputation"])
+				local weight = 1 / math.max(1, 1 + rep / 1000)
+				sum = sum + weight
+				table.insert(candidateTargets, {sum, id})
+			end
+		end
+		local pick = math.random() * sum
+		for id = 1, #candidateTargets do
+			if pick <= candidateTargets[id][1] then
+				target = candidateTargets[id][2]
+				break
+			end
 		end
 	end
 
-	local p = ally_faction_override
-	if (p == nil) then 
-		p = #selp > 0 and selp[math.random(#selp)] or math.random(cpus)
-	end
+	-- Make list of valid mission types and where they can occur
+	local reputation = tonumber(gamestate["Player" .. contractor .. "Reputation"])
+	local validMissionTypes = {}
+	for _, missionType in pairs(CF.Mission) do
+		if CF.MissionMinReputation[missionType] <= reputation then
+			local missionTypeCandidate = {}
+			missionTypeCandidate["MissionID"] = missionType
+			missionTypeCandidate["Scenes"] = {}
 
-	-- Make list of available missions
-	local rep = tonumber(c["Player" .. p .. "Reputation"])
-
-	local missions = {}
-
-	for m = 1, #CF.Mission do
-		local msnid = CF.Mission[m]
-
-		if CF.MissionMinReputation[msnid] <= rep then
-			local newmsn = #missions + 1
-
-			missions[newmsn] = {}
-			missions[newmsn]["MissionID"] = msnid
-			missions[newmsn]["Scenes"] = {}
-
-			-- Search for locations for this mission and make a list of them
-			for l = 1, #CF["Location"] do
-				local locid = CF["Location"][l]
+			for _, locationName in pairs(CF.Location) do
+				local locationProhibited = false
+				for _, prohibitedLocation in pairs(prohibitedLocations) do
+					if locationName == prohibitedLocation then
+						locationProhibited = true
+						break
+					end
+				end
 				if
-					(CF["LocationPlayable"][locid] == nil or CF["LocationPlayable"][locid] == true)
-					and c["Location"] ~= locid
-					and not CF["IsLocationHasAttribute"](locid, CF["LocationAttributeTypes"].NOTMISSIONASSIGNABLE)
+					not locationProhibited
+					and CF.LocationPlayable[locationName] ~= false
+					and gamestate["Location"] ~= locationName
+					and not CF.IsLocationHasAttribute(locationName, CF.LocationAttributeTypes.NOTMISSIONASSIGNABLE)
 				then
-					for lm = 1, #CF["LocationMissions"][locid] do
-						if msnid == CF["LocationMissions"][locid][lm] then
-							missions[newmsn]["Scenes"][#missions[newmsn]["Scenes"] + 1] = locid
+					for _, allowedType in pairs(CF.LocationMissions[locationName]) do
+						if missionType == allowedType then
+							table.insert(missionTypeCandidate["Scenes"], locationName)
+							break
 						end
 					end
 				end
 			end
-		end
-	end
 
-	-- Pick some random mission for which we have locations
-	local ok = false
-	local rmsn
-	local count = 1
-
-	while not ok do
-		ok = true
-
-		rmsn = math.random(#missions)
-
-		if #missions[rmsn]["Scenes"] == 0 then
-			ok = false
-		end
-
-		count = count + 1
-		if count > 100 then
-			error("Endless loop at CF['GenerateRandomMission'] - mission selection")
-			break
-		end
-	end
-
-	-- Pick some random location for this mission
-	local rloc = math.random(#missions[rmsn]["Scenes"])
-
-	-- Pick some random difficulty for this mission
-	-- Generate missions with CF["MaxDifficulty"] / 2 because additional difficulty
-	-- will be applied by location security level
-	local rdif = math.min(math.max(tonumber(c["MissionDifficultyBonus"]) + math.random(3), 1), CF["MaxDifficulty"])
-
-	-- Pick some random target for this mission
-	local ok = false
-	local renm = enemy_faction_override
-	local count = 1
-
-	if (renm == nil or renm == p) then 
-
-		while not ok do
-			ok = true
-
-			renm = math.random(cpus)
-
-			if p == renm then
-				ok = false
-			end
-
-			count = count + 1
-			if count > 100 then
-				error("Endless loop at CF['GenerateRandomMission'] - enemy selection")
-				break
+			if #missionTypeCandidate["Scenes"] > 0 then
+				table.insert(validMissionTypes, missionTypeCandidate)
 			end
 		end
-
 	end
+
+	-- Pick some random mission type
+	local randomMissionType = validMissionTypes[math.random(#validMissionTypes)]
+
 	-- Return mission
-	mission["SourcePlayer"] = p
-	mission["TargetPlayer"] = renm
-	mission["Type"] = missions[rmsn]["MissionID"]
-	mission["Location"] = missions[rmsn]["Scenes"][rloc]
-	mission["Difficulty"] = rdif
+	local mission = {}
+	mission["SourcePlayer"] = contractor
+	mission["TargetPlayer"] = target
+	mission["Type"] = randomMissionType["MissionID"]
+	mission["Location"] = randomMissionType["Scenes"][math.random(#randomMissionType["Scenes"])]
+	mission["Difficulty"] = math.min(CF.MaxDifficulty, math.max(1, tonumber(gamestate["MissionDifficultyBonus"]) + math.random(3)))
 
 	return mission
 end
 -----------------------------------------------------------------------------
---
+-- Generate a new set of missions
 -----------------------------------------------------------------------------
-CF["GenerateRandomMissions"] = function(c)
-	
-	if not c["ActiveCPUs"] then
-		print("Active CPUS undefined:" .. tostring(c["ActiveCPUs"]))
-		return
-	end
-	
+CF.GenerateRandomMissions = function(gamestate)
 	local missions = {}
-	local maxMissions = math.max(CF["MaxMissions"], math.floor(tonumber(c["ActiveCPUs"]) / 4))
+	local maxMissions = math.max(CF.MaxMissions, math.floor(tonumber(gamestate["ActiveCPUs"]) / 4))
+	local usedLocations = {}
+
 	for i = 1, maxMissions do
-		local ok = false
-		local msn
-		local count = 1
-
-		while not ok do
-			ok = true
-
-			msn = CF["GenerateRandomMission"](c)
-
-			-- Make sure that we don't have multiple missions in single locations
-			if i > 1 then
-				for j = 1, i - 1 do
-					if missions[j]["Location"] == msn["Location"] then
-						ok = false
-					end
-				end
-			end
-
-			count = count + 1
-			if count > 100 then
-				error("Endless loop at CF['GenerateRandomMissions'] - mission generation")
-				break
-			end
-		end
-
-		missions[i] = msn
+		missions[i] = CF.GenerateRandomMission(gamestate, nil, nil, usedLocations)
+		table.insert(usedLocations, missions[i]["Location"])
 	end
 
 	-- Put missions to config
 	for i = 1, #missions do
-		c["Mission" .. i .. "SourcePlayer"] = missions[i]["SourcePlayer"]
-		c["Mission" .. i .. "TargetPlayer"] = missions[i]["TargetPlayer"]
-		c["Mission" .. i .. "Type"] = missions[i]["Type"]
-		c["Mission" .. i .. "Location"] = missions[i]["Location"]
-		c["Mission" .. i .. "Difficulty"] = missions[i]["Difficulty"]
+		gamestate["Mission" .. i .. "SourcePlayer"] = missions[i]["SourcePlayer"]
+		gamestate["Mission" .. i .. "TargetPlayer"] = missions[i]["TargetPlayer"]
+		gamestate["Mission" .. i .. "Type"] = missions[i]["Type"]
+		gamestate["Mission" .. i .. "Location"] = missions[i]["Location"]
+		gamestate["Mission" .. i .. "Difficulty"] = missions[i]["Difficulty"]
 	end
-
-	--return c
 end
 -----------------------------------------------------------------------------
 --

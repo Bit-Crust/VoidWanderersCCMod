@@ -205,7 +205,7 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:SaveSlots_OnClick()
-	CF["WriteConfigFile"](self.GS, self.ModuleName, "savegame" .. self.MouseOverElement .. ".dat")
+	CF.WriteConfigFile(self.GS, self.ModuleName, "savegame" .. self.MouseOverElement .. ".dat")
 
 	self:FormClose()
 	self:LoadCurrentGameState()

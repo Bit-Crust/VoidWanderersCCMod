@@ -60,7 +60,7 @@ function VoidWanderers:FormLoad()
 				self.Slots[i]["Faction"] = CF.FactionNames[config["Player0Faction"]]
 				self.Slots[i]["Gold"] = config["Player0Gold"]
 
-				local tm = tonumber(config["Time"])
+				local tm = tonumber(config["Time"]) or 0
 				local hrs
 				local mins
 

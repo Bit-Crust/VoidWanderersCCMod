@@ -35,6 +35,8 @@ function VoidWanderers:StartActivity()
 
 	CF.InitFactions(self)
 
+	CF.GS = self.GS
+
 	self:LoadCurrentGameState()
 
 	---- -- -- self.ModuleName = "VoidWanderers.rte"
@@ -358,10 +360,6 @@ function VoidWanderers:UpdateActivity()
 	end
 
 	self:ClearObjectivePoints()
-
-	if self.WasPaused then
-		self:RestoreAI()
-	end
 
 	local cont = self.PlayerCount == 1 and self.CurCursorMO:GetController() or self.brain:GetController()
 

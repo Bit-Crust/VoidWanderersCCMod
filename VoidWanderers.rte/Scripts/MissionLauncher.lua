@@ -1,64 +1,59 @@
 function VoidWanderers:StartActivity()
 	-- TODO: Remove by pre 7, make em figure it out themselves
+	-- Change the global metatable
 	-- Localize substring function so that we're not indexing any tables in the table indexing handler
-	sub = string.sub
-
-	mt = {}
-	
-	-- Intercept indexes to CF_ anything and route them to the table instead
+	-- Intercept indexes of CF_ anything and route them to the table instead
+	local sub = string.sub
+	local mt = {}
 	mt.__index = function(table, key)
-		if sub(key, 1, 3) == "CF_" and CF then
+		if CF and sub(key, 1, 3) == "CF_" then
 			return rawget(CF, sub(key, 4, -1))
 		end
 		return rawget(table, key)
 	end
 	mt.__newindex = function(table, key, value)
-		if sub(key, 1, 3) == "CF_" and CF then
+		if CF and sub(key, 1, 3) == "CF_" then
 			rawset(CF, sub(key, 4, -1), value)
 			return
 		end
 		rawset(table, key, value)
 		return
 	end
-
-	-- Change the global metatable
 	setmetatable(_G, mt)
-
-	---- -- -- self.ModuleName = "VoidWanderers.rte"
+	
+	-- Init a couple properties and constants
 	self.IsInitialized = false
+	
 	self.BuyMenuEnabled = false
 
-	self.WasPaused = false
-
-	LAUNCH_MISSION_PACK = nil
 	STATE_CONFIG_FILE = "current.dat"
 
-	self.Zone = SceneMan.Scene:GetArea("VoidWanderersAntiBugZone") 
+	self.Zone = SceneMan.Scene:GetArea("VoidWanderersAntiBugZone")
 
 	LIB_PATH = self.ModuleName .. "/Scripts/"
 	BASE_PATH = self.ModuleName .. "/Scripts/"
 
-	if SKIP_LIBRARIES == nil then
-		dofile(LIB_PATH .. "Lib_Generic.lua")
-		dofile(LIB_PATH .. "Lib_Brain.lua")
-		dofile(LIB_PATH .. "Lib_Config.lua")
-		dofile(LIB_PATH .. "Lib_ExtensionsData.lua")
-		dofile(LIB_PATH .. "Lib_Messages.lua")
-		dofile(LIB_PATH .. "Lib_Spawn.lua")
-		dofile(LIB_PATH .. "Lib_Storage.lua")
-		dofile(LIB_PATH .. "Lib_Encounters.lua")
+	-- Load libraries and panel behaviors
+	dofile(LIB_PATH .. "Lib_Generic.lua")
+	dofile(LIB_PATH .. "Lib_Brain.lua")
+	dofile(LIB_PATH .. "Lib_Config.lua")
+	dofile(LIB_PATH .. "Lib_ExtensionsData.lua")
+	dofile(LIB_PATH .. "Lib_Messages.lua")
+	dofile(LIB_PATH .. "Lib_NewGameData.lua")
+	dofile(LIB_PATH .. "Lib_Spawn.lua")
+	dofile(LIB_PATH .. "Lib_Storage.lua")
+	dofile(LIB_PATH .. "Lib_Encounters.lua")
 
-		dofile(LIB_PATH .. "Panel_Clones.lua")
-		dofile(LIB_PATH .. "Panel_Ship.lua")
-		dofile(LIB_PATH .. "Panel_Beam.lua")
-		dofile(LIB_PATH .. "Panel_Storage.lua")
-		dofile(LIB_PATH .. "Panel_ItemShop.lua")
-		dofile(LIB_PATH .. "Panel_CloneShop.lua")
-		dofile(LIB_PATH .. "Panel_LZ.lua")
-		dofile(LIB_PATH .. "Panel_Brain.lua")
-		dofile(LIB_PATH .. "Panel_Turrets.lua")
-		dofile(LIB_PATH .. "Panel_Bombs.lua")
-	end
+	dofile(LIB_PATH .. "Panel_Clones.lua")
+	dofile(LIB_PATH .. "Panel_Ship.lua")
+	dofile(LIB_PATH .. "Panel_Beam.lua")
+	dofile(LIB_PATH .. "Panel_Storage.lua")
+	dofile(LIB_PATH .. "Panel_ItemShop.lua")
+	dofile(LIB_PATH .. "Panel_CloneShop.lua")
+	dofile(LIB_PATH .. "Panel_LZ.lua")
+	dofile(LIB_PATH .. "Panel_Brain.lua")
+	dofile(LIB_PATH .. "Panel_Turrets.lua")
+	dofile(LIB_PATH .. "Panel_Bombs.lua")
 
 	-- Check delta time and fix it to avoid problems with fonts
 	if TimerMan.DeltaTimeMS >= 25 then
@@ -66,25 +61,10 @@ function VoidWanderers:StartActivity()
 		TimerMan.DeltaTimeSecs = 0.0166667
 	end
 
-	SKIP_LIBRARIES = nil
-
-	-- Load custom AI
-	--print (CF["UseCustomAI"])
-
-	if TRANSFER_IN_PROGRESS == nil then
-		TRANSFER_IN_PROGRESS = false
-	end
-
-	if not TRANSFER_IN_PROGRESS then
-		print("\n\n\n")
-		-- Reset all previouly set scenes and scripts before launch since we're starting clean
-		SCENE_TO_LAUNCH = nil
-		SCRIPT_TO_LAUNCH = nil
-	else
-		TRANSFER_IN_PROGRESS = false
-	end
-
-	print("VoidWanderers:MissionLauncher!")
+	print("\n\n\n")
+	-- Reset all previouly set scenes and scripts before launch since we're starting clean
+	SCENE_TO_LAUNCH = nil
+	SCRIPT_TO_LAUNCH = nil
 
 	if SCENE_TO_LAUNCH == nil then
 		SCENE_TO_LAUNCH = "VoidWanderers Strategy Screen"
@@ -94,17 +74,6 @@ function VoidWanderers:StartActivity()
 		SCRIPT_TO_LAUNCH = BASE_PATH .. "StrategyScreenMain.lua"
 	end
 
-	TRANSFER_IN_PROGRESS = false
-
-	-- TODO: what
-	for difficulty = GameActivity.MINDIFFICULTY, GameActivity.MAXDIFFICULTY do
-		if self.Difficulty <= difficulty then
-			self.Difficulty = difficulty
-		else
-			break
-		end
-	end
-	-- This is ugly but that's ok
 	CHOSEN_DIFFICULTY = self.Difficulty
 	CHOSEN_AISKILLPLAYER = self:GetTeamAISkill(Activity.TEAM_1)
 	CHOSEN_AISKILLCPU = self:GetTeamAISkill(Activity.TEAM_2)
@@ -116,6 +85,8 @@ function VoidWanderers:StartActivity()
 
 	dofile(SCRIPT_TO_LAUNCH)
 	SceneMan:LoadScene(SCENE_TO_LAUNCH, true)
+
+	print("VoidWanderers:MissionLauncher!")
 end
 -----------------------------------------------------------------------------------------
 -- Launches new mission script without leaving current activity. Scene is case sensitive!
@@ -153,23 +124,20 @@ end
 -- Update Activity
 -----------------------------------------------------------------------------------------
 function VoidWanderers:UpdateActivity()
-	--print("VoidWanderers::Mission launcher - Update Once!")
-	if TRANSFER_IN_PROGRESS then
-		self:StartActivity()
-	end
+	print("UPDATE! -- VoidWanderers:UpdateActivity()!")
 end
----
---
----
+-----------------------------------------------------------------------------------------
+-- Update Activity
+-----------------------------------------------------------------------------------------
 function VoidWanderers:OnSave(self)
-	
+	print("SAVE?! -- VoidWanderers:OnSave()!")
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:LoadCurrentGameState()
-	if CF["IsFileExists"](self.ModuleName, STATE_CONFIG_FILE) then
-		self.GS = CF["ReadConfigFile"](self.ModuleName, STATE_CONFIG_FILE)
+	if CF.IsFileExists(self.ModuleName, STATE_CONFIG_FILE) then
+		self.GS = CF.ReadConfigFile(self.ModuleName, STATE_CONFIG_FILE)
 
 		self.Time = tonumber(self.GS["Time"])
 

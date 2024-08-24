@@ -216,9 +216,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 								self.GS["Deployed" .. deployedactor .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
 								self.GS["Deployed" .. deployedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
 								self.GS["Deployed" .. deployedactor .. "Name"] = actor:GetStringValue("VW_Name")
-								self.GS["Deployed" .. deployedactor .. "InventoryPresets"] = pre
-								self.GS["Deployed" .. deployedactor .. "InventoryClasses"] = cls
-								self.GS["Deployed" .. deployedactor .. "InventoryModules"] = mdl
+
 								for j = 1, #CF.LimbID do
 									self.GS["Deployed" .. deployedactor .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
 								end

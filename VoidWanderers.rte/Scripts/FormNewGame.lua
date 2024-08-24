@@ -310,9 +310,7 @@ function VoidWanderers:BtnOk_OnClick()
 	print(#cpu)
 
 	-- Create new game data
-	dofile(LIB_PATH .. "Lib_NewGameData.lua")
 	config = CF["MakeNewConfig"](CHOSEN_DIFFICULTY, CHOSEN_AISKILLPLAYER, CHOSEN_AISKILLCPU, player, cpu, self)
-	CF["MakeNewConfig"] = nil
 
 	CF["WriteConfigFile"](config, self.ModuleName, STATE_CONFIG_FILE)
 

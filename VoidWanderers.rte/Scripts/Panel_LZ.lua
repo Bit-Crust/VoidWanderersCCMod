@@ -90,9 +90,7 @@ function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 						self.GS["Deployed" .. self.MissionReturningTroops .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
 						self.GS["Deployed" .. self.MissionReturningTroops .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
 						self.GS["Deployed" .. self.MissionReturningTroops .. "Name"] = actor:GetStringValue("VW_Name")
-						self.GS["Deployed" .. self.MissionReturningTroops .. "InventoryPresets"] = pre
-						self.GS["Deployed" .. self.MissionReturningTroops .. "InventoryClasses"] = cls
-						self.GS["Deployed" .. self.MissionReturningTroops .. "InventoryModules"] = mdl
+						
 						for j = 1, #CF.LimbID do
 							self.GS["Deployed" .. self.MissionReturningTroops .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
 						end
@@ -495,9 +493,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 										self.GS["Deployed" .. self.MissionReturningTroops .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
 										self.GS["Deployed" .. self.MissionReturningTroops .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
 										self.GS["Deployed" .. self.MissionReturningTroops .. "Name"] = actor:GetStringValue("VW_Name")
-										self.GS["Deployed" .. self.MissionReturningTroops .. "InventoryPresets"] = pre
-										self.GS["Deployed" .. self.MissionReturningTroops .. "InventoryClasses"] = cls
-										self.GS["Deployed" .. self.MissionReturningTroops .. "InventoryModules"] = mdl
+										
 										for j = 1, #CF.LimbID do
 											self.GS["Deployed" .. self.MissionReturningTroops .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
 										end
@@ -519,7 +515,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 							end
 						end
 
-						self.MissionReturning = true
+						self.GS["MissionReturning"] = "True"
 					end
 				else
 					CF.DrawString("HOLD FIRE TO RETURN", pos + Vector(-50, -10), 130, 20)
@@ -683,7 +679,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		end
 	end
 
-	if self.MissionReturning then
+	if self.GS["MissionReturning"] == "True" then
 		if self.MissionAvailable and not self.MissionCompleted then
 			self:GiveMissionPenalties()
 		end

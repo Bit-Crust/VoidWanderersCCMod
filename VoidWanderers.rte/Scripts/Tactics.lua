@@ -16,7 +16,7 @@ function VoidWanderers:StartActivity()
 		self:SetPlayerBrain(nil, player)
 	end
 	
-	self.AllowsUserSaving = false
+	self.AllowsUserSaving = true
 
 	self.BuyMenuEnabled = false
 	self.ShopsCreated = false
@@ -68,6 +68,9 @@ function VoidWanderers:StartActivity()
 	-- Load generic level data
 	self.SceneConfig = CF.ReadSceneConfigFile(SceneMan.Scene.ModuleName, SceneMan.Scene.PresetName .. ".dat")
 	
+	print(self.GS["Mode"])
+	print(self.GS["SceneType"])
+
 	-- Read brain location data
 	if self.GS["SceneType"] == "Vessel" then
 		self.BrainPos = {}
@@ -245,8 +248,8 @@ function VoidWanderers:StartActivity()
 		end
 
 		-- Spawn previously deployed actors
-		if self.MissionReturning then
-			self.MissionReturning = false
+		if self.GS["MissionReturning"] == "True" then
+			self.GS["MissionReturning"] = "False"
 		
 			for i = 1, CF.MaxSavedActors do
 				if self.GS["Deployed" .. i .. "Preset"] then
@@ -800,7 +803,6 @@ function VoidWanderers:StartActivity()
 	-- Init consoles if in Vessel mode
 	if self.GS["Mode"] == "Vessel" and self.GS["SceneType"] == "Vessel" then
 		self:InitConsoles()
-		self.AllowsUserSaving = true
 		if self.GS["Location"] ~= "Station Ypsilon-2" then
 			local newLoc = Vector(48, 48):DegRotate(tonumber(self.GS["Time"]) * 0.01)
 			newLoc = Vector(math.floor(newLoc.X), math.floor(newLoc.Y))
@@ -1458,9 +1460,11 @@ function VoidWanderers:ClearDeployed()
 		self.GS["Deployed" .. i .. "Player"] = nil
 		self.GS["Deployed" .. i .. "Prestige"] = nil
 		self.GS["Deployed" .. i .. "Name"] = nil
+
 		for j = 1, #CF.LimbID do
 			self.GS["Deployed" .. i .. CF.LimbID[j]] = nil
 		end
+
 		for j = 1, CF.MaxSavedItemsPerActor do
 			self.GS["Deployed" .. i .. "Item" .. j .. "Preset"] = nil
 			self.GS["Deployed" .. i .. "Item" .. j .. "Class"] = nil
