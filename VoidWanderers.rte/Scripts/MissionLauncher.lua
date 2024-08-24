@@ -6,13 +6,13 @@ function VoidWanderers:StartActivity()
 	local sub = string.sub
 	local mt = {}
 	mt.__index = function(table, key)
-		if CF and sub(key, 1, 3) == "CF_" then
+		if sub(key, 1, 3) == "CF_" and CF then
 			return rawget(CF, sub(key, 4, -1))
 		end
 		return rawget(table, key)
 	end
 	mt.__newindex = function(table, key, value)
-		if CF and sub(key, 1, 3) == "CF_" then
+		if sub(key, 1, 3) == "CF_" and CF then
 			rawset(CF, sub(key, 4, -1), value)
 			return
 		end
@@ -28,7 +28,8 @@ function VoidWanderers:StartActivity()
 
 	STATE_CONFIG_FILE = "current.dat"
 
-	self.Zone = SceneMan.Scene:GetArea("VoidWanderersAntiBugZone")
+	-- This makes certain the correct maps are considered
+	SceneMan.Scene:GetArea("VoidWanderersAntiBugZone")
 
 	LIB_PATH = self.ModuleName .. "/Scripts/"
 	BASE_PATH = self.ModuleName .. "/Scripts/"
@@ -61,30 +62,25 @@ function VoidWanderers:StartActivity()
 		TimerMan.DeltaTimeSecs = 0.0166667
 	end
 
-	print("\n\n\n")
-	-- Reset all previouly set scenes and scripts before launch since we're starting clean
-	SCENE_TO_LAUNCH = nil
-	SCRIPT_TO_LAUNCH = nil
-
-	if SCENE_TO_LAUNCH == nil then
-		SCENE_TO_LAUNCH = "VoidWanderers Strategy Screen"
-	end
-
-	if SCRIPT_TO_LAUNCH == nil then
-		SCRIPT_TO_LAUNCH = BASE_PATH .. "StrategyScreenMain.lua"
-	end
-
 	CHOSEN_DIFFICULTY = self.Difficulty
 	CHOSEN_AISKILLPLAYER = self:GetTeamAISkill(Activity.TEAM_1)
 	CHOSEN_AISKILLCPU = self:GetTeamAISkill(Activity.TEAM_2)
+	
+	-- Reset all previouly set scenes and scripts before launch since we're starting clean
+	if SceneMan.Scene.PresetName == "Void Wanderers" then
+		print("\n\n\n")
+		SCRIPT_TO_LAUNCH = nil
 
-	FORM_TO_LOAD = BASE_PATH .. "FormStart.lua"
+		if SCRIPT_TO_LAUNCH == nil then
+			SCRIPT_TO_LAUNCH = BASE_PATH .. "StrategyScreenMain.lua"
+		end
 
-	print("SCRIPT: " .. SCRIPT_TO_LAUNCH)
-	print("SCENE : " .. SCENE_TO_LAUNCH)
+		FORM_TO_LOAD = BASE_PATH .. "FormStart.lua"
 
-	dofile(SCRIPT_TO_LAUNCH)
-	SceneMan:LoadScene(SCENE_TO_LAUNCH, true)
+		print("SCRIPT: " .. SCRIPT_TO_LAUNCH)
+
+		dofile(SCRIPT_TO_LAUNCH)
+	end
 
 	print("VoidWanderers:MissionLauncher!")
 end
