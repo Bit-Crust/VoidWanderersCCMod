@@ -935,7 +935,7 @@ CF.MakeActor = function(item, class, module, xp, identity, player, prestige, nam
 		end
 		if prestige then
 			actor:SetNumberValue("VW_Prestige", tonumber(prestige))
-			if name then
+			if name and name ~= "" then
 				actor:SetStringValue("VW_Name", name)
 			end
 		end

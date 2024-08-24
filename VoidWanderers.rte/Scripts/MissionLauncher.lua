@@ -1,50 +1,68 @@
-function VoidWanderers:StartActivity()
-	-- TODO: Remove by pre 7, make em figure it out themselves
-	-- Change the global metatable
-	-- Localize substring function so that we're not indexing any tables in the table indexing handler
-	-- Intercept indexes of CF_ anything and route them to the table instead
-	local sub = string.sub
-	local mt = {}
-	mt.__index = function(table, key)
-		if sub(key, 1, 3) == "CF_" and CF then
-			return rawget(CF, sub(key, 4, -1))
+function VoidWanderers:StartActivity(newGame)
+	print("VoidWanderers:StartActivity")
+
+	-- Load libraries if config is not initialized
+	if not CF then
+		print("VoidWanderers:StartActivity" .. ": Detected first launch")
+		print("CF predefined: " .. tostring(CF))
+
+		-- TODO: Remove by pre 7, make em figure it out themselves
+		-- Change the global metatable
+		-- Localize substring function so that we're not indexing any tables in the table indexing handler
+		-- Intercept indexes of CF_ anything and route them to the table instead
+		local sub = string.sub
+		local mt = {}
+		mt.__index = function(table, key)
+			if sub(key, 1, 3) == "CF_" and CF then
+				return rawget(CF, sub(key, 4, -1))
+			end
+			return rawget(table, key)
 		end
-		return rawget(table, key)
-	end
-	mt.__newindex = function(table, key, value)
-		if sub(key, 1, 3) == "CF_" and CF then
-			rawset(CF, sub(key, 4, -1), value)
+		mt.__newindex = function(table, key, value)
+			if sub(key, 1, 3) == "CF_" and CF then
+				rawset(CF, sub(key, 4, -1), value)
+				return
+			end
+			rawset(table, key, value)
 			return
 		end
-		rawset(table, key, value)
-		return
+		setmetatable(_G, mt)
+
+		STATE_CONFIG_FILE = "current.dat"
+		
+		LIB_PATH = self.ModuleName .. "/Scripts/"
+		BASE_PATH = self.ModuleName .. "/Scripts/"
+
+		dofile(LIB_PATH .. "Lib_Generic.lua")
+		dofile(LIB_PATH .. "Lib_Brain.lua")
+		dofile(LIB_PATH .. "Lib_Config.lua")
+		dofile(LIB_PATH .. "Lib_ExtensionsData.lua")
+		dofile(LIB_PATH .. "Lib_Messages.lua")
+		dofile(LIB_PATH .. "Lib_NewGameData.lua")
+		dofile(LIB_PATH .. "Lib_Spawn.lua")
+		dofile(LIB_PATH .. "Lib_Storage.lua")
+		dofile(LIB_PATH .. "Lib_Encounters.lua")
 	end
-	setmetatable(_G, mt)
 	
+
 	-- Init a couple properties and constants
 	self.IsInitialized = false
 	
 	self.BuyMenuEnabled = false
 
-	STATE_CONFIG_FILE = "current.dat"
+	-- Check delta time and fix it to avoid problems with fonts
+	if TimerMan.DeltaTimeMS >= 25 then
+		print("Incorrect delta time, fixed")
+		TimerMan.DeltaTimeSecs = 0.0166667
+	end
 
-	-- This makes certain the correct maps are considered
-	SceneMan.Scene:GetArea("VoidWanderersAntiBugZone")
+	CHOSEN_DIFFICULTY = self.Difficulty
+	CHOSEN_AISKILLPLAYER = self:GetTeamAISkill(Activity.TEAM_1)
+	CHOSEN_AISKILLCPU = self:GetTeamAISkill(Activity.TEAM_2)
 
-	LIB_PATH = self.ModuleName .. "/Scripts/"
-	BASE_PATH = self.ModuleName .. "/Scripts/"
-
-	-- Load libraries and panel behaviors
-	dofile(LIB_PATH .. "Lib_Generic.lua")
-	dofile(LIB_PATH .. "Lib_Brain.lua")
-	dofile(LIB_PATH .. "Lib_Config.lua")
-	dofile(LIB_PATH .. "Lib_ExtensionsData.lua")
-	dofile(LIB_PATH .. "Lib_Messages.lua")
-	dofile(LIB_PATH .. "Lib_NewGameData.lua")
-	dofile(LIB_PATH .. "Lib_Spawn.lua")
-	dofile(LIB_PATH .. "Lib_Storage.lua")
-	dofile(LIB_PATH .. "Lib_Encounters.lua")
-
+	-- Panel behaviors have to be defined every time because they are methods of this activity
+	-- The libraries act on the state surrounding this activity, so they preserve when this activity is replaced
+	-- We load other files to change the big methods because we run them every time we change scenes
 	dofile(LIB_PATH .. "Panel_Clones.lua")
 	dofile(LIB_PATH .. "Panel_Ship.lua")
 	dofile(LIB_PATH .. "Panel_Beam.lua")
@@ -56,33 +74,29 @@ function VoidWanderers:StartActivity()
 	dofile(LIB_PATH .. "Panel_Turrets.lua")
 	dofile(LIB_PATH .. "Panel_Bombs.lua")
 
-	-- Check delta time and fix it to avoid problems with fonts
-	if TimerMan.DeltaTimeMS >= 25 then
-		print("Incorrect delta time, fixed")
-		TimerMan.DeltaTimeSecs = 0.0166667
-	end
-
-	CHOSEN_DIFFICULTY = self.Difficulty
-	CHOSEN_AISKILLPLAYER = self:GetTeamAISkill(Activity.TEAM_1)
-	CHOSEN_AISKILLCPU = self:GetTeamAISkill(Activity.TEAM_2)
 	
-	-- Reset all previouly set scenes and scripts before launch since we're starting clean
-	if SceneMan.Scene.PresetName == "Void Wanderers" then
-		print("\n\n\n")
-		SCRIPT_TO_LAUNCH = nil
-
-		if SCRIPT_TO_LAUNCH == nil then
-			SCRIPT_TO_LAUNCH = BASE_PATH .. "StrategyScreenMain.lua"
-		end
+	-- If this is a new game, IE restart or initial start, then open the correct form and scene
+	-- Otherwise, just load the tactics script, we're mid game
+	if newGame then
+		print("VoidWanderers:StartActivity" .. ": Detected start/restart activity")
+		SCRIPT_TO_LAUNCH = BASE_PATH .. "StrategyScreenMain.lua"
+		SCENE_TO_LAUNCH = "Void Wanderers"
 
 		FORM_TO_LOAD = BASE_PATH .. "FormStart.lua"
 
-		print("SCRIPT: " .. SCRIPT_TO_LAUNCH)
+		dofile(SCRIPT_TO_LAUNCH)
+		SceneMan:LoadScene(SCENE_TO_LAUNCH, true)
+	else
+		print("VoidWanderers:StartActivity" .. ": Detected load game")
+		SCRIPT_TO_LAUNCH = BASE_PATH .. "Tactics.lua"
 
 		dofile(SCRIPT_TO_LAUNCH)
+		self:StartActivity()
 	end
 
-	print("VoidWanderers:MissionLauncher!")
+	-- This makes certain the correct maps are considered
+	-- I wish it weren't so, but there's no other way
+	SceneMan.Scene:GetArea("VoidWanderersAntiBugZone")
 end
 -----------------------------------------------------------------------------------------
 -- Launches new mission script without leaving current activity. Scene is case sensitive!
@@ -126,7 +140,7 @@ end
 -- Update Activity
 -----------------------------------------------------------------------------------------
 function VoidWanderers:OnSave(self)
-	print("SAVE?! -- VoidWanderers:OnSave()!")
+	print("SAVE! -- VoidWanderers:OnSave()!")
 end
 -----------------------------------------------------------------------------------------
 --
