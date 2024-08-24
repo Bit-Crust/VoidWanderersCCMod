@@ -49,9 +49,6 @@ function VoidWanderers:StartActivity()
 	-- All items in this queue will be removed
 	self.ItemRemoveQueue = {}
 
-	-- Factions are already initialized by strategic part
-	self:LoadCurrentGameState()
-
 	CF.GS = self.GS
 
 	self.RandomEncounterID = nil
@@ -130,120 +127,122 @@ function VoidWanderers:StartActivity()
 		local dest = 1
 
 		-- Spawn previously saved actors
-		for i = 1, CF.MaxSavedActors do
-			if self.GS["Actor" .. i .. "Preset"] then
-				local preset = self.GS["Actor" .. i .. "Preset"]
-				if preset:find("RPG Brain Robot") then
-					local reference = CF.MakeBrain(self.GS, 0, CF.PlayerTeam, Vector(0, 0), false)
-					self.GS["Actor" .. i .. "Player"] = preset:sub(preset:find("PLR") + 3, preset:find("PLR") + 3) + 1
-					self.GS["Actor" .. i .. "Preset"] = reference.PresetName
-					self.GS["Actor" .. i .. "Class"] = reference.ClassName
-					self.GS["Actor" .. i .. "Module"] = reference.ModuleName
+		if self.GS["DeserializeOnboard"] == "True" then
+			for i = 1, CF.MaxSavedActors do
+				if self.GS["Actor" .. i .. "Preset"] then
+					local preset = self.GS["Actor" .. i .. "Preset"]
+					if preset:find("RPG Brain Robot") then
+						local reference = CF.MakeBrain(self.GS, 0, CF.PlayerTeam, Vector(0, 0), false)
+						self.GS["Actor" .. i .. "Player"] = preset:sub(preset:find("PLR") + 3, preset:find("PLR") + 3) + 1
+						self.GS["Actor" .. i .. "Preset"] = reference.PresetName
+						self.GS["Actor" .. i .. "Class"] = reference.ClassName
+						self.GS["Actor" .. i .. "Module"] = reference.ModuleName
+						for j = 1, #CF.LimbID do
+							self.GS["Actor" .. i .. CF.LimbID[j]] = CF.GetLimbData(reference, j)
+						end
+						reference.ToDelete = true
+					end
+					local limbData = {}
 					for j = 1, #CF.LimbID do
-						self.GS["Actor" .. i .. CF.LimbID[j]] = CF.GetLimbData(reference, j)
+						limbData[j] = self.GS["Actor" .. i .. CF.LimbID[j]]
 					end
-					reference.ToDelete = true
-				end
-				local limbData = {}
-				for j = 1, #CF.LimbID do
-					limbData[j] = self.GS["Actor" .. i .. CF.LimbID[j]]
-				end
-				local actor = CF.MakeActor(
-					self.GS["Actor" .. i .. "Preset"],
-					self.GS["Actor" .. i .. "Class"],
-					self.GS["Actor" .. i .. "Module"],
-					self.GS["Actor" .. i .. "XP"],
-					self.GS["Actor" .. i .. "Identity"],
-					self.GS["Actor" .. i .. "Player"],
-					self.GS["Actor" .. i .. "Prestige"],
-					self.GS["Actor" .. i .. "Name"],
-					limbData
-				)
-				if actor then
-					actor.AIMode = Actor.AIMODE_SENTRY
-					actor:ClearAIWaypoints()
+					local actor = CF.MakeActor(
+						self.GS["Actor" .. i .. "Preset"],
+						self.GS["Actor" .. i .. "Class"],
+						self.GS["Actor" .. i .. "Module"],
+						self.GS["Actor" .. i .. "XP"],
+						self.GS["Actor" .. i .. "Identity"],
+						self.GS["Actor" .. i .. "Player"],
+						self.GS["Actor" .. i .. "Prestige"],
+						self.GS["Actor" .. i .. "Name"],
+						limbData
+					)
+					if actor then
+						actor.AIMode = Actor.AIMODE_SENTRY
+						actor:ClearAIWaypoints()
 
-					actor.Team = CF.PlayerTeam
-					for j = 1, CF.MaxSavedItemsPerActor do
-						if self.GS["Actor" .. i .. "Item" .. j .. "Preset"] then
-							local itm = CF.MakeItem(
-								self.GS["Actor" .. i .. "Item" .. j .. "Preset"],
-								self.GS["Actor" .. i .. "Item" .. j .. "Class"],
-								self.GS["Actor" .. i .. "Item" .. j .. "Module"]
-							)
-							if itm then
-								actor:AddInventoryItem(itm)
+						actor.Team = CF.PlayerTeam
+						for j = 1, CF.MaxSavedItemsPerActor do
+							if self.GS["Actor" .. i .. "Item" .. j .. "Preset"] then
+								local itm = CF.MakeItem(
+									self.GS["Actor" .. i .. "Item" .. j .. "Preset"],
+									self.GS["Actor" .. i .. "Item" .. j .. "Class"],
+									self.GS["Actor" .. i .. "Item" .. j .. "Module"]
+								)
+								if itm then
+									actor:AddInventoryItem(itm)
+								end
+							else
+								break
 							end
+						end
+						local x = self.GS["Actor" .. i .. "X"]
+						local y = self.GS["Actor" .. i .. "Y"]
+
+						if x and y then
+							actor.Pos = Vector(tonumber(x), tonumber(y))
 						else
-							break
-						end
-					end
-					local x = self.GS["Actor" .. i .. "X"]
-					local y = self.GS["Actor" .. i .. "Y"]
+							actor.Pos = self.AwayTeamPos[dest]
+							dest = dest + 1
 
-					if x and y then
-						actor.Pos = Vector(tonumber(x), tonumber(y))
-					else
-						actor.Pos = self.AwayTeamPos[dest]
-						dest = dest + 1
-
-						if dest > #self.AwayTeamPos then
-							dest = 1
-						end
-					end
-
-					if IsAHuman(actor) and ToAHuman(actor).Head == nil then
-						actor.DeathSound = nil
-						actor.Status = Actor.DEAD
-					end
-
-					local player = nil
-
-					if actor:GetNumberValue("VW_BrainOfPlayer") - 1 ~= Activity.PLAYER_NONE then
-						player = actor:GetNumberValue("VW_BrainOfPlayer") - 1
-						-- If the case exists or the player isn't active, store it's things and remove it
-						if not (self:PlayerActive(player) and self:PlayerHuman(player)) or IsActor(self.CreatedBrains[player]) and player ~= Activity.PLAYER_NONE then
-							for j = 1, CF.MaxSavedItemsPerActor do
-								self.GS["Brain" .. player .. "Item" .. j .. "Preset"] = nil
-								self.GS["Brain" .. player .. "Item" .. j .. "Class"] = nil
-								self.GS["Brain" .. player .. "Item" .. j .. "Module"] = nil
+							if dest > #self.AwayTeamPos then
+								dest = 1
 							end
+						end
 
-							-- Save inventory
-							local pre, cls, mdl = CF.GetInventory(act)
+						if IsAHuman(actor) and ToAHuman(actor).Head == nil then
+							actor.DeathSound = nil
+							actor.Status = Actor.DEAD
+						end
 
-							for j = 1, #pre do
-								self.GS["Brain" .. player .. "Item" .. j .. "Preset"] = pre[j]
-								self.GS["Brain" .. player .. "Item" .. j .. "Class"] = cls[j]
-								self.GS["Brain" .. player .. "Item" .. j .. "Module"] = mdl[j]
+						local player = nil
+
+						if actor:GetNumberValue("VW_BrainOfPlayer") - 1 ~= Activity.PLAYER_NONE then
+							player = actor:GetNumberValue("VW_BrainOfPlayer") - 1
+							-- If the case exists or the player isn't active, store it's things and remove it
+							if not (self:PlayerActive(player) and self:PlayerHuman(player)) or IsActor(self.CreatedBrains[player]) and player ~= Activity.PLAYER_NONE then
+								for j = 1, CF.MaxSavedItemsPerActor do
+									self.GS["Brain" .. player .. "Item" .. j .. "Preset"] = nil
+									self.GS["Brain" .. player .. "Item" .. j .. "Class"] = nil
+									self.GS["Brain" .. player .. "Item" .. j .. "Module"] = nil
+								end
+
+								-- Save inventory
+								local pre, cls, mdl = CF.GetInventory(act)
+
+								for j = 1, #pre do
+									self.GS["Brain" .. player .. "Item" .. j .. "Preset"] = pre[j]
+									self.GS["Brain" .. player .. "Item" .. j .. "Class"] = cls[j]
+									self.GS["Brain" .. player .. "Item" .. j .. "Module"] = mdl[j]
+								end
+
+								self.GS["Brain" .. player .. "Detached"] = "False"
+								if actor.GoldCarried > 0 then
+									CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + actor.GoldCarried)
+								end
+								actor.ToDelete = true
+								actor = nil
 							end
+						end
 
-							self.GS["Brain" .. player .. "Detached"] = "False"
-							if actor.GoldCarried > 0 then
-								CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + actor.GoldCarried)
+						-- If it wasn't a faulty player-owned brain, then it is something we can put in the scene
+						if IsActor(actor) then
+							MovableMan:AddActor(actor)
+							self:AddPreEquippedItemsToRemovalQueue(actor)
+
+							-- If if it was a player owned brain, then put it in the scene
+							if player ~= nil then
+								self:SetPlayerBrain(actor, player)
+								self:SwitchToActor(actor, player, CF.PlayerTeam)
+								actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
+								actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
+								actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
 							end
-							actor.ToDelete = true
-							actor = nil
 						end
 					end
-
-					-- If it wasn't a faulty player-owned brain, then it is something we can put in the scene
-					if IsActor(actor) then
-						MovableMan:AddActor(actor)
-						self:AddPreEquippedItemsToRemovalQueue(actor)
-
-						-- If if it was a player owned brain, then put it in the scene
-						if player ~= nil then
-							self:SetPlayerBrain(actor, player)
-							self:SwitchToActor(actor, player, CF.PlayerTeam)
-							actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
-							actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
-							actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
-						end
-					end
+				else
+					break
 				end
-			else
-				break
 			end
 		end
 
@@ -798,7 +797,6 @@ function VoidWanderers:StartActivity()
 	
 	-- Display gold like normal since the buy menu is disabled
 	self:SetTeamFunds(CF.GetPlayerGold(self.GS, CF.PlayerTeam), CF.PlayerTeam)
-	self:SaveCurrentGameState()
 
 	-- Init consoles if in Vessel mode
 	if self.GS["Mode"] == "Vessel" and self.GS["SceneType"] == "Vessel" then
@@ -923,7 +921,8 @@ function VoidWanderers:StartActivity()
 	self.nameString = {}
 	self.actorList = {}
 	self.killClaimRange = 50 + (FrameMan.PlayerScreenWidth + FrameMan.PlayerScreenHeight) * 0.3
-
+	
+	self:LocatePlayerBrains()
 	self.IsInitialized = true
 
 	print("VoidWanderers:Tactics:StartActivity - End")
@@ -2661,7 +2660,7 @@ function VoidWanderers:UpdateActivity()
 		self.nameString = {}
 	end
 
-	self:CheckWinningConditions()
+	self:LocatePlayerBrains()
 	self:YSortObjectivePoints()
 
 	for actor in MovableMan.AddedActors do
@@ -2704,8 +2703,21 @@ end
 -----------------------------------------------------------------------------------------
 -- Brain selection and gameover conditions check
 -----------------------------------------------------------------------------------------
-function VoidWanderers:CheckWinningConditions()
+function VoidWanderers:LocatePlayerBrains()
 	if self.ActivityState ~= Activity.OVER then
+		for player = 0, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				if not self:GetPlayerBrain(player) then
+					for actor in MovableMan.Actors do
+						if actor:GetNumberValue("VW_BrainOfPlayer") - 1 ~= Activity.PLAYER_NONE then
+							self:SetPlayerBrain(actor, player)
+							self:SwitchToActor(actor, player, self:GetTeamOfPlayer(player))
+							self:GetBanner(GUIBanner.RED, Activity.PLAYER_1):ClearText()
+						end
+					end
+				end
+			end
+		end
 	end
 end
 -----------------------------------------------------------------------------------------

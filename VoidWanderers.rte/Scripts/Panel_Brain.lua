@@ -111,6 +111,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 						rb.Team = CF.PlayerTeam
 						rb.Pos = self.BrainPos[player + 1]
 						rb.Health = act.Health/act.MaxHealth * rb.MaxHealth
+						rb:SetNumberValue("VW_BrainOfPlayer", player + 1)
 						-- Clear inventory
 						for j = 1, CF.MaxSavedItemsPerActor do
 							self.GS["Brain" .. player .. "Item" .. j .. "Preset"] = nil

@@ -329,8 +329,6 @@ end
 -----------------------------------------------------------------------------------------
 -- Update Activity
 -----------------------------------------------------------------------------------------
-
-
 function VoidWanderers:UpdateActivity()
 	-- Just check for intialization flags in update loop to avoid unnecessary function calls during all the mission
 	if self.IsInitialized == nil then

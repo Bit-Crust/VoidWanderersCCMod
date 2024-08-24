@@ -276,18 +276,8 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:BtnOk_OnClick()
-	--CF["StopUIProcessing"] = true
-
 	-- Create new game file
-	local config = {}
-
-	local player
-	local ally
-	local cpu = {}
-
-	player = self.FactionButtons[self.SelectedPlayerFaction]["FactionId"]
-	local j = 0
-
+	local player = self.FactionButtons[self.SelectedPlayerFaction]["FactionId"]
 	for i = 1, self.MaxCPUPlayersSelectable do
 		if (self.SelectedCPUFactions[i] == 0) then
 			table.remove(self.SelectedCPUFactions, i)
@@ -296,28 +286,22 @@ function VoidWanderers:BtnOk_OnClick()
 			i = i - 1
 		end
 	end
-
-	cpu[1] = player
-
-	for i = 1, self.MaxCPUPlayersSelectable do
+	
+	local cpu = {player}
+	for i = 2, self.MaxCPUPlayersSelectable do
 		if self.SelectedCPUFactions[i] ~= 0 then
-			cpu[i+1] = self.FactionButtons[self.SelectedCPUFactions[i]]["FactionId"]
+			cpu[i] = self.FactionButtons[self.SelectedCPUFactions[i]]["FactionId"]
 		else
-			cpu[i+1] = nil
+			cpu[i] = nil
 		end
 	end
 
-	print(#cpu)
-
 	-- Create new game data
-	config = CF["MakeNewConfig"](CHOSEN_DIFFICULTY, CHOSEN_AISKILLPLAYER, CHOSEN_AISKILLCPU, player, cpu, self)
-
-	CF["WriteConfigFile"](config, self.ModuleName, STATE_CONFIG_FILE)
-
+	gamestate = CF.MakeNewConfig(CHOSEN_DIFFICULTY, CHOSEN_AISKILLPLAYER, CHOSEN_AISKILLCPU, player, cpu, self)
+	self:WriteSaveData(gamestate)
+	self:LoadSaveData()
 	self:FormClose()
-
-	--CF["LaunchMission"](config["Scene"], "Tactics.lua")
-	self:LaunchScript(config["Scene"], "Tactics.lua")
+	self:LaunchScript(gamestate["Scene"], "Tactics.lua")
 end
 
 -----------------------------------------------------------------------------------------

@@ -207,7 +207,7 @@ end
 CF["WriteSceneConfigFile"] = function(config, modulename, filename)
 	local file = LuaMan:FileOpen(modulename .. "/Scenes/Data/" .. filename, "w")
 
-	local sorted = CF["GetSortedListFromTable"](config)
+	local sorted = CF.GetSortedListFromTable(config)
 
 	for i = 1, #sorted do
 		LuaMan:FileWriteLine(file, tostring(sorted[i]["Key"]) .. "=" .. tostring(sorted[i]["Value"]) .. "\n")
