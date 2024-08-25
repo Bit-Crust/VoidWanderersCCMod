@@ -29,7 +29,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 					-- Create faction appropriate brain because we can do that
 					local rb = CF.MakeBrain(self.GS, 0, CF.PlayerTeam, act.Pos + Vector(0, 20), false)
 
-					if rb and rb.Head then
+					if rb then
 						rb.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
 						rb.Vel = Vector(0, 4)
 						rb.AIMode = Actor.AIMODE_SENTRY
@@ -57,10 +57,10 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 
 						-- Only add to scene after everything is sorted
 						MovableMan:AddActor(rb)
-						rb:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
-						rb:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
 
 						-- Then switch
+						rb:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
+						rb:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
 						self:SwitchToActor(rb, player, CF.PlayerTeam)
 						self:SetPlayerBrain(rb, player)
 

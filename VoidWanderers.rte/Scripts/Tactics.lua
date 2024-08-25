@@ -128,6 +128,8 @@ function VoidWanderers:StartActivity()
 
 		-- Spawn previously saved actors
 		if self.GS["DeserializeOnboard"] == "True" then
+			self.GS["DeserializeOnboard"] = "False"
+
 			for i = 1, CF.MaxSavedActors do
 				if self.GS["Actor" .. i .. "Preset"] then
 					local preset = self.GS["Actor" .. i .. "Preset"]
@@ -229,15 +231,6 @@ function VoidWanderers:StartActivity()
 						if IsActor(actor) then
 							MovableMan:AddActor(actor)
 							self:AddPreEquippedItemsToRemovalQueue(actor)
-
-							-- If if it was a player owned brain, then put it in the scene
-							if player ~= nil then
-								self:SetPlayerBrain(actor, player)
-								self:SwitchToActor(actor, player, CF.PlayerTeam)
-								actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
-								actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
-								actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
-							end
 						end
 					end
 				else
@@ -351,15 +344,6 @@ function VoidWanderers:StartActivity()
 						if IsActor(actor) then
 							MovableMan:AddActor(actor)
 							self:AddPreEquippedItemsToRemovalQueue(actor)
-
-							-- If if it was a player owned brain, then put it in the scene
-							if player ~= nil then
-								self:SetPlayerBrain(actor, player)
-								self:SwitchToActor(actor, player, CF.PlayerTeam)
-								actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
-								actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
-								actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
-							end
 						end
 					end
 				else
@@ -792,8 +776,6 @@ function VoidWanderers:StartActivity()
 			break
 		end
 	end
-
-	self.HumanPlayer = 0
 	
 	-- Display gold like normal since the buy menu is disabled
 	self:SetTeamFunds(CF.GetPlayerGold(self.GS, CF.PlayerTeam), CF.PlayerTeam)
@@ -2660,7 +2642,6 @@ function VoidWanderers:UpdateActivity()
 		self.nameString = {}
 	end
 
-	self:LocatePlayerBrains()
 	self:YSortObjectivePoints()
 
 	for actor in MovableMan.AddedActors do
@@ -2707,13 +2688,17 @@ function VoidWanderers:LocatePlayerBrains()
 	if self.ActivityState ~= Activity.OVER then
 		for player = 0, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				if not self:GetPlayerBrain(player) then
-					for actor in MovableMan.Actors do
-						if actor:GetNumberValue("VW_BrainOfPlayer") - 1 ~= Activity.PLAYER_NONE then
-							self:SetPlayerBrain(actor, player)
-							self:SwitchToActor(actor, player, self:GetTeamOfPlayer(player))
-							self:GetBanner(GUIBanner.RED, Activity.PLAYER_1):ClearText()
+				for actor in MovableMan.Actors do
+					if actor:GetNumberValue("VW_BrainOfPlayer") - 1 == player then
+						self:SetPlayerBrain(actor, player)
+						self:SwitchToActor(actor, player, self:GetTeamOfPlayer(player))
+						actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
+						if actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
+							actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
+						else
+							actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
 						end
+						self:GetBanner(GUIBanner.RED, Activity.PLAYER_1):ClearText()
 					end
 				end
 			end

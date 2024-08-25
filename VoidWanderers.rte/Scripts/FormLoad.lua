@@ -265,8 +265,8 @@ function VoidWanderers:SaveSlots_OnClick()
 		end
 
 		self:WriteSaveData(gamestate)
-		self:FormClose()
 		self:LoadSaveData()
+		self:FormClose()
 		self:LaunchScript(self.GS["Scene"], "Tactics.lua")
 	end
 end
@@ -275,12 +275,7 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:BtnBack_OnClick()
 	self:FormClose()
-	if self.ReturnToStart then
-		dofile(BASE_PATH .. "FormStart.lua")
-	else
-		dofile(BASE_PATH .. "FormDefault.lua")
-	end
-	self.ReturnToStart = false
+	dofile(BASE_PATH .. "FormStart.lua")
 	self:FormLoad()
 end
 -----------------------------------------------------------------------------------------

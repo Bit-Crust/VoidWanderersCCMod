@@ -63,7 +63,7 @@ function VoidWanderers:StartActivity()
 	end
 	
 	--Make invisible brains.
-	self.brain = nil
+	self.Cursor = nil
 
 	local brainpos = {}
 
@@ -90,10 +90,8 @@ function VoidWanderers:StartActivity()
 			self:SwitchToActor(brn, player, Activity.TEAM_1)
 			CameraMan:SetScroll(self.Mid, self:ScreenOfPlayer(player))
 				
-			if self.brain == nil and brn ~= nil then
-				self.brain = brn
-				self.CurCursorMO = self.brain
-				self.LastCursorMO = self.brain
+			if self.Cursor == nil and brn ~= nil then
+				self.Cursor = brn
 			end
 		end
 	end
@@ -359,7 +357,7 @@ function VoidWanderers:UpdateActivity()
 
 	self:ClearObjectivePoints()
 
-	local cont = self.PlayerCount == 1 and self.CurCursorMO:GetController() or self.brain:GetController()
+	local cont = self.Cursor:GetController()
 
 	if CF.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
 		if cont:IsState(Controller.MOVE_LEFT) then
@@ -391,45 +389,14 @@ function VoidWanderers:UpdateActivity()
 		self.Scroll.Y = self.Scroll.Y - (self.Scroll.Y - self.ScrollMinimumDistance - self.Mouse.Y) * 0.25
 	end
 	
-	self.brain.Pos = self.Scroll * 1
-
-	-- Debug Toggle low performance flag on/off
-	--if UInputMan:KeyPressed(28) then
-	--	CF.LowPerformance = not CF.LowPerformance
-	--	print (CF.LowPerformance)
-	--end
-
-	-- Find out info about UInputMan buttons
-	--for i = 1, 128 do
-	--	if UInputMan:KeyPressed(i) then
-	--		print (i)
-	--	end
-	--end
-	-- changePos if self.brain is not 
+	self.Cursor.Pos = self.Scroll * 1
 
 	-- Don't let the cursor leave the screen
-
-	
-	if self.CurCursorMO.ID ~= self.LastCursorMO.ID then
-		self.LastCursorMO = self.CurCursorMO
-		self:SetPlayerBrain(self.CurCursorMO, CF.FirstActivePlayer)
-		
-		self.MidOffset = (self.CurCursorMO.Pos - self.Mid) / 2
-	end
-
-	-- print("OFFSET: " .. self.MidOffset.X .. ", " .. self.MidOffset.Y )
-	-- print("MID: " .. self.Mid.X .. ", " .. self.Mid.Y)
-	-- print("MOUSE: " .. self.Mouse.X .. ", " .. self.Mouse.Y)
-
-	self.CurCursorMO = self:GetControlledActor(CF.FirstActivePlayer)
-
-	-- local CUR_MPOS = self.Mouse ?idOff
 	local LEFT_BOUND = self.Mid.X + -self.ResX2 + self.MidOffset.X
 	local RIGHT_BOUND = self.Mid.X + self.ResX2 + self.MidOffset.X - 10
 	local TOP_BOUND = self.MidOffset.Y
 	local BOTTOM_BOUND = self.Mid.Y * 2 + self.MidOffset.Y - 10
-	-- print("BOUNDS: \n\tl: " .. LEFT_BOUND .. "\n\tr: " .. RIGHT_BOUND .. "\n\tu: " .. TOP_BOUND .. "\n\td: " .. BOTTOM_BOUND)
-
+	
 	if self.Mouse.X < LEFT_BOUND then
 		self.Mouse.X = LEFT_BOUND
 	end

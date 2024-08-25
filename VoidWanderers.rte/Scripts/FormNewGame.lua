@@ -107,18 +107,22 @@ function VoidWanderers:FormLoad()
 	self.UI[#self.UI + 1] = el
 	self.BtnOk = el
 
-	if CF["IsFileExists"](self.ModuleName, STATE_CONFIG_FILE) then
-		el = {}
-		el["Type"] = self.ElementTypes.LABEL
-		el["Preset"] = nil
-		el["Pos"] = self.Mid + Vector(0, 95)
-		el["Text"] = "!!! WARNING, YOUR EXISTING GAME WILL BE DELETED !!!"
-		el["Width"] = 800
-		el["Height"] = 100
+	el = {}
+	el["Type"] = self.ElementTypes.BUTTON
+	el["Presets"] = {}
+	el["Presets"][self.ButtonStates.IDLE] = "SideMenuButtonSmallIdle"
+	el["Presets"][self.ButtonStates.MOUSE_OVER] = "SideMenuButtonSmallMouseOver"
+	el["Presets"][self.ButtonStates.PRESSED] = "SideMenuButtonSmallPressed"
+	el["Pos"] = self.Mid + Vector(self.ResX2 - 70 - 20, -self.ResY2 + 12 + 20)
+	el["Text"] = "Back"
+	el["Width"] = 140
+	el["Height"] = 40
+	el["Visible"] = true
 
-		self.UI[#self.UI + 1] = el
-		self.LblHeader = el
-	end
+	el["OnClick"] = self.BtnBack_OnClick
+
+	self.UI[#self.UI + 1] = el
+	self.BtnBack = el
 
 	local xtile = 1
 	local ytile = 0
@@ -327,7 +331,14 @@ function VoidWanderers:GetFactionButtonUnderMouse(pos)
 
 	return nil
 end
-
+-----------------------------------------------------------------------------------------
+--
+-----------------------------------------------------------------------------------------
+function VoidWanderers:BtnBack_OnClick()
+	self:FormClose()
+	dofile(BASE_PATH .. "FormStart.lua")
+	self:FormLoad()
+end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
@@ -488,7 +499,7 @@ function VoidWanderers:FormClose()
 
 	-- Destroy actors
 	for actor in MovableMan.Actors do
-		if actor.PresetName ~= "Brain Case" then
+		if actor.PresetName ~= "Fake Brain Case" then
 			actor.ToDelete = true
 		end
 	end
