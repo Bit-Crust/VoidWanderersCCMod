@@ -10,7 +10,7 @@ function VoidWanderers:MissionCreate()
 
 	local enm = CF["GetPointsArray"](self.Pts, "Deploy", set, "AmbientEnemy")
 	local amount = math.ceil(CF["AmbientEnemyRate"] / 2 * #enm)
-	local enmpos = CF["SelectRandomPoints"](enm, amount)
+	local enmpos = CF["RandomSampleOfList"](enm, amount)
 
 	self.MissionLZs = CF["GetPointsArray"](self.Pts, "Deploy", set, "EnemyLZ")
 

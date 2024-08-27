@@ -21,19 +21,21 @@ function VoidWanderers:InitLZControlPanelUI()
 
 	local panelPos = Vector()
 
-	local brainsAbsent = self.GS["BrainsOnMission"] == "False"
+	self.BrainsAbsent = self.GS["BrainsOnMission"] == "False"
 	
+	self:LocateLandingZoneControlPanelActors()
+
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		--print("PLAYER #" .. player .. ": " .. tostring(brainsAbsent and self:PlayerActive(player) and self:PlayerHuman(player)) .. " " .. tostring(not brainsAbsent and player == Activity.PLAYER_1))
-		if (brainsAbsent and self:PlayerActive(player) and self:PlayerHuman(player)) or (not brainsAbsent and player == Activity.PLAYER_1) then
-			-- Create actor
-			if not MovableMan:IsActor(self.LZControlPanelActor[player + 1]) then
+		--print("PLAYER #" .. player .. ": " .. tostring(self.BrainsAbsent and self:PlayerActive(player) and self:PlayerHuman(player)) .. " " .. tostring(not self.BrainsAbsent and player == Activity.PLAYER_1))
+		-- Create actor
+		if not MovableMan:IsActor(self.LZControlPanelActor[player + 1]) then
+			if (self.BrainsAbsent and self:PlayerActive(player) and self:PlayerHuman(player)) or (not self.BrainsAbsent and player == Activity.PLAYER_1) then
 				self.LZControlPanelActor[player + 1] = CreateActor("LZ Control Panel")
 				if self.LZControlPanelActor[player + 1] ~= nil then
 					self.LZControlPanelActor[player + 1].Pos = self.LZControlPanelPos[player + 1]
 					self.LZControlPanelActor[player + 1].Team = CF.PlayerTeam
 					MovableMan:AddActor(self.LZControlPanelActor[player + 1])
-					if brainsAbsent then
+					if self.BrainsAbsent then
 						self:SetPlayerBrain(self.LZControlPanelActor[player + 1], player)
 						self:SwitchToActor(self.LZControlPanelActor[player + 1], player, CF.PlayerTeam)
 					end
@@ -47,6 +49,25 @@ function VoidWanderers:InitLZControlPanelUI()
 	local zoneRight = Vector(math.max(self.LZControlPanelPos[1].X, self.LZControlPanelPos[4].X), math.max(self.LZControlPanelPos[1].Y, self.LZControlPanelPos[4].Y))
 	local screenDim = Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight)
 	self.lzBox = Box(zoneLeft + screenDim * -0.5, zoneRight + screenDim * 0.5)
+end
+-----------------------------------------------------------------------------------------
+-- Find and assign player brains, for loaded games.
+-----------------------------------------------------------------------------------------
+function VoidWanderers:LocateLandingZoneControlPanelActors()
+	if self.BrainsAbsent then
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				self.LZControlPanelActor[player + 1] = self:GetPlayerBrain(player)
+			end
+		end
+	else
+		for actor in MovableMan.AddedActors do
+			if actor.PresetName == "LZ Control Panel" then
+				self.LZControlPanelActor[1] = actor
+				break
+			end
+		end
+	end
 end
 -----------------------------------------------------------------------------------------
 --
@@ -133,10 +154,12 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:DestroyLZControlPanelUI()
-	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		-- Destroy actor
-		if MovableMan:IsActor(self.LZControlPanelActor[player + 1]) then
-			self.LZControlPanelActor[player + 1].ToDelete = true
+	if self.LZControlPanelActor then
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			-- Destroy actor
+			if MovableMan:IsActor(self.LZControlPanelActor[player + 1]) then
+				self.LZControlPanelActor[player + 1].ToDelete = true
+			end
 		end
 	end
 	
@@ -515,7 +538,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 							end
 						end
 
-						self.GS["MissionReturning"] = "True"
+						self.GS["DeserializeDeployedTeam"] = "True"
 					end
 				else
 					CF.DrawString("HOLD FIRE TO RETURN", pos + Vector(-50, -10), 130, 20)
@@ -679,7 +702,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		end
 	end
 
-	if self.GS["MissionReturning"] == "True" then
+	if self.GS["DeserializeDeployedTeam"] == "True" then
 		if self.MissionAvailable and not self.MissionCompleted then
 			self:GiveMissionPenalties()
 		end
@@ -762,11 +785,11 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		self.GS["Mode"] = "Vessel"
 		self.GS["SceneType"] = "Vessel"
 		self.GS["Scene"] = scene
+		self.GS["MissionInitiated"] = "False"
 		
 		self:SaveCurrentGameState()
 
 		self:LaunchScript(scene, "Tactics.lua")
-		self.EnableBrainSelection = false
 		self:DestroyLZControlPanelUI()
 
 		-- Destroy mission and ambient specific objects

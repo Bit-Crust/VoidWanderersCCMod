@@ -43,7 +43,7 @@ function VoidWanderers:MissionCreate()
 	-- Get LZs
 	self.MissionVatsPos = CF["GetPointsArray"](self.Pts, "Zombies", set, "Vat")
 	if self.MissionSettings["VatsCount"] < 8 then
-		self.MissionVatsPos = CF["SelectRandomPoints"](self.MissionVatsPos, self.MissionSettings["VatsCount"])
+		self.MissionVatsPos = CF["RandomSampleOfList"](self.MissionVatsPos, self.MissionSettings["VatsCount"])
 	end
 
 	self.MissionVats = {}

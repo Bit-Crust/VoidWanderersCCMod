@@ -79,7 +79,7 @@ function VoidWanderers:MissionCreate()
 	if #miners == 0 then
 		miners = { SceneMan:MovePointToGround(Vector(math.random(SceneMan.SceneWidth), 0), 0, 5) }
 	end
-	miners = CF["SelectRandomPoints"](miners, self.MissionSettings["InitialMiners"])
+	miners = CF["RandomSampleOfList"](miners, self.MissionSettings["InitialMiners"])
 
 	-- Get LZs
 	self.MissionLZs = CF["GetPointsArray"](self.Pts, "Mine", set, "MinerLZ")

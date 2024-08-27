@@ -92,7 +92,7 @@ function VoidWanderers:MissionCreate()
 		end
 
 		self.MissionBrain.AIMode = Actor.AIMODE_GOTO
-		local lzs = CF["SelectRandomPoints"](
+		local lzs = CF["RandomSampleOfList"](
 			CF["GetPointsArray"](self.Pts, "Deploy", self.MissionDeploySet, "PlayerLZ"),
 			Activity.MAXPLAYERCOUNT
 		)

@@ -768,35 +768,33 @@ CF.GetPointsArray = function(points, missionType, presetType, pointsType)
 	return vectors
 end
 -----------------------------------------------------------------------------
---	Returns array of n random points from array points
+--	Returns array of n random elements from array list
 -----------------------------------------------------------------------------
-CF.SelectRandomPoints = function(points, n)
+CF.RandomSampleOfList = function(list, n)
 	local selection = {}
-	local remainder = {}
 
-	-- If points are same as number of set elements, return set
 	-- If empty set or no elements requested, return empty selection
-	-- If fewer points than requested, just stack them willy nilly
-	-- Otherwise, properly grab a handful
-	if #points == n then
-		return points
-	elseif #points == 0 or n <= 0 then
-		return selection
-	elseif #points < n then
-		for i = 1, n do
-			local index = math.random(#points)
-			selection[#selection + 1] = points[index]
-		end
-	else
-		for i = 1, #points do
-			remainder[#remainder + 1] = i
+	-- If need real number, properly grab a handful
+	if #list > 0 and n > 0 then
+		-- Make a list of indices not once picked
+		local remainder = {}
+		for i = 1, #list do
+			table.remove(remainder, i)
 		end
 
-		-- Pick a random index from those left
-		for i = 1, n do
+		-- For as many as requested, or as many indices as there are, whichever is smaller, grab of remaining options
+		for i = 1, math.min(#list, n) do
 			local index = math.random(#remainder)
-			selection[#selection + 1] = points[remainder[index]]
+			table.insert(selection, list[remainder[index]])
 			table.remove(remainder, index)
+		end
+
+		-- And if we need even more, pick randomly from there
+		if #list < n then
+			for i = 1, n - #list do
+				local index = math.random(#list)
+				table.insert(selection, list[index])
+			end
 		end
 	end
 

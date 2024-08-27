@@ -77,7 +77,7 @@ function VoidWanderers:MissionCreate()
 	if count < 0 then
 		count = 1
 	end
-	miners = CF["SelectRandomPoints"](miners, count)
+	miners = CF["RandomSampleOfList"](miners, count)
 
 	-- Get security locations
 	local security = CF["GetPointsArray"](self.Pts, "Mine", set, "MinerSentries")
@@ -85,7 +85,7 @@ function VoidWanderers:MissionCreate()
 	if count < 0 then
 		count = 1
 	end
-	security = CF["SelectRandomPoints"](security, count)
+	security = CF["RandomSampleOfList"](security, count)
 
 	-- Spawn miners with double rate
 	for i = 1, #miners do

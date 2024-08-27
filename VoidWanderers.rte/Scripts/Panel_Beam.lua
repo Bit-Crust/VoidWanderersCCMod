@@ -272,11 +272,11 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 					-- Set new operating mode
 					self.GS["Mode"] = "Mission"
 					self.GS["SceneType"] = "Mission"
+					self.GS["DeserializeDeployedTeam"] = "True"
 					self.GS["Scene"] = scene
 					self:SaveCurrentGameState()
 
 					self:LaunchScript(scene, "Tactics.lua")
-					self.EnableBrainSelection = false
 					self:DestroyConsoles() --]]--
 					return
 				end

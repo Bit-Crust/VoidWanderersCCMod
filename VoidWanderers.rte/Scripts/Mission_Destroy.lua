@@ -53,7 +53,7 @@ function VoidWanderers:MissionCreate()
 	-- Spawn enemies
 	local enmset = CF["GetRandomMissionPointsSet"](self.Pts, "Deploy")
 	local enm = CF["GetPointsArray"](self.Pts, "Deploy", enmset, "AmbientEnemy")
-	local enmpos = CF["SelectRandomPoints"](enm, math.floor(self.MissionSettings["SpawnRate"] * #enm))
+	local enmpos = CF["RandomSampleOfList"](enm, math.floor(self.MissionSettings["SpawnRate"] * #enm))
 	self.MissionLZs = CF["GetPointsArray"](self.Pts, "Deploy", enmset, "EnemyLZ")
 
 	for i = 1, #enmpos do
@@ -70,7 +70,7 @@ function VoidWanderers:MissionCreate()
 
 	local amount = math.ceil(CF["AmbientEnemyRate"] * #enm)
 	--print ("Crates: "..amount)
-	local enmpos = CF["SelectRandomPoints"](enm, amount)
+	local enmpos = CF["RandomSampleOfList"](enm, amount)
 
 	-- Select set
 	local set = CF["GetRandomMissionPointsSet"](self.Pts, "Zombies")
@@ -78,7 +78,7 @@ function VoidWanderers:MissionCreate()
 	-- Get LZs
 	self.MissionDevicesPos = CF["GetPointsArray"](self.Pts, "Zombies", set, "Vat")
 	if self.MissionSettings["DeviceCount"] < 8 then
-		self.MissionDevicesPos = CF["SelectRandomPoints"](self.MissionDevicesPos, self.MissionSettings["DeviceCount"])
+		self.MissionDevicesPos = CF["RandomSampleOfList"](self.MissionDevicesPos, self.MissionSettings["DeviceCount"])
 	end
 
 	self.MissionDevices = {}

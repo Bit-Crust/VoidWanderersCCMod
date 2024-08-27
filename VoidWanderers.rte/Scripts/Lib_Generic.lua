@@ -188,7 +188,7 @@ CF.InitFactions = function(activity)
 
 	CF.EnableAssaults = true -- Set to false to disable assaults
 
-	CF.FogOfWarResolution = 36
+	CF.FogOfWarResolution = 20
 
 	CF.Factions = {}
 

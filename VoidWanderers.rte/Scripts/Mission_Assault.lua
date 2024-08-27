@@ -6,7 +6,7 @@
 --				1/3 of it's actors. Initial spawn rate varies based on mission difficulty
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionCreate()
+function VoidWanderers:MissionCreate(isNewGame)
 	-- Mission difficulty settings
 	local setts
 

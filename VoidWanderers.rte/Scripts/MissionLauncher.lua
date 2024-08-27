@@ -1,4 +1,4 @@
-function VoidWanderers:StartActivity(newGame)
+function VoidWanderers:StartActivity(isNewGame)
 	print("VoidWanderers:StartActivity")
 
 	-- Load libraries if config is not initialized
@@ -44,7 +44,10 @@ function VoidWanderers:StartActivity(newGame)
 		dofile(LIB_PATH .. "Lib_Encounters.lua")
 	end
 	
-
+	-- Save Load Handler, maybe
+	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler")
+	self.saveLoadHandler:Initialize(true)
+	
 	-- Init a couple properties and constants
 	self.IsInitialized = false
 	self.FirePressed = {}
@@ -78,7 +81,7 @@ function VoidWanderers:StartActivity(newGame)
 	
 	-- If this is a new game, IE restart or initial start, then open the correct form and scene
 	-- Otherwise, just load the tactics script, we're mid game
-	if newGame then
+	if isNewGame then
 		print("VoidWanderers:StartActivity" .. ": Detected start/restart activity")
 		SCRIPT_TO_LAUNCH = BASE_PATH .. "StrategyScreenMain.lua"
 		SCENE_TO_LAUNCH = "Void Wanderers"
@@ -94,7 +97,7 @@ function VoidWanderers:StartActivity(newGame)
 		self:LoadSaveData()
 		dofile(SCRIPT_TO_LAUNCH)
 		self:DestroyConsoles()
-		self:StartActivity()
+		self:StartActivity(isNewGame)
 	end
 
 	-- This makes certain the correct maps are considered
