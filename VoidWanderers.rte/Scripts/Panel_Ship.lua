@@ -3,9 +3,9 @@
 -----------------------------------------------------------------------------------------
 function VoidWanderers:InitShipControlPanelUI()
 	local x, y
-
 	x = tonumber(self.SceneConfig["ShipControlPanelX"])
 	y = tonumber(self.SceneConfig["ShipControlPanelY"])
+
 	if x ~= nil and y ~= nil then
 		self.ShipControlPanelPos = Vector(x, y)
 	else
@@ -73,7 +73,7 @@ function VoidWanderers:InitShipControlPanelUI()
 	self.ShipControlForceVariantTime = 17000
 end
 -----------------------------------------------------------------------------------------
--- Find and assign appropriate landing zone actors
+-- Find and assign appropriate actors
 -----------------------------------------------------------------------------------------
 function VoidWanderers:LocateShipControlPanelActor()
 	for actor in MovableMan.AddedActors do

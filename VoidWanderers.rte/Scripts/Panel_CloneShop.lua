@@ -13,8 +13,8 @@ function VoidWanderers:InitCloneShopControlPanelUI()
 		self.CloneShopControlPanelPos = nil
 	end
 
-	-- Create actor
 	if self.CloneShopControlPanelPos ~= nil then
+		self:LocateCloneShopControlPanelActor()
 		if not MovableMan:IsActor(self.CloneShopControlPanelActor) then
 			self.CloneShopControlPanelActor = CreateActor("Clone Shop Control Panel")
 			if self.CloneShopControlPanelActor ~= nil then
@@ -25,9 +25,8 @@ function VoidWanderers:InitCloneShopControlPanelUI()
 		end
 	end
 
-	self.CloneShopControlPanelItemsPerPage = 8
-
 	-- Init variables
+	self.CloneShopControlPanelItemsPerPage = 8
 	self.CloneShopControlPanelModes = { EVERYTHING = -1, LIGHT = 0, HEAVY = 1, ARMOR = 2, TURRET = 3 }
 	self.CloneShopControlPanelModesTexts = {}
 
@@ -50,6 +49,17 @@ function VoidWanderers:InitCloneShopControlPanelUI()
 	if CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].BLACKMARKET) then
 		self.CloneShopItems, self.CloneShopFilters = CF["GetCloneBlackMarketArray"](self.GS, true)
 		self.CloneShopBlackMarket = true
+	end
+end
+-----------------------------------------------------------------------------------------
+-- Find and assign appropriate actors
+-----------------------------------------------------------------------------------------
+function VoidWanderers:LocateCloneShopControlPanelActor()
+	for actor in MovableMan.AddedActors do
+		if actor.PresetName == "Clone Shop Control Panel" then
+			self.CloneShopControlPanelActor = actor
+			break
+		end
 	end
 end
 -----------------------------------------------------------------------------------------

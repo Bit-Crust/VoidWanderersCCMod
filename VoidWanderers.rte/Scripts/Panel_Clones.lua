@@ -30,9 +30,8 @@ function VoidWanderers:InitClonesControlPanelUI()
 		self.ClonesInputPos = nil
 	end
 
-	-- Create actor
-	-- Ship
 	if self.ClonesControlPanelPos ~= nil then
+		self:LocateClonesControlPanelActor()
 		if not MovableMan:IsActor(self.ClonesControlPanelActor) then
 			self.ClonesControlPanelActor = CreateActor("Clones Control Panel")
 			if self.ClonesControlPanelActor ~= nil then
@@ -43,6 +42,7 @@ function VoidWanderers:InitClonesControlPanelUI()
 		end
 	end
 
+	-- Init variables
 	self.ClonesInputDelay = 3
 	self.ClonesInputRange = 35
 	self.ClonesControlLastMessageTime = -1000
@@ -68,6 +68,17 @@ function VoidWanderers:InitClonesControlPanelUI()
 		"L/R/U/D - Select, FIRE - Add to inventory"
 
 	self.Clones = CF["GetClonesArray"](self.GS)
+end
+-----------------------------------------------------------------------------------------
+-- Find and assign appropriate actors
+-----------------------------------------------------------------------------------------
+function VoidWanderers:LocateClonesControlPanelActor()
+	for actor in MovableMan.AddedActors do
+		if actor.PresetName == "Clones Control Panel" then
+			self.ClonesControlPanelActor = actor
+			break
+		end
+	end
 end
 -----------------------------------------------------------------------------------------
 --

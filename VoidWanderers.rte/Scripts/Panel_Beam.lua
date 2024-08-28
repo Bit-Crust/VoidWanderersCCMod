@@ -39,7 +39,7 @@ function VoidWanderers:InitBeamControlPanelUI()
 	end
 end
 -----------------------------------------------------------------------------------------
--- Find and assign appropriate landing zone actors
+-- Find and assign appropriate actors
 -----------------------------------------------------------------------------------------
 function VoidWanderers:LocateBeamControlPanelActor()
 	for actor in MovableMan.AddedActors do
