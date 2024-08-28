@@ -1,47 +1,45 @@
 function VoidWanderers:StartActivity(isNewGame)
 	print("VoidWanderers:StartActivity")
 
-	-- Load libraries if config is not initialized
-	if not CF then
-		print("VoidWanderers:StartActivity" .. ": Detected first launch")
-
-		-- TODO: Remove by pre 7, make em figure it out themselves
-		-- Change the global metatable
-		-- Localize substring function so that we're not indexing any tables in the table indexing handler
-		-- Intercept indexes of CF_ anything and route them to the table instead
-		local sub = string.sub
-		local mt = {}
-		mt.__index = function(table, key)
-			if sub(key, 1, 3) == "CF_" and CF then
-				return rawget(CF, sub(key, 4, -1))
-			end
-			return rawget(table, key)
+	-- TODO: Remove by pre 7, make em figure it out themselves
+	-- Change the global metatable
+	-- Localize substring function so that we're not indexing any tables in the table indexing handler
+	-- Intercept indexes of CF_ anything and route them to the table instead
+	local sub = string.sub
+	local mt = {}
+	mt.__index = function(table, key)
+		if sub(key, 1, 3) == "CF_" and CF then
+			return rawget(CF, sub(key, 4, -1))
 		end
-		mt.__newindex = function(table, key, value)
-			if sub(key, 1, 3) == "CF_" and CF then
-				rawset(CF, sub(key, 4, -1), value)
-				return
-			end
-			rawset(table, key, value)
+		return rawget(table, key)
+	end
+	mt.__newindex = function(table, key, value)
+		if sub(key, 1, 3) == "CF_" and CF then
+			rawset(CF, sub(key, 4, -1), value)
 			return
 		end
-		setmetatable(_G, mt)
-
-		STATE_CONFIG_FILE = "current.dat"
-		
-		LIB_PATH = self.ModuleName .. "/Scripts/"
-		BASE_PATH = self.ModuleName .. "/Scripts/"
-
-		dofile(LIB_PATH .. "Lib_Generic.lua")
-		dofile(LIB_PATH .. "Lib_Brain.lua")
-		dofile(LIB_PATH .. "Lib_Config.lua")
-		dofile(LIB_PATH .. "Lib_ExtensionsData.lua")
-		dofile(LIB_PATH .. "Lib_Messages.lua")
-		dofile(LIB_PATH .. "Lib_NewGameData.lua")
-		dofile(LIB_PATH .. "Lib_Spawn.lua")
-		dofile(LIB_PATH .. "Lib_Storage.lua")
-		dofile(LIB_PATH .. "Lib_Encounters.lua")
+		rawset(table, key, value)
+		return
 	end
+	setmetatable(_G, mt)
+
+	STATE_CONFIG_FILE = "current.dat"
+		
+	LIB_PATH = self.ModuleName .. "/Scripts/"
+	BASE_PATH = self.ModuleName .. "/Scripts/"
+
+	dofile(LIB_PATH .. "Lib_Generic.lua")
+	dofile(LIB_PATH .. "Lib_Brain.lua")
+	dofile(LIB_PATH .. "Lib_Config.lua")
+	dofile(LIB_PATH .. "Lib_ExtensionsData.lua")
+	dofile(LIB_PATH .. "Lib_Messages.lua")
+	dofile(LIB_PATH .. "Lib_NewGameData.lua")
+	dofile(LIB_PATH .. "Lib_Spawn.lua")
+	dofile(LIB_PATH .. "Lib_Storage.lua")
+	dofile(LIB_PATH .. "Lib_Encounters.lua")
+
+	-- This function basically boots the game
+	CF.InitFactions(self)
 	
 	-- Save Load Handler, maybe
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler")

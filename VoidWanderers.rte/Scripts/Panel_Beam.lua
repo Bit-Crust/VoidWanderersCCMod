@@ -281,6 +281,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 					self.GS["Mode"] = "Mission"
 					self.GS["SceneType"] = "Mission"
 					self.GS["DeserializeDeployedTeam"] = "True"
+					self.GS["DeserializeOnboard"] = "True"
 					self.GS["Scene"] = scene
 					self:SaveCurrentGameState()
 

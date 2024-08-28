@@ -67,7 +67,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 						-- Then record
 						self.GS["Brain" .. player .. "Detached"] = "True"
 						CF.ClearAllBrainsSupplies(self.GS, player)
-						self.CreatedBrains[player] = nil
+						self.createdBrainCases[player] = nil
 						act.ToDelete = true
 
 						-- Maintain identity only if it was ever determined
@@ -105,7 +105,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 				local cont = act:GetController()
 
 				if cont:IsState(Controller.PRESS_UP) and readytoattach then
-					local rb = CreateActor("Brain Case")
+					local rb = CreateActor("Brain Case", "Base.rte")
 
 					if rb then
 						rb.Team = CF.PlayerTeam
@@ -126,7 +126,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 							self.GS["Brain" .. player .. "Item" .. j .. "Module"] = mdl[j]
 						end
 						self.GS["Brain" .. player .. "Detached"] = "False"
-						self.CreatedBrains[player] = rb
+						self.createdBrainCases[player] = rb
 						if act.GoldCarried > 0 then
 							CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + act.GoldCarried)
 						end

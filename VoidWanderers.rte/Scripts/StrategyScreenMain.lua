@@ -6,6 +6,12 @@ function VoidWanderers:StartActivity()
 	print("VoidWanderers:StrategyScreen:StartActivity")
 
 	self.AllowsUserSaving = false
+
+	if self.IsInitialized == nil then
+		self.IsInitialized = false
+	elseif self.IsInitialized == true then
+		return
+	end
 	
 	self.MenuNavigationSchemes = { KEYBOARD = 0, MOUSE = 1, GAMEPAD = 2 }
 	CF.MenuNavigationScheme = self.MenuNavigationSchemes.KEYBOARD
@@ -22,22 +28,6 @@ function VoidWanderers:StartActivity()
 			break
 		end
 	end
-
-	if self.IsInitialized == nil then
-		self.IsInitialized = false
-	elseif self.IsInitialized == true then
-		return
-	end
-
-	self:SetTeamFunds(0, 0)
-
-	self.GS = {}
-
-	CF.InitFactions(self)
-
-	CF.GS = self.GS
-
-	self:LoadCurrentGameState()
 
 	---- -- -- self.ModuleName = "VoidWanderers.rte"
 
@@ -99,8 +89,8 @@ function VoidWanderers:StartActivity()
 	self.FirePressed = {}
 	self.MouseFirePressed = true
 
-	self.GenericTimer = Timer()
-	self.GenericTimer:Reset()
+	self.SceneTimer = Timer()
+	self.SceneTimer:Reset()
 
 	self.MessageTimer = Timer()
 	self.MessageTimer:Reset()
