@@ -18,7 +18,7 @@ function VoidWanderers:InitTurretsControlPanelUI()
 	end
 
 	self.TurretsControlPanelActor = {}
-
+	self:DestroyTurretControlPanelActors()
 	for i = 1, count do
 		if not MovableMan:IsActor(self.TurretsControlPanelActor[i]) then
 			self.TurretsControlPanelActor[i] = CreateActor("Turret Control Panel")
@@ -41,6 +41,22 @@ function VoidWanderers:InitTurretsControlPanelUI()
 
 	self.Turrets = CF["GetTurretsArray"](self.GS)
 	self.TurretsControlPanelLinesPerPage = 4
+end
+-----------------------------------------------------------------------------------------
+-- Find and assign appropriate landing zone actors
+-----------------------------------------------------------------------------------------
+function VoidWanderers:DestroyTurretControlPanelActors()
+	local N = tonumber(self.GS["Player0VesselTurrets"])
+	local n = 1
+	for actor in MovableMan.AddedActors do
+		if actor.PresetName == "Turret Control Panel" then
+			self.TurretsControlPanelActor[n] = actor
+			n = n + 1
+			if n > N then
+				break
+			end
+		end
+	end
 end
 -----------------------------------------------------------------------------------------
 --

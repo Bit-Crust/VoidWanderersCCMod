@@ -55,7 +55,7 @@ end
 -- Find and assign appropriate actors
 -----------------------------------------------------------------------------------------
 function VoidWanderers:LocateCloneShopControlPanelActor()
-	for actor in MovableMan.AddedActors do
+	for actor in MovableMan.Actors do
 		if actor.PresetName == "Clone Shop Control Panel" then
 			self.CloneShopControlPanelActor = actor
 			break

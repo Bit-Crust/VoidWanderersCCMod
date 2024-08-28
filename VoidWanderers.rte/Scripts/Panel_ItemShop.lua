@@ -72,7 +72,7 @@ end
 -- Find and assign appropriate actors
 -----------------------------------------------------------------------------------------
 function VoidWanderers:LocateItemShopControlPanelActor()
-	for actor in MovableMan.AddedActors do
+	for actor in MovableMan.Actors do
 		if actor.PresetName == "Item Shop Control Panel" then
 			self.ItemShopControlPanelActor = actor
 			break
