@@ -419,21 +419,9 @@ function VoidWanderers:StartActivity(isNewGame)
 		-- Spawn player troops
 		if self.GS["DeserializeDeployedTeam"] == "True" then
 			self.GS["DeserializeDeployedTeam"] = "False"
-			self.MissionDeployedTroops = 1
+			self.GS["MissionDeployedTroops"] = 1
 			for i = 1, CF.MaxSavedActors do
 				if self.GS["Deployed" .. i .. "Preset"] then
-					local preset = self.GS["Deployed" .. i .. "Preset"]
-					if preset:find("RPG Brain Robot") then
-						local reference = CF.MakeBrain(self.GS, 0, CF.PlayerTeam, Vector(0, 0), false)
-						self.GS["Deployed" .. i .. "Player"] = preset:sub(preset:find("PLR") + 3, preset:find("PLR") + 3) + 1
-						self.GS["Deployed" .. i .. "Preset"] = reference.PresetName
-						self.GS["Deployed" .. i .. "Class"] = reference.ClassName
-						self.GS["Deployed" .. i .. "Module"] = reference.ModuleName
-						for j = 1, #CF.LimbID do
-							self.GS["Deployed" .. i .. CF.LimbID[j]] = CF.GetLimbData(reference, j)
-						end
-						reference.ToDelete = true
-					end
 					local limbData = {}
 					for j = 1, #CF.LimbID do
 						limbData[j] = self.GS["Deployed" .. i .. CF.LimbID[j]]
@@ -534,7 +522,7 @@ function VoidWanderers:StartActivity(isNewGame)
 						end
 					end
 
-					self.MissionDeployedTroops = self.MissionDeployedTroops + 1
+					self.GS["MissionDeployedTroops"] = self.GS["MissionDeployedTroops"] + 1
 				else
 					break
 				end

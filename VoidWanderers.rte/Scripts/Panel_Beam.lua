@@ -2,7 +2,6 @@
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:InitBeamControlPanelUI()
-	-- Beam Control Panel
 	local x, y
 
 	x = tonumber(self.SceneConfig["BeamControlPanelX"])
@@ -13,6 +12,19 @@ function VoidWanderers:InitBeamControlPanelUI()
 		self.BeamControlPanelPos = nil
 	end
 
+	if self.BeamControlPanelPos ~= nil then
+		self:LocateBeamControlPanelActor()
+		if not MovableMan:IsActor(self.BeamControlPanelActor) then
+			self.BeamControlPanelActor = CreateActor("Beam Control Panel")
+			if self.BeamControlPanelActor ~= nil then
+				self.BeamControlPanelActor.Pos = self.BeamControlPanelPos
+				self.BeamControlPanelActor.Team = CF.PlayerTeam
+				MovableMan:AddActor(self.BeamControlPanelActor)
+			end
+		end
+	end
+
+	-- Init variables
 	local x1, y1, x2, y2
 
 	x1 = tonumber(self.SceneConfig["BeamBoxX1"])
@@ -25,19 +37,15 @@ function VoidWanderers:InitBeamControlPanelUI()
 	else
 		self.BeamControlPanelBox = nil
 	end
-
-	-- Create actor
-	-- Ship
-	if self.BeamControlPanelPos ~= nil then
-		if not MovableMan:IsActor(self.BeamControlPanelActor) then
-			self.BeamControlPanelActor = CreateActor("Beam Control Panel")
-			if self.BeamControlPanelActor ~= nil then
-				self.BeamControlPanelActor.Pos = self.BeamControlPanelPos
-				self.BeamControlPanelActor.Team = CF.PlayerTeam
-				MovableMan:AddActor(self.BeamControlPanelActor)
-			end
-		else
-			--print (self.BeamControlPanelActor)
+end
+-----------------------------------------------------------------------------------------
+-- Find and assign appropriate landing zone actors
+-----------------------------------------------------------------------------------------
+function VoidWanderers:LocateBeamControlPanelActor()
+	for actor in MovableMan.AddedActors do
+		if actor.PresetName == "Beam Control Panel" then
+			self.BeamControlPanelActor = actor
+			break
 		end
 	end
 end

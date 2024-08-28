@@ -4,7 +4,6 @@ function VoidWanderers:StartActivity(isNewGame)
 	-- Load libraries if config is not initialized
 	if not CF then
 		print("VoidWanderers:StartActivity" .. ": Detected first launch")
-		print("CF predefined: " .. tostring(CF))
 
 		-- TODO: Remove by pre 7, make em figure it out themselves
 		-- Change the global metatable
@@ -65,8 +64,6 @@ function VoidWanderers:StartActivity(isNewGame)
 	CHOSEN_AISKILLCPU = self:GetTeamAISkill(Activity.TEAM_2)
 
 	-- Panel behaviors have to be defined every time because they are methods of this activity
-	-- The libraries act on the state surrounding this activity, so they preserve when this activity is replaced
-	-- We load other files to change the big methods because we run them every time we change scenes
 	dofile(LIB_PATH .. "Panel_Clones.lua")
 	dofile(LIB_PATH .. "Panel_Ship.lua")
 	dofile(LIB_PATH .. "Panel_Beam.lua")
@@ -148,6 +145,12 @@ end
 function VoidWanderers:OnSave()
 	print("SAVE! -- VoidWanderers:OnSave()!")
 	self:WriteSaveData(self.GS)
+	if self.missionData then
+		self.saveLoadHandler:SaveTableAsString("missionData", self.missionData)
+	end
+	if self.deployment then
+		self.saveLoadHandler:SaveTableAsString("deploymentData", self.deployment)
+	end
 end
 -----------------------------------------------------------------------------------------
 --
@@ -332,7 +335,7 @@ function VoidWanderers:LoadSaveData()
 		self.Time = tonumber(self.GS["Time"])
 
 		-- Move ship to tradestar if last location was removed
-		if CF["PlanetName"][self.GS["Planet"]] == nil then
+		if CF.PlanetName[self.GS["Planet"]] == nil then
 			--print (self.GS["Location"].." not found. Relocated to tradestar.")
 
 			self.GS["Planet"] = CF["Planet"][1]

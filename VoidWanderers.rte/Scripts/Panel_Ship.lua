@@ -2,7 +2,6 @@
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:InitShipControlPanelUI()
-	-- Ship Control Panel
 	local x, y
 
 	x = tonumber(self.SceneConfig["ShipControlPanelX"])
@@ -13,9 +12,8 @@ function VoidWanderers:InitShipControlPanelUI()
 		self.ShipControlPanelPos = nil
 	end
 
-	-- Create actor
-	-- Ship
 	if self.ShipControlPanelPos ~= nil then
+		self:LocateShipControlPanelActor()
 		if not MovableMan:IsActor(self.ShipControlPanelActor) then
 			self.ShipControlPanelActor = CreateActor("Ship Control Panel")
 			if self.ShipControlPanelActor ~= nil then
@@ -37,13 +35,6 @@ function VoidWanderers:InitShipControlPanelUI()
 		UPGRADE = 6,
 		SHIPYARD = 7,
 	}
-
-	-- Debug
-	--for i = 1, CF["MaxMissionReportLines"] do
-	--	self.GS["MissionReport"..i] = "STRING "..i
-	--end
-
-	--self.MissionReport = {}
 
 	if self.MissionReport ~= nil then
 		self.ShipControlMode = self.ShipControlPanelModes.REPORT
@@ -80,6 +71,17 @@ function VoidWanderers:InitShipControlPanelUI()
 
 	self.ShipControlSelectedEncounterVariant = 1
 	self.ShipControlForceVariantTime = 17000
+end
+-----------------------------------------------------------------------------------------
+-- Find and assign appropriate landing zone actors
+-----------------------------------------------------------------------------------------
+function VoidWanderers:LocateShipControlPanelActor()
+	for actor in MovableMan.AddedActors do
+		if actor.PresetName == "Ship Control Panel" then
+			self.ShipControlPanelActor = actor
+			break
+		end
+	end
 end
 -----------------------------------------------------------------------------------------
 --

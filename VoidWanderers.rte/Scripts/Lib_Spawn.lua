@@ -779,7 +779,7 @@ CF.RandomSampleOfList = function(list, n)
 		-- Make a list of indices not once picked
 		local remainder = {}
 		for i = 1, #list do
-			table.remove(remainder, i)
+			table.insert(remainder, i)
 		end
 
 		-- For as many as requested, or as many indices as there are, whichever is smaller, grab of remaining options
