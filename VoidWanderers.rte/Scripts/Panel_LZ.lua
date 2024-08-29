@@ -77,7 +77,7 @@ function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 			for actor in orbitedCraft.Inventory do
 				if actor.Team == CF.PlayerTeam and IsActor(actor) then
 					actor = ToActor(actor)
-					local i = self.GS["MissionReturningTroops"]
+					local i = tonumber(self.GS["MissionReturningTroops"])
 					local assignable = true
 					local f = CF.GetPlayerFaction(self.GS, 0)
 
@@ -118,7 +118,7 @@ function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 							self.GS["Deployed" .. i .. "Item" .. j .. "Module"] = mdl[j]
 						end
 								
-						self.GS["MissionReturningTroops"] = self.GS["MissionReturningTroops"] + 1
+						self.GS["MissionReturningTroops"] = tonumber(self.GS["MissionReturningTroops"]) + 1
 					end
 				end
 			end
@@ -484,7 +484,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 
 						for _, actor in pairs(actors) do
 							local assignable = true
-							local i = self.GS["MissionReturningTroops"]
+							local i = tonumber(self.GS["MissionReturningTroops"])
 
 							-- Check if unit is playable
 							local f = CF.GetPlayerFaction(self.GS, 0)
@@ -524,7 +524,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 											self.GS["Deployed" .. i .. "Item" .. j .. "Module"] = mdl[j]
 										end
 								
-										self.GS["MissionReturningTroops"] = self.GS["MissionReturningTroops"] + 1
+										self.GS["MissionReturningTroops"] = tonumber(self.GS["MissionReturningTroops"]) + 1
 									end
 								end
 
@@ -710,20 +710,20 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		end
 
 		-- Update casualties report
-		if tonumber(self.GS["MissionDeployedTroops"]) > self.GS["MissionReturningTroops"] then
+		if tonumber(self.GS["MissionDeployedTroops"]) > tonumber(self.GS["MissionReturningTroops"]) then
 			local s = ""
-			local lost = self.GS["MissionDeployedTroops"] - self.GS["MissionReturningTroops"]
+			local lost = tonumber(self.GS["MissionDeployedTroops"]) - tonumber(self.GS["MissionReturningTroops"])
 
-			if self.GS["MissionReturningTroops"] == 0 then
+			if tonumber(self.GS["MissionReturningTroops"]) == 0 then
 				self.MissionReport[#self.MissionReport + 1] = "ALL UNITS LOST"
 			elseif lost > 1 then
 				self.MissionReport[#self.MissionReport + 1] = lost .. " UNITS LOST"
 			else
 				self.MissionReport[#self.MissionReport + 1] = "1 UNIT LOST"
 			end
-		elseif self.GS["MissionDeployedTroops"] < self.GS["MissionReturningTroops"] then
+		elseif tonumber(self.GS["MissionDeployedTroops"]) < tonumber(self.GS["MissionReturningTroops"]) then
 			local s = ""
-			local recruited = self.GS["MissionReturningTroops"] - self.GS["MissionDeployedTroops"]
+			local recruited = tonumber(self.GS["MissionReturningTroops"]) - tonumber(self.GS["MissionDeployedTroops"])
 
 			if recruited > 1 then
 				self.MissionReport[#self.MissionReport + 1] = recruited .. " UNITS GAINED"

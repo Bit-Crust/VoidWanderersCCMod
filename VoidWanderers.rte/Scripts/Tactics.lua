@@ -307,15 +307,6 @@ function VoidWanderers:StartActivity(isNewGame)
 		self.Pts = CF.ReadPtsData(scene, self.SceneConfig)
 		self.MissionDeploySet = CF.GetRandomMissionPointsSet(self.Pts, "Deploy")
 
-		-- Convert non-CPU doors
-		if CF.LocationRemoveDoors[self.GS["Location"]] then
-			for actor in MovableMan.Actors do
-				if actor.ClassName == "ADoor" then
-					actor.Team = CF.CPUTeam
-				end
-			end
-		end
-
 		-- Find suitable LZs
 		local lzs = CF.GetPointsArray(self.Pts, "Deploy", self.MissionDeploySet, "PlayerLZ")
 		self.LZControlPanelPos = CF.RandomSampleOfList(lzs, Activity.MAXPLAYERCOUNT)
@@ -432,7 +423,7 @@ function VoidWanderers:StartActivity(isNewGame)
 						end
 					end
 
-					self.GS["MissionDeployedTroops"] = self.GS["MissionDeployedTroops"] + 1
+					self.GS["MissionDeployedTroops"] = tonumber(self.GS["MissionDeployedTroops"]) + 1
 				else
 					break
 				end
@@ -440,72 +431,6 @@ function VoidWanderers:StartActivity(isNewGame)
 		end
 
 		local fowEnabled = self.GS["FogOfWar"] == "true"
-
-		-- Spawn crates
-		local hiddenRate = fowEnabled and 0.25 or 0.5
-		local crts = CF.GetPointsArray(self.Pts, "Deploy", self.MissionDeploySet, "Crates")
-		local amount = math.min(math.ceil(CF.CratesRate * #crts), #crts)
-		local crtspos = CF.RandomSampleOfList(crts, amount)
-
-		for i = 1, #crtspos do
-			local crt = math.random() < CF.ActorCratesRate and CreateMOSRotating("Crate", self.ModuleName)
-				or (
-					math.random() < 0.01 and CreateAHuman("Case", self.ModuleName)
-					or CreateAttachable("Case", self.ModuleName)
-				)
-
-			if crt then
-				crt.Pos = crtspos[i]
-				if math.random() < CF.CrateRandomLocationsRate then
-					-- Try to spawn a crate at a totally random location
-					local materialThreshold = 100 -- The average strength of the terrain surrounding the crate has to be below this
-					local surroundingStrength = 0
-					local potentialPos = Vector(
-						(
-								SceneMan.SceneWrapsX and math.random(SceneMan.SceneWidth)
-								or math.random(50, SceneMan.SceneWidth - 50)
-							),
-						math.random(50, SceneMan.SceneHeight - 50)
-					)
-					local attempts = 0
-					while attempts < 2 do
-						local terrCheck = SceneMan:GetTerrMatter(potentialPos.X, potentialPos.Y)
-						if terrCheck ~= rte.airID then
-							surroundingStrength = surroundingStrength
-								+ SceneMan:GetMaterialFromID(terrCheck).StructuralIntegrity
-							local radius = crt.Radius
-							local dots = 5
-							for i = 1, dots do
-								local checkPos = potentialPos + Vector(radius, 0):RadRotate((math.pi * 2) * (i / dots))
-								local terrCheck2 = SceneMan:GetTerrMatter(checkPos.X, checkPos.Y)
-								-- Treat air as a bad surrounding material
-								surroundingStrength = surroundingStrength
-									+ (
-										terrCheck2 ~= rte.airID
-											and SceneMan:GetMaterialFromID(terrCheck2).StructuralIntegrity
-										or materialThreshold
-									)
-							end
-							if surroundingStrength < materialThreshold * (1 + dots) then
-								crt.Pos = potentialPos
-								ok = true
-							end
-						else
-							potentialPos = SceneMan:MovePointToGround(Vector(math.random(SceneMan.SceneWidth), 0), 0, 1)
-							potentialPos.Y = math.random(potentialPos.Y, SceneMan.SceneHeight - 50)
-						end
-						attempts = attempts + 1
-					end
-					if i > #crtspos * hiddenRate then
-						crt:EraseFromTerrain()
-					end
-				else
-					crt:EraseFromTerrain()
-				end
-				crt.PinStrength = crt.GibImpulseLimit * 0.8
-				MovableMan:AddMO(crt)
-			end
-		end
 
 		-- Prepare for mission, load scripts
 		self.MissionAvailable = false
@@ -623,60 +548,139 @@ function VoidWanderers:StartActivity(isNewGame)
 		self:MissionCreate(isNewGame)
 		self:AmbientCreate(isNewGame)
 
-		-- Set unseen
-		if fowEnabled then
-			SceneMan:MakeAllUnseen(Vector(CF.FogOfWarResolution, CF.FogOfWarResolution), CF.CPUTeam)
-			SceneMan:MakeAllUnseen(Vector(CF.FogOfWarResolution, CF.FogOfWarResolution), CF.PlayerTeam)
+		-- isNewGame can only ever be undefined or false with how it currently is, so. . . this is how it is
+		if isNewGame == nil then
+			-- Spawn crates
+			local hiddenRate = fowEnabled and 0.25 or 0.5
+			local crts = CF.GetPointsArray(self.Pts, "Deploy", self.MissionDeploySet, "Crates")
+			local amount = math.min(math.ceil(CF.CratesRate * #crts), #crts)
+			local crtspos = CF.RandomSampleOfList(crts, amount)
 
-			-- Reveal outside areas for everyone.
-			for x = 0, SceneMan.SceneWidth - 1, CF.FogOfWarResolution do
-				local altitude = Vector(0, 0)
-				SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0)
-				if altitude.Y > 1 then
-					SceneMan:RevealUnseenBox(x - 10, 0, CF.FogOfWarResolution + 20, altitude.Y + 10, CF.CPUTeam)
-					SceneMan:RevealUnseenBox(x - 10, 0, CF.FogOfWarResolution + 20, altitude.Y + 10, CF.PlayerTeam)
+			for i = 1, #crtspos do
+				local crt = math.random() < CF.ActorCratesRate and CreateMOSRotating("Crate", self.ModuleName)
+					or (
+						math.random() < 0.01 and CreateAHuman("Case", self.ModuleName)
+						or CreateAttachable("Case", self.ModuleName)
+					)
+
+				if crt then
+					crt.Pos = crtspos[i]
+					if math.random() < CF.CrateRandomLocationsRate then
+						-- Try to spawn a crate at a totally random location
+						local materialThreshold = 100 -- The average strength of the terrain surrounding the crate has to be below this
+						local surroundingStrength = 0
+						local potentialPos = Vector(
+							(
+									SceneMan.SceneWrapsX and math.random(SceneMan.SceneWidth)
+									or math.random(50, SceneMan.SceneWidth - 50)
+								),
+							math.random(50, SceneMan.SceneHeight - 50)
+						)
+						local attempts = 0
+						while attempts < 2 do
+							local terrCheck = SceneMan:GetTerrMatter(potentialPos.X, potentialPos.Y)
+							if terrCheck ~= rte.airID then
+								surroundingStrength = surroundingStrength
+									+ SceneMan:GetMaterialFromID(terrCheck).StructuralIntegrity
+								local radius = crt.Radius
+								local dots = 5
+								for i = 1, dots do
+									local checkPos = potentialPos + Vector(radius, 0):RadRotate((math.pi * 2) * (i / dots))
+									local terrCheck2 = SceneMan:GetTerrMatter(checkPos.X, checkPos.Y)
+									-- Treat air as a bad surrounding material
+									surroundingStrength = surroundingStrength
+										+ (
+											terrCheck2 ~= rte.airID
+												and SceneMan:GetMaterialFromID(terrCheck2).StructuralIntegrity
+											or materialThreshold
+										)
+								end
+								if surroundingStrength < materialThreshold * (1 + dots) then
+									crt.Pos = potentialPos
+									ok = true
+								end
+							else
+								potentialPos = SceneMan:MovePointToGround(Vector(math.random(SceneMan.SceneWidth), 0), 0, 1)
+								potentialPos.Y = math.random(potentialPos.Y, SceneMan.SceneHeight - 50)
+							end
+							attempts = attempts + 1
+						end
+						if i > #crtspos * hiddenRate then
+							crt:EraseFromTerrain()
+						end
+					else
+						crt:EraseFromTerrain()
+					end
+					crt.PinStrength = crt.GibImpulseLimit * 0.8
+					MovableMan:AddMO(crt)
 				end
 			end
-
-			for Act in MovableMan.AddedActors do
-				if not IsADoor(Act) then
-					for angle = 0, math.pi * 2, 0.05 do
-						SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, CF.FogOfWarResolution)
+			
+			-- Convert non-CPU doors
+			if CF.LocationRemoveDoors[self.GS["Location"]] then
+				for actor in MovableMan.Actors do
+					if actor.ClassName == "ADoor" then
+						actor.Team = CF.CPUTeam
 					end
 				end
 			end
 
-			-- Reveal previously saved fog of war, if applicable
-			if false and not CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.ALWAYSUNSEEN) then
-				local wx = math.ceil(SceneMan.Scene.Width / CF.FogOfWarResolution)
-				local wy = math.ceil(SceneMan.Scene.Height / CF.FogOfWarResolution)
+			-- Set unseen
+			if fowEnabled then
+				SceneMan:MakeAllUnseen(Vector(CF.FogOfWarResolution, CF.FogOfWarResolution), CF.CPUTeam)
+				SceneMan:MakeAllUnseen(Vector(CF.FogOfWarResolution, CF.FogOfWarResolution), CF.PlayerTeam)
 
-				local digitsYTotal = math.max(math.floor(math.log10(wy)), 0)
-
-				for y = 0, wy do
-					local numString = tostring(y)
-					local digits = digitsYTotal - math.max(math.floor(math.log10(y)), 0)
-					for i = 0, digits do
-						numString = "0" .. numString
+				-- Reveal outside areas for everyone.
+				for x = 0, SceneMan.SceneWidth - 1, CF.FogOfWarResolution do
+					local altitude = Vector(0, 0)
+					SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0)
+					if altitude.Y > 1 then
+						SceneMan:RevealUnseenBox(x - 10, 0, CF.FogOfWarResolution + 20, altitude.Y + 10, CF.CPUTeam)
+						SceneMan:RevealUnseenBox(x - 10, 0, CF.FogOfWarResolution + 20, altitude.Y + 10, CF.PlayerTeam)
 					end
-					local str = self.GS[self.GS["Location"] .. "-Fog" .. numString]
-					if str then
-						for x = 0, wx do
-							if string.sub(str, x + 1, x + 1) == "1" then --and SceneMan:GetTerrMatter(x * CF.FogOfWarResolution, y * CF.FogOfWarResolution) ~= rte.airID then
-								SceneMan:RevealUnseen(
-									x * CF.FogOfWarResolution,
-									y * CF.FogOfWarResolution,
-									CF.PlayerTeam
-								)
+				end
+
+				for Act in MovableMan.AddedActors do
+					if not IsADoor(Act) then
+						for angle = 0, math.pi * 2, 0.05 do
+							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, CF.FogOfWarResolution)
+						end
+					end
+				end
+
+				-- Reveal previously saved fog of war, if applicable
+				if false and not CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.ALWAYSUNSEEN) then
+					local wx = math.ceil(SceneMan.Scene.Width / CF.FogOfWarResolution)
+					local wy = math.ceil(SceneMan.Scene.Height / CF.FogOfWarResolution)
+
+					local digitsYTotal = math.max(math.floor(math.log10(wy)), 0)
+
+					for y = 0, wy do
+						local numString = tostring(y)
+						local digits = digitsYTotal - math.max(math.floor(math.log10(y)), 0)
+						for i = 0, digits do
+							numString = "0" .. numString
+						end
+						local str = self.GS[self.GS["Location"] .. "-Fog" .. numString]
+						if str then
+							for x = 0, wx do
+								if string.sub(str, x + 1, x + 1) == "1" then --and SceneMan:GetTerrMatter(x * CF.FogOfWarResolution, y * CF.FogOfWarResolution) ~= rte.airID then
+									SceneMan:RevealUnseen(
+										x * CF.FogOfWarResolution,
+										y * CF.FogOfWarResolution,
+										CF.PlayerTeam
+									)
+								end
 							end
 						end
 					end
 				end
 			end
-		end
-		-- Set unseen for AI (maybe some day it will matter ))))
-		for team = Activity.TEAM_2, Activity.MAXTEAMCOUNT - 1 do
-			SceneMan:MakeAllUnseen(Vector(CF.FogOfWarResolution, CF.FogOfWarResolution), team)
+
+			-- Set unseen for AI (maybe some day it will matter ))))
+			for team = Activity.TEAM_2, Activity.MAXTEAMCOUNT - 1 do
+				SceneMan:MakeAllUnseen(Vector(CF.FogOfWarResolution, CF.FogOfWarResolution), team)
+			end
 		end
 	end
 

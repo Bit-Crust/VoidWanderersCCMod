@@ -21,6 +21,8 @@ function VoidWanderers:MissionCreate(isNewGame)
 	if isNewGame == false then
 		self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData")
 	else
+		self.missionData["missionStart"] = self.Time
+
 		-- Load some positional data
 		self.missionData["pointSetIndex"] = CF.GetRandomMissionPointsSet(self.Pts, "Deploy")
 
@@ -64,7 +66,6 @@ function VoidWanderers:MissionCreate(isNewGame)
 
 		-- Data
 		self.missionData["dropShipCount"] = 0
-		self.missionData["missionStart"] = self.Time
 		self.missionData["missionNextDropShip"] = self.Time + CF.AmbientReinforcementsInterval
 		self.missionData["missionNextIntervention"] = self.Time + CF.AmbientReinforcementsInterval * 2.5
 

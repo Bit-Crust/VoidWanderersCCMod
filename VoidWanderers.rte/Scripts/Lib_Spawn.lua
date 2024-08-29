@@ -746,23 +746,23 @@ end
 --	Returns int indexed array of vectors with available points of specified
 --	mission type, points set and points type
 -----------------------------------------------------------------------------
-CF.GetPointsArray = function(points, missionType, presetType, pointsType)
+CF.GetPointsArray = function(points, missionType, setIndex, pointsType)
 	local vectors = {}
 
 	--print (missionType)
-	--print (presetType)
+	--print (setIndex)
 	--print (pointsType)
 
 	if
 		points[missionType]
-	and points[missionType][presetType]
-	and points[missionType][presetType][pointsType]
+	and points[missionType][setIndex]
+	and points[missionType][setIndex][pointsType]
 	then
-		for k, v in pairs(points[missionType][presetType][pointsType]) do
+		for k, v in pairs(points[missionType][setIndex][pointsType]) do
 			vectors[#vectors + 1] = v
 		end
 	else
-		print('Mission points "' .. missionType .. ", " .. presetType .. ", " .. pointsType .. '" not found.')
+		print('Mission points "' .. tostring(missionType) .. ", " .. tostring(setIndex) .. ", " .. tostring(pointsType) .. '" not found.')
 	end
 
 	return vectors
