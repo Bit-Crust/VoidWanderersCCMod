@@ -89,6 +89,7 @@ function VoidWanderers:StartActivity(isNewGame)
 	-- Read brain location data
 	if self.GS["Mode"] == "Vessel" then
 		self:InitConsoles()
+
 		if self.GS["Location"] ~= "Station Ypsilon-2" then
 			local newLoc = Vector(48, 48):DegRotate(tonumber(self.GS["Time"]) * 0.01)
 			newLoc = Vector(math.floor(newLoc.X), math.floor(newLoc.Y))
@@ -527,8 +528,8 @@ function VoidWanderers:StartActivity(isNewGame)
 		if ambientscript == nil then
 			ambientscript = "VoidWanderers.rte/Scripts/Ambient_Generic.lua"
 		end
-
-		self.MissionStartTime = tonumber(self.GS["Time"])
+		
+		self.MissionStartTime = tonumber(self.Time)
 		self.MissionEndMusicPlayed = false
 
 		self.SpawnTable = {}
@@ -1791,7 +1792,7 @@ function VoidWanderers:UpdateActivity()
 		else
 			-- Process some control panels only when ship is not boarded
 			self:ProcessShipControlPanelUI()
-			self:ProcessBeamControlPanelUI()
+			if self:ProcessBeamControlPanelUI() then return end
 			self:ProcessItemShopControlPanelUI()
 			self:ProcessCloneShopControlPanelUI()
 		end

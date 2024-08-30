@@ -279,7 +279,6 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 
 					-- Set new operating mode
 					self.GS["Mode"] = "Mission"
-					self.GS["SceneType"] = "Mission"
 					self.GS["DeserializeDeployedTeam"] = "True"
 					self.GS["DeserializeOnboard"] = "True"
 					self.GS["Scene"] = scene
@@ -287,7 +286,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 
 					self:LaunchScript(scene, "Tactics.lua")
 					self:DestroyConsoles() --]]--
-					return
+					return true
 				end
 			else
 				self.FirePressed[player] = false

@@ -780,8 +780,9 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		local scene = CF.VesselScene[self.GS["Player0Vessel"]]
 		-- Set new operating mode
 		self.GS["Mode"] = "Vessel"
-		self.GS["SceneType"] = "Vessel"
 		self.GS["Scene"] = scene
+		self.GS["DeserializeDeployedTeam"] = "True"
+		self.GS["DeserializeOnboard"] = "True"
 		self.GS["MissionInitiated"] = "False"
 		
 		self:SaveCurrentGameState()

@@ -51,6 +51,7 @@ function VoidWanderers:MissionCreate(isNewGame)
 	setts[6]["Interval"] = 22
 	setts[6]["CounterAttackDelay"] = 180
 
+	-- Load if possible
 	if isNewGame == false then
 		self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData")
 	else
@@ -243,8 +244,8 @@ function VoidWanderers:MissionUpdate()
 				end
 			end
 			-- Remember when we started showing misison status message
-			self.MissionStatusShowStart = self.Time
-			self.MissionEnd = self.Time
+			self.missionData["statusShowStart"] = self.Time
+			self.missionData["missionEndTime"] = self.Time
 		end
 
 		-- Trigger reinforcements
@@ -331,7 +332,7 @@ function VoidWanderers:MissionUpdate()
 			self:StartMusic(CF.MusicTypes.DEFEAT)
 			self.MissionEndMusicPlayed = true
 		end
-		if self.Time < self.MissionStatusShowStart + CF.MissionResultShowInterval then
+		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
@@ -344,14 +345,14 @@ function VoidWanderers:MissionUpdate()
 		end
 		self.MissionStatus = "MISSION COMPLETED"
 
-		if self.Time < self.MissionStatusShowStart + CF.MissionResultShowInterval then
+		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
 			end
 		end
 
-		if self.Time < self.MissionEnd + 25 then
+		if self.Time < self.missionData["missionEndTime"] + 25 then
 			for actor in MovableMan.Actors do
 				if actor.Team == CF.CPUTeam and math.random() < 0.1 then
 					actor:GetController():SetState(Controller.WEAPON_FIRE, true)

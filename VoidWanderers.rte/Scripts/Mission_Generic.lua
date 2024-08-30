@@ -41,9 +41,9 @@ function VoidWanderers:MissionCreate(isNewGame)
 		local team3Player = selection[math.random(#selection)]
 		local team4Player = selection[math.random(#selection)]
 		self.missionData["CPUPlayers"] = { team2Player, team3Player, team4Player }
-		CF.CreateAIUnitPresets(self.GS, team2Player, CF.GetTechLevelFromDifficulty(self.GS, team2Player, self.MissionDifficulty, CF.MaxDifficulty))
-		CF.CreateAIUnitPresets(self.GS, team3Player, CF.GetTechLevelFromDifficulty(self.GS, team3Player, self.MissionDifficulty, CF.MaxDifficulty))
-		CF.CreateAIUnitPresets(self.GS, team4Player, CF.GetTechLevelFromDifficulty(self.GS, team4Player, self.MissionDifficulty, CF.MaxDifficulty))
+		--CF.CreateAIUnitPresets(self.GS, team2Player, CF.GetTechLevelFromDifficulty(self.GS, team2Player, self.MissionDifficulty, CF.MaxDifficulty))
+		--CF.CreateAIUnitPresets(self.GS, team3Player, CF.GetTechLevelFromDifficulty(self.GS, team3Player, self.MissionDifficulty, CF.MaxDifficulty))
+		--CF.CreateAIUnitPresets(self.GS, team4Player, CF.GetTechLevelFromDifficulty(self.GS, team4Player, self.MissionDifficulty, CF.MaxDifficulty))
 
 		-- Place some ambient randos
 		for i = 1, #ambientEnemyPositions do

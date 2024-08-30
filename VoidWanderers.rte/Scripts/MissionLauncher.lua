@@ -37,9 +37,6 @@ function VoidWanderers:StartActivity(isNewGame)
 	dofile(LIB_PATH .. "Lib_Spawn.lua")
 	dofile(LIB_PATH .. "Lib_Storage.lua")
 	dofile(LIB_PATH .. "Lib_Encounters.lua")
-
-	-- This function basically boots the game
-	CF.InitFactions(self)
 	
 	-- Save Load Handler, maybe
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler")
@@ -73,6 +70,9 @@ function VoidWanderers:StartActivity(isNewGame)
 	dofile(LIB_PATH .. "Panel_Turrets.lua")
 	dofile(LIB_PATH .. "Panel_Bombs.lua")
 
+	-- Now that all the libraries and all caps constants are loaded, it should be safe
+	-- This function basically boots the game
+	CF.InitFactions(self)
 	
 	-- If this is a new game, IE restart or initial start, then open the correct form and scene
 	-- Otherwise, just load the tactics script, we're mid game

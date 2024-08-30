@@ -649,6 +649,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						end
 
 						CF["SetStorageArray"](self.GS, self.StorageItems)
+						self.GS["DeserializeOnboard"] = "True"
 
 						self:SaveActors(false)
 						self:SaveCurrentGameState()
