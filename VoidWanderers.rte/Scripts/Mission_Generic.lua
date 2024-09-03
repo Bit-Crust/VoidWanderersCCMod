@@ -21,15 +21,13 @@ function VoidWanderers:MissionCreate(isNewGame)
 	if isNewGame == false then
 		self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData")
 	else
-		self.missionData["missionStart"] = self.Time
+		self.missionData["missionStartTime"] = self.Time
 
 		-- Load some positional data
-		self.missionData["pointSetIndex"] = CF.GetRandomMissionPointsSet(self.Pts, "Deploy")
-
-		self.missionData["ambientEnemyLocations"] = CF.GetPointsArray(self.Pts, "Deploy", self.missionData["pointSetIndex"], "AmbientEnemy")
-
-		local ambientEnemyQuantity = math.ceil(CF.AmbientEnemyRate * #self.missionData["ambientEnemyLocations"])
-		local ambientEnemyPositions = CF.RandomSampleOfList(self.missionData["ambientEnemyLocations"], ambientEnemyQuantity)
+		local pointSetIndex = CF.GetRandomMissionPointsSet(self.Pts, "Deploy")
+		local ambientEnemyLocations = CF.GetPointsArray(self.Pts, "Deploy", pointSetIndex, "AmbientEnemy")
+		local ambientEnemyQuantity = math.ceil(CF.AmbientEnemyRate * #ambientEnemyLocations)
+		local ambientEnemyPositions = CF.RandomSampleOfList(ambientEnemyLocations, ambientEnemyQuantity)
 		
 		-- Find player's enemies
 		local selection = {}
@@ -78,7 +76,7 @@ function VoidWanderers:MissionCreate(isNewGame)
 
 	-- Default targets for ai on other teams
 	self.defaultHostilities = { Activity.TEAM_1, Activity.TEAM_4, Activity.TEAM_3 }
-	self.enemyLandingZones = CF.GetPointsArray(self.Pts, "Deploy", self.missionData["pointSetIndex"], "EnemyLZ")
+	self.missionData["enemyLandingZones"] = CF.GetPointsArray(self.Pts, "Deploy", pointSetIndex, "EnemyLZ")
 end
 -----------------------------------------------------------------------------------------
 --
@@ -126,7 +124,7 @@ function VoidWanderers:MissionUpdate()
 	end
 
 	if self.Time > self.missionData["missionNextDropShip"]
-		and #self.enemyLandingZones > 0 
+		and #self.missionData["enemyLandingZones"] > 0 
 	then
 		local team = math.random() < 0.5 and Activity.TEAM_3 or Activity.TEAM_4
 
@@ -153,7 +151,7 @@ function VoidWanderers:MissionUpdate()
 				end
 
 				ship.Team = team
-				ship.Pos = Vector(self.enemyLandingZones[math.random(#self.enemyLandingZones)].X, -10)
+				ship.Pos = Vector(self.missionData["enemyLandingZones"][math.random(#self.missionData["enemyLandingZones"])].X, -10)
 				ship.AIMode = Actor.AIMODE_DELIVER
 				MovableMan:AddActor(ship)
 			end
@@ -165,7 +163,7 @@ function VoidWanderers:MissionUpdate()
 		self.MissionDifficulty >= 2
 		and self.missionData["CPUPlayers"][Activity.TEAM_2] ~= nil
 		and self.Time > self.missionData["missionNextIntervention"]
-		and #self.enemyLandingZones > 0
+		and #self.missionData["enemyLandingZones"] > 0
 	then
 		self.missionData["missionNextIntervention"] = self.Time + CF.AmbientReinforcementsInterval + math.random(30)
 		local team = Activity.TEAM_2
@@ -189,14 +187,14 @@ function VoidWanderers:MissionUpdate()
 			end
 
 			ship.Team = team
-			ship.Pos = Vector(self.enemyLandingZones[math.random(#self.enemyLandingZones)].X, -10)
+			ship.Pos = Vector(self.missionData["enemyLandingZones"][math.random(#self.missionData["enemyLandingZones"])].X, -10)
 			ship.AIMode = Actor.AIMODE_DELIVER
 			MovableMan:AddActor(ship)
 		end
 	end
 
 	-- Have patrollers go out to fight instead, after some time
-	if self.Time > self.missionData["missionStart"] + 90 then
+	if self.Time > self.missionData["missionStartTime"] + 90 then
 		-- Teams will go after their default enemies if there are any left, and otherwise will find someone to kill, or default to the rogue team
 		local targets = {}
 

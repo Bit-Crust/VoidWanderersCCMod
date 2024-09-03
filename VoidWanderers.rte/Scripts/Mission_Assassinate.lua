@@ -55,7 +55,7 @@ function VoidWanderers:MissionCreate(isNewGame)
 	if isNewGame == false then
 		self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData")
 	else
-		self.missionData["missionStart"] = self.Time
+		self.missionData["missionStartTime"] = self.Time
 		self.missionData["settings"] = setts[self.MissionDifficulty]
 
 		self.missionData["pointSetIndex"] = CF.GetRandomMissionPointsSet(self.Pts, "Enemy")
@@ -68,6 +68,11 @@ function VoidWanderers:MissionCreate(isNewGame)
 			CF.CPUTeam,
 			self.missionData["settings"]["SpawnRate"]
 		)
+		-- Get LZs
+		self.missionData["landingZones"] = CF.GetPointsArray(self.Pts, "Enemy", self.missionData["pointSetIndex"], "LZ")
+		-- Get base
+		self:ObtainBaseBoxes("Enemy", self.missionData["pointSetIndex"])
+		-- Deploy mines
 		self:DeployInfantryMines(
 			CF.CPUTeam,
 			math.min(
@@ -107,7 +112,6 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	if self.missionData["stage"] == self.MissionStages.ACTIVE then
-		self.MissionCompleted = false
 		local count = 0
 
 		-- Start checking for victory only when all units were spawned
@@ -275,7 +279,7 @@ function VoidWanderers:MissionUpdate()
 				self.missionData["reinforcementsLast"] = self.Time
 				if
 					self.missionData["settings"]["Reinforcements"] > 0
-					and #self.MissionLZs > 0
+					and #self.missionData["landingZones"] > 0
 				then
 					self.missionData["settings"]["Reinforcements"] = self.missionData["settings"]["Reinforcements"] - 1
 
@@ -290,7 +294,7 @@ function VoidWanderers:MissionUpdate()
 							end
 						end
 						ship.Team = CF.CPUTeam
-						ship.Pos = Vector(self.MissionLZs[math.random(#self.MissionLZs)].X, -10)
+						ship.Pos = Vector(self.missionData["landingZones"][math.random(#self.missionData["landingZones"])].X, -10)
 						ship.AIMode = Actor.AIMODE_DELIVER
 						MovableMan:AddActor(ship)
 					end
@@ -308,7 +312,7 @@ function VoidWanderers:MissionUpdate()
 		if
 			not self.missionData["counterAttackTriggered"]
 			and self.missionData["settings"]["CounterAttackDelay"] > 0
-			and self.Time >= self.missionData["missionStart"] + self.missionData["settings"]["CounterAttackDelay"]
+			and self.Time >= self.missionData["missionStartTime"] + self.missionData["settings"]["CounterAttackDelay"]
 		then
 			self.missionData["counterAttackTriggered"] = true
 			print("COUNTERATTACK!")
@@ -328,10 +332,12 @@ function VoidWanderers:MissionUpdate()
 		end
 	elseif self.missionData["stage"] == self.MissionStages.FAILED then
 		self.MissionStatus = "MISSION FAILED"
+
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF.MusicTypes.DEFEAT)
 			self.MissionEndMusicPlayed = true
 		end
+
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
@@ -339,11 +345,12 @@ function VoidWanderers:MissionUpdate()
 			end
 		end
 	elseif self.missionData["stage"] == self.MissionStages.COMPLETED then
+		self.MissionStatus = "MISSION COMPLETED"
+
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF.MusicTypes.VICTORY)
 			self.MissionEndMusicPlayed = true
 		end
-		self.MissionStatus = "MISSION COMPLETED"
 
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do

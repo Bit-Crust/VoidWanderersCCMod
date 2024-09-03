@@ -112,7 +112,6 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	if self.MissionStage == self.MissionStages.ACTIVE then
-		self.MissionCompleted = false
 		local count = 0
 
 		if MovableMan:IsActor(self.MissionBrain) and self.MissionBrain:HasObjectInGroup("MissionBrain") then

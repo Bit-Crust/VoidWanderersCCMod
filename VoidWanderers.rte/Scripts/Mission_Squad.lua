@@ -100,7 +100,6 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	if self.MissionStage == self.MissionStages.ACTIVE then
-		self.MissionCompleted = false
 		local count = 0
 
 		local enemydist = 100000

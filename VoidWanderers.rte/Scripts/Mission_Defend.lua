@@ -98,7 +98,6 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	if self.MissionStage == self.MissionStages.ACTIVE then
-		self.MissionCompleted = false
 		local friends = 0
 		local enemies = 0
 
@@ -107,8 +106,8 @@ function VoidWanderers:MissionUpdate()
 				if actor.Team == CF.PlayerTeam then
 					local inside = false
 
-					for i = 1, #self.MissionBase do
-						if self.MissionBase[i]:IsWithinBox(actor.Pos) then
+					for i = 1, #self.missionData["missionBase"] do
+						if self.missionData["missionBase"][i]:IsWithinBox(actor.Pos) then
 							friends = friends + 1
 							inside = true
 							break
@@ -133,15 +132,15 @@ function VoidWanderers:MissionUpdate()
 
 		if not self.MissionReinforcementsTriggered or friends < 2 then
 			-- If nobody was spawned at the base then show player where to go and what to defend
-			for i = 1, #self.MissionBase do
-				self:AddObjectivePoint("DEFEND BASE", self.MissionBase[i].Center, CF.PlayerTeam, GameActivity.ARROWDOWN)
+			for i = 1, #self.missionData["missionBase"] do
+				self:AddObjectivePoint("DEFEND BASE", self.missionData["missionBase"][i].Center, CF.PlayerTeam, GameActivity.ARROWDOWN)
 			end
 
 			if self.BaseEffectTimer:IsPastSimMS(25) then
 				-- Create particle
-				for i = 1, #self.MissionBase do
+				for i = 1, #self.missionData["missionBase"] do
 					local p = CreateMOSParticle("Tiny Static Blue Glow", self.ModuleName)
-					p.Pos = self.MissionBase[i]:GetRandomPoint()
+					p.Pos = self.missionData["missionBase"][i]:GetRandomPoint()
 					MovableMan:AddParticle(p)
 				end
 				self.BaseEffectTimer:Reset()

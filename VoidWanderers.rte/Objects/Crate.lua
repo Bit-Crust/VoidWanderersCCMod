@@ -93,7 +93,7 @@ function Create(self)
 				local actindex = acts[r]["Actor"]
 				act = CF_Call(self, {"MakeActor"}, {actPresets[f][actindex], actClasses[f][actindex], actModules[f][actindex]})[1]:Clone()
 			end
-			print(act)
+
 			if act then
 				act.AngularVel = 0
 				act.Vel = Vector(0, -3)

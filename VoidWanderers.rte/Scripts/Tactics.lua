@@ -88,6 +88,7 @@ function VoidWanderers:StartActivity(isNewGame)
 
 	-- Read brain location data
 	if self.GS["Mode"] == "Vessel" then
+		print("VoidWanderers:Tactics:StartActivity:Vessel")
 		self:InitConsoles()
 
 		if self.GS["Location"] ~= "Station Ypsilon-2" then
@@ -300,6 +301,7 @@ function VoidWanderers:StartActivity(isNewGame)
 			self.GS["Location"] = nil
 		end
 	elseif self.GS["Mode"] == "Mission" then
+		print("VoidWanderers:Tactics:StartActivity:Mission")
 		self:StartMusic(CF.MusicTypes.MISSION_CALM)
 
 		-- All mission related final message will be accumulated in mission report list
@@ -328,7 +330,6 @@ function VoidWanderers:StartActivity(isNewGame)
 					for j = 1, #CF.LimbID do
 						limbData[j] = self.GS["Deployed" .. i .. CF.LimbID[j]]
 					end
-					print(self.GS["Deployed" .. i .. "Preset"])
 					local actor = CF.MakeActor(
 						self.GS["Deployed" .. i .. "Preset"],
 						self.GS["Deployed" .. i .. "Class"],
@@ -378,49 +379,10 @@ function VoidWanderers:StartActivity(isNewGame)
 							actor.Status = Actor.DEAD
 						end
 
-						local player = nil
-
-						if actor:GetNumberValue("VW_BrainOfPlayer") - 1 ~= Activity.PLAYER_NONE then
-							player = actor:GetNumberValue("VW_BrainOfPlayer") - 1
-							-- If the case exists or the player isn't active, store it's things and remove it
-							if not (self:PlayerActive(player) and self:PlayerHuman(player)) then
-								for j = 1, CF.MaxSavedItemsPerActor do
-									self.GS["Brain" .. player .. "Item" .. j .. "Preset"] = nil
-									self.GS["Brain" .. player .. "Item" .. j .. "Class"] = nil
-									self.GS["Brain" .. player .. "Item" .. j .. "Module"] = nil
-								end
-
-								-- Save inventory
-								local pre, cls, mdl = CF.GetInventory(act)
-
-								for j = 1, #pre do
-									self.GS["Brain" .. player .. "Item" .. j .. "Preset"] = pre[j]
-									self.GS["Brain" .. player .. "Item" .. j .. "Class"] = cls[j]
-									self.GS["Brain" .. player .. "Item" .. j .. "Module"] = mdl[j]
-								end
-
-								self.GS["Brain" .. player .. "Detached"] = "False"
-								if actor.GoldCarried > 0 then
-									CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + actor.GoldCarried)
-								end
-								actor.ToDelete = true
-								actor = nil
-							end
-						end
-
 						-- If it wasn't a faulty player-owned brain, then it is something we can put in the scene
 						if IsActor(actor) then
 							MovableMan:AddActor(actor)
 							self:AddPreEquippedItemsToRemovalQueue(actor)
-
-							-- If if it was a player owned brain, then put it in the scene
-							if player ~= nil then
-								self:SetPlayerBrain(actor, player)
-								self:SwitchToActor(actor, player, CF.PlayerTeam)
-								actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
-								actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
-								actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
-							end
 						end
 					end
 
@@ -430,6 +392,8 @@ function VoidWanderers:StartActivity(isNewGame)
 				end
 			end
 		end
+		
+		self:LocatePlayerBrains()
 
 		local fowEnabled = self.GS["FogOfWar"] == "true"
 
@@ -798,6 +762,7 @@ function VoidWanderers:StartActivity(isNewGame)
 	self.killClaimRange = 50 + (FrameMan.PlayerScreenWidth + FrameMan.PlayerScreenHeight) * 0.3
 	
 	self.IsInitialized = true
+	self.BrainsAtStake = true
 
 	print("VoidWanderers:Tactics:StartActivity - End")
 end
@@ -2384,7 +2349,9 @@ function VoidWanderers:UpdateActivity()
 	]]
 	--
 	if self.GS["Mode"] == "Mission" then
-		self:ProcessLZControlPanelUI()
+		if self:ProcessLZControlPanelUI() == true then
+			return
+		end
 
 		-- Spawn units from table while it have some left
 		while self.SpawnTable ~= nil do
@@ -2460,7 +2427,7 @@ function VoidWanderers:UpdateActivity()
 		end
 
 		-- Check losing conditions
-		if self.GS["BrainsOnMission"] == "True" and self.ActivityState ~= Activity.OVER then
+		if self.GS["BrainsOnMission"] == "True" and self.BrainsAtStake and self.ActivityState ~= Activity.OVER then
 			if
 				braincount < self.PlayerCount
 				and self.Time > self.MissionStartTime + 1
@@ -2471,14 +2438,6 @@ function VoidWanderers:UpdateActivity()
 			end
 		end
 	end
-	
-	--[[local listacts = MovableMan.Actors
-	for act in listacts do
-		if act:GetNumberValue("VW_NamingFlag") == 1 then
-			CF.TypingActor = act
-			act:SetNumberValue("VW_NamingFlag", 0)
-		end
-	end]]--
 	
 	if CF.TypingActor and MovableMan:IsActor(CF.TypingActor) and CF.TypingPlayer then
 		local screen = self:ScreenOfPlayer(CF.TypingPlayer)
@@ -2575,6 +2534,7 @@ function VoidWanderers:LocatePlayerBrains()
 			for actor in MovableMan.AddedActors do
 				if actor:GetNumberValue("VW_BrainOfPlayer") - 1 == player then
 					self:SetPlayerBrain(actor, player)
+					self:SwitchToActor(actor, player, CF.PlayerTeam)
 					self.PlayersWithBrains[player + 1] = true
 					actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
 					if actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
@@ -2748,31 +2708,33 @@ function VoidWanderers:DeployGenericMissionEnemies(setnumber, setname, plr, team
 			table.insert(self.SpawnTable, nw)
 		end
 	end
-
-	-- Get LZs
-	self.MissionLZs = CF.GetPointsArray(self.Pts, setname, setnumber, "LZ")
-
+end
+-----------------------------------------------------------------------------------------
+--
+-----------------------------------------------------------------------------------------
+function VoidWanderers:ObtainBaseBoxes(setname, setnumber)
 	-- Get base box
-	local bp = CF.GetPointsArray(self.Pts, setname, setnumber, "Base")
-	self.MissionBase = {}
+	if self.missionData then
+		local bp = CF.GetPointsArray(self.Pts, setname, setnumber, "Base")
+		self.missionData["missionBase"] = {}
 
-	for i = 1, #bp, 2 do
-		if bp[i + 1] == nil then
-			print("OUT OF BOUNDS WHEN BUILDING BASE BOX")
-			break
-		end
+		for i = 1, #bp, 2 do
+			if bp[i + 1] == nil then
+				print("OUT OF BOUNDS WHEN BUILDING BASE BOX")
+				break
+			end
 
-		-- Split the box if we're crossing the seam
-		if bp[i].X > bp[i + 1].X then
-			local nxt = #self.MissionBase + 1
-			-- Box(x1,y1, x2, y2)
-			self.MissionBase[nxt] = Box(bp[i].X, bp[i].Y, SceneMan.Scene.Width, bp[i + 1].Y)
+			-- Split the box if we're crossing the seam
+			if bp[i].X > bp[i + 1].X then
+				local nxt = #self.missionData["missionBase"] + 1
+				self.missionData["missionBase"][nxt] = Box(bp[i].X, bp[i].Y, SceneMan.Scene.Width, bp[i + 1].Y)
 
-			local nxt = #self.MissionBase + 1
-			self.MissionBase[nxt] = Box(0, bp[i].Y, bp[i + 1].X, bp[i + 1].Y)
-		else
-			local nxt = #self.MissionBase + 1
-			self.MissionBase[nxt] = Box(bp[i].X, bp[i].Y, bp[i + 1].X, bp[i + 1].Y)
+				local nxt = #self.missionData["missionBase"] + 1
+				self.missionData["missionBase"][nxt] = Box(0, bp[i].Y, bp[i + 1].X, bp[i + 1].Y)
+			else
+				local nxt = #self.missionData["missionBase"] + 1
+				self.missionData["missionBase"][nxt] = Box(bp[i].X, bp[i].Y, bp[i + 1].X, bp[i + 1].Y)
+			end
 		end
 	end
 end
@@ -2888,7 +2850,6 @@ function VoidWanderers:GiveMissionRewards(disablepenalties)
 				.. "x"
 		end
 	end
-	self.MissionCompleted = true
 end
 -----------------------------------------------------------------------------------------
 --

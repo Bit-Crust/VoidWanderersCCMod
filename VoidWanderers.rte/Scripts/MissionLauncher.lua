@@ -40,7 +40,7 @@ function VoidWanderers:StartActivity(isNewGame)
 	
 	-- Save Load Handler, maybe
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler")
-	self.saveLoadHandler:Initialize(true)
+	self.saveLoadHandler:Initialize(false)
 	
 	-- Init a couple properties and constants
 	self.IsInitialized = false
@@ -142,7 +142,10 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:OnSave()
 	print("SAVE! -- VoidWanderers:OnSave()!")
-	self:WriteSaveData(self.GS)
+	self.GS["Time"] = tostring(self.Time)
+	if self.GS then
+		self.saveLoadHandler:SaveTableAsString("gameState", self.GS)
+	end
 	if self.missionData then
 		self.saveLoadHandler:SaveTableAsString("missionData", self.missionData)
 	end
@@ -295,40 +298,24 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:WriteSaveData(gamestate)
-	local sorted = CF.GetSortedListFromTable(gamestate)
-	local megaKey = ""
-	local seperator = ";"
-
-	for i = 1, #sorted do
-		local key = tostring(sorted[i]["Key"])
-		local value = tostring(sorted[i]["Value"])
-		megaKey = megaKey .. key .. seperator
-		self:SaveString(key, value)
+function VoidWanderers:WriteSaveData()
+	if self.GS then
+		self.saveLoadHandler:SaveTableAsString("gameState", self.GS)
 	end
-	
-	self:SaveString("MegaKey", megaKey:sub(1, -2))
-end
------------------------------------------------------------------------------------------
---
------------------------------------------------------------------------------------------
-function VoidWanderers:ReadSaveData()
-	local gamestate = {}
-	local megaKey = self:LoadString("MegaKey")
-	local seperator = ";"
-
-	for key, _ in string.gmatch(megaKey, "([^" .. seperator .. "]*)(" .. seperator .. "?)") do
-		gamestate[key] = self:LoadString(key)
+	if self.missionData then
+		self.saveLoadHandler:SaveTableAsString("missionData", self.missionData)
 	end
-
-	return gamestate
+	if self.deployment then
+		self.saveLoadHandler:SaveTableAsString("deploymentData", self.deployment)
+	end
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:LoadSaveData()
-	if self:LoadString("MegaKey") ~= "" then
-		self.GS = self:ReadSaveData()
+	print("VoidWanderers:LoadSaveData()!")
+	if next(self.saveLoadHandler:ReadSavedStringAsTable("gameState")) ~= nil then
+		self.GS = self.saveLoadHandler:ReadSavedStringAsTable("gameState")
 
 		self.Time = tonumber(self.GS["Time"])
 

@@ -265,7 +265,7 @@ function VoidWanderers:SaveSlots_OnClick()
 		end
 
 		self:WriteSaveData(gamestate)
-		self:LoadSaveData()
+		--self:LoadSaveData()
 		self:FormClose()
 		self:LaunchScript(self.GS["Scene"], "Tactics.lua")
 	end

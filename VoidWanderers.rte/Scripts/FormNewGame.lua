@@ -301,8 +301,8 @@ function VoidWanderers:BtnOk_OnClick()
 	end
 
 	-- Create new game data
-	gamestate = CF.MakeNewConfig(CHOSEN_DIFFICULTY, CHOSEN_AISKILLPLAYER, CHOSEN_AISKILLCPU, player, cpu, self)
-	self:WriteSaveData(gamestate)
+	self.GS = CF.MakeNewConfig(CHOSEN_DIFFICULTY, CHOSEN_AISKILLPLAYER, CHOSEN_AISKILLCPU, player, cpu, self)
+	self:WriteSaveData()
 	self:LoadSaveData()
 	self:FormClose()
 	self:LaunchScript(gamestate["Scene"], "Tactics.lua")

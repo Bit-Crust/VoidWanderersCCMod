@@ -700,7 +700,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 	end
 
 	if self.GS["DeserializeDeployedTeam"] == "True" then
-		if self.MissionAvailable and not self.MissionCompleted then
+		if self.MissionAvailable and not self.missionData["stage"] == self.MissionStages.COMPLETED then
 			self:GiveMissionPenalties()
 		end
 
@@ -808,10 +808,12 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		self.AmbientCreate = nil
 		self.AmbientUpdate = nil
 		self.AmbientDestroy = nil
+		
+		self.BrainsAtStake = false
 
 		print(collectgarbage('count'))
 		collectgarbage("collect")
 		print(collectgarbage('count'))
-		return
+		return true
 	end
 end

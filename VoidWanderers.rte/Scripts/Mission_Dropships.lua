@@ -134,7 +134,6 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	if self.MissionStage == self.MissionStages.ACTIVE then
-		self.MissionCompleted = false
 		local minerCount = 0
 		local shipCount = 0
 		local enemyFunds = self:GetTeamFunds(CF["CPUTeam"])

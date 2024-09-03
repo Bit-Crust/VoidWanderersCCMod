@@ -273,6 +273,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 					else
 						self.GS["BrainsOnMission"] = "False"
 					end
+					self.BrainsAtStake = false
 
 					--print (self.GS["Location"])
 					--print (scene)

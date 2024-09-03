@@ -114,7 +114,6 @@ end
 function VoidWanderers:MissionUpdate()
 	local friends = 0
 	if self.MissionStage == self.MissionStages.ACTIVE then
-		self.MissionCompleted = false
 		local enemies = 0
 
 		for actor in MovableMan.Actors do
