@@ -612,34 +612,6 @@ function VoidWanderers:StartActivity(isNewGame)
 						end
 					end
 				end
-
-				-- Reveal previously saved fog of war, if applicable
-				if false and not CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.ALWAYSUNSEEN) then
-					local wx = math.ceil(SceneMan.Scene.Width / CF.FogOfWarResolution)
-					local wy = math.ceil(SceneMan.Scene.Height / CF.FogOfWarResolution)
-
-					local digitsYTotal = math.max(math.floor(math.log10(wy)), 0)
-
-					for y = 0, wy do
-						local numString = tostring(y)
-						local digits = digitsYTotal - math.max(math.floor(math.log10(y)), 0)
-						for i = 0, digits do
-							numString = "0" .. numString
-						end
-						local str = self.GS[self.GS["Location"] .. "-Fog" .. numString]
-						if str then
-							for x = 0, wx do
-								if string.sub(str, x + 1, x + 1) == "1" then --and SceneMan:GetTerrMatter(x * CF.FogOfWarResolution, y * CF.FogOfWarResolution) ~= rte.airID then
-									SceneMan:RevealUnseen(
-										x * CF.FogOfWarResolution,
-										y * CF.FogOfWarResolution,
-										CF.PlayerTeam
-									)
-								end
-							end
-						end
-					end
-				end
 			end
 
 			-- Set unseen for AI (maybe some day it will matter ))))
@@ -861,9 +833,9 @@ function VoidWanderers:GiveXP(actor, xp)
 				else
 					effect.Pos = actor.AboveHUDPos + Vector(math.random(-5, 5), -math.random(5))
 				end
-				effect.Sharpness = xp
+				effect:SetNumberValue("XPGained", xp)
 				if levelUp then
-					effect.Mass = nextRank + 1
+					effect:SetNumberValue("IsLevelUp", nextRank + 1)
 				end
 				MovableMan:AddParticle(effect)
 			end
@@ -957,40 +929,6 @@ function VoidWanderers:RemoveInventoryItem(actor, itempreset, maxcount)
 	end
 	-- print (tostring(count).." items removed")
 	return count
-end
------------------------------------------------------------------------------------------
--- Save fog of war
------------------------------------------------------------------------------------------
-function VoidWanderers:SaveFogOfWarState(config)
-	local tiles = 0
-	local revealed = 0
-
-	if config["FogOfWar"] and config["FogOfWar"] == "true" then
-		local wx = SceneMan.Scene.Width / CF.FogOfWarResolution
-		local wy = SceneMan.Scene.Height / CF.FogOfWarResolution
-
-		local digitsYTotal = math.max(math.floor(math.log10(wy)), 0)
-
-		for y = 0, wy do
-			str = ""
-			for x = 0, wx do
-				tiles = tiles + 1
-				if SceneMan:IsUnseen(x * CF.FogOfWarResolution, y * CF.FogOfWarResolution, CF.PlayerTeam) then
-					str = str .. "0"
-				else
-					str = str .. "1"
-					revealed = revealed + 1
-				end
-			end
-			local digits = digitsYTotal - math.max(math.floor(math.log10(y)), 0)
-			local numString = tostring(y)
-			for i = 0, digits do
-				numString = "0" .. numString
-			end
-			--config[self.GS["Location"] .. "-Fog" .. numString] = str
-		end
-		config[self.GS["Location"] .. "-FogRevealPercentage"] = math.floor(revealed / tiles * 100)
-	end
 end
 -----------------------------------------------------------------------------------------
 --
@@ -1534,8 +1472,8 @@ function VoidWanderers:UpdateActivity()
 						end
 					end
 					local effect = CreateMOPixel("Text Effect", self.ModuleName)
-					effect.PresetName = itm == nil and "Nothing of value was found."
-						or itm .. " blueprint unlocked!\nThe Trade Star will update their catalog shortly."
+					effect:SetStringValue("Text", itm == nil and "Nothing of value was found."
+						or itm .. " blueprint unlocked!\nThe Trade Star will update their catalog shortly.")
 					effect.Pos = actor.AboveHUDPos + Vector(0, -8)
 					MovableMan:AddParticle(effect)
 
@@ -1560,8 +1498,8 @@ function VoidWanderers:UpdateActivity()
 						end
 					end
 					local effect = CreateMOPixel("Text Effect", self.ModuleName)
-					effect.PresetName = itm == nil and "Nothing of value was found."
-						or itm .. " blackprint unlocked!\nThe Black Market will update their catalog shortly."
+					effect:SetStringValue("Text", itm == nil and "Nothing of value was found."
+						or itm .. " blackprint unlocked!\nThe Black Market will update their catalog shortly.")
 					effect.Pos = actor.AboveHUDPos + Vector(0, -8)
 					MovableMan:AddParticle(effect)
 

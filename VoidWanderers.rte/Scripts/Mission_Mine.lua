@@ -100,8 +100,7 @@ function VoidWanderers:MissionCreate()
 		table.insert(self.SpawnTable, nw)
 	end
 
-	self.MissionStages = { ACTIVE = 0, COMPLETED = 1, FAILED = 2 }
-	self.MissionStage = self.MissionStages.ACTIVE
+	self.MissionStage = CF.MissionStages.ACTIVE
 	self.MissionEnoughMiners = false
 	self.MissionCompleteCountdownStart = 0
 	self.MissionShowDropshipWarningStart = 0
@@ -113,7 +112,7 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	local friends = 0
-	if self.MissionStage == self.MissionStages.ACTIVE then
+	if self.MissionStage == CF.MissionStages.ACTIVE then
 		local enemies = 0
 
 		for actor in MovableMan.Actors do
@@ -188,7 +187,7 @@ function VoidWanderers:MissionUpdate()
 			and self.Time >= self.MissionCompleteCountdownStart + self.MissionSettings["TimeToHold"]
 		then
 			self:GiveMissionRewards()
-			self.MissionStage = self.MissionStages.COMPLETED
+			self.MissionStage = CF.MissionStages.COMPLETED
 
 			self.MissionSettings["Interval"] = math.floor(self.MissionSettings["Interval"] * 1.5)
 
@@ -203,7 +202,7 @@ function VoidWanderers:MissionUpdate()
 		elseif
 			self.MissionSettings["AllyReinforcementsCount"] == 0 and friends < self.MissionSettings["MinersNeeded"]
 		then
-			self.MissionStage = self.MissionStages.FAILED
+			self.MissionStage = CF.MissionStages.FAILED
 			self.MissionStatusShowStart = self.Time
 
 			for actor in MovableMan.Actors do
@@ -286,7 +285,7 @@ function VoidWanderers:MissionUpdate()
 				end
 			end
 		end
-	elseif self.MissionStage == self.MissionStages.COMPLETED then
+	elseif self.MissionStage == CF.MissionStages.COMPLETED then
 		self.MissionStatus = "MISSION COMPLETED"
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF["MusicTypes"].VICTORY)
@@ -298,7 +297,7 @@ function VoidWanderers:MissionUpdate()
 				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
 			end
 		end
-	elseif self.MissionStage == self.MissionStages.FAILED then
+	elseif self.MissionStage == CF.MissionStages.FAILED then
 		self.MissionStatus = "MISSION FAILED"
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF["MusicTypes"].DEFEAT)
@@ -324,7 +323,7 @@ function VoidWanderers:MissionUpdate()
 			local ship = CF["MakeActor"](CF["Crafts"][f], CF["CraftClasses"][f], CF["CraftModules"][f])
 			if ship then
 				local count
-				if self.MissionStage == self.MissionStages.ACTIVE then
+				if self.MissionStage == CF.MissionStages.ACTIVE then
 					count = math.random(
 						math.ceil(self.MissionSettings["EnemyDropshipUnitCount"] * 0.5),
 						self.MissionSettings["EnemyDropshipUnitCount"]
@@ -343,7 +342,7 @@ function VoidWanderers:MissionUpdate()
 						math.random(CF["PresetTypes"].HEAVY2)
 					)
 					if actor then
-						if self.MissionStage ~= self.MissionStages.ACTIVE then
+						if self.MissionStage ~= CF.MissionStages.ACTIVE then
 							actor:SetGoldValue(0)
 						end
 						ship:AddInventoryItem(actor)

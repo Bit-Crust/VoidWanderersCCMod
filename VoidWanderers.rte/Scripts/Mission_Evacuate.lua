@@ -104,14 +104,13 @@ function VoidWanderers:MissionCreate()
 	self.MissionNextReinforcements = self.Time
 	self.MissionCraft = nil
 
-	self.MissionStages = { ACTIVE = 0, COMPLETED = 1, FAILED = 2 }
-	self.MissionStage = self.MissionStages.ACTIVE
+	self.MissionStage = CF.MissionStages.ACTIVE
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
-	if self.MissionStage == self.MissionStages.ACTIVE then
+	if self.MissionStage == CF.MissionStages.ACTIVE then
 		local count = 0
 
 		if MovableMan:IsActor(self.MissionBrain) and self.MissionBrain:HasObjectInGroup("MissionBrain") then
@@ -240,7 +239,7 @@ function VoidWanderers:MissionUpdate()
 		if not MovableMan:IsActor(self.MissionBrain) then
 			if self.MissionSettings["Evacuated"] then
 				self:GiveMissionRewards()
-				self.MissionStage = self.MissionStages.COMPLETED
+				self.MissionStage = CF.MissionStages.COMPLETED
 			else
 				for actor in MovableMan.Actors do
 					if self:IsAlly(actor) then
@@ -262,7 +261,7 @@ function VoidWanderers:MissionUpdate()
 						end
 					end
 				end
-				self.MissionStage = self.MissionStages.FAILED
+				self.MissionStage = CF.MissionStages.FAILED
 			end
 			self.MissionBrain = nil
 			-- Remember when we started showing misison status message
@@ -345,7 +344,7 @@ function VoidWanderers:MissionUpdate()
 					+ math.ceil(actorCount[CF["CPUTeam"]] / math.sqrt(math.max(actorCount[CF["PlayerTeam"]], 1)))
 			end
 		end
-	elseif self.MissionStage == self.MissionStages.FAILED then
+	elseif self.MissionStage == CF.MissionStages.FAILED then
 		self.MissionStatus = "MISSION FAILED"
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF["MusicTypes"].DEFEAT)
@@ -357,7 +356,7 @@ function VoidWanderers:MissionUpdate()
 				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
 			end
 		end
-	elseif self.MissionStage == self.MissionStages.COMPLETED then
+	elseif self.MissionStage == CF.MissionStages.COMPLETED then
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF["MusicTypes"].VICTORY)
 			self.MissionEndMusicPlayed = true

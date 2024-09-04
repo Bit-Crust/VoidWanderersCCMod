@@ -389,13 +389,6 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						10
 					)
 
-					if self.ShipControlLocationList[self.ShipControlSelectedLocation] ~= nil then
-						local rev = self.GS[self.ShipControlLocationList[self.ShipControlSelectedLocation] .. "-FogRevealPercentage"]
-							or 0
-						-- TODO: Better name for fog revealed indicator?
-						CF["DrawString"]("INTEL: " .. rev .. "%", pos + Vector(8, -36), 136, 10)
-					end
-
 					-- Write gold status
 					local gold = CF["LocationGoldPresent"][self.ShipControlLocationList[self.ShipControlSelectedLocation]]
 					if gold ~= nil then

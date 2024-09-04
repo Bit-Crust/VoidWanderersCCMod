@@ -126,14 +126,13 @@ function VoidWanderers:MissionCreate()
 		end
 	end
 
-	self.MissionStages = { ACTIVE = 0, COMPLETED = 1, FAILED = 2 }
-	self.MissionStage = self.MissionStages.ACTIVE
+	self.MissionStage = CF.MissionStages.ACTIVE
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
-	if self.MissionStage == self.MissionStages.ACTIVE then
+	if self.MissionStage == CF.MissionStages.ACTIVE then
 		local minerCount = 0
 		local shipCount = 0
 		local enemyFunds = self:GetTeamFunds(CF["CPUTeam"])
@@ -167,7 +166,7 @@ function VoidWanderers:MissionUpdate()
 
 			-- Mission failed
 			if enemyFunds >= self.MissionSettings["TargetGold"] then
-				self.MissionStage = self.MissionStages.FAILED
+				self.MissionStage = CF.MissionStages.FAILED
 				self.MissionStatusShowStart = self.Time
 			end
 		end
@@ -208,7 +207,7 @@ function VoidWanderers:MissionUpdate()
 
 		if (self.MissionSettings["EnemyDropShips"] == 0 or enemyFunds < 0) and minerCount + shipCount == 0 then
 			self:GiveMissionRewards()
-			self.MissionStage = self.MissionStages.COMPLETED
+			self.MissionStage = CF.MissionStages.COMPLETED
 
 			-- Remember when we started showing misison status message
 			self.MissionStatusShowStart = self.Time
@@ -264,7 +263,7 @@ function VoidWanderers:MissionUpdate()
 				end
 			end
 		end
-	elseif self.MissionStage == self.MissionStages.COMPLETED then
+	elseif self.MissionStage == CF.MissionStages.COMPLETED then
 		self.MissionStatus = "MISSION COMPLETED"
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF["MusicTypes"].VICTORY)
@@ -277,7 +276,7 @@ function VoidWanderers:MissionUpdate()
 				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
 			end
 		end
-	elseif self.MissionStage == self.MissionStages.FAILED then
+	elseif self.MissionStage == CF.MissionStages.FAILED then
 		self.MissionStatus = "MISSION FAILED"
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF["MusicTypes"].DEFEAT)

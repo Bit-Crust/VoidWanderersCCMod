@@ -8,7 +8,6 @@
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionCreate(isNewGame)
 	self.missionData = {}
-	self.MissionStages = { ACTIVE = 0, COMPLETED = 1 }
 
 	if isNewGame == false then
 		self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData")
@@ -82,7 +81,7 @@ function VoidWanderers:MissionCreate(isNewGame)
 		self.missionData["craft"] = nil
 		self.missionData["craftCheckTime"] = self.Time
 
-		self.missionData["stage"] = self.MissionStages.ACTIVE
+		self.missionData["stage"] = CF.MissionStages.ACTIVE
 
 		self.missionData["reinforcementsTriggered"] = false
 		self.missionData["reinforcementsLast"] = 0
@@ -93,7 +92,7 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
-	if self.missionData["stage"] == self.MissionStages.ACTIVE then
+	if self.missionData["stage"] == CF.MissionStages.ACTIVE then
 		local count = 0
 		
 		for actor in MovableMan.Actors do
@@ -128,7 +127,7 @@ function VoidWanderers:MissionUpdate()
 		-- Start checking for victory only when all units were spawned
 		if self.SpawnTable == nil and count == 0 and not MovableMan.AddedActors() then
 			self:GiveMissionRewards()
-			self.missionData["stage"] = self.MissionStages.COMPLETED
+			self.missionData["stage"] = CF.MissionStages.COMPLETED
 
 			-- Remember when we started showing misison status message
 			self.missionData["statusShowStart"] = self.Time
@@ -187,7 +186,7 @@ function VoidWanderers:MissionUpdate()
 				end
 			end
 		end
-	elseif self.missionData["stage"] == self.MissionStages.COMPLETED then
+	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF.MusicTypes.VICTORY)
 			self.MissionEndMusicPlayed = true

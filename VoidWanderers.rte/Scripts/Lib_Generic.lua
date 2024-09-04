@@ -26,6 +26,7 @@ CF.InitFactions = function(activity)
 	CF.BlackMarketPriceMultiplier = 3
 
 	CF.MissionResultShowInterval = 10
+	CF.MissionStages = { ACTIVE = 0, COMPLETED = 1, FAILED = 2 }
 
 	CF.UnknownItemPrice = 50
 	CF.UnknownActorPrice = 100

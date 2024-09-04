@@ -225,19 +225,19 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:SaveSlots_OnClick()
 	if not self.Slots[self.MouseOverElement]["Empty"] then
-		local gamestate = CF.ReadConfigFile(self.ModuleName, "savegame" .. self.MouseOverElement .. ".dat")
+		self.GS = CF.ReadConfigFile(self.ModuleName, "savegame" .. self.MouseOverElement .. ".dat")
 
 		-- Reset mission listing if they are not correct
 		for j = 1, CF.MaxMissions do
 			local resetMissions = true
 			if
-				gamestate["Mission" .. j .. "Location"]
-				and gamestate["Mission" .. j .. "Type"]
-				and CF.LocationMissions[gamestate["Mission" .. j .. "Location"]]
+				self.GS["Mission" .. j .. "Location"]
+				and self.GS["Mission" .. j .. "Type"]
+				and CF.LocationMissions[self.GS["Mission" .. j .. "Location"]]
 			then
-				for lm = 1, #CF.LocationMissions[gamestate["Mission" .. j .. "Location"]] do
+				for lm = 1, #CF.LocationMissions[self.GS["Mission" .. j .. "Location"]] do
 					if
-						gamestate["Mission" .. j .. "Type"] == CF.LocationMissions[gamestate["Mission" .. j .. "Location"]][lm]
+						self.GS["Mission" .. j .. "Type"] == CF.LocationMissions[self.GS["Mission" .. j .. "Location"]][lm]
 					then
 						resetMissions = false
 						break
@@ -245,7 +245,7 @@ function VoidWanderers:SaveSlots_OnClick()
 				end
 				if resetMissions then
 					print("Mission location mismatch detected!! Mission listing has been reset!")
-					CF.GenerateRandomMissions(gamestate)
+					CF.GenerateRandomMissions(self.GS)
 					break
 				end
 			end
@@ -254,9 +254,9 @@ function VoidWanderers:SaveSlots_OnClick()
 		-- Completion streak will be reset, so make sure that the mission report gets fixed
 		CF.MissionCombo = nil
 		for i = 1, CF.MaxMissionReportLines do
-			if gamestate["MissionReport" .. i] then
-				if string.find(gamestate["MissionReport" .. i], "Completion streak") then
-					gamestate["MissionReport" .. i] = "Completion streak: 0"
+			if self.GS["MissionReport" .. i] then
+				if string.find(self.GS["MissionReport" .. i], "Completion streak") then
+					self.GS["MissionReport" .. i] = "Completion streak: 0"
 					break
 				end
 			else
@@ -264,8 +264,8 @@ function VoidWanderers:SaveSlots_OnClick()
 			end
 		end
 
-		self:WriteSaveData(gamestate)
-		--self:LoadSaveData()
+		self:WriteSaveData()
+		self:LoadSaveData()
 		self:FormClose()
 		self:LaunchScript(self.GS["Scene"], "Tactics.lua")
 	end

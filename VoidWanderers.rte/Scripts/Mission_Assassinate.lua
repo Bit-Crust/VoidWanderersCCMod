@@ -13,7 +13,6 @@ function VoidWanderers:MissionCreate(isNewGame)
 	self.missionData = {}
 
 	-- Mission constants and enums
-	self.MissionStages = { ACTIVE = 0, COMPLETED = 1, FAILED = 2 }
 	local setts = {}
 	setts[1] = {}
 	setts[1]["SpawnRate"] = 0.30
@@ -99,7 +98,7 @@ function VoidWanderers:MissionCreate(isNewGame)
 		self.missionData["craft"] = nil
 		self.missionData["craftCheckTime"] = self.Time
 
-		self.missionData["stage"] = self.MissionStages.ACTIVE
+		self.missionData["stage"] = CF.MissionStages.ACTIVE
 
 		self.missionData["reinforcementsTriggered"] = false
 		self.missionData["reinforcementsLast"] = 0
@@ -111,7 +110,7 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
-	if self.missionData["stage"] == self.MissionStages.ACTIVE then
+	if self.missionData["stage"] == CF.MissionStages.ACTIVE then
 		local count = 0
 
 		-- Start checking for victory only when all units were spawned
@@ -222,9 +221,9 @@ function VoidWanderers:MissionUpdate()
 		end
 		if not MovableMan:IsActor(self.missionData["brain"]) then
 			if self.missionData["settings"]["Evacuated"] then
-				self.missionData["stage"] = self.MissionStages.FAILED
+				self.missionData["stage"] = CF.MissionStages.FAILED
 			else
-				self.missionData["stage"] = self.MissionStages.COMPLETED
+				self.missionData["stage"] = CF.MissionStages.COMPLETED
 				self:GiveMissionRewards()
 
 				for actor in MovableMan.Actors do
@@ -330,7 +329,7 @@ function VoidWanderers:MissionUpdate()
 				end
 			end
 		end
-	elseif self.missionData["stage"] == self.MissionStages.FAILED then
+	elseif self.missionData["stage"] == CF.MissionStages.FAILED then
 		self.MissionStatus = "MISSION FAILED"
 
 		if not self.MissionEndMusicPlayed then
@@ -344,7 +343,7 @@ function VoidWanderers:MissionUpdate()
 				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
 			end
 		end
-	elseif self.missionData["stage"] == self.MissionStages.COMPLETED then
+	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
 		self.MissionStatus = "MISSION COMPLETED"
 
 		if not self.MissionEndMusicPlayed then

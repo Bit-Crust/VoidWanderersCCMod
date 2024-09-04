@@ -87,8 +87,7 @@ function VoidWanderers:MissionCreate()
 		end
 	end
 
-	self.MissionStages = { ACTIVE = 0, COMPLETED = 1 }
-	self.MissionStage = self.MissionStages.ACTIVE
+	self.MissionStage = CF.MissionStages.ACTIVE
 
 	self.MissionReinforcementsTriggered = true
 	self.MissionLastReinforcements = self.Time
@@ -98,7 +97,7 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
-	if self.MissionStage == self.MissionStages.ACTIVE then
+	if self.MissionStage == CF.MissionStages.ACTIVE then
 		local count = 0
 
 		-- Start checking for victory only when all units were spawned
@@ -145,7 +144,7 @@ function VoidWanderers:MissionUpdate()
 				)
 				self.MissionGoldReward = 0
 				self:GiveMissionRewards(true)
-				self.MissionStage = self.MissionStages.COMPLETED
+				self.MissionStage = CF.MissionStages.COMPLETED
 
 				-- Remember when we started showing misison status message
 				self.MissionStatusShowStart = self.Time
@@ -222,7 +221,7 @@ function VoidWanderers:MissionUpdate()
 				end
 			end
 		end
-	elseif self.MissionStage == self.MissionStages.COMPLETED then
+	elseif self.MissionStage == CF.MissionStages.COMPLETED then
 		self.MissionStatus = "MISSION COMPLETED"
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF["MusicTypes"].VICTORY)

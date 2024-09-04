@@ -106,15 +106,14 @@ function VoidWanderers:MissionCreate()
 	--	self.MissionWeapons[#self.MissionWeapons + 1] = heavies
 	--end
 
-	self.MissionStages = { ACTIVE = 0, COMPLETED = 1 }
-	self.MissionStage = self.MissionStages.ACTIVE
+	self.MissionStage = CF.MissionStages.ACTIVE
 	self.MissionCompleteCountdownStart = 0
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
-	if self.MissionStage == self.MissionStages.ACTIVE then
+	if self.MissionStage == CF.MissionStages.ACTIVE then
 		local vats = 0
 
 		-- Count vats
@@ -138,7 +137,7 @@ function VoidWanderers:MissionUpdate()
 		-- Check wining conditions
 		if vats == 0 then
 			self:GiveMissionRewards()
-			self.MissionStage = self.MissionStages.COMPLETED
+			self.MissionStage = CF.MissionStages.COMPLETED
 
 			-- Remember when we started showing mission status message
 			self.MissionStatusShowStart = self.Time
@@ -187,7 +186,7 @@ function VoidWanderers:MissionUpdate()
 				end
 			end
 		end
-	elseif self.MissionStage == self.MissionStages.COMPLETED then
+	elseif self.MissionStage == CF.MissionStages.COMPLETED then
 		self.MissionStatus = "MISSION COMPLETED"
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF["MusicTypes"].VICTORY)

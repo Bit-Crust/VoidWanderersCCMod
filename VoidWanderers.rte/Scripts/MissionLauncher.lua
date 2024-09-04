@@ -313,9 +313,9 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:LoadSaveData()
-	print("VoidWanderers:LoadSaveData()!")
-	if next(self.saveLoadHandler:ReadSavedStringAsTable("gameState")) ~= nil then
-		self.GS = self.saveLoadHandler:ReadSavedStringAsTable("gameState")
+	local gsRead = self.saveLoadHandler:ReadSavedStringAsTable("gameState")
+	if next(gsRead) ~= nil then
+		self.GS = gsRead
 
 		self.Time = tonumber(self.GS["Time"])
 

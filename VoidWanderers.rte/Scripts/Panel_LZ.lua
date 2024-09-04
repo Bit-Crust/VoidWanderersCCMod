@@ -700,7 +700,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 	end
 
 	if self.GS["DeserializeDeployedTeam"] == "True" then
-		if self.MissionAvailable and not self.missionData["stage"] == self.MissionStages.COMPLETED then
+		if self.MissionAvailable and not self.missionData["stage"] == CF.MissionStages.COMPLETED then
 			self:GiveMissionPenalties()
 		end
 
@@ -767,11 +767,6 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		if totalGoldCarried > 0 then
 			self.MissionReport[#self.MissionReport + 1] = totalGoldCarried .. " oz of gold collected"
 			CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + totalGoldCarried)
-		end
-
-		-- Save fog of war
-		if self.GS["FogOfWar"] and self.GS["FogOfWar"] == "true" then
-			self:SaveFogOfWarState(self.GS)
 		end
 
 		-- Dump mission report to config to be saved

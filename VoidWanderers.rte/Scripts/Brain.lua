@@ -35,8 +35,9 @@ function UnpackBrainForConfig(self, info)
 end
 
 function Create(self)
-	-- Set up constants
+	-- Set up constants and temps
 	local quantumCapacityPerLevel = CF_Read(self, {"QuantumCapacityPerLevel"})
+	local reference = ToActor(PresetMan:GetPreset(self.ClassName, self.PresetName, self.ModuleName))
 	
 	self.DistPerPower = 75
 	self.CoolDownInterval = 3000
@@ -68,8 +69,9 @@ function Create(self)
 
 	-- Defaults are basically nothing but slight regen
 	local val = 0
-	self.MaxHealth = self.MaxHealth * (100 + val) / 100
-	self.Health = self.MaxHealth
+	local healthProportion = self.Health / self.MaxHealth
+	self.MaxHealth = reference.MaxHealth * (100 + val) / 100
+	self.Health = self.MaxHealth * healthProportion
 	self.RegenInterval = 2000 - val * 10
 
 	self.ToughnessLevel = 0
@@ -87,9 +89,10 @@ function Create(self)
 		local player = self.BrainNumber
 
 		local val = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Level"}))
-		self.MaxHealth = self.MaxHealth * (100 + val) / 100
-		self.Health = self.MaxHealth
-		self.RegenInterval = 1500 - val * 10
+		local healthProportion = self.Health / self.MaxHealth
+		self.MaxHealth = reference.MaxHealth * (100 + val) / 100
+		self.Health = self.MaxHealth * healthProportion
+		self.RegenInterval = 2000 - val * 10
 			
 		self.ToughnessLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Toughness"}))
 		self.ShieldLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Field"}))
@@ -102,9 +105,10 @@ function Create(self)
 		self.QuantumStorageLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "QuantumCapacity"}))
 	elseif self:GetNumberValue("VW_PreassignedSkills") ~= 0 then -- If preset with values
 		local val = self:GetNumberValue("VW_HealthSkill")
-		self.MaxHealth = self.MaxHealth * (100 + val) / 100
-		self.Health = self.MaxHealth
-		self.RegenInterval = 1500 - val * 10
+		local healthProportion = self.Health / self.MaxHealth
+		self.MaxHealth = reference.MaxHealth * (100 + val) / 100
+		self.Health = self.MaxHealth * healthProportion
+		self.RegenInterval = 2000 - val * 10
 
 		self.ToughnessLevel = self:GetNumberValue("VW_ToughSkill")
 		self.ShieldLevel = self:GetNumberValue("VW_ShieldSkill")

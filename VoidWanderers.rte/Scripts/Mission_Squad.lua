@@ -58,8 +58,7 @@ function VoidWanderers:MissionCreate()
 		brain = CF["GetPointsArray"](self.Pts, "Assassinate", set, "Commander")
 	end
 
-	self.MissionStages = { ACTIVE = 0, COMPLETED = 1 }
-	self.MissionStage = self.MissionStages.ACTIVE
+	self.MissionStage = CF.MissionStages.ACTIVE
 
 	-- Spawn commander
 	self.MissionBrain = CF.MakeRPGBrain(self.GS, self.MissionTargetPlayer, CF.CPUTeam, brain[1], self.MissionDifficulty)
@@ -99,7 +98,7 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
-	if self.MissionStage == self.MissionStages.ACTIVE then
+	if self.MissionStage == CF.MissionStages.ACTIVE then
 		local count = 0
 
 		local enemydist = 100000
@@ -131,7 +130,7 @@ function VoidWanderers:MissionUpdate()
 		-- Start checking for victory only when all units were spawned
 		if self.SpawnTable == nil and count == 0 then
 			self:GiveMissionRewards()
-			self.MissionStage = self.MissionStages.COMPLETED
+			self.MissionStage = CF.MissionStages.COMPLETED
 
 			-- Remember when we started showing misison status message
 			self.MissionStatusShowStart = self.Time
@@ -263,7 +262,7 @@ function VoidWanderers:MissionUpdate()
 				end
 			end
 		end
-	elseif self.MissionStage == self.MissionStages.COMPLETED then
+	elseif self.MissionStage == CF.MissionStages.COMPLETED then
 		self.MissionStatus = "MISSION COMPLETED"
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF["MusicTypes"].VICTORY)
