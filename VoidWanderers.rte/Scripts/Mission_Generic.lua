@@ -16,6 +16,9 @@
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionCreate(isNewGame)
+	print("GENERIC " .. (isNewGame == false and "LOAD" or "CREATE"))
+	self.defaultHostilities = { Activity.TEAM_1, Activity.TEAM_4, Activity.TEAM_3 }
+
 	self.missionData = {}
 
 	if isNewGame == false then
@@ -26,6 +29,7 @@ function VoidWanderers:MissionCreate(isNewGame)
 		-- Load some positional data
 		local pointSetIndex = CF.GetRandomMissionPointsSet(self.Pts, "Deploy")
 		local ambientEnemyLocations = CF.GetPointsArray(self.Pts, "Deploy", pointSetIndex, "AmbientEnemy")
+		self.missionData["enemyLandingZones"] = CF.GetPointsArray(self.Pts, "Deploy", pointSetIndex, "EnemyLZ")
 		local ambientEnemyQuantity = math.ceil(CF.AmbientEnemyRate * #ambientEnemyLocations)
 		local ambientEnemyPositions = CF.RandomSampleOfList(ambientEnemyLocations, ambientEnemyQuantity)
 		
@@ -39,9 +43,9 @@ function VoidWanderers:MissionCreate(isNewGame)
 		local team3Player = selection[math.random(#selection)]
 		local team4Player = selection[math.random(#selection)]
 		self.missionData["CPUPlayers"] = { team2Player, team3Player, team4Player }
-		--CF.CreateAIUnitPresets(self.GS, team2Player, CF.GetTechLevelFromDifficulty(self.GS, team2Player, self.MissionDifficulty, CF.MaxDifficulty))
-		--CF.CreateAIUnitPresets(self.GS, team3Player, CF.GetTechLevelFromDifficulty(self.GS, team3Player, self.MissionDifficulty, CF.MaxDifficulty))
-		--CF.CreateAIUnitPresets(self.GS, team4Player, CF.GetTechLevelFromDifficulty(self.GS, team4Player, self.MissionDifficulty, CF.MaxDifficulty))
+		CF.CreateAIUnitPresets(self.GS, team2Player, CF.GetTechLevelFromDifficulty(self.GS, team2Player, self.MissionDifficulty, CF.MaxDifficulty))
+		CF.CreateAIUnitPresets(self.GS, team3Player, CF.GetTechLevelFromDifficulty(self.GS, team3Player, self.MissionDifficulty, CF.MaxDifficulty))
+		CF.CreateAIUnitPresets(self.GS, team4Player, CF.GetTechLevelFromDifficulty(self.GS, team4Player, self.MissionDifficulty, CF.MaxDifficulty))
 
 		-- Place some ambient randos
 		for i = 1, #ambientEnemyPositions do
@@ -73,10 +77,6 @@ function VoidWanderers:MissionCreate(isNewGame)
 		print("TEAM 3: " .. CF.GetPlayerFaction(self.GS, team3Player))
 		print("TEAM 4: " .. CF.GetPlayerFaction(self.GS, team4Player))
 	end
-
-	-- Default targets for ai on other teams
-	self.defaultHostilities = { Activity.TEAM_1, Activity.TEAM_4, Activity.TEAM_3 }
-	self.missionData["enemyLandingZones"] = CF.GetPointsArray(self.Pts, "Deploy", pointSetIndex, "EnemyLZ")
 end
 -----------------------------------------------------------------------------------------
 --

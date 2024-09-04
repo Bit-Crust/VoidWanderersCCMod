@@ -8,54 +8,55 @@
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionCreate(isNewGame)
-	print("ASSASSINATE CREATE")
+	print("ASSAULT " .. (isNewGame == false and "LOAD" or "CREATE"))
 	-- Wipe data
 	self.missionData = {}
-
-	-- Mission constants and enums
-	local setts = {}
-	setts[1] = {}
-	setts[1]["SpawnRate"] = 0.30
-	setts[1]["Reinforcements"] = 0
-	setts[1]["Interval"] = 10
-	setts[1]["CounterAttackDelay"] = 0
-
-	setts[2] = {}
-	setts[2]["SpawnRate"] = 0.40
-	setts[2]["Reinforcements"] = 1
-	setts[2]["Interval"] = 30
-	setts[2]["CounterAttackDelay"] = 340
-
-	setts[3] = {}
-	setts[3]["SpawnRate"] = 0.50
-	setts[3]["Reinforcements"] = 2
-	setts[3]["Interval"] = 28
-	setts[3]["CounterAttackDelay"] = 300
-
-	setts[4] = {}
-	setts[4]["SpawnRate"] = 0.60
-	setts[4]["Reinforcements"] = 3
-	setts[4]["Interval"] = 26
-	setts[4]["CounterAttackDelay"] = 260
-
-	setts[5] = {}
-	setts[5]["SpawnRate"] = 0.70
-	setts[5]["Reinforcements"] = 4
-	setts[5]["Interval"] = 24
-	setts[5]["CounterAttackDelay"] = 220
-
-	setts[6] = {}
-	setts[6]["SpawnRate"] = 0.80
-	setts[6]["Reinforcements"] = 5
-	setts[6]["Interval"] = 22
-	setts[6]["CounterAttackDelay"] = 180
 
 	-- Load if possible
 	if isNewGame == false then
 		self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData")
 	else
+		-- Mission constants and enums
+		local setts = {}
+
+		setts[1] = {}
+		setts[1]["spawnRate"] = 0.30
+		setts[1]["reinforcements"] = 0
+		setts[1]["interval"] = 10
+		setts[1]["counterAttackDelay"] = 0
+
+		setts[2] = {}
+		setts[2]["spawnRate"] = 0.40
+		setts[2]["reinforcements"] = 1
+		setts[2]["interval"] = 30
+		setts[2]["counterAttackDelay"] = 340
+
+		setts[3] = {}
+		setts[3]["spawnRate"] = 0.50
+		setts[3]["reinforcements"] = 2
+		setts[3]["interval"] = 28
+		setts[3]["counterAttackDelay"] = 300
+
+		setts[4] = {}
+		setts[4]["spawnRate"] = 0.60
+		setts[4]["reinforcements"] = 3
+		setts[4]["interval"] = 26
+		setts[4]["counterAttackDelay"] = 260
+
+		setts[5] = {}
+		setts[5]["spawnRate"] = 0.70
+		setts[5]["reinforcements"] = 4
+		setts[5]["interval"] = 24
+		setts[5]["counterAttackDelay"] = 220
+
+		setts[6] = {}
+		setts[6]["spawnRate"] = 0.80
+		setts[6]["reinforcements"] = 5
+		setts[6]["interval"] = 22
+		setts[6]["counterAttackDelay"] = 180
+
+		self.missionData = setts[self.MissionDifficulty]
 		self.missionData["missionStartTime"] = self.Time
-		self.missionData["settings"] = setts[self.MissionDifficulty]
 
 		self.missionData["pointSetIndex"] = CF.GetRandomMissionPointsSet(self.Pts, "Enemy")
 
@@ -65,7 +66,7 @@ function VoidWanderers:MissionCreate(isNewGame)
 			"Enemy",
 			self.MissionTargetPlayer,
 			CF.CPUTeam,
-			self.missionData["settings"]["SpawnRate"]
+			self.missionData["spawnRate"]
 		)
 		-- Get LZs
 		self.missionData["landingZones"] = CF.GetPointsArray(self.Pts, "Enemy", self.missionData["pointSetIndex"], "LZ")
@@ -158,10 +159,10 @@ function VoidWanderers:MissionUpdate()
 				end
 				if
 					self.missionData["reinforcementsTriggered"]
-					and self.Time >= self.missionData["reinforcementsLast"] + self.missionData["settings"]["Interval"]
+					and self.Time >= self.missionData["reinforcementsLast"] + self.missionData["interval"]
 				then
-					if self.missionData["settings"]["Reinforcements"] == 0 then
-						self.missionData["settings"]["Reinforcements"] = -1
+					if self.missionData["reinforcements"] == 0 then
+						self.missionData["reinforcements"] = -1
 						if self.missionData["brain"]:HasObject("Blueprint") then
 							self.missionData["brain"]:RemoveInventoryItem("Blueprint")
 							print("The enemy has destroyed the evidence!")
@@ -180,7 +181,7 @@ function VoidWanderers:MissionUpdate()
 				end
 				if
 					self.missionData["craft"] == nil
-					and self.missionData["settings"]["Reinforcements"] < 0
+					and self.missionData["reinforcements"] < 0
 					and self.missionData["craftCheckTime"] < self.Time
 				then
 					self.missionData["craftCheckTime"] = self.Time + 3
@@ -220,7 +221,7 @@ function VoidWanderers:MissionUpdate()
 			end
 		end
 		if not MovableMan:IsActor(self.missionData["brain"]) then
-			if self.missionData["settings"]["Evacuated"] then
+			if self.missionData["evacuated"] then
 				self.missionData["stage"] = CF.MissionStages.FAILED
 			else
 				self.missionData["stage"] = CF.MissionStages.COMPLETED
@@ -274,13 +275,13 @@ function VoidWanderers:MissionUpdate()
 
 		-- Send reinforcements if available
 		if self.missionData["reinforcementsTriggered"] then
-			if self.Time >= self.missionData["reinforcementsLast"] + self.missionData["settings"]["Interval"] then
+			if self.Time >= self.missionData["reinforcementsLast"] + self.missionData["interval"] then
 				self.missionData["reinforcementsLast"] = self.Time
 				if
-					self.missionData["settings"]["Reinforcements"] > 0
+					self.missionData["reinforcements"] > 0
 					and #self.missionData["landingZones"] > 0
 				then
-					self.missionData["settings"]["Reinforcements"] = self.missionData["settings"]["Reinforcements"] - 1
+					self.missionData["reinforcements"] = self.missionData["reinforcements"] - 1
 
 					local count = math.random(2, 3)
 					local f = CF.GetPlayerFaction(self.GS, self.MissionTargetPlayer)
@@ -300,7 +301,7 @@ function VoidWanderers:MissionUpdate()
 				end
 			end
 			--[[
-			if self.Time < self.missionData["reinforcementsLast"] + self.missionData["settings"]["Interval"] and self.Time % 3 == 0 then
+			if self.Time < self.missionData["reinforcementsLast"] + self.missionData["interval"] and self.Time % 3 == 0 then
 				self:MakeAlertSound()
 			end
 			]]
@@ -310,8 +311,8 @@ function VoidWanderers:MissionUpdate()
 		-- Trigger 'counterattack', send every second actor to attack player troops
 		if
 			not self.missionData["counterAttackTriggered"]
-			and self.missionData["settings"]["CounterAttackDelay"] > 0
-			and self.Time >= self.missionData["missionStartTime"] + self.missionData["settings"]["CounterAttackDelay"]
+			and self.missionData["counterAttackDelay"] > 0
+			and self.Time >= self.missionData["missionStartTime"] + self.missionData["counterAttackDelay"]
 		then
 			self.missionData["counterAttackTriggered"] = true
 			print("COUNTERATTACK!")

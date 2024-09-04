@@ -89,7 +89,6 @@ function VoidWanderers:StartActivity(isNewGame)
 	-- Read brain location data
 	if self.GS["Mode"] == "Vessel" then
 		print("VoidWanderers:Tactics:StartActivity:Vessel")
-		self:InitConsoles()
 
 		if self.GS["Location"] ~= "Station Ypsilon-2" then
 			local newLoc = Vector(48, 48):DegRotate(tonumber(self.GS["Time"]) * 0.01)
@@ -278,8 +277,9 @@ function VoidWanderers:StartActivity(isNewGame)
 			end
 		end
 
-		self:LocatePlayerBrains()
+		self:LocatePlayerBrains(isNewGame ~= false, true)
 
+		-- Create any necessary brains
 		self.createdBrainCases = {}
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) and not self.PlayersWithBrains[player + 1] then
@@ -296,6 +296,18 @@ function VoidWanderers:StartActivity(isNewGame)
 			end
 		end
 
+		if isNewGame == false then
+			local previouslyControlledActors = self.saveLoadHandler:ReadSavedStringAsTable("controlledActors")
+			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+				local actor = previouslyControlledActors[player + 1]
+				if IsActor(actor) then
+					self:SwitchToActor(actor, player, CF.PlayerTeam)
+				end
+			end
+		end
+
+		self:InitConsoles()
+
 		-- If we're on temp-location then cancel this location
 		if CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TEMPLOCATION) then
 			self.GS["Location"] = nil
@@ -309,10 +321,6 @@ function VoidWanderers:StartActivity(isNewGame)
 
 		self.Pts = CF.ReadPtsData(scene, self.SceneConfig)
 		self.MissionDeploySet = CF.GetRandomMissionPointsSet(self.Pts, "Deploy")
-
-		-- Find suitable LZs
-		local lzs = CF.GetPointsArray(self.Pts, "Deploy", self.MissionDeploySet, "PlayerLZ")
-		self.LZControlPanelPos = CF.RandomSampleOfList(lzs, Activity.MAXPLAYERCOUNT)
 
 		-- Init LZs
 		self:InitLZControlPanelUI()
@@ -393,7 +401,17 @@ function VoidWanderers:StartActivity(isNewGame)
 			end
 		end
 		
-		self:LocatePlayerBrains()
+		self:LocatePlayerBrains(isNewGame ~= false, true)
+		
+		if isNewGame == false then
+			local previouslyControlledActors = self.saveLoadHandler:ReadSavedStringAsTable("controlledActors")
+			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+				local actor = previouslyControlledActors[player + 1]
+				if IsActor(actor) then
+					self:SwitchToActor(actor, player, CF.PlayerTeam)
+				end
+			end
+		end
 
 		local fowEnabled = self.GS["FogOfWar"] == "true"
 
@@ -1291,6 +1309,7 @@ end]]--
 function VoidWanderers:UpdateActivity()
 	if not self.IsInitialized then
 		--Init mission if we're still not
+		print("Void Wanderers: Start activity via update.")
 		self:StartActivity()
 	end
 
@@ -2466,19 +2485,23 @@ end
 -----------------------------------------------------------------------------------------
 -- Find and assign player brains, for loaded games.
 -----------------------------------------------------------------------------------------
-function VoidWanderers:LocatePlayerBrains()
+function VoidWanderers:LocatePlayerBrains(swapToBrains, initPieMenu)
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
 			for actor in MovableMan.AddedActors do
 				if actor:GetNumberValue("VW_BrainOfPlayer") - 1 == player then
 					self:SetPlayerBrain(actor, player)
-					self:SwitchToActor(actor, player, CF.PlayerTeam)
+					if swapToBrains then
+						self:SwitchToActor(actor, player, CF.PlayerTeam)
+					end
 					self.PlayersWithBrains[player + 1] = true
-					actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
-					if actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
-						actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
-					else
-						actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
+					if initPieMenu then
+						actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
+						if actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
+							actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
+						else
+							actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
+						end
 					end
 					self:GetBanner(GUIBanner.RED, player):ClearText()
 				end

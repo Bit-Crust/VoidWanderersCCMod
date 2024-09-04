@@ -2,6 +2,9 @@
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:InitLZControlPanelUI()
+	-- Find suitable LZs
+	local lzs = CF.GetPointsArray(self.Pts, "Deploy", self.MissionDeploySet, "PlayerLZ")
+	self.LZControlPanelPos = CF.RandomSampleOfList(lzs, Activity.MAXPLAYERCOUNT)
 
 	self.LZControlPanelActor = {}
 	self.ControlPanelLZPressTimes = {}
@@ -55,13 +58,16 @@ function VoidWanderers:LocateLZControlPanelActors()
 	if self.BrainsAbsent then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				self.LZControlPanelActor[player + 1] = self:GetPlayerBrain(player)
+				local actor = self:GetPlayerBrain(player);
+				self.LZControlPanelActor[player + 1] = actor
+				self.LZControlPanelPos[player + 1] = actor.Pos
 			end
 		end
 	else
 		for actor in MovableMan.AddedActors do
 			if actor.PresetName == "LZ Control Panel" then
 				self.LZControlPanelActor[1] = actor
+				self.LZControlPanelPos[1] = actor.Pos
 				break
 			end
 		end

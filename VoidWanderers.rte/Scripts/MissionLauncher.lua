@@ -152,6 +152,11 @@ function VoidWanderers:OnSave()
 	if self.deployment then
 		self.saveLoadHandler:SaveTableAsString("deploymentData", self.deployment)
 	end
+	local controlledActors = { }
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		table.insert(controlledActors, self:GetControlledActor(player))
+	end
+	self.saveLoadHandler:SaveTableAsString("controlledActors", controlledActors)
 end
 -----------------------------------------------------------------------------------------
 --

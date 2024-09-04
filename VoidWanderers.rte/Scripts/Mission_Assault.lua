@@ -7,6 +7,7 @@
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionCreate(isNewGame)
+	print("ASSAULT " .. (isNewGame == false and "LOAD" or "CREATE"))
 	self.missionData = {}
 
 	if isNewGame == false then
