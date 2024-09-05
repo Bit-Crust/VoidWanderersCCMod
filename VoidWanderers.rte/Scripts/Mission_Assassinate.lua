@@ -58,20 +58,20 @@ function VoidWanderers:MissionCreate(isNewGame)
 		self.missionData = setts[self.MissionDifficulty]
 		self.missionData["missionStartTime"] = self.Time
 
-		self.missionData["pointSetIndex"] = CF.GetRandomMissionPointsSet(self.Pts, "Enemy")
+		local pointSetIndex = CF.GetRandomMissionPointsSet(self.Pts, "Enemy")
 
 		-- Use generic enemy set
 		self:DeployGenericMissionEnemies(
-			self.missionData["pointSetIndex"],
+			pointSetIndex,
 			"Enemy",
 			self.MissionTargetPlayer,
 			CF.CPUTeam,
 			self.missionData["spawnRate"]
 		)
 		-- Get LZs
-		self.missionData["landingZones"] = CF.GetPointsArray(self.Pts, "Enemy", self.missionData["pointSetIndex"], "LZ")
+		self.missionData["landingZones"] = CF.GetPointsArray(self.Pts, "Enemy", pointSetIndex, "LZ")
 		-- Get base
-		self:ObtainBaseBoxes("Enemy", self.missionData["pointSetIndex"])
+		self:ObtainBaseBoxes("Enemy", pointSetIndex)
 		-- Deploy mines
 		self:DeployInfantryMines(
 			CF.CPUTeam,
@@ -83,7 +83,7 @@ function VoidWanderers:MissionCreate(isNewGame)
 		)
 
 		-- Spawn commander
-		local cmndrpts = CF.GetPointsArray(self.Pts, "Assassinate", self.missionData["pointSetIndex"], "Commander")
+		local cmndrpts = CF.GetPointsArray(self.Pts, "Assassinate", pointSetIndex, "Commander")
 		local cpos = cmndrpts[math.random(#cmndrpts)]
 
 		self.missionData["brain"] = CF.MakeRPGBrain(self.GS, self.MissionTargetPlayer, CF.CPUTeam, cpos, math.floor(self.MissionDifficulty / 3), true)

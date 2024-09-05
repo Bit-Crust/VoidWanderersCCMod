@@ -794,17 +794,6 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
-	if self.MissionSettings and orbitedCraft:HasObjectInGroup("MissionBrain") then
-		self.MissionSettings["Evacuated"] = true
-	end
-	if orbitedCraft.Team == CF.CPUTeam and self.MissionSettings and self.MissionSettings["EnemyDropShips"] then
-		self.MissionSettings["EnemyDropShips"] = self.MissionSettings["EnemyDropShips"] + 1
-	end
-end
------------------------------------------------------------------------------------------
---
------------------------------------------------------------------------------------------
 function VoidWanderers:DrawRankIcon(preset, pos, prestige)
 	if preset then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -2454,6 +2443,12 @@ function VoidWanderers:UpdateActivity()
 			else
 				actor:AddScript("VoidWanderers.rte/Scripts/Carry.lua")
 			end
+		end
+		-- Activate any added brains
+		if actor:NumberValueExists("VW_PreassignedSkills") then
+			actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
+			actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
+			actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
 		end
 		-- Space out spawned-in craft
 		if actor.Pos.Y <= 0 then

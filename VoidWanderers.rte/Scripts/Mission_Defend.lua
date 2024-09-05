@@ -7,96 +7,107 @@
 --				there are enough MOIDs to start assault
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionCreate()
-	-- Mission difficulty settings
-	local setts
+function VoidWanderers:MissionCreate(isNewGame)
+	print("DEFEND " .. (isNewGame == false and "LOAD" or "CREATE"))
+	self.missionData = {}
 
-	setts = {}
-	setts[1] = {}
-	setts[1]["SpawnRate"] = 0.40
-	setts[1]["EnemyDropShips"] = 3
-	setts[1]["Interval"] = 28
-	setts[1]["TroopCount"] = 2
+	if isNewGame == false then
+		self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData")
+	else
+		local setts
 
-	setts[2] = {}
-	setts[2]["SpawnRate"] = 0.40
-	setts[2]["EnemyDropShips"] = 3
-	setts[2]["Interval"] = 26
-	setts[2]["TroopCount"] = 2
+		setts = {}
+		setts[1] = {}
+		setts[1]["spawnRate"] = 0.40
+		setts[1]["enemyDropShips"] = 3
+		setts[1]["interval"] = 28
+		setts[1]["troopCount"] = 2
 
-	setts[3] = {}
-	setts[3]["SpawnRate"] = 0.35
-	setts[3]["EnemyDropShips"] = 4
-	setts[3]["Interval"] = 24
-	setts[3]["TroopCount"] = 2
+		setts[2] = {}
+		setts[2]["spawnRate"] = 0.40
+		setts[2]["enemyDropShips"] = 3
+		setts[2]["interval"] = 26
+		setts[2]["troopCount"] = 2
 
-	setts[4] = {}
-	setts[4]["SpawnRate"] = 0.35
-	setts[4]["EnemyDropShips"] = 4
-	setts[4]["Interval"] = 22
-	setts[4]["TroopCount"] = 3
+		setts[3] = {}
+		setts[3]["spawnRate"] = 0.35
+		setts[3]["enemyDropShips"] = 4
+		setts[3]["interval"] = 24
+		setts[3]["troopCount"] = 2
 
-	setts[5] = {}
-	setts[5]["SpawnRate"] = 0.30
-	setts[5]["EnemyDropShips"] = 4
-	setts[5]["Interval"] = 21
-	setts[5]["TroopCount"] = 3
+		setts[4] = {}
+		setts[4]["spawnRate"] = 0.35
+		setts[4]["enemyDropShips"] = 4
+		setts[4]["interval"] = 22
+		setts[4]["troopCount"] = 3
 
-	setts[6] = {}
-	setts[6]["SpawnRate"] = 0.30
-	setts[6]["EnemyDropShips"] = 5
-	setts[6]["Interval"] = 20
-	setts[6]["TroopCount"] = 3
+		setts[5] = {}
+		setts[5]["spawnRate"] = 0.30
+		setts[5]["enemyDropShips"] = 4
+		setts[5]["interval"] = 21
+		setts[5]["troopCount"] = 3
 
-	self.MissionSettings = setts[self.MissionDifficulty]
-	self.MissionStart = self.Time
+		setts[6] = {}
+		setts[6]["spawnRate"] = 0.30
+		setts[6]["enemyDropShips"] = 5
+		setts[6]["interval"] = 20
+		setts[6]["troopCount"] = 3
 
-	-- We're going to alter ally presets, ally units may be tougher or weaker then enemy units
-	CF.CreateAIUnitPresets(
-		self.GS,
-		self.MissionSourcePlayer,
-		self.GS["Player" .. self.MissionSourcePlayer .. "Reputation"] * 0.5
-	)
+		self.missionData = setts[self.MissionDifficulty]
+		self.missionData["missionStartTime"] = self.Time
 
-	-- Remove all non-player doors, because allied units will be deployed inside CPU bases
-	if CF.LocationRemoveDoors[self.GS["Location"]] ~= nil and CF.LocationRemoveDoors[self.GS["Location"]] == true then
-		for actor in MovableMan.Actors do
-			if actor.ClassName == "ADoor" then
-				actor.Team = CF.PlayerTeam
+		-- Use generic enemy set
+		local set = CF.GetRandomMissionPointsSet(self.Pts, "Enemy")
+		-- Get LZs
+		self.missionData["landingZones"] = CF.GetPointsArray(self.Pts, "Enemy", set, "LZ")
+
+		-- We're going to alter ally presets, ally units may be tougher or weaker then enemy units
+		CF.CreateAIUnitPresets(
+			self.GS,
+			self.MissionSourcePlayer,
+			self.GS["Player" .. self.MissionSourcePlayer .. "Reputation"] * 0.5
+		)
+
+		-- Get base
+		self:ObtainBaseBoxes("Enemy", set)
+
+		-- Remove all non-player doors, because allied units will be deployed inside CPU bases
+		if CF.LocationRemoveDoors[self.GS["Location"]] ~= nil and CF.LocationRemoveDoors[self.GS["Location"]] == true then
+			for actor in MovableMan.Actors do
+				if actor.ClassName == "ADoor" then
+					actor.Team = CF.PlayerTeam
+				end
 			end
 		end
+		self:DeployGenericMissionEnemies(
+			set,
+			"Enemy",
+			self.MissionSourcePlayer,
+			CF.PlayerTeam,
+			self.missionData["spawnRate"]
+		)
+
+		-- DEBUG Clear deployment table to disable ally spawn
+		--self.SpawnTable = nil
+
+		self.missionData["stage"] = CF.MissionStages.ACTIVE
+
+		self.missionData["reinforcementsTriggered"] = false
+		self.missionData["reinforcementsNext"] = self.Time + math.ceil(self.missionData["interval"] * 0.5)
+		--[[self.MissionShootParticleCannon = false
+		self.MissionParticleCannonLastShot = self.Time
+		self.MissionParticleCannonInterval = 6
+		self.SuperWeaponInitialized = false]]
+
+		self.missionData["baseEffectTimer"] = Timer()
+		self.missionData["baseEffectTimer"]:Reset()
 	end
-
-	-- Use generic enemy set
-	local set = CF.GetRandomMissionPointsSet(self.Pts, "Enemy")
-	self:DeployGenericMissionEnemies(
-		set,
-		"Enemy",
-		self.MissionSourcePlayer,
-		CF.PlayerTeam,
-		self.MissionSettings["SpawnRate"]
-	)
-
-	-- DEBUG Clear deployment table to disable ally spawn
-	--self.SpawnTable = nil
-
-	self.MissionStage = CF.MissionStages.ACTIVE
-
-	self.MissionReinforcementsTriggered = false
-	self.MissionNextReinforcements = self.Time + math.ceil(self.MissionSettings["Interval"] * 0.5)
-	self.MissionShootParticleCannon = false
-	self.MissionParticleCannonLastShot = self.Time
-	self.MissionParticleCannonInterval = 6
-	self.SuperWeaponInitialized = false
-
-	self.BaseEffectTimer = Timer()
-	self.BaseEffectTimer:Reset()
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
-	if self.MissionStage == CF.MissionStages.ACTIVE then
+	if self.missionData["stage"] == CF.MissionStages.ACTIVE then
 		local friends = 0
 		local enemies = 0
 
@@ -124,62 +135,62 @@ function VoidWanderers:MissionUpdate()
 		end
 
 		-- As soon as there's at least one defender ready - start assault
-		if friends > 0 and self.MissionReinforcementsTriggered == false then
-			self.MissionReinforcementsTriggered = true
-			self.MissionNextReinforcements = self.Time + 10
+		if friends > 0 and self.missionData["reinforcementsTriggered"] == false then
+			self.missionData["reinforcementsTriggered"] = true
+			self.missionData["reinforcementsNext"] = self.Time + 10
 		end
 
-		if not self.MissionReinforcementsTriggered or friends < 2 then
+		if not self.missionData["reinforcementsTriggered"] or friends < 2 then
 			-- If nobody was spawned at the base then show player where to go and what to defend
 			for i = 1, #self.missionData["missionBase"] do
 				self:AddObjectivePoint("DEFEND BASE", self.missionData["missionBase"][i].Center, CF.PlayerTeam, GameActivity.ARROWDOWN)
 			end
 
-			if self.BaseEffectTimer:IsPastSimMS(25) then
+			if self.missionData["baseEffectTimer"]:IsPastSimMS(25) then
 				-- Create particle
 				for i = 1, #self.missionData["missionBase"] do
 					local p = CreateMOSParticle("Tiny Static Blue Glow", self.ModuleName)
 					p.Pos = self.missionData["missionBase"][i]:GetRandomPoint()
 					MovableMan:AddParticle(p)
 				end
-				self.BaseEffectTimer:Reset()
+				self.missionData["baseEffectTimer"]:Reset()
 			end
 		end --]]--
 
-		self.MissionStatus = "Dropships: " .. math.ceil(self.MissionSettings["EnemyDropShips"])
+		self.MissionStatus = "Dropships: " .. math.ceil(self.missionData["enemyDropShips"])
 
 		-- Start checking for defeat only when all units were spawned
-		if self.SpawnTable == nil and friends == 0 and self.MissionReinforcementsTriggered then
-			self.MissionStage = CF.MissionStages.FAILED
-			self.MissionStatusShowStart = self.Time
+		if self.SpawnTable == nil and friends == 0 and self.missionData["reinforcementsTriggered"] then
+			self.missionData["stage"] = CF.MissionStages.FAILED
+			self.missionData["statusShowStart"] = self.Time
 
 			-- Destroy additional functions
-			self.MissionDefendFireSuperWeapon = nil
-			self.MissionDefendIsTargetReachable = nil
+			-- self.MissionDefendFireSuperWeapon = nil
+			-- self.MissionDefendIsTargetReachable = nil
 		end
 
 		-- Check for victory
-		if enemies == 0 and self.MissionSettings["EnemyDropShips"] <= 0 then
+		if enemies == 0 and self.missionData["enemyDropShips"] <= 0 then
 			self:GiveMissionRewards()
-			self.MissionStage = CF.MissionStages.COMPLETED
-			self.MissionStatusShowStart = self.Time
+			self.missionData["stage"] = CF.MissionStages.COMPLETED
+			self.missionData["statusShowStart"] = self.Time
 
 			-- Destroy additional functions
-			self.MissionDefendFireSuperWeapon = nil
-			self.MissionDefendIsTargetReachable = nil
+			-- self.MissionDefendFireSuperWeapon = nil
+			-- self.MissionDefendIsTargetReachable = nil
 		end
 
 		-- Send reinforcements if available
 		if
-			self.MissionReinforcementsTriggered
-			and #self.MissionLZs > 0
-			and self.MissionSettings["EnemyDropShips"] > 0
-			and self.Time >= self.MissionNextReinforcements
+			self.missionData["reinforcementsTriggered"]
+			and #self.missionData["landingZones"] > 0
+			and self.missionData["enemyDropShips"] > 0
+			and self.Time >= self.missionData["reinforcementsNext"]
 		then
 			if MovableMan:GetMOIDCount() < CF.MOIDLimit then
 				local count = math.random(
-					math.ceil(self.MissionSettings["TroopCount"] * 0.5),
-					self.MissionSettings["TroopCount"]
+					math.ceil(self.missionData["troopCount"] * 0.5),
+					self.missionData["troopCount"]
 				)
 				local f = CF.GetPlayerFaction(self.GS, self.MissionTargetPlayer)
 				local ship = CF.MakeActor(CF.Crafts[f], CF.CraftClasses[f], CF.CraftModules[f])
@@ -197,50 +208,50 @@ function VoidWanderers:MissionUpdate()
 						end
 					end
 					ship.Team = CF.CPUTeam
-					ship.Pos = Vector(self.MissionLZs[math.random(#self.MissionLZs)].X, -10)
+					ship.Pos = Vector(self.missionData["landingZones"][math.random(#self.missionData["landingZones"])].X, -10)
 					ship.AIMode = Actor.AIMODE_DELIVER
 					MovableMan:AddActor(ship)
 				end
 				-- Remove one and a half drop ships on every spawn so that the enemy eventually runs out
-				self.MissionSettings["EnemyDropShips"] = self.MissionSettings["EnemyDropShips"] - 1.5
+				self.missionData["enemyDropShips"] = self.missionData["enemyDropShips"] - 1.5
 			end
-			self.MissionNextReinforcements = self.Time
-				+ self.MissionSettings["Interval"]
+			self.missionData["reinforcementsNext"] = self.Time
+				+ self.missionData["interval"]
 				+ math.ceil(enemies / math.sqrt(math.max(friends, 1)))
 		end
 
 		-- Use particle cannon to destroy some allies preventing enemy to deploy
 		-- This can never happen
-		if enemies == 0 and MovableMan:GetMOIDCount() >= CF.MOIDLimit then
+		--[[if enemies == 0 and MovableMan:GetMOIDCount() >= CF.MOIDLimit then
 			if self.Time == self.MissionParticleCannonLastShot + self.MissionParticleCannonInterval then
 				self.MissionParticleCannonLastShot = self.Time
 				self:MissionDefendFireSuperWeapon(true, CF.CPUTeam, CF.PlayerTeam)
 			else
 				self:MissionDefendFireSuperWeapon(false, CF.CPUTeam, CF.PlayerTeam)
 			end
-		end
-	elseif self.MissionStage == CF.MissionStages.FAILED then
+		end]]
+	elseif self.missionData["stage"] == CF.MissionStages.FAILED then
 		self.MissionStatus = "MISSION FAILED"
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF.MusicTypes.DEFEAT)
 			self.MissionEndMusicPlayed = true
 		end
 
-		if self.Time < self.MissionStatusShowStart + CF.MissionResultShowInterval then
+		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				local screen = self:ScreenOfPlayer(player);
 				FrameMan:ClearScreenText(screen)
 				FrameMan:SetScreenText(self.MissionStatus, screen, 0, 1000, true)
 			end
 		end
-	elseif self.MissionStage == CF.MissionStages.COMPLETED then
+	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
 		self.MissionStatus = "MISSION COMPLETED"
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF.MusicTypes.VICTORY)
 			self.MissionEndMusicPlayed = true
 		end
 
-		if self.Time < self.MissionStatusShowStart + CF.MissionResultShowInterval then
+		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				local screen = self:ScreenOfPlayer(player);
 				FrameMan:ClearScreenText(screen)
@@ -252,7 +263,7 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionDefendFireSuperWeapon(active, ownerteam, enemyteam)
+--[[function VoidWanderers:MissionDefendFireSuperWeapon(active, ownerteam, enemyteam)
 	-- Init superweapon variables
 	if self.SuperWeaponInitialized == false then
 		self.SuperWeaponTimer = Timer()
@@ -336,11 +347,11 @@ function VoidWanderers:MissionDefendFireSuperWeapon(active, ownerteam, enemyteam
 			print("NO TARGETS, ABORTING")
 		end
 	end
-end
+end]]
 -----------------------------------------------------------------------------------------
 --	Returns true if target can be reached by beam on surface
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionDefendIsTargetReachable(target)
+--[[function VoidWanderers:MissionDefendIsTargetReachable(target)
 	if MovableMan:IsActor(target) then
 		local shotpos = SceneMan:MovePointToGround(Vector(target.Pos.X, 0), 20, 3)
 		if SceneMan:ShortestDistance(target.Pos, shotpos, true):MagnitudeIsLessThan(30) then
@@ -348,7 +359,7 @@ function VoidWanderers:MissionDefendIsTargetReachable(target)
 		end
 	end
 	return false
-end
+end]]
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------

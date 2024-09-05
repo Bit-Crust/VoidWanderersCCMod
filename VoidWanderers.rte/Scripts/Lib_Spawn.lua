@@ -55,11 +55,6 @@ CF.MakeRPGBrain = function(c, p, team, pos, level, giveweapons)
 		brain:SetNumberValue("VW_SplitterSkill", skillset[i])
 		i = i + 1
 		brain:SetNumberValue("VW_QuantumSkill", skillset[i])
-		
-		-- Make the brain put it's skills to work, and give it the correct pie slice for consistency
-		brain:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
-		brain:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
-		brain.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
 	end
 
 	return brain
