@@ -7,87 +7,73 @@
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionCreate(isNewGame)
-	print("ASSAULT " .. (isNewGame == false and "LOAD" or "CREATE"))
-	self.missionData = {}
-
-	if isNewGame == false then
-		self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData")
-	else
-		-- Mission difficulty settings
-		local setts = {}
-
-		setts[1] = {}
-		setts[1]["spawnRate"] = 0.20
-		setts[1]["reinforcements"] = 0
-		setts[1]["interval"] = 10
-		setts[1]["counterAttackDelay"] = 0
-
-		setts[2] = {}
-		setts[2]["spawnRate"] = 0.35
-		setts[2]["reinforcements"] = 0
-		setts[2]["interval"] = 10
-		setts[2]["counterAttackDelay"] = 0
-
-		setts[3] = {}
-		setts[3]["spawnRate"] = 0.50
-		setts[3]["reinforcements"] = 1
-		setts[3]["interval"] = 20
-		setts[3]["counterAttackDelay"] = 300
-
-		setts[4] = {}
-		setts[4]["spawnRate"] = 0.65
-		setts[4]["reinforcements"] = 2
-		setts[4]["interval"] = 26
-		setts[4]["counterAttackDelay"] = 260
-
-		setts[5] = {}
-		setts[5]["spawnRate"] = 0.80
-		setts[5]["reinforcements"] = 3
-		setts[5]["interval"] = 24
-		setts[5]["counterAttackDelay"] = 220
-
-		setts[6] = {}
-		setts[6]["spawnRate"] = 0.90
-		setts[6]["reinforcements"] = 4
-		setts[6]["interval"] = 22
-		setts[6]["counterAttackDelay"] = 180
-
-		self.missionData = setts[self.MissionDifficulty]
-		self.missionData["missionStartTime"] = self.Time
-
-		-- Use generic enemy set
-		local set = CF.GetRandomMissionPointsSet(self.Pts, "Enemy")
+	print("ASSAULT CREATE")
 	
-		self:DeployGenericMissionEnemies(
-			set,
-			"Enemy",
-			self.MissionTargetPlayer,
-			CF.CPUTeam,
-			self.missionData["spawnRate"]
-		)
-		-- Get LZs
-		self.missionData["landingZones"] = CF.GetPointsArray(self.Pts, "Enemy", set, "LZ")
-		-- Get base
-		self:ObtainBaseBoxes("Enemy", set)
-		-- Deploy mines
-		self:DeployInfantryMines(
-			CF.CPUTeam,
-			math.min(
-				-tonumber(self.GS["Player" .. self.MissionTargetPlayer .. "Reputation"])
-					/ (CF.MaxDifficulty * CF.ReputationPerDifficulty),
-				1
-			) - 0.75
-		)
-	
-		self.missionData["craft"] = nil
-		self.missionData["craftCheckTime"] = self.Time
+	-- Mission difficulty settings
+	local diff = self.missionData["difficulty"]
 
-		self.missionData["stage"] = CF.MissionStages.ACTIVE
-
-		self.missionData["reinforcementsTriggered"] = false
-		self.missionData["reinforcementsLast"] = 0
-		self.missionData["counterAttackTriggered"] = false
+	if diff == 1 then
+		self.missionData["spawnRate"] = 0.20
+		self.missionData["reinforcements"] = 0
+		self.missionData["interval"] = 10
+		self.missionData["counterAttackDelay"] = 0
+	elseif diff == 2 then
+		self.missionData["spawnRate"] = 0.35
+		self.missionData["reinforcements"] = 0
+		self.missionData["interval"] = 10
+		self.missionData["counterAttackDelay"] = 0
+	elseif diff == 3 then
+		self.missionData["spawnRate"] = 0.50
+		self.missionData["reinforcements"] = 1
+		self.missionData["interval"] = 20
+		self.missionData["counterAttackDelay"] = 300
+	elseif diff == 4 then
+		self.missionData["spawnRate"] = 0.65
+		self.missionData["reinforcements"] = 2
+		self.missionData["interval"] = 26
+		self.missionData["counterAttackDelay"] = 260
+	elseif diff == 5 then
+		self.missionData["spawnRate"] = 0.80
+		self.missionData["reinforcements"] = 3
+		self.missionData["interval"] = 24
+		self.missionData["counterAttackDelay"] = 220
+	elseif diff == 6 then
+		self.missionData["spawnRate"] = 0.90
+		self.missionData["reinforcements"] = 4
+		self.missionData["interval"] = 22
+		self.missionData["counterAttackDelay"] = 180
 	end
+
+	-- Use generic enemy set
+	local set = CF.GetRandomMissionPointsSet(self.Pts, "Enemy")
+	
+	self:DeployGenericMissionEnemies(
+		set,
+		"Enemy",
+		self.missionData["missionTarget"],
+		CF.CPUTeam,
+		self.missionData["spawnRate"]
+	)
+	-- Get LZs
+	self.missionData["landingZones"] = CF.GetPointsArray(self.Pts, "Enemy", set, "LZ")
+	-- Get base
+	self:ObtainBaseBoxes("Enemy", set)
+	-- Deploy mines
+	self:DeployInfantryMines(
+		CF.CPUTeam,
+		math.min(
+			-tonumber(self.GS["Player" .. self.missionData["missionTarget"] .. "Reputation"])
+				/ (CF.MaxDifficulty * CF.ReputationPerDifficulty),
+			1
+		) - 0.75
+	)
+	
+	self.missionData["craft"] = nil
+	self.missionData["craftCheckTime"] = self.Time
+
+	self.missionData["reinforcementsTriggered"] = false
+	self.missionData["reinforcementsLast"] = 0
+	self.missionData["counterAttackTriggered"] = false
 end
 -----------------------------------------------------------------------------------------
 --
@@ -123,7 +109,7 @@ function VoidWanderers:MissionUpdate()
 			end
 		end
 
-		self.MissionStatus = "Enemies left: " .. tostring(count)
+		self.missionData["missionStatus"] = "Enemies left: " .. tostring(count)
 
 		-- Start checking for victory only when all units were spawned
 		if self.SpawnTable == nil and count == 0 and not MovableMan.AddedActors() then
@@ -149,11 +135,11 @@ function VoidWanderers:MissionUpdate()
 				self.missionData["reinforcements"] = self.missionData["reinforcements"] - 1
 
 				local count = math.random(2)
-				local f = CF.GetPlayerFaction(self.GS, self.MissionTargetPlayer)
+				local f = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])
 				local ship = CF.MakeActor(CF.Crafts[f], CF.CraftClasses[f], CF.CraftModules[f])
 				if ship then
 					for i = 1, count do
-						local actor = CF.SpawnAIUnit(self.GS, self.MissionTargetPlayer, CF.CPUTeam, nil, nil)
+						local actor = CF.SpawnAIUnit(self.GS, self.missionData["missionTarget"], CF.CPUTeam, nil, nil)
 						if actor then
 							ship:AddInventoryItem(actor)
 						end
@@ -192,12 +178,12 @@ function VoidWanderers:MissionUpdate()
 			self:StartMusic(CF.MusicTypes.VICTORY)
 			self.MissionEndMusicPlayed = true
 		end
-		self.MissionStatus = "MISSION COMPLETED"
+		self.missionData["missionStatus"] = "MISSION COMPLETED"
 
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
-				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
+				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)
 			end
 		end
 	end --]]--

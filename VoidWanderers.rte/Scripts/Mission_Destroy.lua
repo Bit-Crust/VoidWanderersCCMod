@@ -6,107 +6,91 @@
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionCreate(isNewGame)
-	print("DESTROY " .. (isNewGame == false and "LOAD" or "CREATE"))
-	self.missionData = {}
+	print("DESTROY CREATE")
+	
+	-- Mission difficulty settings
+	local diff = self.missionData["difficulty"]
 
-	if isNewGame == false then
-		self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData")
-	else
-		-- Mission difficulty settings
-		local setts
-
-		setts = {}
-		setts[1] = {}
-		setts[1]["deviceCount"] = 3
-		setts[1]["spawnRate"] = 0.50
-		setts[1]["reinforcements"] = 0
-		setts[1]["interval"] = 0
-
-		setts[2] = {}
-		setts[2]["deviceCount"] = 4
-		setts[2]["spawnRate"] = 0.60
-		setts[2]["reinforcements"] = 0
-		setts[2]["interval"] = 0
-
-		setts[3] = {}
-		setts[3]["deviceCount"] = 5
-		setts[3]["spawnRate"] = 0.70
-		setts[3]["reinforcements"] = 0
-		setts[3]["interval"] = 0
-
-		setts[4] = {}
-		setts[4]["deviceCount"] = 6
-		setts[4]["spawnRate"] = 0.80
-		setts[4]["reinforcements"] = 1
-		setts[4]["interval"] = 30
-
-		setts[5] = {}
-		setts[5]["deviceCount"] = 7
-		setts[5]["spawnRate"] = 0.90
-		setts[5]["reinforcements"] = 2
-		setts[5]["interval"] = 30
-
-		setts[6] = {}
-		setts[6]["deviceCount"] = 8
-		setts[6]["spawnRate"] = 1
-		setts[6]["reinforcements"] = 3
-		setts[6]["interval"] = 30
-
-		self.missionData = setts[self.MissionDifficulty]
-		self.missionData["missionStartTime"] = self.Time
-
-		-- Spawn enemies
-		local enmset = CF.GetRandomMissionPointsSet(self.Pts, "Deploy")
-		local enm = CF.GetPointsArray(self.Pts, "Deploy", enmset, "AmbientEnemy")
-		local enmpos = CF.RandomSampleOfList(enm, math.floor(self.missionData["spawnRate"] * #enm))
-		self.missionData["enemyLandingZones"] = CF.GetPointsArray(self.Pts, "Deploy", enmset, "EnemyLZ")
-
-		for i = 1, #enmpos do
-			local pre = math.random(CF.PresetTypes.ENGINEER)
-			local nw = {}
-			nw["Preset"] = pre
-			nw["Team"] = CF.CPUTeam
-			nw["Player"] = self.MissionTargetPlayer
-			nw["AIMode"] = Actor.AIMODE_SENTRY
-			nw["Pos"] = enmpos[i]
-
-			table.insert(self.SpawnTable, nw)
-		end
-
-		local amount = math.ceil(CF.AmbientEnemyRate * #enm)
-		--print ("Crates: "..amount)
-		local enmpos = CF.RandomSampleOfList(enm, amount)
-
-		-- Select set
-		local set = CF.GetRandomMissionPointsSet(self.Pts, "Zombies")
-
-		-- Get LZs
-		local missionDevicePos = CF.GetPointsArray(self.Pts, "Zombies", set, "Vat")
-		if self.missionData["deviceCount"] < 8 then
-			missionDevicePos = CF.RandomSampleOfList(missionDevicePos, self.missionData["deviceCount"])
-		end
-
-		self.missionData["devices"] = {}
-		self.missionData["alertsTrigged"] = {}
-
-		-- Spawn vats
-		for i = 1, self.missionData["deviceCount"] do
-			--self.missionData["devices"][i] = CreateActor("Factory Actor", self.ModuleName)
-			--self.missionData["devices"][i].Pos = missionDevicePos[i] + Vector(0,42)
-			self.missionData["devices"][i] = CreateActor("Computer Actor", self.ModuleName)
-			self.missionData["devices"][i].Pos = missionDevicePos[i] + Vector(0, 30)
-			self.missionData["devices"][i].Team = CF.CPUTeam
-			MovableMan:AddActor(self.missionData["devices"][i])
-			self.missionData["alertsTrigged"][i] = false
-		end
-
-		self.missionData["stage"] = CF.MissionStages.ACTIVE
-		self.missionData["reinforcementsTriggered"] = false
-		self.missionData["reinforcementsLast"] = 0
-
-		self.missionData["alertRange"] = 450
-		self.missionData["alertTriggered"] = false
+	if diff == 1 then
+		self.missionData["deviceCount"] = 3
+		self.missionData["spawnRate"] = 0.50
+		self.missionData["reinforcements"] = 0
+		self.missionData["interval"] = 0
+	elseif diff == 2 then
+		self.missionData["deviceCount"] = 4
+		self.missionData["spawnRate"] = 0.60
+		self.missionData["reinforcements"] = 0
+		self.missionData["interval"] = 0
+	elseif diff == 3 then
+		self.missionData["deviceCount"] = 5
+		self.missionData["spawnRate"] = 0.70
+		self.missionData["reinforcements"] = 0
+		self.missionData["interval"] = 0
+	elseif diff == 4 then
+		self.missionData["deviceCount"] = 6
+		self.missionData["spawnRate"] = 0.80
+		self.missionData["reinforcements"] = 1
+		self.missionData["interval"] = 30
+	elseif diff == 5 then
+		self.missionData["deviceCount"] = 7
+		self.missionData["spawnRate"] = 0.90
+		self.missionData["reinforcements"] = 2
+		self.missionData["interval"] = 30
+	elseif diff == 6 then
+		self.missionData["deviceCount"] = 8
+		self.missionData["spawnRate"] = 1
+		self.missionData["reinforcements"] = 3
+		self.missionData["interval"] = 30
 	end
+
+	-- Spawn enemies
+	local enmset = CF.GetRandomMissionPointsSet(self.Pts, "Deploy")
+	local enm = CF.GetPointsArray(self.Pts, "Deploy", enmset, "AmbientEnemy")
+	local enmpos = CF.RandomSampleOfList(enm, math.floor(self.missionData["spawnRate"] * #enm))
+	self.missionData["enemyLandingZones"] = CF.GetPointsArray(self.Pts, "Deploy", enmset, "EnemyLZ")
+
+	for i = 1, #enmpos do
+		local pre = math.random(CF.PresetTypes.ENGINEER)
+		local nw = {}
+		nw["Preset"] = pre
+		nw["Team"] = CF.CPUTeam
+		nw["Player"] = self.missionData["missionTarget"]
+		nw["AIMode"] = Actor.AIMODE_SENTRY
+		nw["Pos"] = enmpos[i]
+
+		table.insert(self.SpawnTable, nw)
+	end
+
+	local amount = math.ceil(CF.AmbientEnemyRate * #enm)
+	--print ("Crates: "..amount)
+	local enmpos = CF.RandomSampleOfList(enm, amount)
+
+	-- Select set
+	local set = CF.GetRandomMissionPointsSet(self.Pts, "Zombies")
+
+	-- Get LZs
+	local missionDevicePos = CF.GetPointsArray(self.Pts, "Zombies", set, "Vat")
+	missionDevicePos = CF.RandomSampleOfList(missionDevicePos, self.missionData["deviceCount"])
+
+	self.missionData["devices"] = {}
+	self.missionData["alertsTrigged"] = {}
+
+	-- Spawn vats
+	for i = 1, self.missionData["deviceCount"] do
+		--self.missionData["devices"][i] = CreateActor("Factory Actor", self.ModuleName)
+		--self.missionData["devices"][i].Pos = missionDevicePos[i] + Vector(0,42)
+		self.missionData["devices"][i] = CreateActor("Computer Actor", self.ModuleName)
+		self.missionData["devices"][i].Pos = missionDevicePos[i] + Vector(0, 30)
+		self.missionData["devices"][i].Team = CF.CPUTeam
+		MovableMan:AddActor(self.missionData["devices"][i])
+		self.missionData["alertsTrigged"][i] = false
+	end
+
+	self.missionData["reinforcementsTriggered"] = false
+	self.missionData["reinforcementsLast"] = 0
+
+	self.missionData["alertRange"] = 450
+	self.missionData["alertTriggered"] = false
 end
 -----------------------------------------------------------------------------------------
 --
@@ -161,7 +145,7 @@ function VoidWanderers:MissionUpdate()
 			end
 		end
 
-		self.MissionStatus = "DEVICES: " .. vats
+		self.missionData["missionStatus"] = "DEVICES: " .. vats
 
 		if
 			self.missionData["reinforcementsTriggered"]
@@ -174,11 +158,11 @@ function VoidWanderers:MissionUpdate()
 				self.missionData["reinforcements"] = self.missionData["reinforcements"] - 1
 
 				local count = 3
-				local f = CF.GetPlayerFaction(self.GS, self.MissionTargetPlayer)
+				local f = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])
 				local ship = CF.MakeActor(CF.Crafts[f], CF.CraftClasses[f], CF.CraftModules[f])
 				if ship then
 					for i = 1, count do
-						local actor = CF.SpawnAIUnit(self.GS, self.MissionTargetPlayer, CF.CPUTeam, nil, nil)
+						local actor = CF.SpawnAIUnit(self.GS, self.missionData["missionTarget"], CF.CPUTeam, nil, nil)
 						if actor then
 							ship:AddInventoryItem(actor)
 						end
@@ -200,7 +184,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["statusShowStart"] = self.Time
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
-		self.MissionStatus = "MISSION COMPLETED"
+		self.missionData["missionStatus"] = "MISSION COMPLETED"
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF.MusicTypes.VICTORY)
 			self.MissionEndMusicPlayed = true
@@ -209,7 +193,7 @@ function VoidWanderers:MissionUpdate()
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
-				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
+				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)
 			end
 		end
 	end

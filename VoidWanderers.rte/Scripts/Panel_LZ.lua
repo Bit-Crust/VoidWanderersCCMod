@@ -487,6 +487,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 
 						self:ClearDeployed()
 						self.GS["MissionReturningTroops"] = 1
+						self.deployedActors = {}
 
 						for _, actor in pairs(actors) do
 							local assignable = true
@@ -530,6 +531,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 											self.GS["Deployed" .. i .. "Item" .. j .. "Module"] = mdl[j]
 										end
 								
+										self.deployedActors[i] = MovableMan:RemoveActor(actor)
 										self.GS["MissionReturningTroops"] = tonumber(self.GS["MissionReturningTroops"]) + 1
 									end
 								end
@@ -548,9 +550,9 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					self.ControlPanelLZPressTimes[player + 1] = nil
 				end
 
-				if self.MissionStatus ~= nil then
-					local l = CF.GetStringPixelWidth(self.MissionStatus)
-					CF.DrawString(self.MissionStatus, pos + Vector(-l / 2, 16), 130, 25)
+				if self.missionData["missionStatus"] ~= nil then
+					local l = CF.GetStringPixelWidth(self.missionData["missionStatus"])
+					CF.DrawString(self.missionData["missionStatus"], pos + Vector(-l / 2, 16), 130, 25)
 				end
 			elseif self.BombsControlPanelSelectedModes[selectedpanel] == self.BombsControlPanelModes.BOMB then
 				if not self.BombsControlPanelInBombMode then
@@ -706,11 +708,10 @@ function VoidWanderers:ProcessLZControlPanelUI()
 	end
 
 	if self.GS["DeserializeDeployedTeam"] == "True" then
-		if self.MissionAvailable and not self.missionData["stage"] == CF.MissionStages.COMPLETED then
-			self:GiveMissionPenalties()
-		end
-
-		if self.MissionAvailable then
+		if self.missionData["missionAvailable"] then
+			if self.missionData["stage"] ~= CF.MissionStages.COMPLETED then
+				self:GiveMissionPenalties()
+			end
 			-- Generate new missions
 			CF.GenerateRandomMissions(self.GS)
 		end

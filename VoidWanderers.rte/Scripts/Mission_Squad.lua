@@ -4,101 +4,87 @@
 --	Events:
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionCreate(isNewGame)
-	print("SQUAD " .. (isNewGame == false and "LOAD" or "CREATE"))
-	self.missionData = {}
-
-	if isNewGame == false then
-		self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData")
-	else
-		local setts
-
-		setts = {}
-		setts[1] = {}
-		setts[1]["troopCount"] = 3
-
-		setts[2] = {}
-		setts[2]["troopCount"] = 4
-
-		setts[3] = {}
-		setts[3]["troopCount"] = 5
-
-		setts[4] = {}
-		setts[4]["troopCount"] = 6
-
-		setts[5] = {}
-		setts[5]["troopCount"] = 7
-
-		setts[6] = {}
-		setts[6]["troopCount"] = 8
-
-		self.missionData = setts[self.MissionDifficulty]
-		self.missionData["missionStartTime"] = self.Time
-
-		CF.CreateAIUnitPresets(
-			self.GS,
-			self.MissionTargetPlayer,
-			CF.GetTechLevelFromDifficulty(self.GS, self.MissionTargetPlayer, CF.MaxDifficulty, CF.MaxDifficulty)
-		)
-
-		local squad = {
-			CF.PresetTypes.INFANTRY1,
-			CF.PresetTypes.INFANTRY2,
-			CF.PresetTypes.SNIPER,
-			CF.PresetTypes.SNIPER,
-			CF.PresetTypes.HEAVY1,
-			CF.PresetTypes.HEAVY2,
-			CF.PresetTypes.SHOTGUN,
-			CF.PresetTypes.SHOTGUN,
-		}
-
-		-- Use generic enemy set
-		local set = CF.GetRandomMissionPointsSet(self.Pts, "Squad")
-		local troops = CF.GetPointsArray(self.Pts, "Squad", set, "Trooper")
-		local brain = CF.GetPointsArray(self.Pts, "Squad", set, "Commander")
-		-- Hacky failsafe - probably doesn't even fix anything!
-		if set == nil or troops == nil or brain == nil then
-			set = CF.GetRandomMissionPointsSet(self.Pts, "Enemy")
-			troops = CF.GetPointsArray(self.Pts, "Assassinate", set, "Commander")
-			brain = CF.GetPointsArray(self.Pts, "Assassinate", set, "Commander")
-		end
-
-		self.missionData["stage"] = CF.MissionStages.ACTIVE
-
-		-- Spawn commander
-		self.missionData["brain"] = CF.MakeRPGBrain(self.GS, self.MissionTargetPlayer, CF.CPUTeam, brain[1], self.MissionDifficulty)
-		if self.missionData["brain"] then
-			MovableMan:AddActor(self.missionData["brain"])
-			self.missionData["brain"]:AddInventoryItem(CreateHeldDevice("Blueprint", CF.ModuleName))
-		end
-		self.missionData["sentryRadius"] = 100 + math.sqrt(FrameMan.PlayerScreenHeight ^ 2 + FrameMan.PlayerScreenWidth ^ 2) * 0.5
-
-		local pos = 1
-
-		-- Spawn troops
-		for i = 1, self.missionData["troopCount"] do
-			local nw = {}
-			nw["Preset"] = squad[i]
-			nw["Team"] = CF.CPUTeam
-			nw["Player"] = self.MissionTargetPlayer
-			nw["AIMode"] = Actor.AIMODE_SENTRY
-			nw["Pos"] = troops[pos]
-			--nw["Digger"] = true
-
-			table.insert(self.SpawnTable, nw)
-
-			pos = pos + 1
-			if pos > #troops then
-				pos = 1
-			end
-		end --]]--
-
-		self.missionData["squad"] = {}
-
-		self.missionData["brainHuntTriggered"] = false
-		self.missionData["squadFilled"] = false
-		self.missionData["assaultWaitTime"] = self.Time
+function VoidWanderers:MissionCreate()
+	print("SQUAD CREATE")
+	
+	-- Mission difficulty settings
+	local diff = self.missionData["difficulty"]
+	
+	if diff == 1 then
+		self.missionData["troopCount"] = 3
+	elseif diff == 2 then
+		self.missionData["troopCount"] = 4
+	elseif diff == 3 then
+		self.missionData["troopCount"] = 5
+	elseif diff == 4 then
+		self.missionData["troopCount"] = 6
+	elseif diff == 5 then
+		self.missionData["troopCount"] = 7
+	elseif diff == 6 then
+		self.missionData["troopCount"] = 8
 	end
+
+	CF.CreateAIUnitPresets(
+		self.GS,
+		self.missionData["missionTarget"],
+		CF.GetTechLevelFromDifficulty(self.GS, self.missionData["missionTarget"], CF.MaxDifficulty, CF.MaxDifficulty)
+	)
+
+	local squad = {
+		CF.PresetTypes.INFANTRY1,
+		CF.PresetTypes.INFANTRY2,
+		CF.PresetTypes.SNIPER,
+		CF.PresetTypes.SNIPER,
+		CF.PresetTypes.HEAVY1,
+		CF.PresetTypes.HEAVY2,
+		CF.PresetTypes.SHOTGUN,
+		CF.PresetTypes.SHOTGUN,
+	}
+
+	-- Use generic enemy set
+	local set = CF.GetRandomMissionPointsSet(self.Pts, "Squad")
+	local troops = CF.GetPointsArray(self.Pts, "Squad", set, "Trooper")
+	local brain = CF.GetPointsArray(self.Pts, "Squad", set, "Commander")
+	-- Hacky failsafe - probably doesn't even fix anything!
+	if set == nil or troops == nil or brain == nil then
+		set = CF.GetRandomMissionPointsSet(self.Pts, "Enemy")
+		troops = CF.GetPointsArray(self.Pts, "Assassinate", set, "Commander")
+		brain = CF.GetPointsArray(self.Pts, "Assassinate", set, "Commander")
+	end
+
+	-- Spawn commander
+	self.missionData["brain"] = CF.MakeRPGBrain(self.GS, self.missionData["missionTarget"], CF.CPUTeam, brain[1], self.missionData["difficulty"])
+	if self.missionData["brain"] then
+		MovableMan:AddActor(self.missionData["brain"])
+		self.missionData["brain"]:AddInventoryItem(CreateHeldDevice("Blueprint", CF.ModuleName))
+	end
+	self.missionData["sentryRadius"] = 100 + math.sqrt(FrameMan.PlayerScreenHeight ^ 2 + FrameMan.PlayerScreenWidth ^ 2) * 0.5
+
+	local pos = 1
+
+	-- Spawn troops
+	for i = 1, self.missionData["troopCount"] do
+		local nw = {}
+		nw["Preset"] = squad[i]
+		nw["Team"] = CF.CPUTeam
+		nw["Player"] = self.missionData["missionTarget"]
+		nw["AIMode"] = Actor.AIMODE_SENTRY
+		nw["Pos"] = troops[pos]
+		--nw["Digger"] = true
+
+		table.insert(self.SpawnTable, nw)
+
+		pos = pos + 1
+		if pos > #troops then
+			pos = 1
+		end
+	end --]]--
+
+	self.missionData["squad"] = {}
+
+	self.missionData["brainHuntTriggered"] = false
+	self.missionData["squadFilled"] = false
+	self.missionData["assaultWaitTime"] = self.Time
 end
 -----------------------------------------------------------------------------------------
 --
@@ -131,7 +117,7 @@ function VoidWanderers:MissionUpdate()
 			end
 		end
 
-		self.MissionStatus = "Enemies left: " .. tostring(count)
+		self.missionData["missionStatus"] = "Enemies left: " .. tostring(count)
 
 		-- Fill squad
 		if not self.missionData["squadFilled"] then
@@ -269,7 +255,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["statusShowStart"] = self.Time
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
-		self.MissionStatus = "MISSION COMPLETED"
+		self.missionData["missionStatus"] = "MISSION COMPLETED"
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF.MusicTypes.VICTORY)
 			self.MissionEndMusicPlayed = true
@@ -278,7 +264,7 @@ function VoidWanderers:MissionUpdate()
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
-				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
+				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)
 			end
 		end
 	end --]]--

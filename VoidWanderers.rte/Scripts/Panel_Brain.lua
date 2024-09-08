@@ -33,7 +33,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 						rb.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
 						rb.Vel = Vector(0, 4)
 						rb.AIMode = Actor.AIMODE_SENTRY
-						rb.Health = act.Health / act.MaxHealth
+						rb.Health = act.Health / act.MaxHealth * rb.MaxHealth
 
 						-- Make this brain's player known
 						rb:SetNumberValue("VW_BrainOfPlayer", player + 1)

@@ -16,67 +16,61 @@
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionCreate(isNewGame)
-	print("GENERIC " .. (isNewGame == false and "LOAD" or "CREATE"))
-	self.defaultHostilities = { Activity.TEAM_1, Activity.TEAM_4, Activity.TEAM_3 }
+	print("GENERIC CREATE")
 
-	self.missionData = {}
+	-- Enumerated constant
+	self.missionData["defaultHostilities"] = { Activity.TEAM_1, Activity.TEAM_4, Activity.TEAM_3 }
 
-	if isNewGame == false then
-		self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData")
-	else
-		self.missionData["missionStartTime"] = self.Time
-
-		-- Load some positional data
-		local pointSetIndex = CF.GetRandomMissionPointsSet(self.Pts, "Deploy")
-		local ambientEnemyLocations = CF.GetPointsArray(self.Pts, "Deploy", pointSetIndex, "AmbientEnemy")
-		self.missionData["enemyLandingZones"] = CF.GetPointsArray(self.Pts, "Deploy", pointSetIndex, "EnemyLZ")
-		local ambientEnemyQuantity = math.ceil(CF.AmbientEnemyRate * #ambientEnemyLocations)
-		local ambientEnemyPositions = CF.RandomSampleOfList(ambientEnemyLocations, ambientEnemyQuantity)
+	-- Load some positional data
+	local pointSetIndex = CF.GetRandomMissionPointsSet(self.Pts, "Deploy")
+	local ambientEnemyLocations = CF.GetPointsArray(self.Pts, "Deploy", pointSetIndex, "AmbientEnemy")
+	self.missionData["enemyLandingZones"] = CF.GetPointsArray(self.Pts, "Deploy", pointSetIndex, "EnemyLZ")
+	local ambientEnemyQuantity = math.ceil(CF.AmbientEnemyRate * #ambientEnemyLocations)
+	local ambientEnemyPositions = CF.RandomSampleOfList(ambientEnemyLocations, ambientEnemyQuantity)
 		
-		-- Find player's enemies
-		local selection = {}
-		for i = 1, tonumber(self.GS["ActiveCPUs"]) do
-			table.insert(selection, i)
-		end
-
-		local team2Player = CF.GetAngriestPlayer(self.GS)
-		local team3Player = selection[math.random(#selection)]
-		local team4Player = selection[math.random(#selection)]
-		self.missionData["CPUPlayers"] = { team2Player, team3Player, team4Player }
-		CF.CreateAIUnitPresets(self.GS, team2Player, CF.GetTechLevelFromDifficulty(self.GS, team2Player, self.MissionDifficulty, CF.MaxDifficulty))
-		CF.CreateAIUnitPresets(self.GS, team3Player, CF.GetTechLevelFromDifficulty(self.GS, team3Player, self.MissionDifficulty, CF.MaxDifficulty))
-		CF.CreateAIUnitPresets(self.GS, team4Player, CF.GetTechLevelFromDifficulty(self.GS, team4Player, self.MissionDifficulty, CF.MaxDifficulty))
-
-		-- Place some ambient randos
-		for i = 1, #ambientEnemyPositions do
-			local preset = math.random(CF.PresetTypes.ENGINEER)
-			local team = (i % 2 == 0) and Activity.TEAM_3 or Activity.TEAM_4
-			local player = (i % 2 == 0) and team3Player or team4Player
-			local aimode = Actor.AIMODE_GOLDDIG
-			local pos = ambientEnemyPositions[i]
-
-			if preset ~= CF.PresetTypes.ENGINEER then
-				aimode = math.random() < 0.7 and Actor.AIMODE_SENTRY or Actor.AIMODE_PATROL
-			end
-
-			table.insert(self.SpawnTable, { Preset=preset, Team=team, Player=player, AIMode=aimode, Pos=pos })
-
-			if math.random() < CF.AmbientEnemyDoubleSpawn then
-				table.insert(self.SpawnTable, { Preset=CF.PresetTypes.ENGINEER, Team=team, Player=player, AIMode=Actor.AIMODE_GOLDDIG, Pos=pos })
-			end
-		end
-
-		-- Data
-		self.missionData["dropShipCount"] = 0
-		self.missionData["missionNextDropShip"] = self.Time + CF.AmbientReinforcementsInterval
-		self.missionData["missionNextIntervention"] = self.Time + CF.AmbientReinforcementsInterval * 2.5
-
-		-- Read some out
-		print("TEAM 1: " .. CF.GetPlayerFaction(self.GS, 0))
-		print("TEAM 2: " .. CF.GetPlayerFaction(self.GS, team2Player))
-		print("TEAM 3: " .. CF.GetPlayerFaction(self.GS, team3Player))
-		print("TEAM 4: " .. CF.GetPlayerFaction(self.GS, team4Player))
+	-- Find player's enemies
+	local selection = {}
+	for i = 1, tonumber(self.GS["ActiveCPUs"]) do
+		table.insert(selection, i)
 	end
+
+	local team2Player = CF.GetAngriestPlayer(self.GS)
+	local team3Player = selection[math.random(#selection)]
+	local team4Player = selection[math.random(#selection)]
+	self.missionData["CPUPlayers"] = { team2Player, team3Player, team4Player }
+	CF.CreateAIUnitPresets(self.GS, team2Player, CF.GetTechLevelFromDifficulty(self.GS, team2Player, self.missionData["difficulty"], CF.MaxDifficulty))
+	CF.CreateAIUnitPresets(self.GS, team3Player, CF.GetTechLevelFromDifficulty(self.GS, team3Player, self.missionData["difficulty"], CF.MaxDifficulty))
+	CF.CreateAIUnitPresets(self.GS, team4Player, CF.GetTechLevelFromDifficulty(self.GS, team4Player, self.missionData["difficulty"], CF.MaxDifficulty))
+
+	-- Place some ambient randos
+	for i = 1, #ambientEnemyPositions do
+		local preset = math.random(CF.PresetTypes.ENGINEER)
+		local team = (i % 2 == 0) and Activity.TEAM_3 or Activity.TEAM_4
+		local player = (i % 2 == 0) and team3Player or team4Player
+		local aimode = Actor.AIMODE_GOLDDIG
+		local pos = ambientEnemyPositions[i]
+
+		if preset ~= CF.PresetTypes.ENGINEER then
+			aimode = math.random() < 0.7 and Actor.AIMODE_SENTRY or Actor.AIMODE_PATROL
+		end
+
+		table.insert(self.SpawnTable, { Preset=preset, Team=team, Player=player, AIMode=aimode, Pos=pos })
+
+		if math.random() < CF.AmbientEnemyDoubleSpawn then
+			table.insert(self.SpawnTable, { Preset=CF.PresetTypes.ENGINEER, Team=team, Player=player, AIMode=Actor.AIMODE_GOLDDIG, Pos=pos })
+		end
+	end
+
+	-- Data
+	self.missionData["dropShipCount"] = 0
+	self.missionData["missionNextDropShip"] = self.Time + CF.AmbientReinforcementsInterval
+	self.missionData["missionNextIntervention"] = self.Time + CF.AmbientReinforcementsInterval * 2.5
+
+	-- Read some out
+	print("TEAM 1: " .. CF.GetPlayerFaction(self.GS, 0))
+	print("TEAM 2: " .. CF.GetPlayerFaction(self.GS, team2Player))
+	print("TEAM 3: " .. CF.GetPlayerFaction(self.GS, team3Player))
+	print("TEAM 4: " .. CF.GetPlayerFaction(self.GS, team4Player))
 end
 -----------------------------------------------------------------------------------------
 --
@@ -131,7 +125,7 @@ function VoidWanderers:MissionUpdate()
 		if #activeUnits[team] < 5 then
 			self.missionData["missionNextDropShip"] = self.Time + CF.AmbientReinforcementsInterval + math.random(15)
 			self.missionData["dropShipCount"] = self.missionData["dropShipCount"] + 1
-			local count = math.random(math.ceil(math.max(1, math.min(CF.MaxDifficulty, self.MissionDifficulty / 2))))
+			local count = math.random(math.ceil(math.max(1, math.min(CF.MaxDifficulty, self.missionData["difficulty"] / 2))))
 			local f = CF.GetPlayerFaction(self.GS, self.missionData["CPUPlayers"][team])
 			local ship = CF.MakeActor(CF.Crafts[f], CF.CraftClasses[f], CF.CraftModules[f])
 
@@ -160,7 +154,7 @@ function VoidWanderers:MissionUpdate()
 
 	-- Spawn green team dropship
 	if
-		self.MissionDifficulty >= 2
+		self.missionData["difficulty"] >= 2
 		and self.missionData["CPUPlayers"][Activity.TEAM_2] ~= nil
 		and self.Time > self.missionData["missionNextIntervention"]
 		and #self.missionData["enemyLandingZones"] > 0
@@ -176,7 +170,7 @@ function VoidWanderers:MissionUpdate()
 				local actor = CF.SpawnAIUnit(self.GS, self.missionData["CPUPlayers"][team], team, nil, nil)
 
 				if actor then
-					if math.random(100) <= self.MissionDifficulty then
+					if math.random(100) <= self.missionData["difficulty"] then
 						actor:AddInventoryItem(
 							CreateHeldDevice((math.random() < 0.25 and "Black" or "Blue") .. "print", CF.ModuleName)
 						)
@@ -199,7 +193,7 @@ function VoidWanderers:MissionUpdate()
 		local targets = {}
 
 		for team = Activity.TEAM_2, Activity.MAXTEAMCOUNT - 1 do
-			targets[team] = self.defaultHostilities[team]
+			targets[team] = self.missionData["defaultHostilities"][team]
 
 			while targets[team] >= Activity.TEAM_1 and (team == targets[team] or totalUnits[targets[team]] <= 0) do 
 				targets[team] = targets[team] - 1

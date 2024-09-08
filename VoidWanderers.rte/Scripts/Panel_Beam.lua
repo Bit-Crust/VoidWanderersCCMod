@@ -104,7 +104,8 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 			--	self.TeleportEffectTimer:Reset()
 			--end
 
-			--print (CF["LocationName"][ self.GS["Location"] ])
+			local locationID = self.GS["Location"]
+			--print (CF.LocationName[ locationID ])
 
 			-- Search for detached brains
 			local anybraindetached = false
@@ -116,24 +117,21 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 			end
 
 			local limit = tonumber(self.GS["Player0VesselCommunication"])
-			if anybraindetached then
-				limit = 1000
-			end
 
 			if braincount > 0 and braincount < self.PlayerCount then
 				CF.DrawString("All brains must be on the landing deck", pos + Vector(-54, -6), 124, 36)
 				canbeam = false
 			else
-				local locname = CF.LocationName[self.GS["Location"]]
+				local locname = CF.LocationName[locationID]
 				if locname ~= nil then
 					if
-						CF.LocationPlayable[self.GS["Location"]] == nil
-						or CF.LocationPlayable[self.GS["Location"]] == true
+						CF.LocationPlayable[locationID] == nil
+						or CF.LocationPlayable[locationID] == true
 					then
-						if count <= limit then
+						if count <= limit or anybraindetached then
 							if count > 0 then
 								CF.DrawString(
-									"Deploy away team on " .. CF.LocationName[self.GS["Location"]],
+									"Deploy away team on " .. CF.LocationName[locationID],
 									pos + Vector(-55, -6),
 									120,
 									36
@@ -149,7 +147,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 						end
 					else
 						CF.DrawString(
-							"Can't deploy to " .. CF.LocationName[self.GS["Location"]],
+							"Can't deploy to " .. CF.LocationName[locationID],
 							pos + Vector(-50, -6),
 							120,
 							36
@@ -204,6 +202,9 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 					-- Clean previously saved actors and inventories in config
 					self:ClearActors()
 					self:ClearDeployed()
+					
+					self.deployedActors = {}
+					self.onboardActors = {}
 
 					-- Save actors to config and transfer them to scene
 					for actor in MovableMan.Actors do
@@ -234,7 +235,8 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 									self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Class"] = cls[j]
 									self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Module"] = mdl[j]
 								end
-								
+
+								self.deployedActors[deployedactor] = MovableMan:RemoveActor(actor)
 								deployedactor = deployedactor + 1
 							else
 								-- Save actors to onboard config
@@ -248,6 +250,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 								self.GS["Actor" .. savedactor .. "Name"] = actor:GetStringValue("VW_Name")
 								self.GS["Actor" .. savedactor .. "X"] = math.floor(actor.Pos.X)
 								self.GS["Actor" .. savedactor .. "Y"] = math.floor(actor.Pos.Y)
+
 								for j = 1, #CF.LimbID do
 									self.GS["Actor" .. savedactor .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
 								end
@@ -257,7 +260,8 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 									self.GS["Actor" .. savedactor .. "Item" .. j .. "Class"] = cls[j]
 									self.GS["Actor" .. savedactor .. "Item" .. j .. "Module"] = mdl[j]
 								end
-
+								
+								self.onboardActors[savedactor] = MovableMan:RemoveActor(actor)
 								savedactor = savedactor + 1
 							end
 						end
@@ -265,8 +269,8 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 
 					-- Prepare for transfer
 					-- Select scene
-					local r = math.random(#CF.LocationScenes[self.GS["Location"]])
-					local scene = CF.LocationScenes[self.GS["Location"]][r]
+					local locationScenes = CF.LocationScenes[locationID]
+					local scene = locationScenes[math.random(#locationScenes)]
 
 					if braincount == self.PlayerCount then
 						self.GS["BrainsOnMission"] = "True"
@@ -275,7 +279,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 					end
 					self.BrainsAtStake = false
 
-					--print (self.GS["Location"])
+					--print (locationID)
 					--print (scene)
 
 					-- Set new operating mode

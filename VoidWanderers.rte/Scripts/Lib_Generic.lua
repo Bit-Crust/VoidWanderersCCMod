@@ -53,7 +53,7 @@ CF.InitFactions = function(activity)
 	CF.ExpPerLevel = 250
 
 	CF.Ranks = { 50, 125, 250, 500, 1000 }
-	CF.PrestigeSlice = CreatePieSlice("Prestige PieSlice", CF.ModuleName)
+	CF.PrestigeSlice = CreatePieSlice("Claim Prestige PieSlice", CF.ModuleName)
 
 	CF.PermanentLimbLoss = true
 	CF.LimbID = { "FG1", "BG1", "FG2", "BG2", "HEAD", "JETPAK" }
@@ -955,9 +955,6 @@ CF.MakeActor = function(item, class, module, xp, identity, player, prestige, nam
 				actor:SetNumberValue("VW_Rank", setRank)
 				CF["BuffActor"](actor, setRank, actor:GetNumberValue("VW_Prestige"))
 			end
-			if xp >= CF["Ranks"][#CF["Ranks"]] then
-				actor.PieMenu:AddPieSliceIfPresetNameIsUnique(CF["PrestigeSlice"]:Clone(), self)
-			end
 		end
 	else
 		actor = CreateAHuman("Skeleton", "Uzira.rte")
@@ -965,9 +962,28 @@ CF.MakeActor = function(item, class, module, xp, identity, player, prestige, nam
 	return actor
 end
 -----------------------------------------------------------------------------------------
+-- Use class name to get reference type
+-----------------------------------------------------------------------------------------
+CF.FixActorReference = function(actor)
+	local cl = actor.ClassName
+	if cl == "AHuman" then
+		return ToAHuman(actor)
+	elseif cl == "ACrab" then
+		return ToACrab(actor)
+	elseif cl == "ACraft" then
+		return ToACraft(actor)
+	elseif cl == "ACRocket" then
+		return ToACRocket(actor)
+	elseif cl == "ACDropship" then
+		return ToACDropship(actor)
+	end
+	return ToActor(actor)
+end
+-----------------------------------------------------------------------------------------
 -- Buff an actor based on their rank
 -----------------------------------------------------------------------------------------
-CF["BuffActor"] = function(actor, rank, prestige)
+CF.BuffActor = function(actor, rank, prestige)
+	local actor = CF.FixActorReference(actor)
 	rank = tonumber(rank) * math.sqrt(prestige * 0.1 + 1)
 	local rankIncrement = rank * 0.1
 	rank = math.floor(rank + 0.5)
@@ -1017,14 +1033,17 @@ CF["BuffActor"] = function(actor, rank, prestige)
 			arm.ThrowStrength = arm.ThrowStrength * sqrtFactor
 		end
 	end
-	actor:SetLimbPathSpeed(1, actor:GetLimbPathSpeed(1) * sqrtFactor)
-	actor.LimbPathPushForce = actor.LimbPathPushForce * math.sqrt(sqrtFactor)
+	if actor.LimbPathPushForce then
+		actor:SetLimbPathSpeed(1, actor:GetLimbPathSpeed(1) * sqrtFactor)
+		actor.LimbPathPushForce = actor.LimbPathPushForce * (math.sqrt(sqrtFactor))
+	end
 	--print("actor ".. actor.PresetName .." buffed with" .. (prestige and " prestige " or "rank ").. rank)
 end
 -----------------------------------------------------------------------------------------
 -- Reverse buff effect
 -----------------------------------------------------------------------------------------
-CF["UnBuffActor"] = function(actor, rank, prestige)
+CF.UnBuffActor = function(actor, rank, prestige)
+	local actor = CF.FixActorReference(actor)
 	local rankFactor = 1 + (tonumber(rank) * 0.1 * math.sqrt(prestige * 0.1 + 1))
 	local sqrtFactor = math.sqrt(rankFactor)
 	-- Positive scalar
@@ -1055,8 +1074,10 @@ CF["UnBuffActor"] = function(actor, rank, prestige)
 			arm.ThrowStrength = arm.ThrowStrength / sqrtFactor
 		end
 	end
-	actor:SetLimbPathSpeed(1, actor:GetLimbPathSpeed(1) / sqrtFactor)
-	actor.LimbPathPushForce = actor.LimbPathPushForce / (math.sqrt(sqrtFactor))
+	if actor.LimbPathPushForce then
+		actor:SetLimbPathSpeed(1, actor:GetLimbPathSpeed(1) / sqrtFactor)
+		actor.LimbPathPushForce = actor.LimbPathPushForce / (math.sqrt(sqrtFactor))
+	end
 end
 -----------------------------------------------------------------------------------------
 -- Get a specific limb by ID
@@ -1329,9 +1350,9 @@ end
 -----------------------------------------------------------------------------------------
 -- Set which actor is being named right now
 -----------------------------------------------------------------------------------------
-CF["SetNamingActor"] = function(actor, player)
-	CF["TypingActor"] = actor
-	CF["TypingPlayer"] = player
+CF.SetNamingActor = function(actor, player)
+	CF.TypingActor = actor
+	CF.TypingPlayer = player
 end
 -----------------------------------------------------------------------------------------
 --

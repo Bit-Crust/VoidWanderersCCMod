@@ -210,7 +210,7 @@ function(self, variant)
 		self.RandomEncounterVariants = {}
 		self.RandomEncounterChosenVariant = 0
 
-		self.MissionDifficulty = self.AssaultDifficulty
+		self.missionData["difficulty"] = self.AssaultDifficulty
 
 		self.DeploymentStarted = true
 	end

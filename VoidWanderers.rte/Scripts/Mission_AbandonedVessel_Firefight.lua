@@ -2,20 +2,20 @@
 -----------------------------------------------------------------------------------------
 -- To-do: try to diminish the amount of allies this missino spawns cus god damn does it bloat the ship when you rescue them
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionCreate()
+function VoidWanderers:MissionCreate(isNewGame)
 	print("ABANDONED VESSEL FIREFIGHT CREATE")
 
 	-- Spawn random wandering enemies
-	local set = CF["GetRandomMissionPointsSet"](self.Pts, "Firefight")
+	local set = CF.GetRandomMissionPointsSet(self.Pts, "Firefight")
 
-	local diff = CF["GetLocationDifficulty"](self.GS, self.GS["Location"])
-	self.MissionDifficulty = diff
-	--print ("DIFF: "..self.MissionDifficulty)
+	local diff = CF.GetLocationDifficulty(self.GS, self.GS["Location"])
+	self.missionData["difficulty"] = diff
+	--print ("DIFF: "..self.missionData["difficulty"])
 
 	-- Remove doors
 	for actor in MovableMan.Actors do
 		if actor.ClassName == "ADoor" then
-			actor.Team = math.random() < 0.5 and CF["CPUTeam"] or Activity.NOTEAM
+			actor.Team = math.random() < 0.5 and CF.CPUTeam or Activity.NOTEAM
 		end
 	end
 
@@ -32,64 +32,64 @@ function VoidWanderers:MissionCreate()
 
 	p2 = selection[math.random(#selection)]
 
-	CF["CreateAIUnitPresets"](self.GS, p1, CF["GetTechLevelFromDifficulty"](self.GS, p1, diff, CF["MaxDifficulty"]))
-	CF["CreateAIUnitPresets"](self.GS, p2, CF["GetTechLevelFromDifficulty"](self.GS, p2, diff, CF["MaxDifficulty"]))
+	CF.CreateAIUnitPresets(self.GS, p1, CF.GetTechLevelFromDifficulty(self.GS, p1, diff, CF.MaxDifficulty))
+	CF.CreateAIUnitPresets(self.GS, p2, CF.GetTechLevelFromDifficulty(self.GS, p2, diff, CF.MaxDifficulty))
 
-	self.MissionCPUPlayers = {}
-	self.MissionCPUTeams = {}
-	self.MissionAllyPlayers = {}
+	self.missionData["CPUPlayers"] = {}
+	self.missionData["CPUTeams"] = {}
+	self.missionData["allyPlayer"] = {}
 
-	self.MissionAllyPlayers[1] = false
-	self.MissionAllyPlayers[2] = false
+	self.missionData["allyPlayer"][1] = false
+	self.missionData["allyPlayer"][2] = false
 
 	if self.GS["BrainsOnMission"] == "True" then
 		if
 			tonumber(self.GS["Player" .. p1 .. "Reputation"]) > 1500
 			and tonumber(self.GS["Player" .. p1 .. "Reputation"]) > tonumber(self.GS["Player" .. p2 .. "Reputation"])
 		then
-			self.MissionAllyPlayers[1] = true
+			self.missionData["allyPlayer"][1] = true
 		end
 
 		if
-			self.MissionAllyPlayers[1] == false
+			self.missionData["allyPlayer"][1] == false
 			and tonumber(self.GS["Player" .. p2 .. "Reputation"]) > 1500
 			and tonumber(self.GS["Player" .. p2 .. "Reputation"]) > tonumber(self.GS["Player" .. p1 .. "Reputation"])
 		then
-			self.MissionAllyPlayers[2] = true
+			self.missionData["allyPlayer"][2] = true
 		end
 	end
 
-	self.MissionCPUPlayers[1] = p1
-	self.MissionCPUPlayers[2] = p2
+	self.missionData["CPUPlayers"][1] = p1
+	self.missionData["CPUPlayers"][2] = p2
 
-	--print (CF["GetPlayerFaction"](self.GS, p1))
-	--print (CF["GetPlayerFaction"](self.GS, p2))
+	--print (CF.GetPlayerFaction(self.GS, p1))
+	--print (CF.GetPlayerFaction(self.GS, p2))
 
 	local enmpos = {}
-	self.MissionFirefightWaypoint = {}
+	self.missionData["firefightWaypoint"] = {}
 
 	local leaderReady = false
 
 	for t = 1, 2 do
-		enmpos[t] = CF["GetPointsArray"](self.Pts, "Firefight", set, "Team " .. t)
-		self.MissionFirefightWaypoint[t] = CF["GetPointsArray"](self.Pts, "Firefight", set, "Waypoint " .. t)
+		enmpos[t] = CF.GetPointsArray(self.Pts, "Firefight", set, "Team " .. t)
+		self.missionData["firefightWaypoint"][t] = CF.GetPointsArray(self.Pts, "Firefight", set, "Waypoint " .. t)
 
 		local double = 0.25
 
-		if self.MissionAllyPlayers[t] then
-			self.MissionCPUTeams[t] = CF["PlayerTeam"]
+		if self.missionData["allyPlayer"][t] then
+			self.missionData["CPUTeams"][t] = CF.PlayerTeam
 			double = 0
 		else
-			self.MissionCPUTeams[t] = t
+			self.missionData["CPUTeams"][t] = t
 		end
 
 		for i = 1, #enmpos[t] do
-			local plr = self.MissionCPUPlayers[t]
-			local tm = self.MissionCPUTeams[t]
+			local plr = self.missionData["CPUPlayers"][t]
+			local tm = self.missionData["CPUTeams"][t]
 			local count = math.random() < double and 2 or 1
 
 			for c = 1, count do
-				local pre = math.random(CF["PresetTypes"].HEAVY2)
+				local pre = math.random(CF.PresetTypes.HEAVY2)
 				local nw = {}
 				nw["Preset"] = pre
 				nw["Team"] = tm
@@ -97,10 +97,10 @@ function VoidWanderers:MissionCreate()
 				nw["AIMode"] = math.random() < 0.5 and Actor.AIMODE_SENTRY or Actor.AIMODE_PATROL
 				nw["Pos"] = enmpos[t][i]
 
-				if self.MissionAllyPlayers[t] then
+				if self.missionData["allyPlayer"][t] then
 					nw["Ally"] = 1
 					if not leaderReady and math.random() < 0.3 then
-						nw["Name"] = CF["GenerateRandomName"]()
+						nw["Name"] = CF.GenerateRandomName()
 						leaderReady = true
 					end
 				end
@@ -113,19 +113,18 @@ function VoidWanderers:MissionCreate()
 		if actor.ClassName == "ADoor" and math.random() < 0.25 then
 			actor.GibSound = nil
 			actor:GibThis()
-		end
+		end	
 	end
 
-	self.FirefightEnded = false
+	self.missionData["firefightEnded"] = false
 
-	self.MissionShowObjectiveTime = -100
+	self.missionData["showObjectiveTime"] = -100
 
-	if self.MissionAllyPlayers[1] or self.MissionAllyPlayers[2] then
-		self.MissionShowObjectiveTime = self.Time + 10
+	if self.missionData["allyPlayer"][1] or self.missionData["allyPlayer"][2] then
+		self.missionData["showObjectiveTime"] = self.Time + 10
 	end
+
 	self:InitExplorationPoints()
-
-	self.MissionStart = self.Time
 end
 -----------------------------------------------------------------------------------------
 --
@@ -134,16 +133,16 @@ function VoidWanderers:MissionUpdate()
 	self:ProcessExplorationPoints()
 
 	for actor in MovableMan.AddedActors do
-		for t = 1, #self.MissionCPUTeams do
-			if actor.Team == self.MissionCPUTeams[t] and (actor.Team ~= CF["PlayerTeam"] or self:IsAlly(actor)) then
-				if self.MissionFirefightWaypoint[t] and math.random() < 0.5 then
+		for t = 1, #self.missionData["CPUTeams"] do
+			if actor.Team == self.missionData["CPUTeams"][t] and (actor.Team ~= CF.PlayerTeam or self:IsAlly(actor)) then
+				if self.missionData["firefightWaypoint"][t] and math.random() < 0.5 then
 					actor.AIMode = Actor.AIMODE_GOTO
 					actor:ClearAIWaypoints()
-					for i = 1, #self.MissionFirefightWaypoint[t] do
-						actor:AddAISceneWaypoint(self.MissionFirefightWaypoint[t][i])
+					for i = 1, #self.missionData["firefightWaypoint"][t] do
+						actor:AddAISceneWaypoint(self.missionData["firefightWaypoint"][t][i])
 					end
 				else
-					CF["HuntForActors"](actor, self.MissionCPUTeams[math.random(#self.MissionCPUTeams)])
+					CF.HuntForActors(actor, self.missionData["CPUTeams"][math.random(#self.missionData["CPUTeams"])])
 				end
 				break
 			end
@@ -151,14 +150,14 @@ function VoidWanderers:MissionUpdate()
 	end
 
 	--[[for t = 1, 2 do
-		local l = #self.MissionFirefightWaypoint[t]
+		local l = #self.missionData["firefightWaypoint"][t]
 		for j = 1, l do
-			CF["DrawString"](tostring(t),self.MissionFirefightWaypoint[t][j], 100, 100)
+			CF.DrawString(tostring(t),self.missionData["firefightWaypoint"][t][j], 100, 100)
 		end
 	end--]]
 	--
 
-	if self.Time < self.MissionShowObjectiveTime then
+	if self.Time < self.missionData["showObjectiveTime"] then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			FrameMan:ClearScreenText(player)
 			FrameMan:SetScreenText("TRY TO SAVE AS MANY ALLIED UNITS AS POSSIBLE!", player, 0, 1000, true)
@@ -166,7 +165,7 @@ function VoidWanderers:MissionUpdate()
 	end
 
 	-- Count units and switch modes accordingly
-	if self.SpawnTable == nil and not self.FirefightEnded then
+	if self.SpawnTable == nil and not self.missionData["firefightEnded"] then
 		local count = {}
 
 		for t = 1, 2 do
@@ -176,7 +175,7 @@ function VoidWanderers:MissionUpdate()
 		for actor in MovableMan.Actors do
 			for t = 1, 2 do
 				if
-					actor.Team == self.MissionCPUTeams[t]
+					actor.Team == self.missionData["CPUTeams"][t]
 					and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 				then
 					count[t] = count[t] + 1
@@ -187,7 +186,7 @@ function VoidWanderers:MissionUpdate()
 		-- Check if we need to stop firefight due to one team termination
 		for t = 1, 2 do
 			if count[t] == 0 then
-				self.FirefightEnded = true
+				self.missionData["firefightEnded"] = true
 
 				for actor in MovableMan.Actors do
 					if self:IsAlly(actor) then
@@ -196,7 +195,7 @@ function VoidWanderers:MissionUpdate()
 						else
 							actor.AIMode = math.random() < 0.5 and Actor.AIMODE_SENTRY or Actor.AIMODE_PATROL
 						end
-					elseif actor.Team ~= CF["PlayerTeam"] then
+					elseif actor.Team ~= CF.PlayerTeam then
 						actor.AIMode = math.random() < 0.5 and Actor.AIMODE_BRAINHUNT or Actor.AIMODE_PATROL
 					end
 				end

@@ -5,7 +5,7 @@ function VoidWanderers:InitBombsControlPanelUI()
 	self.BombsControlPanelActor = CreateActor("Bomb Control Panel")
 	if self.BombsControlPanelActor ~= nil then
 		self.BombsControlPanelActor.Pos = Vector(0, 0)
-		self.BombsControlPanelActor.Team = CF["PlayerTeam"]
+		self.BombsControlPanelActor.Team = CF.PlayerTeam
 		MovableMan:AddActor(self.BombsControlPanelActor)
 	end
 end

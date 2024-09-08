@@ -65,8 +65,6 @@ VWHandleMessage = function(message, context)
 		--print("writing to CF." .. printConcat .. context[1][#context[1]])
 		temp[context[1][#context[1]]] = context[2]
 	elseif message == "call_in_CF" and IsValidCFCallRequest(context) then
-		local target = ToMOSRotating(context[1])
-
 		local temp = CF
 		local flag = false
 		
@@ -89,7 +87,12 @@ VWHandleMessage = function(message, context)
 			return
 		end
 		
-		target:SendMessage("return_from_activity", {temp(unpack(context[3]))})
+		local target = context[1]
+		local result = {temp(unpack(context[3]))}
+		if target and target.ClassName and IsMovableObject(target) then
+			ToMovableObject(target):SendMessage("return_from_activity", result)
+		else
+		end
 	end
 end
 -----------------------------------------------------------------------------------------
@@ -110,7 +113,7 @@ end
 -- to pass, which won't even be checked for existence, being assumed nil in absence
 -----------------------------------------------------------------------------------------
 IsValidCFCallRequest = function(context)
-	return IsMovableObject(context[1])
+	return true
 end
 
 -----------------------------------------------------------------------------------------

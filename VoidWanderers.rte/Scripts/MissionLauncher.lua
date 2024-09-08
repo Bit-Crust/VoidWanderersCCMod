@@ -149,12 +149,15 @@ function VoidWanderers:OnSave()
 	if self.missionData then
 		self.saveLoadHandler:SaveTableAsString("missionData", self.missionData)
 	end
-	if self.deployment then
-		self.saveLoadHandler:SaveTableAsString("deploymentData", self.deployment)
+	if self.ambientData then
+		self.saveLoadHandler:SaveTableAsString("ambientData", self.ambientData)
+	end
+	if self.assaultData then
+		self.saveLoadHandler:SaveTableAsString("assaultData", self.assaultData)
 	end
 	local controlledActors = { }
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		table.insert(controlledActors, self:GetControlledActor(player))
+		controlledActors[#controlledActors + 1] = self:GetControlledActor(player)
 	end
 	self.saveLoadHandler:SaveTableAsString("controlledActors", controlledActors)
 end

@@ -5,112 +5,99 @@
 --	Events: 	After a while AI will send some dropships to replace dead miners
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionCreate(isNewGame)
-	print("MINE " .. (isNewGame == false and "LOAD" or "CREATE"))
-	self.missionData = {}
+function VoidWanderers:MissionCreate()
+	print("MINE CREATE")
 
-	if isNewGame == false then
-		self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData")
-	else
-		-- Mission difficulty settings
-		local setts
+	-- Mission difficulty settings
+	local diff = self.missionData["difficulty"]
 
-		setts = {}
-		setts[1] = {}
-		setts[1]["allyReinforcementsCount"] = 6
-		setts[1]["enemyDropshipUnitCount"] = 2
-		setts[1]["enemyDropShips"] = 1
-		setts[1]["interval"] = 35
-		setts[1]["initialMiners"] = 1
-		setts[1]["minersNeeded"] = 2
-		setts[1]["timeToHold"] = 120
-
-		setts[2] = {}
-		setts[2]["allyReinforcementsCount"] = 6
-		setts[2]["enemyDropshipUnitCount"] = 2
-		setts[2]["enemyDropShips"] = 1
-		setts[2]["interval"] = 33
-		setts[2]["initialMiners"] = 1
-		setts[2]["minersNeeded"] = 3
-		setts[2]["timeToHold"] = 140
-
-		setts[3] = {}
-		setts[3]["allyReinforcementsCount"] = 6
-		setts[3]["enemyDropshipUnitCount"] = 2
-		setts[3]["enemyDropShips"] = 1
-		setts[3]["interval"] = 31
-		setts[3]["initialMiners"] = 1
-		setts[3]["minersNeeded"] = 3
-		setts[3]["timeToHold"] = 160
-
-		setts[4] = {}
-		setts[4]["allyReinforcementsCount"] = 6
-		setts[4]["enemyDropshipUnitCount"] = 2
-		setts[4]["enemyDropShips"] = 2
-		setts[4]["interval"] = 29
-		setts[4]["initialMiners"] = 2
-		setts[4]["minersNeeded"] = 4
-		setts[4]["timeToHold"] = 180
-
-		setts[5] = {}
-		setts[5]["allyReinforcementsCount"] = 5
-		setts[5]["enemyDropshipUnitCount"] = 3
-		setts[5]["enemyDropShips"] = 2
-		setts[5]["interval"] = 27
-		setts[5]["initialMiners"] = 2
-		setts[5]["minersNeeded"] = 4
-		setts[5]["timeToHold"] = 210
-
-		setts[6] = {}
-		setts[6]["allyReinforcementsCount"] = 5
-		setts[6]["enemyDropshipUnitCount"] = 3
-		setts[6]["enemyDropShips"] = 2
-		setts[6]["interval"] = 25
-		setts[6]["initialMiners"] = 3
-		setts[6]["minersNeeded"] = 5
-		setts[6]["timeToHold"] = 240
-
-		self.missionData = setts[self.MissionDifficulty]
-		self.missionData["missionStartTime"] = self.Time
-		self.missionData["allySpawnInterval"] = math.ceil(self.missionData["interval"] * 0.5)
-		self.missionData["reinforcementsLast"] = self.Time + self.missionData["interval"]
-		self.missionData["backupLast"] = self.Time - 1
-
-		-- Use generic enemy set
-		local minerSet = CF.GetRandomMissionPointsSet(self.Pts, "Mine")
-
-		-- Git miners
-		local miners = CF.GetPointsArray(self.Pts, "Mine", minerSet, "Miners")
-		if #miners == 0 then
-			miners = { SceneMan:MovePointToGround(Vector(math.random(SceneMan.SceneWidth), 0), 0, 5) }
-		end
-		miners = CF.RandomSampleOfList(miners, self.missionData["initialMiners"])
-
-		-- Get LZs
-		self.missionData["minerLandingZones"] = CF.GetPointsArray(self.Pts, "Mine", minerSet, "MinerLZ")
-		if #self.missionData["minerLandingZones"] == 0 then
-			self.missionData["minerLandingZones"] = { miners }
-		end
-
-		-- Spawn miners
-		for i = 1, #miners do
-			local nw = {}
-			nw["Preset"] = CF.PresetTypes.ENGINEER
-			nw["Team"] = CF.PlayerTeam
-			nw["Player"] = self.MissionSourcePlayer
-			nw["AIMode"] = Actor.AIMODE_GOLDDIG
-			nw["Pos"] = miners[i]
-			nw["Ally"] = 1 -- Allies don't need comm-points to operate and don't get transfered to ship
-
-			table.insert(self.SpawnTable, nw)
-		end
-
-		self.missionData["stage"] = CF.MissionStages.ACTIVE
-		self.missionData["enoughMiners"] = false
-		self.missionData["dropshipWarningStart"] = 0
-
-		self:SetTeamFunds(0, CF.CPUTeam)
+	if diff == 1 then
+		self.missionData["allyReinforcementsCount"] = 6
+		self.missionData["enemyDropshipUnitCount"] = 2
+		self.missionData["enemyDropShips"] = 1
+		self.missionData["interval"] = 35
+		self.missionData["initialMiners"] = 1
+		self.missionData["minersNeeded"] = 2
+		self.missionData["timeToHold"] = 120
+	elseif diff == 2 then
+		self.missionData["allyReinforcementsCount"] = 6
+		self.missionData["enemyDropshipUnitCount"] = 2
+		self.missionData["enemyDropShips"] = 1
+		self.missionData["interval"] = 33
+		self.missionData["initialMiners"] = 1
+		self.missionData["minersNeeded"] = 3
+		self.missionData["timeToHold"] = 140
+	elseif diff == 3 then
+		self.missionData["allyReinforcementsCount"] = 6
+		self.missionData["enemyDropshipUnitCount"] = 2
+		self.missionData["enemyDropShips"] = 1
+		self.missionData["interval"] = 31
+		self.missionData["initialMiners"] = 1
+		self.missionData["minersNeeded"] = 3
+		self.missionData["timeToHold"] = 160
+	elseif diff == 4 then
+		self.missionData["allyReinforcementsCount"] = 6
+		self.missionData["enemyDropshipUnitCount"] = 2
+		self.missionData["enemyDropShips"] = 2
+		self.missionData["interval"] = 29
+		self.missionData["initialMiners"] = 2
+		self.missionData["minersNeeded"] = 4
+		self.missionData["timeToHold"] = 180
+	elseif diff == 5 then
+		self.missionData["allyReinforcementsCount"] = 5
+		self.missionData["enemyDropshipUnitCount"] = 3
+		self.missionData["enemyDropShips"] = 2
+		self.missionData["interval"] = 27
+		self.missionData["initialMiners"] = 2
+		self.missionData["minersNeeded"] = 4
+		self.missionData["timeToHold"] = 210
+	elseif diff == 6 then
+		self.missionData["allyReinforcementsCount"] = 5
+		self.missionData["enemyDropshipUnitCount"] = 3
+		self.missionData["enemyDropShips"] = 2
+		self.missionData["interval"] = 25
+		self.missionData["initialMiners"] = 3
+		self.missionData["minersNeeded"] = 5
+		self.missionData["timeToHold"] = 240
 	end
+
+	self.missionData["allySpawnInterval"] = math.ceil(self.missionData["interval"] * 0.5)
+	self.missionData["reinforcementsLast"] = self.Time + self.missionData["interval"]
+	self.missionData["backupLast"] = self.Time - 1
+
+	-- Use generic enemy set
+	local minerSet = CF.GetRandomMissionPointsSet(self.Pts, "Mine")
+
+	-- Git miners
+	local miners = CF.GetPointsArray(self.Pts, "Mine", minerSet, "Miners")
+	if #miners == 0 then
+		miners = { SceneMan:MovePointToGround(Vector(math.random(SceneMan.SceneWidth), 0), 0, 5) }
+	end
+	miners = CF.RandomSampleOfList(miners, self.missionData["initialMiners"])
+
+	-- Get LZs
+	self.missionData["minerLandingZones"] = CF.GetPointsArray(self.Pts, "Mine", minerSet, "MinerLZ")
+	if #self.missionData["minerLandingZones"] == 0 then
+		self.missionData["minerLandingZones"] = { miners }
+	end
+
+	-- Spawn miners
+	for i = 1, #miners do
+		local nw = {}
+		nw["Preset"] = CF.PresetTypes.ENGINEER
+		nw["Team"] = CF.PlayerTeam
+		nw["Player"] = self.missionData["missionContractor"]
+		nw["AIMode"] = Actor.AIMODE_GOLDDIG
+		nw["Pos"] = miners[i]
+		nw["Ally"] = 1 -- Allies don't need comm-points to operate and don't get transfered to ship
+
+		table.insert(self.SpawnTable, nw)
+	end
+
+	self.missionData["enoughMiners"] = false
+	self.missionData["dropshipWarningStart"] = 0
+
+	self:SetTeamFunds(0, CF.CPUTeam)
 end
 -----------------------------------------------------------------------------------------
 --
@@ -162,7 +149,7 @@ function VoidWanderers:MissionUpdate()
 		end--]]
 		--
 
-		self.MissionStatus = "MINERS: " .. friends .. "/" .. self.missionData["minersNeeded"]
+		self.missionData["missionStatus"] = "MINERS: " .. friends .. "/" .. self.missionData["minersNeeded"]
 
 		if
 			self.Time % 2 == 0
@@ -170,7 +157,7 @@ function VoidWanderers:MissionUpdate()
 			and friends < self.missionData["minersNeeded"]
 			and self.Time < self.missionData["backupLast"] + self.missionData["allySpawnInterval"]
 		then
-			self.MissionStatus = "MINERS ARRIVE IN T-"
+			self.missionData["missionStatus"] = "MINERS ARRIVE IN T-"
 				.. self.missionData["backupLast"] + self.missionData["allySpawnInterval"] - self.Time
 		end
 
@@ -179,7 +166,7 @@ function VoidWanderers:MissionUpdate()
 				self.missionData["enoughMiners"] = true
 			end
 
-			self.MissionStatus = "HOLD FOR "
+			self.missionData["missionStatus"] = "HOLD FOR "
 				.. self.missionData["missionStartTime"] + self.missionData["timeToHold"] - self.Time
 				.. " TICKS"
 		else
@@ -249,7 +236,7 @@ function VoidWanderers:MissionUpdate()
 				self.missionData["dropshipWarningStart"] = self.Time
 			end
 
-			local f = CF.GetPlayerFaction(self.GS, self.MissionSourcePlayer)
+			local f = CF.GetPlayerFaction(self.GS, self.missionData["missionContractor"])
 			local ship = CF.MakeActor(CF.Crafts[f], CF.CraftClasses[f], CF.CraftModules[f])
 			if ship then
 				for i = 1, math.random(2) do
@@ -257,7 +244,7 @@ function VoidWanderers:MissionUpdate()
 					if i == 1 then
 						actor = CF.SpawnAIUnitWithPreset(
 							self.GS,
-							self.MissionSourcePlayer,
+							self.missionData["missionContractor"],
 							CF.PlayerTeam,
 							nil,
 							Actor.AIMODE_GOLDDIG,
@@ -285,7 +272,7 @@ function VoidWanderers:MissionUpdate()
 			end
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
-		self.MissionStatus = "MISSION COMPLETED"
+		self.missionData["missionStatus"] = "MISSION COMPLETED"
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF.MusicTypes.VICTORY)
 			self.MissionEndMusicPlayed = true
@@ -293,11 +280,11 @@ function VoidWanderers:MissionUpdate()
 		if self.Time < self.MissionStatusShowStart + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
-				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
+				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)
 			end
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.FAILED then
-		self.MissionStatus = "MISSION FAILED"
+		self.missionData["missionStatus"] = "MISSION FAILED"
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF.MusicTypes.DEFEAT)
 			self.MissionEndMusicPlayed = true
@@ -306,7 +293,7 @@ function VoidWanderers:MissionUpdate()
 		if self.Time < self.MissionStatusShowStart + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
-				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
+				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)
 			end
 		end
 	end
@@ -317,7 +304,7 @@ function VoidWanderers:MissionUpdate()
 		and self.Time >= self.missionData["reinforcementsLast"]
 	then
 		if self.missionData["enemyDropShips"] > 0 then
-			local f = CF.GetPlayerFaction(self.GS, self.MissionTargetPlayer)
+			local f = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])
 			local ship = CF.MakeActor(CF.Crafts[f], CF.CraftClasses[f], CF.CraftModules[f])
 			if ship then
 				local count
@@ -333,7 +320,7 @@ function VoidWanderers:MissionUpdate()
 				for i = 1, count do
 					local actor = CF.SpawnAIUnitWithPreset(
 						self.GS,
-						self.MissionTargetPlayer,
+						self.missionData["missionTarget"],
 						CF.CPUTeam,
 						nil,
 						Actor.AIMODE_SENTRY,

@@ -5,112 +5,97 @@
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MissionCreate(isNewGame)
-	print("ZOMBIES " .. (isNewGame == false and "LOAD" or "CREATE"))
-	self.missionData = {}
-
-	if isNewGame == false then
-		self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData")
-	else
-		-- Mission difficulty settings
-		local setts
-
-		setts = {}
-		setts[1] = {}
-		setts[1]["vatsCount"] = 3
-		setts[1]["maxZombiesPerVat"] = 5
-
-		setts[2] = {}
-		setts[2]["vatsCount"] = 4
-		setts[2]["maxZombiesPerVat"] = 5
-
-		setts[3] = {}
-		setts[3]["vatsCount"] = 5
-		setts[3]["maxZombiesPerVat"] = 4
-
-		setts[4] = {}
-		setts[4]["vatsCount"] = 6
-		setts[4]["maxZombiesPerVat"] = 4
-
-		setts[5] = {}
-		setts[5]["vatsCount"] = 7
-		setts[5]["maxZombiesPerVat"] = 3
-
-		setts[6] = {}
-		setts[6]["vatsCount"] = 8
-		setts[6]["maxZombiesPerVat"] = 3
-
-		self.missionData = setts[self.MissionDifficulty]
-		self.missionData["missionStartTime"] = self.Time
-
-		-- Select set
-		local set = CF.GetRandomMissionPointsSet(self.Pts, "Zombies")
-
-		-- Get LZs
-		local missionVatsPos = CF.GetPointsArray(self.Pts, "Zombies", set, "Vat")
-		missionVatsPos = CF.RandomSampleOfList(missionVatsPos, self.missionData["vatsCount"])
-
-		self.missionData["vats"] = {}
-
-		-- Spawn vats
-		for i = 1, self.missionData["vatsCount"] do
-			self.missionData["vats"][i] = CreateAEmitter("Zombie Generator")
-			self.missionData["vats"][i].Pos = missionVatsPos[i] + Vector(0, 46)
-			self.missionData["vats"][i].Team = -1
-			self.missionData["vats"][i]:EnableEmission(true)
-			MovableMan:AddParticle(self.missionData["vats"][i])
-		end
-
-		-- Build random weapon lists
-		local rifles = CF.MakeListOfMostPowerfulWeapons(
-			self.GS,
-			self.MissionSourcePlayer,
-			CF.WeaponTypes.RIFLE,
-			CF.GetTechLevelFromDifficulty(self.GS, self.MissionSourcePlayer, self.MissionDifficulty, CF.MaxDifficulty)
-		)
-		local snipers = CF.MakeListOfMostPowerfulWeapons(
-			self.GS,
-			self.MissionSourcePlayer,
-			CF.WeaponTypes.SNIPER,
-			CF.GetTechLevelFromDifficulty(self.GS, self.MissionSourcePlayer, self.MissionDifficulty, CF.MaxDifficulty)
-		)
-		local pistols = CF.MakeListOfMostPowerfulWeapons(
-			self.GS,
-			self.MissionSourcePlayer,
-			CF.WeaponTypes.PISTOL,
-			CF.GetTechLevelFromDifficulty(self.GS, self.MissionSourcePlayer, self.MissionDifficulty, CF.MaxDifficulty)
-		)
-		local grenades = CF.MakeListOfMostPowerfulWeapons(
-			self.GS,
-			self.MissionSourcePlayer,
-			CF.WeaponTypes.GRENADE,
-			CF.GetTechLevelFromDifficulty(self.GS, self.MissionSourcePlayer, self.MissionDifficulty, CF.MaxDifficulty)
-		)
-		--local heavies = CF.MakeListOfMostPowerfulWeapons(self.GS, self.MissionSourcePlayer, CF.WeaponTypes.HEAVY , CF.GetTechLevelFromDifficulty(self.GS, self.MissionSourcePlayer, self.MissionDifficulty, CF.MaxDifficulty))
-
-		self.missionData["weapons"] = {}
-
-		if rifles ~= nil and #rifles > 0 then
-			self.missionData["weapons"][#self.missionData["weapons"] + 1] = rifles
-		end
-
-		if snipers ~= nil and #snipers > 0 then
-			self.missionData["weapons"][#self.missionData["weapons"] + 1] = sniper
-		end
-
-		if pistols ~= nil and #pistols > 0 then
-			self.missionData["weapons"][#self.missionData["weapons"] + 1] = pistols
-		end
-
-		if grenades ~= nil and #grenades > 0 then
-			self.missionData["weapons"][#self.missionData["weapons"] + 1] = grenades
-		end
-
-		--if #heavies > 0 then
-		--	self.missionData["weapons"][#self.missionData["weapons"] + 1] = heavies
-		--end
-
-		self.missionData["stage"] = CF.MissionStages.ACTIVE
+	print("ZOMBIES CREATE")
+	
+	-- Mission difficulty settings
+	local diff = self.missionData["difficulty"]
+	
+	if diff == 1 then
+		self.missionData["vatsCount"] = 3
+		self.missionData["maxZombiesPerVat"] = 5
+	elseif diff == 2 then
+		self.missionData["vatsCount"] = 4
+		self.missionData["maxZombiesPerVat"] = 5
+	elseif diff == 3 then
+		self.missionData["vatsCount"] = 5
+		self.missionData["maxZombiesPerVat"] = 4
+	elseif diff == 4 then
+		self.missionData["vatsCount"] = 6
+		self.missionData["maxZombiesPerVat"] = 4
+	elseif diff == 5 then
+		self.missionData["vatsCount"] = 7
+		self.missionData["maxZombiesPerVat"] = 3
+	elseif diff == 6 then
+		self.missionData["vatsCount"] = 8
+		self.missionData["maxZombiesPerVat"] = 3
 	end
+
+	-- Select set
+	local set = CF.GetRandomMissionPointsSet(self.Pts, "Zombies")
+
+	-- Get LZs
+	local missionVatsPos = CF.GetPointsArray(self.Pts, "Zombies", set, "Vat")
+	missionVatsPos = CF.RandomSampleOfList(missionVatsPos, self.missionData["vatsCount"])
+
+	self.missionData["vats"] = {}
+
+	-- Spawn vats
+	for i = 1, self.missionData["vatsCount"] do
+		self.missionData["vats"][i] = CreateAEmitter("Zombie Generator")
+		self.missionData["vats"][i].Pos = missionVatsPos[i] + Vector(0, 46)
+		self.missionData["vats"][i].Team = -1
+		self.missionData["vats"][i]:EnableEmission(true)
+		MovableMan:AddParticle(self.missionData["vats"][i])
+	end
+
+	-- Build random weapon lists
+	local rifles = CF.MakeListOfMostPowerfulWeapons(
+		self.GS,
+		self.missionData["missionContractor"],
+		CF.WeaponTypes.RIFLE,
+		CF.GetTechLevelFromDifficulty(self.GS, self.missionData["missionContractor"], self.missionData["difficulty"], CF.MaxDifficulty)
+	)
+	local snipers = CF.MakeListOfMostPowerfulWeapons(
+		self.GS,
+		self.missionData["missionContractor"],
+		CF.WeaponTypes.SNIPER,
+		CF.GetTechLevelFromDifficulty(self.GS, self.missionData["missionContractor"], self.missionData["difficulty"], CF.MaxDifficulty)
+	)
+	local pistols = CF.MakeListOfMostPowerfulWeapons(
+		self.GS,
+		self.missionData["missionContractor"],
+		CF.WeaponTypes.PISTOL,
+		CF.GetTechLevelFromDifficulty(self.GS, self.missionData["missionContractor"], self.missionData["difficulty"], CF.MaxDifficulty)
+	)
+	local grenades = CF.MakeListOfMostPowerfulWeapons(
+		self.GS,
+		self.missionData["missionContractor"],
+		CF.WeaponTypes.GRENADE,
+		CF.GetTechLevelFromDifficulty(self.GS, self.missionData["missionContractor"], self.missionData["difficulty"], CF.MaxDifficulty)
+	)
+	--local heavies = CF.MakeListOfMostPowerfulWeapons(self.GS, self.missionData["missionContractor"], CF.WeaponTypes.HEAVY , CF.GetTechLevelFromDifficulty(self.GS, self.missionData["missionContractor"], self.missionData["difficulty"], CF.MaxDifficulty))
+
+	self.missionData["weapons"] = {}
+
+	if rifles ~= nil and #rifles > 0 then
+		self.missionData["weapons"][#self.missionData["weapons"] + 1] = rifles
+	end
+
+	if snipers ~= nil and #snipers > 0 then
+		self.missionData["weapons"][#self.missionData["weapons"] + 1] = sniper
+	end
+
+	if pistols ~= nil and #pistols > 0 then
+		self.missionData["weapons"][#self.missionData["weapons"] + 1] = pistols
+	end
+
+	if grenades ~= nil and #grenades > 0 then
+		self.missionData["weapons"][#self.missionData["weapons"] + 1] = grenades
+	end
+
+	--if #heavies > 0 then
+	--	self.missionData["weapons"][#self.missionData["weapons"] + 1] = heavies
+	--end
 end
 -----------------------------------------------------------------------------------------
 --
@@ -135,7 +120,7 @@ function VoidWanderers:MissionUpdate()
 			end
 		end
 
-		self.MissionStatus = "VATS: " .. vats
+		self.missionData["missionStatus"] = "VATS: " .. vats
 
 		-- Check wining conditions
 		if vats == 0 then
@@ -192,7 +177,7 @@ function VoidWanderers:MissionUpdate()
 			end
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
-		self.MissionStatus = "MISSION COMPLETED"
+		self.missionData["missionStatus"] = "MISSION COMPLETED"
 		if not self.MissionEndMusicPlayed then
 			self:StartMusic(CF.MusicTypes.VICTORY)
 			self.MissionEndMusicPlayed = true
@@ -201,7 +186,7 @@ function VoidWanderers:MissionUpdate()
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
-				FrameMan:SetScreenText(self.MissionStatus, player, 0, 1000, true)
+				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)
 			end
 		end
 	end

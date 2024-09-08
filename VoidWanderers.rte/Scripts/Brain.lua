@@ -974,13 +974,15 @@ function do_rpgbrain_pda(self)
 		local detectionRange = self.ActiveMenu[self.SelectedMenuItem]["ActorDetectRange"]
 		if not self.ActiveMenu[self.SelectedMenuItem]["DetectAllActors"] then
 			for actor in MovableMan.Actors do
+				local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX).Magnitude
 				if
 					actor.Team == self.Team
 					and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 					and (self.ActiveMenu[self.SelectedMenuItem]["AffectsBrains"] == actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua"))
-					and detectionRange >= SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX).Magnitude
+					and detectionRange >= dist
 				then
 					self.SkillTargetActor = actor
+					detectionRange = dist
 				end
 			end
 
