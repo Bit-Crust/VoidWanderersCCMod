@@ -1,13 +1,13 @@
 -------------------------------------------------------------------------------
---[[local id = "TEST";
+--[[local id = "TEST"
 
-CF["RandomEncounters"][#CF["RandomEncounters"] + 1] = id
+CF.RandomEncounters[#CF.RandomEncounters + 1] = id
 	
-CF["RandomEncountersInitialTexts"][id] = "TEST ENCOUNTER"
-CF["RandomEncountersInitialVariants"][id] = {"Variant 1", "Variant 2", "Variant 3"}
-CF["RandomEncountersVariantsInterval"][id] = 12
-CF["RandomEncountersOneTime"][id] = false
-CF["RandomEncountersFunctions"][id] = 
+CF.RandomEncountersInitialTexts[id] = "TEST ENCOUNTER"
+CF.RandomEncountersInitialVariants[id] = {"Variant 1", "Variant 2", "Variant 3"}
+CF.RandomEncountersVariantsInterval[id] = 12
+CF.RandomEncountersOneTime[id] = false
+CF.RandomEncountersFunctions[id] = 
 
 function (self, variant) 
 	if variant ~= 0 then
@@ -17,103 +17,103 @@ function (self, variant)
 		
 		-- Finish encounter
 		self.RandomEncounterID = nil
-		CF["SaveMissionReport"](self.GS, self.MissionReport)
+		CF.SaveMissionReport(self.GS, self.MissionReport)
 	end
 end--]]
 --
 -------------------------------------------------------------------------------
 -- Define pirate identities
-CF["RandomEncounterPirates"] = {};
+CF.RandomEncounterPirates = {}
 
 -- Generic organic mid-heavy pirates
-local pid = #CF["RandomEncounterPirates"] + 1;
-CF["RandomEncounterPirates"][pid] = {};
-CF["RandomEncounterPirates"][pid]["Captain"] = "Apone";
-CF["RandomEncounterPirates"][pid]["Ship"] = "Sulako";
-CF["RandomEncounterPirates"][pid]["Org"] = "The Free Galactic Brotherhood";
-CF["RandomEncounterPirates"][pid]["FeeInc"] = 500;
+local pid = #CF.RandomEncounterPirates + 1
+CF.RandomEncounterPirates[pid] = {}
+CF.RandomEncounterPirates[pid]["Captain"] = "Apone"
+CF.RandomEncounterPirates[pid]["Ship"] = "Sulako"
+CF.RandomEncounterPirates[pid]["Org"] = "The Free Galactic Brotherhood"
+CF.RandomEncounterPirates[pid]["FeeInc"] = 500
 --[[
-CF["RandomEncounterPirates"][pid]["EncounterText"] = "";
-CF["RandomEncounterPirates"][pid]["ReplyHostile"] = "";
-CF["RandomEncounterPirates"][pid]["ReplyBribe"] = "";
-CF["RandomEncounterPirates"][pid]["MsgBribe"] = "";
-CF["RandomEncounterPirates"][pid]["MsgHostile"] = "";
-CF["RandomEncounterPirates"][pid]["MsgDefeat"] = "";
+CF.RandomEncounterPirates[pid]["EncounterText"] = ""
+CF.RandomEncounterPirates[pid]["ReplyHostile"] = ""
+CF.RandomEncounterPirates[pid]["ReplyBribe"] = ""
+CF.RandomEncounterPirates[pid]["MsgBribe"] = ""
+CF.RandomEncounterPirates[pid]["MsgHostile"] = ""
+CF.RandomEncounterPirates[pid]["MsgDefeat"] = ""
 ]]
 --
-CF["RandomEncounterPirates"][pid]["Act"] = { "Raider", "Soldier Light", "Soldier Heavy", "Browncoat", "Exterminator" };
-CF["RandomEncounterPirates"][pid]["ActMod"] = {
+CF.RandomEncounterPirates[pid]["Act"] = { "Raider", "Soldier Light", "Soldier Heavy", "Browncoat", "Exterminator" }
+CF.RandomEncounterPirates[pid]["ActMod"] = {
 	"Ronin.rte",
 	"Coalition.rte",
 	"Coalition.rte",
 	"Browncoats.rte",
 	"Browncoats.rte",
-};
+}
 
-CF["RandomEncounterPirates"][pid]["Itm"] = {
+CF.RandomEncounterPirates[pid]["Itm"] = {
 	"AR-25 Hammerfist",
 	"PY-07 Trailblazer",
 	"M16A2",
 	"Assault Rifle",
 	"Auto Shotgun",
-};
-CF["RandomEncounterPirates"][pid]["ItmMod"] = {
+}
+CF.RandomEncounterPirates[pid]["ItmMod"] = {
 	"Browncoats.rte",
 	"Browncoats.rte",
 	"Ronin.rte",
 	"Coalition.rte",
 	"Coalition.rte",
-};
+}
 
-CF["RandomEncounterPirates"][pid]["Thrown"] = { "Shredder SB-08", "Timed Explosive" };
-CF["RandomEncounterPirates"][pid]["ThrownMod"] = { "Imperatus.rte", "Coalition.rte" };
+CF.RandomEncounterPirates[pid]["Thrown"] = { "Shredder SB-08", "Timed Explosive" }
+CF.RandomEncounterPirates[pid]["ThrownMod"] = { "Imperatus.rte", "Coalition.rte" }
 
-CF["RandomEncounterPirates"][pid]["Units"] = 12;
-CF["RandomEncounterPirates"][pid]["Burst"] = 3;
-CF["RandomEncounterPirates"][pid]["Interval"] = 14;
+CF.RandomEncounterPirates[pid]["Units"] = 12
+CF.RandomEncounterPirates[pid]["Burst"] = 3
+CF.RandomEncounterPirates[pid]["Interval"] = 14
 
 -- Generic mid-heavy robot pirates
-local pid = #CF["RandomEncounterPirates"] + 1;
-CF["RandomEncounterPirates"][pid] = {};
-CF["RandomEncounterPirates"][pid]["Captain"] = "SHODAN";
-CF["RandomEncounterPirates"][pid]["Ship"] = "Von Braun";
-CF["RandomEncounterPirates"][pid]["Org"] = "The Free Nexus";
-CF["RandomEncounterPirates"][pid]["FeeInc"] = 500;
+local pid = #CF.RandomEncounterPirates + 1
+CF.RandomEncounterPirates[pid] = {}
+CF.RandomEncounterPirates[pid]["Captain"] = "SHODAN"
+CF.RandomEncounterPirates[pid]["Ship"] = "Von Braun"
+CF.RandomEncounterPirates[pid]["Org"] = "The Free Nexus"
+CF.RandomEncounterPirates[pid]["FeeInc"] = 500
 
-CF["RandomEncounterPirates"][pid]["Act"] = { "Dummy", "All Purpose Robot", "Combat Robot", "Whitebot", "Silver Man" };
-CF["RandomEncounterPirates"][pid]["ActMod"] = {
+CF.RandomEncounterPirates[pid]["Act"] = { "Dummy", "All Purpose Robot", "Combat Robot", "Whitebot", "Silver Man" }
+CF.RandomEncounterPirates[pid]["ActMod"] = {
 	"Dummy.rte",
 	"Imperatus.rte",
 	"Imperatus.rte",
 	"Techion.rte",
 	"Techion.rte",
-};
+}
 
-CF["RandomEncounterPirates"][pid]["Itm"] = { "Blaster", "Repeater", "Bullpup AR-14", "Mauler SG-23", "Pulse Rifle" };
-CF["RandomEncounterPirates"][pid]["ItmMod"] = { "Dummy.rte", "Dummy.rte", "Imperatus.rte", "Imperatus.rte", "Techion.rte" };
+CF.RandomEncounterPirates[pid]["Itm"] = { "Blaster", "Repeater", "Bullpup AR-14", "Mauler SG-23", "Pulse Rifle" }
+CF.RandomEncounterPirates[pid]["ItmMod"] = { "Dummy.rte", "Dummy.rte", "Imperatus.rte", "Imperatus.rte", "Techion.rte" }
 
-CF["RandomEncounterPirates"][pid]["Thrown"] = { "Scrambler", "Timed Explosive" };
-CF["RandomEncounterPirates"][pid]["ThrownMod"] = { "Ronin.rte", "Coalition.rte" };
+CF.RandomEncounterPirates[pid]["Thrown"] = { "Scrambler", "Timed Explosive" }
+CF.RandomEncounterPirates[pid]["ThrownMod"] = { "Ronin.rte", "Coalition.rte" }
 
-CF["RandomEncounterPirates"][pid]["Units"] = 12;
-CF["RandomEncounterPirates"][pid]["Burst"] = 2;
-CF["RandomEncounterPirates"][pid]["Interval"] = 10;
+CF.RandomEncounterPirates[pid]["Units"] = 12
+CF.RandomEncounterPirates[pid]["Burst"] = 2
+CF.RandomEncounterPirates[pid]["Interval"] = 10
 
-local id = "PIRATE_GENERIC";
-CF["RandomEncounters"][#CF["RandomEncounters"] + 1] = id;
-CF["RandomEncountersInitialTexts"][id] = "";
-CF["RandomEncountersInitialVariants"][id] = {
+local id = "PIRATE_GENERIC"
+CF.RandomEncounters[#CF.RandomEncounters + 1] = id
+CF.RandomEncountersInitialTexts[id] = ""
+CF.RandomEncountersInitialVariants[id] = {
 	"I'm at your mercy, take whatever you want.",
 	"Kid, don't threaten me. There are worse things than death and I can do all of them.",
-};
-CF["RandomEncountersVariantsInterval"][id] = 24;
-CF["RandomEncountersOneTime"][id] = false;
-CF["RandomEncountersFunctions"][id] = 
+}
+CF.RandomEncountersVariantsInterval[id] = 24
+CF.RandomEncountersOneTime[id] = false
+CF.RandomEncountersFunctions[id] = 
 function(self, variant)
 	if not self.RandomEncounterIsInitialized then
 		-- Select random pirate party
-		self.pirateID = math.random(#CF["RandomEncounterPirates"])
-		self.RandomEncounterPirate = CF["RandomEncounterPirates"][self.pirateID]
+		self.pirateID = math.random(#CF.RandomEncounterPirates)
+		self.RandomEncounterPirate = CF.RandomEncounterPirates[self.pirateID]
 
 		local fee =
 			self.GS["RandomEncounter" .. self.RandomEncounterID .. self.RandomEncounterPirate["Captain"] .. "Fee"]
@@ -131,19 +131,19 @@ function(self, variant)
 			self.MissionReport[#self.MissionReport + 1] = "Dead pirate vessel floats nearby. It seems to have been raided countless times, but you managed to scavenge "
 				.. gold
 				.. "oz of gold from it."
-			CF["SaveMissionReport"](self.GS, self.MissionReport)
+			CF.SaveMissionReport(self.GS, self.MissionReport)
 
 			self.RandomEncounterText = ""
 
-			CF["SetPlayerGold"](self.GS, 0, CF["GetPlayerGold"](self.GS, 0) + gold)
+			CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + gold)
 
 			-- Finish encounter
 			self.RandomEncounterID = nil
 		else
 			-- If captain is still alive then initiate negotiations
 
-			--if fee > CF["GetPlayerGold"](self.GS, 0) then
-			--	fee = CF["GetPlayerGold"](self.GS, 0)
+			--if fee > CF.GetPlayerGold(self.GS, 0) then
+			--	fee = CF.GetPlayerGold(self.GS, 0)
 			--end
 
 			self.RandomEncounterPirateFee = fee
@@ -173,10 +173,10 @@ function(self, variant)
 
 	if not self.RandomEncounterPirateAttackLaunched then
 		if variant == 1 then
-			local gold = CF["GetPlayerGold"](self.GS, 0)
+			local gold = CF.GetPlayerGold(self.GS, 0)
 			if gold < math.random(self.RandomEncounterPirateFee) then
 				if gold >= self.RandomEncounterPirateFee * 0.5 then
-					CF["SetPlayerGold"](self.GS, 0, 0)
+					CF.SetPlayerGold(self.GS, 0, 0)
 					self.RandomEncounterText = "Thank you for your payment. My troops will come by to collect the rest. "
 						.. self.RandomEncounterPirate["Captain"]
 						.. " out."
@@ -206,7 +206,7 @@ function(self, variant)
 				self.AssaultWarningTime = math.random(5, 6)
 			else
 				self.MissionReport = {}
-				local newGold = CF["GetPlayerGold"](self.GS, 0) - self.RandomEncounterPirateFee
+				local newGold = CF.GetPlayerGold(self.GS, 0) - self.RandomEncounterPirateFee
 				if newGold <= 0 then
 					self.MissionReport[#self.MissionReport + 1] = self.RandomEncounterPirate["MsgDebt"]
 						or "Consider yourself lucky, punk. Next time we take your ship. "
@@ -219,10 +219,10 @@ function(self, variant)
 							.. self.RandomEncounterPirate["Captain"]
 							.. " out."
 				end
-				CF["SetPlayerGold"](self.GS, 0, math.max(newGold, 0))
+				CF.SetPlayerGold(self.GS, 0, math.max(newGold, 0))
 				-- Finish encounter
 				self.RandomEncounterID = nil
-				CF["SaveMissionReport"](self.GS, self.MissionReport)
+				CF.SaveMissionReport(self.GS, self.MissionReport)
 			end
 		end
 
@@ -254,12 +254,12 @@ function(self, variant)
 		local friendCount = 0
 
 		for actor in MovableMan.Actors do
-			if actor.Team == CF["CPUTeam"] then
+			if actor.Team == CF.CPUTeam then
 				enemyCount = enemyCount + 1
 				if actor.AIMode ~= Actor.AIMODE_BRAINHUNT then
 					actor.AIMode = Actor.AIMODE_BRAINHUNT
 				end
-				--elseif actor.Team == CF["PlayerTeam"] and (IsAHuman(actor) or IsACrab(actor)) then
+				--elseif actor.Team == CF.PlayerTeam and (IsAHuman(actor) or IsACrab(actor)) then
 				--	actor = IsAHuman(actor) and ToAHuman(actor) or ToACrab(actor)
 				--	if actor.EquippedItem then
 				--		friendCount = friendCount + 1
@@ -278,7 +278,7 @@ function(self, variant)
 
 				-- Finish encounter
 				self.RandomEncounterID = nil
-				CF["SaveMissionReport"](self.GS, self.MissionReport)
+				CF.SaveMissionReport(self.GS, self.MissionReport)
 				-- Rebuild destroyed consoles
 				self:InitStorageControlPanelUI()
 				--self:InitClonesControlPanelUI()
@@ -297,7 +297,7 @@ function(self, variant)
 			)
 
 			for j = 1, cnt do
-				if MovableMan:GetMOIDCount() < CF["MOIDLimit"] and self.RandomEncounterPirateUnits > 0 then
+				if MovableMan:GetMOIDCount() < CF.MOIDLimit and self.RandomEncounterPirateUnits > 0 then
 					self.RandomEncounterPirateUnits = self.RandomEncounterPirateUnits - 1
 
 					local r1 = math.random(#self.RandomEncounterPirate["Act"])
@@ -379,7 +379,7 @@ function(self, variant)
 
 						actor.HFlipped = cnt == 1 and math.random() < 0.5 or j % 2 == 0
 						actor.Pos = self.AssaultNextSpawnPos + Vector(math.random(-4, 4), math.random(-2, 2))
-						actor.Team = CF["CPUTeam"]
+						actor.Team = CF.CPUTeam
 						actor.AIMode = Actor.AIMODE_BRAINHUNT
 						MovableMan:AddActor(actor)
 
@@ -402,7 +402,7 @@ function(self, variant)
 
 		-- Create teleportation effect
 		if self.RandomEncounterPirateUnits > 0 and self.AssaultNextSpawnTime - self.Time < self.AssaultWarningTime then
-			self:AddObjectivePoint("INTRUDER\nALERT", self.AssaultNextSpawnPos, CF["PlayerTeam"], GameActivity.ARROWDOWN)
+			self:AddObjectivePoint("INTRUDER\nALERT", self.AssaultNextSpawnPos, CF.PlayerTeam, GameActivity.ARROWDOWN)
 
 			if self.TeleportEffectTimer:IsPastSimMS(50) then
 				-- Create particle
@@ -416,41 +416,41 @@ function(self, variant)
 end
 -------------------------------------------------------------------------------
 -- Abandoned ship exploration
-local id = "ABANDONED_VESSEL_GENERIC";
-CF["RandomEncounters"][#CF["RandomEncounters"] + 1] = id;
-CF["RandomEncountersInitialTexts"][id] =
-	"A dead vessel floats in an asteroid field. It might have been abandoned for years, although it does not mean that it is empty.";
-CF["RandomEncountersInitialVariants"][id] = {
+local id = "ABANDONED_VESSEL_GENERIC"
+CF.RandomEncounters[#CF.RandomEncounters + 1] = id
+CF.RandomEncountersInitialTexts[id] =
+	"A dead vessel floats in an asteroid field. It might have been abandoned for years, although it does not mean that it is empty."
+CF.RandomEncountersInitialVariants[id] = {
 	"Send away team immediately!",
 	"Just cut off everything valuable from the hull.",
 	"Leave it alone...",
-};
-CF["RandomEncountersVariantsInterval"][id] = 24;
-CF["RandomEncountersOneTime"][id] = false;
-CF["RandomEncountersFunctions"][id] = 
+}
+CF.RandomEncountersVariantsInterval[id] = 24
+CF.RandomEncountersOneTime[id] = false
+CF.RandomEncountersFunctions[id] = 
 function(self, variant)
 	if not self.RandomEncounterIsInitialized then
-		local locations = {};
+		local locations = {}
 
 		-- Find usable scene
-		for i = 1, #CF["Location"] do
-			local id = CF["Location"][i];
-			if CF["IsLocationHasAttribute"](id, CF["LocationAttributeTypes"].ABANDONEDVESSEL) then
-				locations[#locations + 1] = id;
+		for i = 1, #CF.Location do
+			local id = CF.Location[i]
+			if CF.IsLocationHasAttribute(id, CF.LocationAttributeTypes.ABANDONEDVESSEL) then
+				locations[#locations + 1] = id
 			end
 		end
 
-		self.AbandonedVesselLocation = locations[math.random(#locations)];
+		self.AbandonedVesselLocation = locations[math.random(#locations)]
 
-		self.RandomEncounterIsInitialized = true;
+		self.RandomEncounterIsInitialized = true
 	end
 
 	if variant == 1 then
-		self.GS["Location"] = self.AbandonedVesselLocation;
+		self.GS["Location"] = self.AbandonedVesselLocation
 
-		self.RandomEncounterText = "Deploy your away team to the abandoned ship.";
-		self.RandomEncounterVariants = {};
-		self.RandomEncounterChosenVariant = 0;
+		self.RandomEncounterText = "Deploy your away team to the abandoned ship."
+		self.RandomEncounterVariants = {}
+		self.RandomEncounterChosenVariant = 0
 	end
 
 	if variant == 2 then
@@ -466,163 +466,164 @@ function(self, variant)
 			"a Higgs boson detector",
 			"a microwave heater",
 			"a coffee bean roaster",
-		};
+		}
 		if math.random() < 0.125 then
-			local losstext;
-			local r = math.random(5);
+			local losstext
+			local r = math.random(5)
 
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-				FrameMan:FlashScreen(self:ScreenOfPlayer(player), 13, 1000);
+				FrameMan:FlashScreen(self:ScreenOfPlayer(player), 13, 1000)
 			end
 
-			local charge = CreateMOSRotating("Explosion Sound " .. math.random(10));
-			charge.Pos = self.ShipControlPanelPos;
-			MovableMan:AddParticle(charge);
-			charge:GibThis();
+			local charge = CreateMOSRotating("Explosion Sound " .. math.random(10))
+			charge.Pos = self.ShipControlPanelPos
+			MovableMan:AddParticle(charge)
+			charge:GibThis()
 
 			if r == 1 then
 				-- Destroy stored clone if any
 				if #self.Clones > 0 then
-					local rclone = math.random(tonumber(self.GS["Player0VesselClonesCapacity"]));
+					local rclone = math.random(tonumber(self.GS["Player0VesselClonesCapacity"]))
 					-- If damaged cell hit the clone then remove actor from array
-					local newarr = {};
-					local ii = 1;
+					local newarr = {}
+					local ii = 1
 
 					for i = 1, #self.Clones do
 						if i ~= rclone then
-							newarr[ii] = self.Clones[i];
-							ii = ii + 1;
+							newarr[ii] = self.Clones[i]
+							ii = ii + 1
 						end
 					end
 
-					self.Clones = newarr;
+					self.Clones = newarr
 				end
-				CF["SetClonesArray"](self.GS, self.Clones);
+				CF.SetClonesArray(self.GS, self.Clones)
 
-				self.GS["Player0VesselClonesCapacity"] = tonumber(self.GS["Player0VesselClonesCapacity"]) - 1;
+				self.GS["Player0VesselClonesCapacity"] = tonumber(self.GS["Player0VesselClonesCapacity"]) - 1
 
 				if self.GS["Player0VesselClonesCapacity"] <= 0 then
-					self.GS["Player0VesselClonesCapacity"] = 1;
+					self.GS["Player0VesselClonesCapacity"] = 1
 				end
 
-				losstext = "and destroyed one of our cryo-chambers.";
+				losstext = "and destroyed one of our cryo-chambers."
 			elseif r == 2 then
 				-- Destroy storage cells
-				local damage = math.random(3, 9);
+				local damage = math.random(3, 9)
 				for i = 1, damage do
-					local rweap = math.random(#self.StorageItems * 2);
+					local rweap = math.random(#self.StorageItems * 2)
 					if rweap <= #self.StorageItems then
 						if self.StorageItems[rweap]["Count"] > 0 then
-							self.StorageItems[rweap]["Count"] = self.StorageItems[rweap]["Count"] - 1;
+							self.StorageItems[rweap]["Count"] = self.StorageItems[rweap]["Count"] - 1
 						end
 					end
 				end
 
-				self.GS["Player0VesselStorageCapacity"] = tonumber(self.GS["Player0VesselStorageCapacity"]) - damage;
+				self.GS["Player0VesselStorageCapacity"] = tonumber(self.GS["Player0VesselStorageCapacity"]) - damage
 
 				if self.GS["Player0VesselStorageCapacity"] <= 0 then
-					self.GS["Player0VesselStorageCapacity"] = 1;
+					self.GS["Player0VesselStorageCapacity"] = 1
 				end
 
 				-- If we have some items left in nonexisting cell then throw them around
-				while CF["CountUsedStorageInArray"](self.StorageItems) > self.GS["Player0VesselStorageCapacity"] do
-					local rweap = math.random(#self.StorageItems);
+				while CF.CountUsedStorageInArray(self.StorageItems) > self.GS["Player0VesselStorageCapacity"] do
+					local rweap = math.random(#self.StorageItems)
 					if self.StorageItems[rweap]["Count"] > 0 then
-						self.StorageItems[rweap]["Count"] = self.StorageItems[rweap]["Count"] - 1;
+						self.StorageItems[rweap]["Count"] = self.StorageItems[rweap]["Count"] - 1
 
 						if self.StorageInputPos ~= nil then
-							local itm = CF["MakeItem"](
+							local itm = CF.MakeItem(
 								self.StorageItems[rweap]["Preset"],
 								self.StorageItems[rweap]["Class"],
 								self.StorageItems[rweap]["Module"]
-							);
+							)
 							if itm then
-								itm.Pos = self.StorageInputPos;
-								local a = math.random(360);
-								local r = 10 + math.random(40);
-								itm.Vel = Vector(math.cos(a / (180 / 3.14)) * r, math.sin(a / (180 / 3.14) * r));
-								MovableMan:AddItem(itm);
+								itm.Pos = self.StorageInputPos
+								local a = math.random(360)
+								local r = 10 + math.random(40)
+								itm.Vel = Vector(math.cos(a / (180 / 3.14)) * r, math.sin(a / (180 / 3.14) * r))
+								MovableMan:AddItem(itm)
 							end
 						end
 					end
 				end
 
-				CF["SetStorageArray"](self.GS, self.StorageItems);
-				self.StorageItems, self.StorageFilters = CF["GetStorageArray"](self.GS, true);
+				CF.SetStorageArray(self.GS, self.StorageItems)
+				self.StorageItems, self.StorageFilters = CF.GetStorageArray(self.GS, true)
 
-				losstext = "and destroyed some of our storage cells.";
+				losstext = "and destroyed some of our storage cells."
 			elseif r == 3 then
 				-- Destroy life support
-				self.GS["Player0VesselLifeSupport"] = tonumber(self.GS["Player0VesselLifeSupport"]) - 1;
+				self.GS["Player0VesselLifeSupport"] = tonumber(self.GS["Player0VesselLifeSupport"]) - 1
 
 				if self.GS["Player0VesselLifeSupport"] <= 0 then
-					self.GS["Player0VesselLifeSupport"] = 1;
+					self.GS["Player0VesselLifeSupport"] = 1
 				end
 
-				losstext = "and destroyed our oxygen regeneration tank. Our life support system degraded.";
+				losstext = "and destroyed our oxygen regeneration tank. Our life support system degraded."
 			elseif r == 4 then
 				-- Destroy life support
-				self.GS["Player0VesselCommunication"] = tonumber(self.GS["Player0VesselCommunication"]) - 1;
+				self.GS["Player0VesselCommunication"] = tonumber(self.GS["Player0VesselCommunication"]) - 1
 
 				if self.GS["Player0VesselCommunication"] <= 0 then
-					self.GS["Player0VesselCommunication"] = 1;
+					self.GS["Player0VesselCommunication"] = 1
 				end
 
-				losstext = "and destroyed one of our antennas. Communication power has depleted.";
+				losstext = "and destroyed one of our antennas. Communication power has depleted."
 			elseif r == 5 then
 				-- Destroy engine
 				self.GS["Player0VesselSpeed"] = math.floor(tonumber(self.GS["Player0VesselSpeed"]) * 0.9 + 0.5)
-					- math.random(5);
+					- math.random(5)
 
 				if self.GS["Player0VesselSpeed"] <= 5 then
-					self.GS["Player0VesselSpeed"] = 5;
+					self.GS["Player0VesselSpeed"] = 5
 				end
 
-				losstext = "and damaged our engine. We've lost some speed.";
+				losstext = "and damaged our engine. We've lost some speed."
 			end
 
-			self.MissionReport = {};
+			self.MissionReport = {}
 			self.MissionReport[#self.MissionReport + 1] = "We tried to cut off "
 				.. devices[math.random(#devices)]
 				.. ", but it exploded "
-				.. losstext;
-			CF["SaveMissionReport"](self.GS, self.MissionReport);
+				.. losstext
+			CF.SaveMissionReport(self.GS, self.MissionReport)
 		else
-			local gold = math.random(1000 - CF["Difficulty"] * 5);
-			CF["SetPlayerGold"](self.GS, 0, CF["GetPlayerGold"](self.GS, 0) + gold);
+			local gold = math.random(1000 - CF.Difficulty * 5)
+			CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + gold)
 
-			self.MissionReport = {};
+			self.MissionReport = {}
 			self.MissionReport[#self.MissionReport + 1] = "We managed to find some intact parts of "
 				.. devices[math.random(#devices)]
 				.. " worth "
 				.. gold
-				.. " oz of gold.";
-			CF["SaveMissionReport"](self.GS, self.MissionReport);
+				.. " oz of gold."
+			CF.SaveMissionReport(self.GS, self.MissionReport)
 		end
 
 		-- Finish encounter
-		self.RandomEncounterID = nil;
+		self.RandomEncounterID = nil
 	end
 
 	if variant == 3 then
-		self.MissionReport = {};
-		self.MissionReport[#self.MissionReport + 1] = "Farewell, silent wanderer of the void."; --"Adios, lone nomad of the unknown."
-		CF["SaveMissionReport"](self.GS, self.MissionReport);
+		self.MissionReport = {}
+		self.MissionReport[#self.MissionReport + 1] = "Farewell, silent wanderer of the void." --"Adios, lone nomad of the unknown."
+		CF.SaveMissionReport(self.GS, self.MissionReport)
 
 		-- Finish encounter
-		self.RandomEncounterID = nil;
+		self.RandomEncounterID = nil
 	end
 end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
--- Hostile drone
+--[[ Hostile drone
 local id = "HOSTILE_DRONE";
-CF["RandomEncounters"][#CF["RandomEncounters"] + 1] = id
-CF["RandomEncountersInitialTexts"][id] = "A pre-historic assault drone is floating nearby. We don't know if it is dead or not."
-CF["RandomEncountersInitialVariants"][id] = {"Initiate evade maneuvers and fire countermeasures!" , "Just ignore the damn thing."}
-CF["RandomEncountersVariantsInterval"][id] = 24
-CF["RandomEncountersOneTime"][id] = false
-CF["RandomEncountersFunctions"][id] = 
+CF_RandomEncounters[#CF_RandomEncounters + 1] = id
+CF_RandomEncountersInitialTexts[id] = "A pre-historic assault drone is floating nearby. We don't know if it is dead or not."
+CF_RandomEncountersInitialVariants[id] = {"Initiate evade maneuvers and fire countermeasures!" , "Just ignore the damn thing."}
+CF_RandomEncountersVariantsInterval[id] = 24
+CF_RandomEncountersOneTime[id] = false
+CF_RandomEncountersFunctions[id] = 
+
 function (self, variant)
 	if not self.RandomEncounterIsInitialized then
 		self.RandomEncounterDroneActivated = false
@@ -646,13 +647,13 @@ function (self, variant)
 		if math.random(50) < tonumber(self.GS["Player0VesselSpeed"]) then
 			self.MissionReport = {}
 			self.MissionReport[#self.MissionReport + 1] = "Got away safely!"
-			CF["SaveMissionReport"](self.GS, self.MissionReport)
+			CF.SaveMissionReport(self.GS, self.MissionReport)
 			-- Finish encounter
 			self.RandomEncounterID = nil
 		elseif math.random(2) == 1 then
 			self.MissionReport = {}
 			self.MissionReport[#self.MissionReport + 1] = "Looks like it was dead after all."
-			CF["SaveMissionReport"](self.GS, self.MissionReport)
+			CF.SaveMissionReport(self.GS, self.MissionReport)
 			-- Finish encounter
 			self.RandomEncounterID = nil
 		else
@@ -677,7 +678,7 @@ function (self, variant)
 		else
 			self.MissionReport = {}
 			self.MissionReport[#self.MissionReport + 1] = "Looks like it could not detect us. Phew..."
-			CF["SaveMissionReport"](self.GS, self.MissionReport)
+			CF.SaveMissionReport(self.GS, self.MissionReport)
 		
 			-- Finish encounter
 			self.RandomEncounterID = nil
@@ -689,7 +690,7 @@ function (self, variant)
 		local actors = {}
 		
 		for actor in MovableMan.Actors do
-			if actor.Team == CF["PlayerTeam"] and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
+			if actor.Team == CF.PlayerTeam and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
 				actors[#actors + 1] = actor
 			end
 		end
@@ -705,7 +706,7 @@ function (self, variant)
 		--t:FlashWhite(5000)
 		
 		self.RandomEncounterTargetPos = Vector(t.X, t.Y)
-		self.RandomEncounterTargetAngle = (t - self.RandomEncounterSourcePos).AbsRadAngle;
+		self.RandomEncounterTargetAngle = (t - self.RandomEncounterSourcePos).AbsRadAngle
 		self.RandomEncounterTargetImpactPos = Vector()
 		self.RandomEncounterNeedTarget = false
 		
@@ -713,7 +714,7 @@ function (self, variant)
 		local pos = Vector()
 		
 		for rds = 1, 5000, 50 do
-			pos = self.RandomEncounterTargetPos + Vector(-math.cos(self.RandomEncounterTargetAngle) * rds, -math.sin(self.RandomEncounterTargetAngle) * rds);
+			pos = self.RandomEncounterTargetPos + Vector(-math.cos(self.RandomEncounterTargetAngle) * rds, -math.sin(self.RandomEncounterTargetAngle) * rds)
 			if pos.X < 10 or pos.Y < 10 or pos.X > SceneMan.Scene.Width - 10 or pos.Y > SceneMan.Scene.Height - 10 then
 				break
 			else
@@ -730,13 +731,13 @@ function (self, variant)
 	end
 	
 	if self.RandomEncounterDroneActivated then
-		self.RandomEncounterSourcePos = self.RandomEncounterSourcePos + self.RandomEncounterSourceVel;	
-		self.RandomEncounterTargetAngle = (self.RandomEncounterTargetPos - self.RandomEncounterSourcePos).AbsRadAngle;
+		self.RandomEncounterSourcePos = self.RandomEncounterSourcePos + self.RandomEncounterSourceVel	
+		self.RandomEncounterTargetAngle = (self.RandomEncounterTargetPos - self.RandomEncounterSourcePos).AbsRadAngle
 
 		if self.Time > self.RandomEncounterDroneNextFire - self.RandomEncounterDroneRechargeInterval then
 			for i = self.RandomEncounterShotFired , 2 do
 				local a = self.RandomEncounterTargetAngle
-				self:AddObjectivePoint("DANGER!!!", self.RandomEncounterTargetImpactPos + Vector(-math.cos(a + math.pi) * (i * 50), -math.sin(a + math.pi) * (i * 50)) , CF["PlayerTeam"], GameActivity.ARROWDOWN);
+				self:AddObjectivePoint("DANGER!!!", self.RandomEncounterTargetImpactPos + Vector(-math.cos(a + math.pi) * (i * 50), -math.sin(a + math.pi) * (i * 50)) , CF.PlayerTeam, GameActivity.ARROWDOWN)
 			end
 		end
 		
@@ -744,7 +745,7 @@ function (self, variant)
 			local a = self.RandomEncounterTargetAngle
 	
 			for i = 1, 25 do
-				local expl = CreateAEmitter("Destroyer Cannon Shot");
+				local expl = CreateAEmitter("Destroyer Cannon Shot")
 				expl.Pos = self.RandomEncounterFirePos + Vector(-math.cos(a + math.pi) * (i * 10), -math.sin(a + math.pi) * (i * 10))
 				
 				expl.Vel = Vector(-math.cos(a + math.pi) * 150, -math.sin(a + math.pi) * 150)
@@ -763,7 +764,7 @@ function (self, variant)
 					self.MissionReport = {}
 					self.MissionReport[#self.MissionReport + 1] = "The drone overloaded its' reactors and exploded."
 					self:GiveRandomExperienceReward()
-					CF["SaveMissionReport"](self.GS, self.MissionReport)
+					CF.SaveMissionReport(self.GS, self.MissionReport)
 				
 					-- Finish encounter
 					self.RandomEncounterID = nil
@@ -775,18 +776,18 @@ function (self, variant)
 			end
 		end
 	end
-end
+end]]
 --
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 --[[ Asteroid field
-local id = "ASTEROIDS";
-CF["RandomEncounters"][#CF["RandomEncounters"] + 1] = id
-CF["RandomEncountersInitialTexts"][id] = "We are intersecting a dense asteroid field! Advancing at current pace may damage the ship."
-CF["RandomEncountersInitialVariants"][id] = {"Let's slow down.", "Full speed ahead!"}
-CF["RandomEncountersVariantsInterval"][id] = 24
-CF["RandomEncountersOneTime"][id] = false
-CF["RandomEncountersFunctions"][id] = 
+local id = "ASTEROIDS"
+CF.RandomEncounters[#CF.RandomEncounters + 1] = id
+CF.RandomEncountersInitialTexts[id] = "We are intersecting a dense asteroid field! Advancing at current pace may damage the ship."
+CF.RandomEncountersInitialVariants[id] = {"Let's slow down.", "Full speed ahead!"}
+CF.RandomEncountersVariantsInterval[id] = 24
+CF.RandomEncountersOneTime[id] = false
+CF.RandomEncountersFunctions[id] = 
 
 function (self, variant)
 	if not self.RandomEncounterIsInitialized then
@@ -855,7 +856,7 @@ function (self, variant)
 			elseif self.RandomEncounterDelayTimer:IsPastSimMS(5000) then
 				self.MissionReport = {}
 				self.MissionReport[#self.MissionReport + 1] = "Looks like we've made it through."
-				CF["SaveMissionReport"](self.GS, self.MissionReport)
+				CF.SaveMissionReport(self.GS, self.MissionReport)
 				-- Finish encounter
 				self.RandomEncounterID = nil
 			end

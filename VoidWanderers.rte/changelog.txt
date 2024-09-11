@@ -84,16 +84,18 @@
 	- moved to VoidWanderersCCMod Github repository, changelog no longer seriously maintained
 
 07/2024
-	Whatever-date-it-is-right-now update
-	- RPG brain powers and abilities should be fully functional now
+	- RPG brain powers and abilities are re-enabled
 	- any player/control configuration should be supported
-	- music should work with Pre-7 music manager
 	- small improvements to UI and menu UX
-	- restored route dots
 	- items outside the storage bay will take longer to collect
 	- storage sweeps accelerate as they go
 	- clone storage is now capable of nullifying dead actor jetpacks
 	- clone storage also grabs dead actors and dampens their velocity
-	- dettaching brain D E A D flash fixed, but red flashes may still occur
-	- hostile drone encounter restored, very very deadly indeed
-		+ it now has a position in space, so it can only shoot from one side
+	- brains no longer flash the screen red when nothing is wrong
+	- any unit can recieve brain powers
+
+08/2024
+	- Bit Crust is now primary maintainer, also made above patch
+	- Fixed a lot of bugs, probably made more
+	- Replaced some loop breakers with systems that can't loop infinitely
+	- Starting a pretty nasty refactor of decade old code yay

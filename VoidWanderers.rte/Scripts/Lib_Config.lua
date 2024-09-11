@@ -155,16 +155,14 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["ReadConfigFile"] = function(modulename, filename)
+CF.ReadConfigFile = function(modulename, filename)
 	local config = {}
 
 	local f = LuaMan:FileOpen("Mods/" .. modulename .. "/CampaignData/" .. filename, "r")
 
 	while not LuaMan:FileEOF(f) do
 		line = LuaMan:FileReadLine(f)
-		local param, value
-
-		param, value = CF["ParseLine"](line)
+		local param, value = CF.ParseLine(line)
 		if param ~= nil then
 			config[param] = value
 		end
@@ -209,7 +207,7 @@ end
 CF["WriteSceneConfigFile"] = function(config, modulename, filename)
 	local file = LuaMan:FileOpen(modulename .. "/Scenes/Data/" .. filename, "w")
 
-	local sorted = CF["GetSortedListFromTable"](config)
+	local sorted = CF.GetSortedListFromTable(config)
 
 	for i = 1, #sorted do
 		LuaMan:FileWriteLine(file, tostring(sorted[i]["Key"]) .. "=" .. tostring(sorted[i]["Value"]) .. "\n")
@@ -222,7 +220,8 @@ end
 -----------------------------------------------------------------------------
 CF["WriteConfigFile"] = function(config, modulename, filename)
 	local file = LuaMan:FileOpen(modulename .. "/CampaignData/" .. filename, "w")
-	local sorted = CF["GetSortedListFromTable"](config)
+
+	local sorted = CF.GetSortedListFromTable(config)
 
 	for i = 1, #sorted do
 		LuaMan:FileWriteLine(file, tostring(sorted[i]["Key"]) .. "=" .. tostring(sorted[i]["Value"]) .. "\n")
@@ -273,14 +272,14 @@ end
 CF["IsFileExists"] = function(modulename, filename)
 	return LuaMan:FileExists(modulename .. "/CampaignData/" .. filename)
 	--[[ Old method:
-	local file = LuaMan:FileOpen(modulename.."/CampaignData/"..filename , "r");
+	local file = LuaMan:FileOpen(modulename.."/CampaignData/"..filename , "r")
 	
 	if file == -1 then
-		return false;
+		return false
 	end
 	
 	LuaMan:FileClose(file)
-	return true;
+	return true
 	]]
 	--
 end
@@ -316,11 +315,11 @@ CF["GetCharPixelWidth"] = function(char)
 	ChrLen["T"] = 5
 	ChrLen["W"] = 8
 
-	--print(char);
+	--print(char)
 
 	n = ChrLen[char]
 
-	--print (n);
+	--print (n)
 
 	if n == nil then
 		n = 6

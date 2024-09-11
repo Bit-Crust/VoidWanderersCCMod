@@ -9,7 +9,7 @@ end
 
 function Update(self)
 	if self:GetParent() and IsActor(self:GetParent()) then
-		--self:DisableScript("VoidWanderers.rte/Items/Limb.lua");
+		--self:DisableScript("VoidWanderers.rte/Items/Limb.lua")
 	elseif self:IsActivated() then
 		local parent = self:GetRootParent()
 		if IsActor(parent) and not self.wasActivated then
@@ -27,7 +27,7 @@ function Update(self)
 			if
 				actor
 				and IsAHuman(actor:GetRootParent())
-				and CF["AttemptReplaceLimb"](ToAHuman(actor:GetRootParent()), self)
+				and CF.AttemptReplaceLimb(ToAHuman(actor:GetRootParent()), self)
 			then
 				ToAHuman(actor:GetRootParent()):FlashWhite(50)
 				self.attachSound:Play(self.Pos)

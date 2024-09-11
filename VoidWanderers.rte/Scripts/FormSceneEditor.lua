@@ -8,8 +8,8 @@ function VoidWanderers:FormLoad()
 
 	G_CursorActor = CreateActor("VW_Cursor")
 	if G_CursorActor then
-		G_CursorActor.Team = CF["PlayerTeam"]
-		local curactor = self:GetControlledActor(CF["PlayerTeam"])
+		G_CursorActor.Team = CF.PlayerTeam
+		local curactor = self:GetControlledActor(CF.PlayerTeam)
 
 		if curactor and MovableMan:IsActor(curactor) then
 			G_CursorActor.Pos = curactor.Pos
@@ -26,11 +26,7 @@ function VoidWanderers:FormLoad()
 		ActivityMan:GetActivity():SwitchToActor(G_CursorActor, 0, 0)
 	end
 
-	--print (self:GetPlayerBrain(0))
-	--print (self:GetPlayerBrain(-1))
 	self:CreateActors()
-	--print (self:GetPlayerBrain(0))
-	--print (self:GetPlayerBrain(-1))
 
 	self.Pts = {}
 
@@ -148,7 +144,7 @@ function VoidWanderers:FormLoad()
 	self.LastTypeElement = #self.UI
 
 	-- Load level data
-	self.LS = CF["ReadSceneConfigFile"](self.ModuleName, SceneMan.Scene.PresetName .. ".dat")
+	self.SceneConfig = CF["ReadSceneConfigFile"](self.ModuleName, SceneMan.Scene.PresetName .. ".dat")
 
 	for k1 = 1, #self.Data do
 		local msntype = self.Data[k1]["Name"]
@@ -160,8 +156,8 @@ function VoidWanderers:FormLoad()
 				for k4 = 1, CF["MissionRequiredData"][msntype][k3]["Max"] do
 					local id = msntype .. tostring(k2) .. pttype .. tostring(k4)
 
-					local x = self.LS[id .. "X"]
-					local y = self.LS[id .. "Y"]
+					local x = self.SceneConfig[id .. "X"]
+					local y = self.SceneConfig[id .. "Y"]
 
 					if x ~= nil and y ~= nil then
 						if self.Pts[msntype] == nil then
@@ -252,22 +248,22 @@ function VoidWanderers:Save_OnClick()
 				local pnttype = CF["MissionRequiredData"][k][k3]["Name"]
 				-- Clear data
 				for i = 1, CF["MissionRequiredData"][k][k3]["Max"] do
-					self.LS[msntype .. setnum .. pnttype .. tostring(i) .. "X"] = nil
-					self.LS[msntype .. setnum .. pnttype .. tostring(i) .. "Y"] = nil
+					self.SceneConfig[msntype .. setnum .. pnttype .. tostring(i) .. "X"] = nil
+					self.SceneConfig[msntype .. setnum .. pnttype .. tostring(i) .. "Y"] = nil
 				end
 
 				-- Save data
 				for k4, v4 in pairs(v3) do -- Point vector
 					--print (k4)
 					--print (v4)
-					self.LS[msntype .. setnum .. pnttype .. tostring(k4) .. "X"] = v4.X
-					self.LS[msntype .. setnum .. pnttype .. tostring(k4) .. "Y"] = v4.Y
+					self.SceneConfig[msntype .. setnum .. pnttype .. tostring(k4) .. "X"] = v4.X
+					self.SceneConfig[msntype .. setnum .. pnttype .. tostring(k4) .. "Y"] = v4.Y
 				end
 			end
 		end
 	end
 
-	CF["WriteSceneConfigFile"](self.LS, CF["ModuleName"], SceneMan.Scene.PresetName .. ".dat")
+	CF["WriteSceneConfigFile"](self.SceneConfig, CF["ModuleName"], SceneMan.Scene.PresetName .. ".dat")
 end
 -----------------------------------------------------------------------------------------
 --
@@ -568,14 +564,14 @@ function VoidWanderers:FormDraw()
 			ms = self.Mouse
 		end
 
-		CF["DrawString"]("" .. math.floor(ms.X) .. "-" .. math.floor(ms.Y), self.Mouse + Vector(-14, 40), 100, 100)
+		CF.DrawString("" .. math.floor(ms.X) .. "-" .. math.floor(ms.Y), self.Mouse + Vector(-14, 40), 100, 100)
 	end
 
 	if self.SelectedType ~= nil then
 		if self.Pts[self.SelectedType] ~= nil and self.Pts[self.SelectedType][self.SelectedSet] ~= nil then
 			-- Enum
 			for k3, v3 in pairs(self.Pts[self.SelectedType][self.SelectedSet]) do
-				local tp = CF["MissionRequiredData"][self.SelectedType][k3]["Type"]
+				local tp = CF.MissionRequiredData[self.SelectedType][k3]["Type"]
 
 				if tp == "Box" then
 					for k4, v4 in pairs(v3) do
@@ -619,27 +615,27 @@ function VoidWanderers:FormDraw()
 							self:DrawDottedLine(x1, y2, x2, y2, "SceneEditor_Dot_Yellow", 50)
 						end
 
-						local nm = CF["MissionRequiredData"][self.SelectedType][k3]["Name"]
+						local nm = CF.MissionRequiredData[self.SelectedType][k3]["Name"]
 						local s = nm .. "-" .. tostring(k4)
-						local l = CF["GetStringPixelWidth"](s)
+						local l = CF.GetStringPixelWidth(s)
 
-						CF["DrawString"](s, v4 + Vector(-l / 2, -10), 150, 20)
+						CF.DrawString(s, v4 + Vector(-l / 2, -10), 150, 20)
 					end
 				else
 					for k4, v4 in pairs(v3) do
-						local nm = CF["MissionRequiredData"][self.SelectedType][k3]["Name"]
+						local nm = CF.MissionRequiredData[self.SelectedType][k3]["Name"]
 						local s = nm .. "-" .. tostring(k4)
-						local l = CF["GetStringPixelWidth"](s)
+						local l = CF.GetStringPixelWidth(s)
 
-						CF["DrawString"](s, v4 + Vector(-l / 2, -10), 150, 20)
+						CF.DrawString(s, v4 + Vector(-l / 2, -10), 150, 20)
 						self:PutGlow("SceneEditor_Dot_Green", v4)
 
 						if self.SelectedPointType == k3 and self.SelectedPoint == k4 then
-							self:AddObjectivePoint(s, v4 + Vector(0, -15), CF["PlayerTeam"], GameActivity.ARROWDOWN)
+							self:AddObjectivePoint(s, v4 + Vector(0, -15), CF.PlayerTeam, GameActivity.ARROWDOWN)
 						end
 
 						if self.SelectedPointType == k3 and self.SelectedPoint ~= k4 then
-							self:AddObjectivePoint(s, v4 + Vector(0, 15), CF["PlayerTeam"], GameActivity.ARROWUP)
+							self:AddObjectivePoint(s, v4 + Vector(0, 15), CF.PlayerTeam, GameActivity.ARROWUP)
 						end
 					end
 				end
@@ -678,7 +674,7 @@ function VoidWanderers:FormDraw()
 	end
 
 	if self.SelectedPointType ~= nil then
-		s = s .. " - " .. CF["MissionRequiredData"][self.SelectedType][self.SelectedPointType]["Name"]
+		s = s .. " - " .. CF.MissionRequiredData[self.SelectedType][self.SelectedPointType]["Name"]
 	end
 
 	if self.SelectedPoint ~= nil then
@@ -687,7 +683,7 @@ function VoidWanderers:FormDraw()
 
 	-- Draw generic points
 	if self.ShowGeneric then
-		for i = 1, CF["GenericMissionCount"] do
+		for i = 1, CF.GenericMissionCount do
 			if
 				self.SelectedType ~= self.Data[i]["Name"]
 				and self.SelectedSet ~= nil
@@ -696,11 +692,11 @@ function VoidWanderers:FormDraw()
 			then
 				for k3, v3 in pairs(self.Pts[self.Data[i]["Name"]][self.SelectedSet]) do
 					for k4, v4 in pairs(v3) do
-						local nm = CF["MissionRequiredData"][self.Data[i]["Name"]][k3]["Name"]
+						local nm = CF.MissionRequiredData[self.Data[i]["Name"]][k3]["Name"]
 						local s = nm .. "-" .. tostring(k4)
-						local l = CF["GetStringPixelWidth"](s)
+						local l = CF.GetStringPixelWidth(s)
 
-						CF["DrawString"](s, v4 + Vector(-l / 2, -10), 150, 20)
+						CF.DrawString(s, v4 + Vector(-l / 2, -10), 150, 20)
 						self:PutGlow("SceneEditor_Dot_Blue", v4)
 					end
 				end
@@ -739,11 +735,11 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:DrawDottedLine(x1, y1, x2, y2, dot, interval)
-	local d = CF["Dist"](Vector(x1, y1), Vector(x2, y2))
+	local d = CF.Dist(Vector(x1, y1), Vector(x2, y2))
 
-	--local avgx = x2 - x1;
-	--local avgy = y2 - y2;
-	--local d = math.sqrt(avgx ^ 2 + avgy ^ 2);
+	--local avgx = x2 - x1
+	--local avgy = y2 - y2
+	--local d = math.sqrt(avgx ^ 2 + avgy ^ 2)
 
 	--print (d)
 

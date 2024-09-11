@@ -63,7 +63,7 @@ function VoidWanderers:FormLoad()
 	end
 
 	-- Place elements
-	self.SaveSlotsPerRow = 2 -- Plates per row
+	self.SaveSlotsPerRow = 4 -- Plates per row
 
 	if CF["MaxSaveGames"] < self.SaveSlotsPerRow then
 		self.SaveSlotsPerRow = CF["MaxSaveGames"]
@@ -204,7 +204,7 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:SaveSlots_OnClick()
-	CF["WriteConfigFile"](self.GS, self.ModuleName, "savegame" .. self.MouseOverElement .. ".dat")
+	CF.WriteConfigFile(self.GS, self.ModuleName, "savegame" .. self.MouseOverElement .. ".dat")
 
 	self:FormClose()
 	self:LoadCurrentGameState()

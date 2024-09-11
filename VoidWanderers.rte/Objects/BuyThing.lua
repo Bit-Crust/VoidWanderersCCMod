@@ -3,7 +3,7 @@ function Create(self)
 	self.cost = self:GetGoldValue(0, 1, 1)
 	self.text = "Open for " .. self.cost .. " gold"
 	self.drop = CreateMOSRotating(self.PresetName .. " Item Spawn", "VoidWanderers.rte")
-	--self.drop:SetNumberValue("VWOpenCrate", 0.5);
+	--self.drop:SetNumberValue("VWOpenCrate", 0.5)
 	self.interactDist = 25
 
 	self.pieSliceToAdd = CreatePieSlice("VW Case PieSlice")

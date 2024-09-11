@@ -55,7 +55,7 @@ function Update(self)
 			elseif armToUse then
 				local adjustedAimAngle = self:GetAimAngle(false) * self.FlipFactor
 
-				local reach = armToUse.MaxLength
+				local reach = armToUse.MaxLength * 1.5
 				local reachPoint = armToUse.JointPos
 
 				local itemMOID = SceneMan:CastMORay(
@@ -79,14 +79,6 @@ function Update(self)
 					if
 						IsAttachable(foundMO)
 						and ToAttachable(foundMO):NumberValueExists("Carriable")
-						and (
-							not IsActor(foundMO:GetRootParent())
-							or (
-								ToActor(foundMO:GetRootParent()).Status ~= Actor.STABLE
-								and ToAttachable(foundMO).JointStrength > 0
-								and ToAttachable(foundMO).JointStrength <= armToUse.GripStrength
-							)
-						)
 					then
 						foundMO = ToAttachable(foundMO)
 					else
@@ -150,6 +142,7 @@ function Update(self)
 							self.pickedUpObjectName = displayName
 							self.objectInReach = nil
 							local actorItem = CreateHeldDevice("Null Item", "Base.rte")
+							self.pickedUpObject.Team = self.Team
 							if IsActor(self.pickedUpObject) then
 								self.pickedUpObject = ToActor(self.pickedUpObject)
 								local sound = self.pickedUpObject.AlarmSound or self.pickedUpObject.PainSound
@@ -169,7 +162,6 @@ function Update(self)
 									"Carriable",
 									self.pickedUpObject:GetNumberValue("Carriable") + 1
 								)
-								self.pickedUpObject.Team = self.Team
 								self.pickedUpObject.IgnoresTeamHits = true
 								actorItem.StanceOffset = Vector(armToUse.MaxLength * 0.66, armToUse.MaxLength * 0.33)
 							end

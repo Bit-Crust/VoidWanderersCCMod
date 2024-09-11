@@ -4,7 +4,7 @@ CF["Mission"][#CF["Mission"] + 1] = id
 
 CF["MissionName"][id] = "Assault"
 CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Mission_Assault.lua"
-CF["MissionMinReputation"][id] = -10000 -- This mission is always available
+CF["MissionMinReputation"][id] = -math.huge -- This mission is always available
 CF["MissionBriefingText"][id] = "Attack the enemy installation and wipe out any enemy forces."
 CF["MissionGoldRewardPerDifficulty"][id] = 0
 CF["MissionReputationRewardPerDifficulty"][id] = 100

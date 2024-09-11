@@ -2,212 +2,213 @@
 -- Generic functions to add to library
 -----------------------------------------------------------------------------------------
 
-CF = {};
+CF = {}
 
 -----------------------------------------------------------------------------------------
 -- Initialize global faction lists
 -----------------------------------------------------------------------------------------
-CF["InitFactions"] = function(activity)
-	print("CF['InitFactions']")
-	CF["CPUTeam"] = Activity.TEAM_2
-	CF["PlayerTeam"] = Activity.TEAM_1
-	CF["RogueTeam"] = -1
-	CF["MOIDLimit"] = math.huge
-	CF["ModuleName"] = "VoidWanderers.rte"
+CF.InitFactions = function(activity)
+	print("CF.InitFactions")
+	CF.CPUTeam = Activity.TEAM_2
+	CF.PlayerTeam = Activity.TEAM_1
+	CF.RogueTeam = Activity.NOTEAM
+	CF.MOIDLimit = math.huge
+	CF.ModuleName = "VoidWanderers.rte"
 
-	CF["Difficulty"] = CHOSEN_DIFFICULTY
-	CF["AISkillPlayer"] = CHOSEN_AISKILLPLAYER
-	CF["AISkillCPU"] = CHOSEN_AISKILLCPU
+	CF.Difficulty = CHOSEN_DIFFICULTY
+	CF.AISkillPlayer = CHOSEN_AISKILLPLAYER
+	CF.AISkillCPU = CHOSEN_AISKILLCPU
 
 	-- Used in flight mode
-	CF["KmPerPixel"] = 100
+	CF.KmPerPixel = 100
 
-	CF["BlackMarketRefreshInterval"] = 1200
-	CF["BlackMarketPriceMultiplier"] = 3
+	CF.BlackMarketRefreshInterval = 1200
+	CF.BlackMarketPriceMultiplier = 3
 
-	CF["MissionResultShowInterval"] = 10
+	CF.MissionResultShowInterval = 10
+	CF.MissionStages = { ACTIVE = 0, COMPLETED = 1, FAILED = 2 }
 
-	CF["UnknownItemPrice"] = 50
-	CF["UnknownActorPrice"] = 100
+	CF.UnknownItemPrice = 50
+	CF.UnknownActorPrice = 100
 
-	CF["TechPriceMultiplier"] = 1.5
-	CF["SellPriceCoeff"] = 0.25
+	CF.TechPriceMultiplier = 1.5
+	CF.SellPriceCoeff = 0.25
 
-	CF["OrdersRange"] = 175
+	CF.OrdersRange = 175
 
-	CF["MaxMissions"] = 8
+	CF.MaxMissions = 25
 
-	CF["MaxHolograms"] = 23
+	CF.MaxHolograms = 23
 
-	CF["BombsPerBay"] = 5
-	CF["BombInterval"] = 1
-	CF["BombLoadInterval"] = 2
-	CF["BombFlightInterval"] = 10
-	CF["BombSeenRange"] = 150
-	CF["BombUnseenRange"] = 400
+	CF.BombsPerBay = 5
+	CF.BombInterval = 1
+	CF.BombLoadInterval = 2
+	CF.BombFlightInterval = 10
+	CF.BombSeenRange = 150
+	CF.BombUnseenRange = 400
 
-	CF["KeyRepeatDelay"] = 100
+	CF.KeyRepeatDelay = 100
 
-	CF["MaxLevel"] = 100
-	CF["ExpPerLevel"] = 250
+	CF.MaxLevel = 150
+	CF.ExpPerLevel = 250
 
-	CF["Ranks"] = { 50, 125, 250, 500, 1000 }
-	CF["PrestigeSlice"] = CreatePieSlice("Prestige PieSlice", CF["ModuleName"])
+	CF.Ranks = { 50, 125, 250, 500, 1000 }
+	CF.PrestigeSlice = CreatePieSlice("Claim Prestige PieSlice", CF.ModuleName)
 
-	CF["PermanentLimbLoss"] = true
-	CF["LimbID"] = { "FG1", "BG1", "FG2", "BG2", "HEAD", "JETPAK" }
+	CF.PermanentLimbLoss = true
+	CF.LimbID = { "FG1", "BG1", "FG2", "BG2", "HEAD", "JETPAK" }
 
-	CF["QuantumCapacityPerLevel"] = 50
-	CF["QuantumSplitterEffectiveness"] = 0.2
+	CF.QuantumCapacityPerLevel = 50
+	CF.QuantumSplitterEffectiveness = 0.2
 
-	CF["SecurityIncrementPerMission"] = 10
-	CF["SecurityIncrementPerDeployment"] = 2
+	CF.SecurityIncrementPerMission = 10
+	CF.SecurityIncrementPerDeployment = 2
 
-	CF["ReputationPerDifficulty"] = 1000
+	CF.ReputationPerDifficulty = 1000
 
-	CF["RandomEncounterProbability"] = 0.15
+	CF.RandomEncounterProbability = 0.15
 
 	-- When reputation is below this level, the enemy starts attacking the player
-	CF["ReputationHuntThreshold"] = -500
+	CF.ReputationHuntThreshold = -500
 
 	-- The rate of reputation points subtracted from the mission target faction
-	CF["ReputationPenaltyRatio"] = 1.75
+	CF.ReputationPenaltyRatio = 1.75
 
 	-- The rate of reputation points subtracted from both reputations when failing a mission
-	CF["MissionFailedReputationPenaltyRatio"] = 0.3
+	CF.MissionFailedReputationPenaltyRatio = 0.3
 
-	CF["EnableIcons"] = true
+	CF.EnableIcons = true
 
 	-- When enabled UL2 will use special rendering techniques to improve UI rendering
 	-- performance on weaker machines. Some artifacts may appear though.
-	CF["LowPerformance"] = false
+	CF.LowPerformance = false
 
 	-- The idea behind this optimization is that creation of particles eats most of the time.
 	-- To avoid that we draw some words and buttons on odd frames and some on even frames.
-	-- When in LowPerformance mode CF["DrawString"] and DrawButton functions will use special Ln-prefixed
+	-- When in LowPerformance mode CF.DrawString and DrawButton functions will use special Ln-prefixed
 	-- versions of UI glows, which live twice longer. In order to work main execution thread must
 	-- count frames so other function can decide if it's odd or even frame right now
-	CF["FrameCounter"] = 0
+	CF.FrameCounter = 0
 
-	CF["ShipAssaultDelay"] = 30
-	CF["ShipCounterattackDelay"] = 20
-	CF["ShipAssaultCooldown"] = 150
+	CF.ShipAssaultDelay = 30
+	CF.ShipCounterattackDelay = 20
+	CF.ShipAssaultCooldown = 150
 
-	CF["TeamReturnDelay"] = 5
+	CF.TeamReturnDelay = 5
 
-	CF["CratesRate"] = 0.25 -- Percentage of cases among available case spawn points
-	CF["ActorCratesRate"] = 0.1 -- Percentage of actor-cases among all deployed cases
-	CF["CrateRandomLocationsRate"] = 0.5
-	CF["AmbientEnemyRate"] = 0.5
-	CF["ArtifactItemRate"] = 0.1
-	CF["ArtifactActorRate"] = 0.1
-	CF["AmbientEnemyDoubleSpawn"] = 0.25
-	CF["AmbientReinforcementsInterval"] = 80 -- In ticks
+	CF.CratesRate = 0.25 -- Percentage of cases among available case spawn points
+	CF.ActorCratesRate = 0.1 -- Percentage of actor-cases among all deployed cases
+	CF.CrateRandomLocationsRate = 0.5
+	CF.AmbientEnemyRate = 0.5
+	CF.ArtifactItemRate = 0.1
+	CF.ArtifactActorRate = 0.1
+	CF.AmbientEnemyDoubleSpawn = 0.25
+	CF.AmbientReinforcementsInterval = 80 -- In ticks
 
-	CF["MaxMissionReportLines"] = 13
+	CF.MaxMissionReportLines = 13
 
-	CF["ClonePrice"] = 1500
-	CF["StoragePrice"] = 200
-	CF["LifeSupportPrice"] = 2500
-	CF["CommunicationPrice"] = 3000
-	CF["EnginePrice"] = 500
-	CF["TurretPrice"] = 1500
-	CF["TurretStoragePrice"] = 1000
-	CF["BombBayPrice"] = 5000
-	CF["BombStoragePrice"] = 200
+	CF.ClonePrice = 1500
+	CF.StoragePrice = 200
+	CF.LifeSupportPrice = 2500
+	CF.CommunicationPrice = 3000
+	CF.EnginePrice = 500
+	CF.TurretPrice = 1500
+	CF.TurretStoragePrice = 1000
+	CF.BombBayPrice = 5000
+	CF.BombStoragePrice = 200
 
-	CF["ShipSellCoeff"] = 0.25
-	CF["ShipDevInstallCoeff"] = 0.1
+	CF.ShipSellCoeff = 0.25
+	CF.ShipDevInstallCoeff = 0.1
 
-	CF["AssaultDifficultyTexts"] = {}
-	CF["AssaultDifficultyTexts"][1] = "scout"
-	CF["AssaultDifficultyTexts"][2] = "corvette"
-	CF["AssaultDifficultyTexts"][3] = "frigate"
-	CF["AssaultDifficultyTexts"][4] = "destroyer"
-	CF["AssaultDifficultyTexts"][5] = "cruiser"
-	CF["AssaultDifficultyTexts"][6] = "battleship"
+	CF.AssaultDifficultyTexts = {}
+	CF.AssaultDifficultyTexts[1] = "scout"
+	CF.AssaultDifficultyTexts[2] = "corvette"
+	CF.AssaultDifficultyTexts[3] = "frigate"
+	CF.AssaultDifficultyTexts[4] = "destroyer"
+	CF.AssaultDifficultyTexts[5] = "cruiser"
+	CF.AssaultDifficultyTexts[6] = "battleship"
 
-	CF["LocationDifficultyTexts"] = {}
-	CF["LocationDifficultyTexts"][1] = "minimum"
-	CF["LocationDifficultyTexts"][2] = "low"
-	CF["LocationDifficultyTexts"][3] = "moderate"
-	CF["LocationDifficultyTexts"][4] = "high"
-	CF["LocationDifficultyTexts"][5] = "extreme"
-	CF["LocationDifficultyTexts"][6] = "maximum"
+	CF.LocationDifficultyTexts = {}
+	CF.LocationDifficultyTexts[1] = "minimum"
+	CF.LocationDifficultyTexts[2] = "low"
+	CF.LocationDifficultyTexts[3] = "moderate"
+	CF.LocationDifficultyTexts[4] = "high"
+	CF.LocationDifficultyTexts[5] = "extreme"
+	CF.LocationDifficultyTexts[6] = "maximum"
 
-	CF["AssaultDifficultyUnitCount"] = {}
-	CF["AssaultDifficultyUnitCount"][1] = 4
-	CF["AssaultDifficultyUnitCount"][2] = 8
-	CF["AssaultDifficultyUnitCount"][3] = 12
-	CF["AssaultDifficultyUnitCount"][4] = 16
-	CF["AssaultDifficultyUnitCount"][5] = 22
-	CF["AssaultDifficultyUnitCount"][6] = 30
+	CF.AssaultDifficultyUnitCount = {}
+	CF.AssaultDifficultyUnitCount[1] = 4
+	CF.AssaultDifficultyUnitCount[2] = 8
+	CF.AssaultDifficultyUnitCount[3] = 12
+	CF.AssaultDifficultyUnitCount[4] = 16
+	CF.AssaultDifficultyUnitCount[5] = 22
+	CF.AssaultDifficultyUnitCount[6] = 30
 
-	CF["AssaultDifficultySpawnInterval"] = {}
-	CF["AssaultDifficultySpawnInterval"][1] = 9
-	CF["AssaultDifficultySpawnInterval"][2] = 9
-	CF["AssaultDifficultySpawnInterval"][3] = 8
-	CF["AssaultDifficultySpawnInterval"][4] = 8
-	CF["AssaultDifficultySpawnInterval"][5] = 8
-	CF["AssaultDifficultySpawnInterval"][6] = 7
+	CF.AssaultDifficultySpawnInterval = {}
+	CF.AssaultDifficultySpawnInterval[1] = 9
+	CF.AssaultDifficultySpawnInterval[2] = 9
+	CF.AssaultDifficultySpawnInterval[3] = 8
+	CF.AssaultDifficultySpawnInterval[4] = 8
+	CF.AssaultDifficultySpawnInterval[5] = 8
+	CF.AssaultDifficultySpawnInterval[6] = 7
 
-	CF["AssaultDifficultySpawnBurst"] = {}
-	CF["AssaultDifficultySpawnBurst"][1] = 1
-	CF["AssaultDifficultySpawnBurst"][2] = 2
-	CF["AssaultDifficultySpawnBurst"][3] = 2
-	CF["AssaultDifficultySpawnBurst"][4] = 2
-	CF["AssaultDifficultySpawnBurst"][5] = 3
-	CF["AssaultDifficultySpawnBurst"][6] = 3
+	CF.AssaultDifficultySpawnBurst = {}
+	CF.AssaultDifficultySpawnBurst[1] = 1
+	CF.AssaultDifficultySpawnBurst[2] = 2
+	CF.AssaultDifficultySpawnBurst[3] = 2
+	CF.AssaultDifficultySpawnBurst[4] = 2
+	CF.AssaultDifficultySpawnBurst[5] = 3
+	CF.AssaultDifficultySpawnBurst[6] = 3
 
-	CF["MaxDifficulty"] = 6
+	CF.MaxDifficulty = 6
 
-	CF["MaxCPUPlayers"] = 300
-	CF["MaxSaveGames"] = 6
-	CF["MaxItems"] = 8 -- Max items per clone in clone storage
-	CF["MaxItemsPerPreset"] = 3 -- Max items per AI unit preset
-	CF["MaxStorageItems"] = 1000
-	CF["MaxClones"] = 1000 -- Max clones in clone storage
-	CF["MaxTurrets"] = 1000
-	CF["MaxBombs"] = 1000
-	CF["MaxUnitsPerDropship"] = 3
+	CF.MaxCPUPlayers = 300
+	CF.MaxSaveGames = 16
+	CF.MaxItems = 8 -- Max items per clone in clone storage
+	CF.MaxItemsPerPreset = 3 -- Max items per AI unit preset
+	CF.MaxStorageItems = 1000
+	CF.MaxClones = 1000 -- Max clones in clone storage
+	CF.MaxTurrets = 1000
+	CF.MaxBombs = 1000
+	CF.MaxUnitsPerDropship = 3
 
-	CF["MaxSavedActors"] = 40
-	CF["MaxSavedItemsPerActor"] = 20
+	CF.MaxSavedActors = 40
+	CF.MaxSavedItemsPerActor = 20
 
 	-- Set this to true to stop any UI processing. Useful when debuging and need to disable UI error message spam.
-	CF["StopUIProcessing"] = false
+	CF.StopUIProcessing = false
 
-	CF["LaunchActivities"] = true
-	CF["MissionReturnInterval"] = 2500
+	CF.LaunchActivities = true
+	CF.MissionReturnInterval = 2500
 
-	CF["TickInterval"] = 1000
-	CF["FlightTickInterval"] = 25
+	CF.TickInterval = 1000
+	CF.FlightTickInterval = 25
 
 	-- How much percents of price to add if player and ally factions natures are not the same
-	CF["SynthetsToOrganicRatio"] = 0.70
+	CF.SyntheticsToOrganicRatio = 0.70
 
-	CF["EnableAssaults"] = true -- Set to false to disable assaults
+	CF.EnableAssaults = true -- Set to false to disable assaults
 
-	CF["FogOfWarResolution"] = 4
+	CF.FogOfWarResolution = 4
 
-	CF["Factions"] = {}
+	CF.Factions = {}
 
-	CF["Nobody"] = "Nobody"
-	CF["PlayerFaction"] = "Nobody"
-	CF["CPUFaction"] = "Nobody"
+	CF.Nobody = "Nobody"
+	CF.PlayerFaction = "Nobody"
+	CF.CPUFaction = "Nobody"
 
-	CF["MissionEndTimer"] = Timer()
-	CF["StartReturnCountdown"] = false
-	CF["Activity"] = activity
+	CF.MissionEndTimer = Timer()
+	CF.StartReturnCountdown = false
+	CF.Activity = activity
 
-	CF["FactionIds"] = {}
-	CF["FactionNames"] = {}
-	CF["FactionDescriptions"] = {}
-	CF["FactionPlayable"] = {}
+	CF.FactionIds = {}
+	CF.FactionNames = {}
+	CF.FactionDescriptions = {}
+	CF.FactionPlayable = {}
 
-	CF["ScanBonuses"] = {}
-	CF["RelationsBonuses"] = {}
-	CF["ExpansionBonuses"] = {}
+	CF.ScanBonuses = {}
+	CF.RelationsBonuses = {}
+	CF.ExpansionBonuses = {}
 
 	CF["MineBonuses"] = {}
 	CF["LabBonuses"] = {}
@@ -590,7 +591,7 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF["GetPlayerFaction"] = function(config, p)
+CF.GetPlayerFaction = function(config, p)
 	return config["Player" .. p .. "Faction"]
 end
 -----------------------------------------------------------------------------------------
@@ -632,7 +633,7 @@ CF["ReturnOnMissionEnd"] = function()
 
 	if CF["StartReturnCountdown"] then
 		if CF["MissionEndTimer"]:IsPastSimMS(CF["MissionReturnInterval"]) then
-			--CF["LaunchMissionActivity"]("Unmapped Lands 2");
+			--CF["LaunchMissionActivity"]("Unmapped Lands 2")
 		end
 	end
 end
@@ -669,7 +670,7 @@ CF["GetCharData"] = function(char)
 		CF["Chars"]["8"] = { 25, 8, nil }
 		CF["Chars"]["9"] = { 26, 8, nil }
 		CF["Chars"][":"] = { 27, 5, Vector(-3, -1) }
-		CF["Chars"][";"] = { 28, 5, Vector(-3, -1) }
+		CF["Chars"][""] = { 28, 5, Vector(-3, -1) }
 		CF["Chars"]["<"] = { 29, 7, Vector(-1, 0) }
 		CF["Chars"]["="] = { 30, 8, Vector(0, -1) }
 		CF["Chars"][">"] = { 31, 7, Vector(-1, 0) }
@@ -896,9 +897,9 @@ CF["MakeItem"] = function(preset, class, module)
 	return item
 end
 -----------------------------------------------------------------------------------------
--- Make actor of specified preset, class, module, rank and identity
+-- Make actor of specified preset, class, module, rank, identity, and player
 -----------------------------------------------------------------------------------------
-CF["MakeActor"] = function(item, class, module, xp, identity, prestige, name, limbs)
+CF.MakeActor = function(item, class, module, xp, identity, player, prestige, name, limbs)
 	local actor
 	if class == nil then
 		class = "AHuman"
@@ -930,9 +931,12 @@ CF["MakeActor"] = function(item, class, module, xp, identity, prestige, name, li
 		if identity then
 			actor:SetNumberValue("Identity", tonumber(identity))
 		end
+		if player then
+			actor:SetNumberValue("VW_BrainOfPlayer", tonumber(player))
+		end
 		if prestige then
 			actor:SetNumberValue("VW_Prestige", tonumber(prestige))
-			if name then
+			if name and name ~= "" then
 				actor:SetStringValue("VW_Name", name)
 			end
 		end
@@ -951,9 +955,6 @@ CF["MakeActor"] = function(item, class, module, xp, identity, prestige, name, li
 				actor:SetNumberValue("VW_Rank", setRank)
 				CF["BuffActor"](actor, setRank, actor:GetNumberValue("VW_Prestige"))
 			end
-			if xp >= CF["Ranks"][#CF["Ranks"]] then
-				actor.PieMenu:AddPieSliceIfPresetNameIsUnique(CF["PrestigeSlice"]:Clone(), self)
-			end
 		end
 	else
 		actor = CreateAHuman("Skeleton", "Uzira.rte")
@@ -961,9 +962,28 @@ CF["MakeActor"] = function(item, class, module, xp, identity, prestige, name, li
 	return actor
 end
 -----------------------------------------------------------------------------------------
+-- Use class name to get reference type
+-----------------------------------------------------------------------------------------
+CF.FixActorReference = function(actor)
+	local cl = actor.ClassName
+	if cl == "AHuman" then
+		return ToAHuman(actor)
+	elseif cl == "ACrab" then
+		return ToACrab(actor)
+	elseif cl == "ACraft" then
+		return ToACraft(actor)
+	elseif cl == "ACRocket" then
+		return ToACRocket(actor)
+	elseif cl == "ACDropship" then
+		return ToACDropship(actor)
+	end
+	return ToActor(actor)
+end
+-----------------------------------------------------------------------------------------
 -- Buff an actor based on their rank
 -----------------------------------------------------------------------------------------
-CF["BuffActor"] = function(actor, rank, prestige)
+CF.BuffActor = function(actor, rank, prestige)
+	local actor = CF.FixActorReference(actor)
 	rank = tonumber(rank) * math.sqrt(prestige * 0.1 + 1)
 	local rankIncrement = rank * 0.1
 	rank = math.floor(rank + 0.5)
@@ -1013,14 +1033,17 @@ CF["BuffActor"] = function(actor, rank, prestige)
 			arm.ThrowStrength = arm.ThrowStrength * sqrtFactor
 		end
 	end
-	actor:SetLimbPathSpeed(1, actor:GetLimbPathSpeed(1) * sqrtFactor)
-	actor.LimbPathPushForce = actor.LimbPathPushForce * math.sqrt(sqrtFactor)
-	--print("actor ".. actor.PresetName .." buffed with" .. (prestige and " prestige " or "rank ").. rank);
+	if actor.LimbPathPushForce then
+		actor:SetLimbPathSpeed(1, actor:GetLimbPathSpeed(1) * sqrtFactor)
+		actor.LimbPathPushForce = actor.LimbPathPushForce * (math.sqrt(sqrtFactor))
+	end
+	--print("actor ".. actor.PresetName .." buffed with" .. (prestige and " prestige " or "rank ").. rank)
 end
 -----------------------------------------------------------------------------------------
 -- Reverse buff effect
 -----------------------------------------------------------------------------------------
-CF["UnBuffActor"] = function(actor, rank, prestige)
+CF.UnBuffActor = function(actor, rank, prestige)
+	local actor = CF.FixActorReference(actor)
 	local rankFactor = 1 + (tonumber(rank) * 0.1 * math.sqrt(prestige * 0.1 + 1))
 	local sqrtFactor = math.sqrt(rankFactor)
 	-- Positive scalar
@@ -1051,8 +1074,10 @@ CF["UnBuffActor"] = function(actor, rank, prestige)
 			arm.ThrowStrength = arm.ThrowStrength / sqrtFactor
 		end
 	end
-	actor:SetLimbPathSpeed(1, actor:GetLimbPathSpeed(1) / sqrtFactor)
-	actor.LimbPathPushForce = actor.LimbPathPushForce / (math.sqrt(sqrtFactor))
+	if actor.LimbPathPushForce then
+		actor:SetLimbPathSpeed(1, actor:GetLimbPathSpeed(1) / sqrtFactor)
+		actor.LimbPathPushForce = actor.LimbPathPushForce / (math.sqrt(sqrtFactor))
+	end
 end
 -----------------------------------------------------------------------------------------
 -- Get a specific limb by ID
@@ -1097,17 +1122,6 @@ CF["ReplaceLimbs"] = function(actor, limbs)
 	if IsAHuman(actor) then
 		actor = ToAHuman(actor)
 		for j = 1, #CF["LimbID"] do
-			local jetTime
-			local jetReplenishRate
-			local particlesPerMinute
-
-			if j == 6 and actor.Jetpack then
-				-- ugly ugly ugly ugly codeeee
-				jetTime = actor.Jetpack.JetTimeTotal
-				jetReplenishRate = actor.Jetpack.JetReplenishRate
-				particlesPerMinute = actor.Jetpack.ParticlesPerMinute
-			end
-
 			local targetLimb = j == 1 and actor.FGArm
 				or (
 					j == 2 and actor.BGArm
@@ -1156,10 +1170,13 @@ CF["ReplaceLimbs"] = function(actor, limbs)
 				elseif j == 5 then
 					actor.Head = newLimb
 				elseif j == 6 then
+					if actor.Jetpack then
+						newLimb.JetTimeTotal = actor.Jetpack.JetTimeTotal
+						newLimb.JetReplenishRate = actor.Jetpack.JetReplenishRate
+						newLimb.ParticlesPerMinute = actor.Jetpack.ParticlesPerMinute
+					end
+
 					actor.Jetpack = newLimb
-					actor.Jetpack.JetTimeTotal = jetTime
-					actor.Jetpack.JetReplenishRate = jetReplenishRate
-					actor.Jetpack.ParticlesPerMinute = particlesPerMinute
 				end
 			elseif targetLimb then
 				actor:RemoveAttachable(targetLimb, false, false)
@@ -1233,7 +1250,7 @@ CF["AttemptReplaceLimb"] = function(actor, limb)
 		elseif isLeg then
 			newLimb = CreateLeg(limbName .. (j == 3 and " FG" or " BG"))
 		else
-			newLimb = limb:Clone() --(limbName);
+			newLimb = limb:Clone() --(limbName)
 		end
 		if newLimb then
 			if referenceLimb then
@@ -1333,58 +1350,59 @@ end
 -----------------------------------------------------------------------------------------
 -- Set which actor is being named right now
 -----------------------------------------------------------------------------------------
-CF["SetNamingActor"] = function(actor)
-	CF["TypingActor"] = actor
+CF.SetNamingActor = function(actor, player)
+	CF.TypingActor = actor
+	CF.TypingPlayer = player
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
 CF["SetRandomName"] = function(actor)
 	if not actor:StringValueExists("VW_Name") then
-		actor:SetStringValue("VW_Name", CF["GenerateRandomName"]())
+		actor:SetStringValue("VW_Name", CF.GenerateRandomName())
 	end
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF["GenerateRandomName"] = function()
-	if not CF["RandomNames"] then
-		CF["RandomNames"] = {}
-		CF["RandomNames"][1] = { "Big", "Just", "Killer", "Lt.", "Little", "Mad", "Major", "MC", "Sgt.", "Serious", }
-		CF["RandomNames"][2] = { "Alex", "Ban", "Billy", "Brian", "Chad", "Charlie", "Dick", "Dixie", "Frankie", 
+CF.GenerateRandomName = function()
+	if not CF.RandomNames then
+		CF.RandomNames = {}
+		CF.RandomNames[1] = { "Big", "Just", "Killer", "Lt.", "Little", "Mad", "Major", "MC", "Sgt.", "Serious", }
+		CF.RandomNames[2] = { "Alex", "Ban", "Billy", "Brian", "Buck", "Chad", "Charlie", "Chuck", "Dick", "Dixie", "Frankie", "Gordon",
 								"George", "Joe", "John", "Jordan", "Mack", "Mal", "Max", "Miles", "Morgan", "Pepper",
 								"Roger", "Sam", "Smoke", }
-		CF["RandomNames"][3] = { "Davis", "Freeman", "Function", "Griffin", "Hammer", "Hawkins", "Johnson", "McGee",
+		CF.RandomNames[3] = { "Davis", "Freeman", "Function", "Griffin", "Hammer", "Hawkins", "Johnson", "McGee",
 								"Moore", "Rambo", "Richards", "Simpson", "Williams", "Wilson", }
 	end
 
 	local name = ""
 	local rand = math.random()
 	if rand < 0.25 then --First + Second + Third
-		name = CF["RandomNames"][1][math.random(#CF["RandomNames"][1])]
+		name = CF.RandomNames[1][math.random(#CF.RandomNames[1])]
 			.. " "
-			.. CF["RandomNames"][2][math.random(#CF["RandomNames"][2])]
+			.. CF.RandomNames[2][math.random(#CF.RandomNames[2])]
 			.. " "
-			.. CF["RandomNames"][3][math.random(#CF["RandomNames"][3])]
+			.. CF.RandomNames[3][math.random(#CF.RandomNames[3])]
 	elseif rand < 0.50 then --First + Second
-		name = CF["RandomNames"][1][math.random(#CF["RandomNames"][1])]
+		name = CF.RandomNames[1][math.random(#CF.RandomNames[1])]
 			.. " "
-			.. CF["RandomNames"][2][math.random(#CF["RandomNames"][2])]
+			.. CF.RandomNames[2][math.random(#CF.RandomNames[2])]
 	elseif rand < 0.75 then --Second + Third
-		name = CF["RandomNames"][2][math.random(#CF["RandomNames"][2])]
+		name = CF.RandomNames[2][math.random(#CF.RandomNames[2])]
 			.. " "
-			.. CF["RandomNames"][3][math.random(#CF["RandomNames"][3])]
+			.. CF.RandomNames[3][math.random(#CF.RandomNames[3])]
 	else --First + Third
-		name = CF["RandomNames"][1][math.random(#CF["RandomNames"][1])]
+		name = CF.RandomNames[1][math.random(#CF.RandomNames[1])]
 			.. " "
-			.. CF["RandomNames"][3][math.random(#CF["RandomNames"][3])]
+			.. CF.RandomNames[3][math.random(#CF.RandomNames[3])]
 	end
 	return name
 end
 -----------------------------------------------------------------------------------------
 -- Set actors to hunt for nearby actors of a specific team - or regroup near actors of the same team
 -----------------------------------------------------------------------------------------
-CF["HuntForActors"] = function(hunter, targetTeam)
+CF.HuntForActors = function(hunter, targetTeam)
 	if hunter and MovableMan:IsActor(hunter) and hunter.AIMode == Actor.AIMODE_SENTRY then
 		local enemies = {}
 		local brains = {}
@@ -1401,13 +1419,13 @@ CF["HuntForActors"] = function(hunter, targetTeam)
 					closestDistance = dist.Magnitude
 					closestActor = target
 				end
-				if target:HasObjectInGroup("Brains") then
+				if target:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
 					table.insert(brains, target)
 				end
 			end
 		end
 		local target
-		if #brains > 0 and math.random(150) < CF["Difficulty"] then
+		if #brains > 0 and math.random(150) < CF.Difficulty then
 			hunter.AIMode = Actor.AIMODE_GOTO
 			target = brains[math.random(#brains)]
 			hunter:AddAIMOWaypoint(target)
@@ -1430,7 +1448,7 @@ end
 -----------------------------------------------------------------------------------------
 -- Send actors after specific target(s)
 -----------------------------------------------------------------------------------------
-CF["Hunt"] = function(hunter, targets)
+CF.Hunt = function(hunter, targets)
 	if hunter and MovableMan:IsActor(hunter) and #targets > 0 then
 		local target = targets[math.random(#targets)]
 		if target then
@@ -1451,7 +1469,7 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF["GetPlayerGold"] = function(c, p)
+CF.GetPlayerGold = function(c, p)
 	local v = c["Player" .. p .. "Gold"]
 	if v == nil then
 		v = 0
@@ -1462,23 +1480,23 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF["SetPlayerGold"] = function(c, p, funds)
+CF.SetPlayerGold = function(c, p, funds)
 	-- Set the in-activity gold as well, although we don't use it
-	CF["Activity"]:SetTeamFunds(funds, p)
+	CF.Activity:SetTeamFunds(funds, p)
 
 	c["Player" .. p .. "Gold"] = math.ceil(funds)
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF["CommitMissionResult"] = function(c, result)
+CF.CommitMissionResult = function(c, result)
 	-- Set result
 	c["LastMissionResult"] = result
 end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["PayGold"] = function(c, p, amount)
+CF.PayGold = function(c, p, amount)
 	local gold = CF["GetPlayerGold"](c, p) - amount
 
 	CF["SetPlayerGold"](c, p, gold)
@@ -1540,7 +1558,7 @@ CF["GetInventory"] = function(actor)
 		end
 	else
 		--print("Actor: ")
-		--print(actor);
+		--print(actor)
 	end
 
 	return inventory, classes, modules
@@ -1573,7 +1591,7 @@ CF["CountActors"] = function(team)
 		if
 			actor.Team == team
 			and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-			and not (actor:IsInGroup("Brains") or actor:NumberValueExists("VW_Ally"))
+			and not (actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") or actor:NumberValueExists("VW_Ally"))
 		then
 			c = c + 1
 		end

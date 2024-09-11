@@ -7,23 +7,22 @@ function VoidWanderers:FormLoad()
 	local el
 	self.UI = {}
 
-	--[[if CF["IsFileExists"](self.ModuleName , STATE_CONFIG_FILE) then
+	if CF.IsFileExists(self.ModuleName, STATE_CONFIG_FILE) then
 		el = {}
-		el["Type"] = self.ElementTypes.BUTTON;
-		el["Presets"] = {};
+		el["Type"] = self.ElementTypes.BUTTON
+		el["Presets"] = {}
 		el["Presets"][self.ButtonStates.IDLE] = "SideMenuButtonIdle"
 		el["Presets"][self.ButtonStates.MOUSE_OVER] = "SideMenuButtonMouseOver"
 		el["Presets"][self.ButtonStates.PRESSED] = "SideMenuButtonPressed"
 		el["Pos"] = self.Mid + Vector(0,-60)
 		el["Text"] = "Continue game"
-		el["Width"] = 140;
-		el["Height"] = 40;
+		el["Width"] = 140
+		el["Height"] = 40
 		
-		el["OnClick"] = self.BtnContinueGame_OnClick;
+		el["OnClick"] = self.BtnContinueGame_OnClick
 		
-		self.UI[#self.UI + 1] = el;
-	end--]]
-	--
+		self.UI[#self.UI + 1] = el
+	end
 
 	el = {}
 	el["Type"] = self.ElementTypes.BUTTON
@@ -54,44 +53,16 @@ function VoidWanderers:FormLoad()
 	el["OnClick"] = self.BtnLoadGame_OnClick
 
 	self.UI[#self.UI + 1] = el
-
-	el = {}
-	el["Type"] = self.ElementTypes.BUTTON
-	el["Presets"] = {}
-	el["Presets"][self.ButtonStates.IDLE] = "SideMenuButtonIdle"
-	el["Presets"][self.ButtonStates.MOUSE_OVER] = "SideMenuButtonMouseOver"
-	el["Presets"][self.ButtonStates.PRESSED] = "SideMenuButtonPressed"
-	el["Pos"] = self.Mid + Vector(0, 120)
-	el["Text"] = "Launch Random Activity"
-	el["Width"] = 140
-	el["Height"] = 40
-
-	el["OnClick"] = self.BtnLaunchRandomActivity_OnClick
-
-	if CF["DebugEnableRandomActivity"] then
-		self.UI[#self.UI + 1] = el
-	end
 	
 	MusicMan:PlayDynamicSong("Main Menu Music DynamicSong", "Default", false, true, true);
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:BtnLaunchRandomActivity_OnClick()
-	self:SaveCurrentGameState()
-	CF["LaunchMission"](scene, script)
-end
------------------------------------------------------------------------------------------
---
------------------------------------------------------------------------------------------
 function VoidWanderers:BtnContinueGame_OnClick()
-	config = CF["ReadConfigFile"](self.ModuleName, STATE_CONFIG_FILE)
-	self:LaunchScript(config["Scene"], "Tactics.lua")
-
-	--self:FormClose();
-	--dofile(BASE_PATH.."FormDefault.lua")
-	--self:LoadCurrentGameState();
-	--self:FormLoad();
+	self:FormClose()
+	self:LoadCurrentGameState()
+	self:LaunchScript(self.GS["Scene"], "Tactics.lua")
 end
 -----------------------------------------------------------------------------------------
 --
@@ -107,7 +78,6 @@ end
 function VoidWanderers:BtnLoadGame_OnClick()
 	self:FormClose()
 	dofile(BASE_PATH .. "FormLoad.lua")
-	self.ReturnToStart = true
 	self:FormLoad()
 end
 -----------------------------------------------------------------------------------------

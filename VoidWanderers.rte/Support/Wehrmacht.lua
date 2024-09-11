@@ -103,8 +103,8 @@ end
 --CF["ActPrices"][factionid][i] = 150
 --CF["ActDescriptions"][factionid][i] = "All around support trooper, armed primarily with an MG-42 for heavy suppression, VSG 1-5 for backup, and medical supplies."
 --CF["ActUnlockData"][factionid][i] = 1500
---CF["ActTypes"][factionid][i] = CF["ActorTypes"].LIGHT;
---CF["EquipmentTypes"][factionid][i] = CF["WeaponTypes"].HEAVY;
+--CF["ActTypes"][factionid][i] = CF["ActorTypes"].LIGHT
+--CF["EquipmentTypes"][factionid][i] = CF["WeaponTypes"].HEAVY
 --CF["ActPowers"][factionid][i] = 2
 
 i = #CF["ActNames"][factionid] + 1

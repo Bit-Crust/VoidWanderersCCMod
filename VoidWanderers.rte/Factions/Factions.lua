@@ -57,7 +57,7 @@ baseItems[#baseItems + 1] = { presetName = "Riot Shield", class = "HeldDevice", 
 
 local baseActors = {}
 baseActors[#baseActors + 1] = { presetName = "Medic Drone", class = "ACrab", unlockData = 1300, actorPowers = 0 }
---baseActors[#baseActors + 1] = {presetName = "Green Dummy", class = "AHuman", unlockData = 750, actorPowers = 0};
+--baseActors[#baseActors + 1] = {presetName = "Green Dummy", class = "AHuman", unlockData = 750, actorPowers = 0}
 for module in PresetMan.Modules do
 	if
 		module.FileName ~= "Base.rte"
@@ -210,7 +210,7 @@ for module in PresetMan.Modules do
 						CF["ItmPrices"][factionid][i] = entity:GetGoldValue(0, 1, 1)
 						CF["ItmDescriptions"][factionid][i] = entity.Description
 						--[[CF["ItmDescriptions"][factionid][i] = 	"Weight = ".. math.floor(entity.Mass + 0.5)
-														..	"\n Durability = ".. entity.GibWoundLimit;]]
+														..	"\n Durability = ".. entity.GibWoundLimit]]
 						--
 						CF["ItmUnlockData"][factionid][i] = CF["ItmPrices"][factionid][i] * 18
 						CF["ItmTypes"][factionid][i] = CF["WeaponTypes"].RIFLE --Default setting
@@ -226,11 +226,11 @@ for module in PresetMan.Modules do
 							entity = ToHDFirearm(entity)
 							--Force set onehanded weapons to be secondary?
 							--	if entity:IsOneHanded() then
-							--		CF["ItmTypes"][factionid][i] = CF["WeaponTypes"].PISTOL;
+							--		CF["ItmTypes"][factionid][i] = CF["WeaponTypes"].PISTOL
 							--	end
 							--Display stats?
-							--	local fireRate = entity.RateOfFire > 3600 and "Maximum" or "".. entity.RateOfFire;
-							--	local ammoCap = entity.RoundInMagCount > 0 and "\n Ammo capacity = ".. entity.RoundInMagCount or "";
+							--	local fireRate = entity.RateOfFire > 3600 and "Maximum" or "".. entity.RateOfFire
+							--	local ammoCap = entity.RoundInMagCount > 0 and "\n Ammo capacity = ".. entity.RoundInMagCount or ""
 							--	CF["ItmDescriptions"][factionid][i] = CF["ItmDescriptions"][factionid][i] .."\n Rate of Fire = ".. fireRate .."".. ammoCap
 
 							--Secondary weapons require more data because they're cheap already
@@ -268,11 +268,11 @@ for module in PresetMan.Modules do
 							end
 							entity = ToTDExplosive(entity)
 							CF["ItmTypes"][factionid][i] = CF["WeaponTypes"].GRENADE
-							--CF["ItmDescriptions"][factionid][i] = CF["ItmDescriptions"][factionid][i] .."\n Throw distance = ".. entity.MinThrowVel .."-".. entity.MaxThrowVel;
+							--CF["ItmDescriptions"][factionid][i] = CF["ItmDescriptions"][factionid][i] .."\n Throw distance = ".. entity.MinThrowVel .."-".. entity.MaxThrowVel
 						end
 						CF["ItmPowers"][factionid][i] = math.ceil((CF["ItmUnlockData"][factionid][i] + 1) / 250)
 						CF["ItmUnlockData"][factionid][i] = math.floor(CF["ItmUnlockData"][factionid][i] + 0.5)
-						--ConsoleMan:PrintString(entity.PresetName .. " Data: " .. CF["ItmUnlockData"][factionid][i] .. ", Powers: " .. CF["ItmPowers"][factionid][i]);
+						--ConsoleMan:PrintString(entity.PresetName .. " Data: " .. CF["ItmUnlockData"][factionid][i] .. ", Powers: " .. CF["ItmPowers"][factionid][i])
 
 						if
 							not starterPrimary
@@ -327,7 +327,7 @@ for module in PresetMan.Modules do
 						--Display stats?
 						--	CF["ActDescriptions"][factionid][i] =	"Weight = ".. math.floor(entity.Mass + 0.5)
 						--									..	"\n Bullet resistance = ".. math.floor(entity:GetGibWoundLimit(true, false, false) + 0.5)
-						--									..	"\n Impact resistance = ".. math.floor(entity.ImpulseDamageThreshold * 0.1 + entity.GibImpulseLimit * 0.05 + 0.5);
+						--									..	"\n Impact resistance = ".. math.floor(entity.ImpulseDamageThreshold * 0.1 + entity.GibImpulseLimit * 0.05 + 0.5)
 						CF["ActUnlockData"][factionid][i] = CF["ActPrices"][factionid][i] * 14
 						CF["ActTypes"][factionid][i] = CF["ActorTypes"].LIGHT
 						CF["ActClasses"][factionid][i] = entity.ClassName
@@ -375,7 +375,7 @@ for module in PresetMan.Modules do
 				CF["ActUnlockData"][factionid][starterActor] = 0
 			end
 		else
-			--print ("Failed to load faction files: "..factionid);
+			--print ("Failed to load faction files: "..factionid)
 		end
 	end
 end

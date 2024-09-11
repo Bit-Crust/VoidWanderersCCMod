@@ -1,5 +1,5 @@
 function VoidWanderers:StartActivity()
-	---- -- -- self.ModuleName = "VoidWanderers.rte";
+	---- -- -- self.ModuleName = "VoidWanderers.rte"
 	self.IsInitialized = false
 
 	LAUNCH_MISSION_PACK = nil
@@ -9,9 +9,9 @@ function VoidWanderers:StartActivity()
 
 	LIB_PATH = self.ModuleName .. "/Scripts/"
 	BASE_PATH = self.ModuleName .. "/Scripts/"
-
-	dofile(LIB_PATH .. "Lib_Config.lua")
+	
 	dofile(LIB_PATH .. "Lib_Generic.lua")
+	dofile(LIB_PATH .. "Lib_Config.lua")
 	dofile(LIB_PATH .. "Lib_ExtensionsData.lua")
 
 	if TRANSFER_IN_PROGRESS == nil then
@@ -73,7 +73,7 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:EndActivity()
 	print("END! -- VoidWanderers:EndActivity()!")
-	CF["Self"] = nil
+	CF.Self = nil
 end
 -----------------------------------------------------------------------------------------
 -- Update Activity

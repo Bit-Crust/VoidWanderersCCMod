@@ -147,9 +147,6 @@ CF["MakeNewConfig"] = function(difficulty, playerSkill, cpuSkill, f, cpus, activ
 	-- Set initial scene
 	config["Scene"] = CF["VesselScene"][config["Player0Vessel"]]
 
-	-- Set initial scene type
-	config["SceneType"] = "Vessel"
-
 	-- Set operation mode
 	config["Mode"] = "Vessel"
 

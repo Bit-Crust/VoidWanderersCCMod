@@ -19,15 +19,15 @@ function VoidWanderers:FormLoad()
 	)
 
 	-- Create scene buttons
-	for i = 1, #CF["Location"] do
+	for i = 1, #CF.Location do
 		local playable = true
 
-		if CF["LocationPlayable"][CF["Location"][i]] ~= nil and CF["LocationPlayable"][CF["Location"][i]] == false then
+		if CF.LocationPlayable[CF.Location[i]] ~= nil and CF.LocationPlayable[CF.Location[i]] == false then
 			playable = false
 		end
 
 		if playable then
-			for j = 1, #CF["LocationScenes"][CF["Location"][i]] do
+			for j = 1, #CF.LocationScenes[CF.Location[i]] do
 				el = {}
 				el["Type"] = self.ElementTypes.BUTTON
 				el["Presets"] = {}
@@ -35,8 +35,8 @@ function VoidWanderers:FormLoad()
 				el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonMouseOver"
 				el["Presets"][self.ButtonStates.PRESSED] = "ButtonPressed"
 				el["Pos"] = pos + Vector(-(wx * sx / 2) + x * sx, y * sy)
-				el["Text"] = CF["LocationScenes"][CF["Location"][i]][j]
-				el["LocationID"] = CF["LocationScenes"][CF["Location"][i]][j]
+				el["Text"] = CF.LocationScenes[CF.Location[i]][j]
+				el["LocationID"] = CF.LocationScenes[CF.Location[i]][j]
 				el["Width"] = sx
 				el["Height"] = sy
 
@@ -46,7 +46,7 @@ function VoidWanderers:FormLoad()
 					y = y + 1
 				end
 
-				--el["OnHover"] = self.SaveSlots_OnHover;
+				--el["OnHover"] = self.SaveSlots_OnHover
 				el["OnClick"] = self.SceneButton_OnClick
 
 				self.UI[#self.UI + 1] = el

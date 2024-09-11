@@ -1,6 +1,6 @@
 local id, n
 for module in PresetMan.Modules do
-	if module.FileName ~= "Base.rte" and module.FileName ~= CF["ModuleName"] and not module.IsFaction then
+	if module.FileName ~= "Base.rte" and module.FileName ~= CF.ModuleName and not module.IsFaction then
 		for entity in module.Presets do
 			if
 				(
@@ -12,7 +12,7 @@ for module in PresetMan.Modules do
 				and ToHeldDevice(entity).RandomWeight ~= 0
 			then
 				entity = ToHeldDevice(entity)
-				if entity:HasObjectInGroup("Bombs - Payloads") then
+				if entity:HasObjectInGroup("Payloads") then
 					n = #CF["BombNames"] + 1
 					CF["BombNames"][n] = entity:GetModuleAndPresetName()
 					CF["BombPresets"][n] = entity.PresetName

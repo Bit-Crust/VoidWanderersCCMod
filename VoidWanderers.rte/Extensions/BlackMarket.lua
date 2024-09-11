@@ -19,13 +19,13 @@ for module in PresetMan.Modules do
 				CF["BlackMarketItmDescriptions"][id] = entity.Description
 				--[[
 			elseif (entity.ClassName == "AHuman" or entity.ClassName == "ACrab") and ToActor(entity):HasObjectInGroup("Brains") and ToActor(entity).Buyable then
-				entity = ToActor(entity);
-				id = id + 1;
-				CF["BlackMarketActPresets"][id] = entity.PresetName;
-				CF["BlackMarketActModules"][id] = module.FileName;
-				CF["BlackMarketActClasses"][id] = entity.ClassName;
-				CF["BlackMarketActPrices"][id] = math.max(math.abs(entity:GetGoldValue(0, 1, 1)), CF["UnknownItemPrice"]);
-				CF["BlackMarketActDescriptions"][id] = entity.Description;
+				entity = ToActor(entity)
+				id = id + 1
+				CF["BlackMarketActPresets"][id] = entity.PresetName
+				CF["BlackMarketActModules"][id] = module.FileName
+				CF["BlackMarketActClasses"][id] = entity.ClassName
+				CF["BlackMarketActPrices"][id] = math.max(math.abs(entity:GetGoldValue(0, 1, 1)), CF["UnknownItemPrice"])
+				CF["BlackMarketActDescriptions"][id] = entity.Description
 			]]
 				--
 			end

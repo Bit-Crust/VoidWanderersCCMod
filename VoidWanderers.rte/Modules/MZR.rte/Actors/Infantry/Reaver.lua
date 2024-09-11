@@ -9,9 +9,9 @@ function Create(self)
 end
 function Update(self)
 	self.controller = self:GetController()
-	--HumanFunctions.DoAlternativeGib(self);
+	--HumanFunctions.DoAlternativeGib(self)
 	local healthRatio = self.Health / self.MaxHealth
-	--HumanFunctions.DoArmSway(self, healthRatio);
+	--HumanFunctions.DoArmSway(self, healthRatio)
 	if self.Status < Actor.DEAD then
 		self.AngularVel = self.AngularVel
 			+ (RangeRand(-1, 1) * healthRatio)
