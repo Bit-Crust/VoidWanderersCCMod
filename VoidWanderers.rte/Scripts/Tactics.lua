@@ -2595,6 +2595,67 @@ function VoidWanderers:UpdateActivity()
 	end
 end
 -----------------------------------------------------------------------------------------
+--
+-----------------------------------------------------------------------------------------
+function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
+	if orbitedCraft.PresetName ~= "Fake Drop Ship MK1" and self.GS["Mode"] ~= "Vessel" then
+		if orbitedCraft.Team == CF.PlayerTeam and orbitedCraft:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
+			-- Bring back actors
+			for actor in orbitedCraft.Inventory do
+				if actor.Team == CF.PlayerTeam and IsActor(actor) then
+					actor = ToActor(actor)
+					local i = tonumber(self.GS["MissionReturningTroops"])
+					local assignable = true
+					local f = CF.GetPlayerFaction(self.GS, 0)
+
+					-- Check if unit is playable
+					if CF.UnassignableUnits[f] ~= nil then
+						for i = 1, #CF.UnassignableUnits[f] do
+							if actor.PresetName == CF.UnassignableUnits[f][i] then
+								assignable = false
+							end
+						end
+					end
+
+					-- Don't bring back allied units
+					if self:IsAlly(actor) then
+						assignable = false
+					end
+
+					self:ClearDeployed()
+					if
+						assignable and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
+					then
+						self.GS["Deployed" .. i .. "Preset"] = actor.PresetName
+						self.GS["Deployed" .. i .. "Class"] = actor.ClassName
+						self.GS["Deployed" .. i .. "Module"] = actor.ModuleName
+						self.GS["Deployed" .. i .. "XP"] = actor:GetNumberValue("VW_XP")
+						self.GS["Deployed" .. i .. "Identity"] = actor:GetNumberValue("Identity")
+						self.GS["Deployed" .. i .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
+						self.GS["Deployed" .. i .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
+						self.GS["Deployed" .. i .. "Name"] = actor:GetStringValue("VW_Name")
+						
+						for j = 1, #CF.LimbID do
+							self.GS["Deployed" .. i .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
+						end
+
+						for j = 1, #pre do
+							self.GS["Deployed" .. i .. "Item" .. j .. "Preset"] = pre[j]
+							self.GS["Deployed" .. i .. "Item" .. j .. "Class"] = cls[j]
+							self.GS["Deployed" .. i .. "Item" .. j .. "Module"] = mdl[j]
+						end
+								
+						self.GS["MissionReturningTroops"] = tonumber(self.GS["MissionReturningTroops"]) + 1
+					end
+				end
+			end
+			--Nullify the funds we just gained from the orbited craft
+			self:SetTeamFunds(CF.GetPlayerGold(self.GS, CF.PlayerTeam), CF.PlayerTeam)
+			FrameMan:ClearScreenText(0)
+		end
+	end
+end
+-----------------------------------------------------------------------------------------
 -- Find and assign player brains, for loaded games.
 -----------------------------------------------------------------------------------------
 function VoidWanderers:LocatePlayerBrains(swapToBrains, initPieMenu)
