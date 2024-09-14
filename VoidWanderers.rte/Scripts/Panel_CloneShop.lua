@@ -205,7 +205,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 							if self.CloneShopItems[cln]["Type"] == CF["ActorTypes"].TURRET then
 								if
 									CF["CountUsedTurretsInArray"](self.Turrets)
-										< tonumber(self.GS["Player0VesselTurretStorage"])
+										< tonumber(self.GS["PlayerVesselTurretStorage"])
 									and self.CloneShopSelectedClonePrice <= CF["GetPlayerGold"](self.GS, 0)
 								then
 									--[[local c = #self.Turrets + 1
@@ -223,16 +223,12 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 									)
 
 									CF["SetTurretsArray"](self.GS, self.Turrets)
-									CF["SetPlayerGold"](
-										self.GS,
-										0,
-										CF["GetPlayerGold"](self.GS, 0) - self.CloneShopSelectedClonePrice
-									)
+									CF.ChangeGold(self.GS, -self.CloneShopSelectedClonePrice)
 								end
 							else
 								if
 									CF["CountUsedClonesInArray"](self.Clones)
-										< tonumber(self.GS["Player0VesselClonesCapacity"])
+										< tonumber(self.GS["PlayerVesselClonesCapacity"])
 									and self.CloneShopSelectedClonePrice <= CF["GetPlayerGold"](self.GS, 0)
 								then
 									local c = #self.Clones + 1
@@ -245,11 +241,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 
 									CF["SetClonesArray"](self.GS, self.Clones)
 
-									CF["SetPlayerGold"](
-										self.GS,
-										0,
-										CF["GetPlayerGold"](self.GS, 0) - self.CloneShopSelectedClonePrice
-									)
+									CF.ChangeGold(self.GS, -self.CloneShopSelectedClonePrice)
 								end
 							end
 						else
@@ -323,7 +315,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 					"Turrets: "
 						.. CF["CountUsedTurretsInArray"](self.Turrets)
 						.. "/"
-						.. self.GS["Player0VesselTurretStorage"],
+						.. self.GS["PlayerVesselTurretStorage"],
 					pos + Vector(-130, -60),
 					300,
 					10
@@ -333,7 +325,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 					"Capacity: "
 						.. CF["CountUsedClonesInArray"](self.Clones)
 						.. "/"
-						.. self.GS["Player0VesselClonesCapacity"],
+						.. self.GS["PlayerVesselClonesCapacity"],
 					pos + Vector(-130, -60),
 					300,
 					10

@@ -64,7 +64,7 @@ end
 -----------------------------------------------------------------------------------------
 CF.MakeBrain = function(c, p, team, pos, giveWeapons)
 	--print ("CF.MakeBrain")
-	local f = CF.GetPlayerFaction(c, p)
+	local f = c["PlayerFaction"]
 	return CF.MakeBrainWithPreset(c, p, team, pos, CF.Brains[f], CF.BrainClasses[f], CF.BrainModules[f], giveWeapons)
 end
 -----------------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ end
 CF.MakeBrainWithPreset = function(c, p, team, pos, preset, class, module, giveWeapons)
 	--print ("CF.MakeBrainWithPreset")
 
-	local f = CF.GetPlayerFaction(c, p)
+	local f = c["PlayerFaction"]
 
 	local actor = CF.MakeActor(preset, class, module)
 
@@ -276,20 +276,20 @@ CF.SpawnRandomInfantry = function(team, pos, faction, aimode)
 	return nil
 end
 -----------------------------------------------------------------------------------------
--- Create list of actors in faction of certain class.
+-- Create list of actors in faction of a type and class.
 -----------------------------------------------------------------------------------------
-CF.MakeListOfMostPowerfulActorsOfClass = function(config, player, actorType, actorClass, maxTech)
-	local acts = CF.MakeListOfMostPowerfulActors(config, player, actorType, maxTech)
-	local f = CF.GetPlayerFaction(config, player)
+CF.MakeListOfMostPowerfulActorsOfClass = function(gameState, player, actorType, actorClass, maxTech)
+	local acts = CF.MakeListOfMostPowerfulActors(gameState, player, actorType, maxTech)
+	local f = CF.GetPlayerFaction(gameState, player)
 
 	if acts then
-		-- Filter only humans
+		-- Filter only of class
 		local tempActs = {}
 
 		for i = 1, #acts do
 			local ind = acts[i]["Actor"]
 
-			if CF.ActClasses[f][ind] == actorClass then
+			if "Any" == actorClass or CF.ActClasses[f][ind] == actorClass or not CF.ActClasses[f][ind] then
 				table.insert(tempActs, acts[i])
 			end
 		end
@@ -304,11 +304,11 @@ CF.MakeListOfMostPowerfulActorsOfClass = function(config, player, actorType, act
 	return acts
 end
 -----------------------------------------------------------------------------------------
--- Create list of weapons of wtype sorted by their power.
+-- Create list of weapons of a type sorted by their power.
 -----------------------------------------------------------------------------------------
-CF.MakeListOfMostPowerfulWeapons = function(config, player, weaponType, maxTech)
+CF.MakeListOfMostPowerfulWeapons = function(gameState, player, weaponType, maxTech)
 	local weaps = {}
-	local f = CF.GetPlayerFaction(config, player)
+	local f = CF.GetPlayerFaction(gameState, player)
 	-- Filter needed items
 	for i = 1, #CF.ItmNames[f] do
 		if
@@ -341,9 +341,9 @@ end
 -----------------------------------------------------------------------------------------
 -- Create list of actors of a type sorted by their power.
 -----------------------------------------------------------------------------------------
-CF.MakeListOfMostPowerfulActors = function(config, player, actorType, maxTech)
+CF.MakeListOfMostPowerfulActors = function(gameState, player, actorType, maxTech)
 	local acts = {}
-	local f = CF.GetPlayerFaction(config, player)
+	local f = CF.GetPlayerFaction(gameState, player)
 	-- Filter needed items
 	for i = 1, #CF.ActNames[f] do
 		if
@@ -374,7 +374,7 @@ CF.MakeListOfMostPowerfulActors = function(config, player, actorType, maxTech)
 	return acts
 end
 -----------------------------------------------------------------------------------------
---	Creates units presets for specified AI where c - config, p - player, tech - max unlock data
+--	Creates units presets for specified AI where c - gameState, p - player, tech - max unlock data
 -----------------------------------------------------------------------------------------
 CF.CreateAIUnitPresets = function(c, p, tech)
 	--[[ Each ideal list refers to the ideal type of given item for the corresponding preset.
@@ -602,7 +602,7 @@ CF.CreateAIUnitPresets = function(c, p, tech)
 	end -- If preequipped
 end
 -----------------------------------------------------------------------------------------
---	Create actor from preset pre, where c - config, p - player, t - territory, pay gold is pay == true
+--	Create actor from preset pre, where c - gameState, p - player, t - territory, pay gold is pay == true
 -- 	returns actor or nil, also returns actor offset, value wich you must add to default actor position to
 -- 	avoid actor hang in the air, used mainly for turrets
 -----------------------------------------------------------------------------------------
@@ -965,7 +965,7 @@ CF.GenerateRandomMissions = function(gamestate)
 		table.insert(usedLocations, missions[i]["Location"])
 	end
 
-	-- Put missions to config
+	-- Put missions to gameState
 	for i = 1, #missions do
 		gamestate["Mission" .. i .. "SourcePlayer"] = missions[i]["SourcePlayer"]
 		gamestate["Mission" .. i .. "TargetPlayer"] = missions[i]["TargetPlayer"]

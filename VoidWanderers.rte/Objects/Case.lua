@@ -66,7 +66,7 @@ function Create(self)
 
 			-- We need this fake cfg because CF["MakeList"] operates only on configs to get data
 			local cfg = {}
-			cfg["Player0Faction"] = f
+			cfg["PlayerFaction"] = f
 
 			--print (cfg)
 			local weaps = CF_Call(self, {"MakeListOfMostPowerfulWeapons"}, {cfg, 0, weaponTypes[math.random(#weaponTypes)], 100000})[1]

@@ -79,7 +79,7 @@ function Create(self)
 
 			-- We need this fake cfg because CF["MakeList"] operates only on configs to get data
 			local cfg = {}
-			cfg["Player0Faction"] = f
+			cfg["PlayerFaction"] = f
 
 			--print (cfg)
 

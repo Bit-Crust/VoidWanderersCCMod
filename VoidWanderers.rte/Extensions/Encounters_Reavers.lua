@@ -190,7 +190,7 @@ function(self, variant)
 			else
 				self.RandomEncounterDistance = self.RandomEncounterDistance
 					- self.RandomEncounterSpeed
-					+ tonumber(self.GS["Player0VesselSpeed"])
+					+ tonumber(self.GS["PlayerVesselSpeed"])
 			end
 			self.RandomEncounterChaseTimer:Reset()
 
@@ -198,7 +198,7 @@ function(self, variant)
 			if not self.RandomEncounterBoostTriggered then
 				if
 					self.RandomEncounterDistance > self.RandomEncounterMaxDistance
-					or self.RandomEncounterSpeed == tonumber(self.GS["Player0VesselSpeed"])
+					or self.RandomEncounterSpeed == tonumber(self.GS["PlayerVesselSpeed"])
 				then
 					self.RandomEncounterBoostTriggered = true
 					self.RandomEncounterSpeed = self.RandomEncounterSpeed
@@ -206,7 +206,7 @@ function(self, variant)
 					self.RandomEncounterText = (math.random() < 0.5 and "Oh crap" or "O kurwa")
 						.. ", they overloaded their reactor to boost the engines!!!"
 
-					if self.RandomEncounterSpeed <= tonumber(self.GS["Player0VesselSpeed"]) then
+					if self.RandomEncounterSpeed <= tonumber(self.GS["PlayerVesselSpeed"]) then
 						self.RandomEncounterAbortChase = true
 					end
 				end

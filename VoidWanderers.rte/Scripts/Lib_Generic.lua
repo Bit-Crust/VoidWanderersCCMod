@@ -9,15 +9,12 @@ CF = {}
 -----------------------------------------------------------------------------------------
 CF.InitFactions = function(activity)
 	print("CF.InitFactions")
-	CF.CPUTeam = Activity.TEAM_2
 	CF.PlayerTeam = Activity.TEAM_1
+	CF.PlayerFaction = 1
+	CF.CPUTeam = Activity.TEAM_2
 	CF.RogueTeam = Activity.NOTEAM
 	CF.MOIDLimit = math.huge
 	CF.ModuleName = "VoidWanderers.rte"
-
-	CF.Difficulty = CHOSEN_DIFFICULTY
-	CF.AISkillPlayer = CHOSEN_AISKILLPLAYER
-	CF.AISkillCPU = CHOSEN_AISKILLCPU
 
 	-- Used in flight mode
 	CF.KmPerPixel = 100
@@ -162,7 +159,7 @@ CF.InitFactions = function(activity)
 
 	CF.MaxDifficulty = 6
 
-	CF.MaxCPUPlayers = 300
+	CF.MaxCPUPlayers = 255
 	CF.MaxSaveGames = 16
 	CF.MaxItems = 8 -- Max items per clone in clone storage
 	CF.MaxItemsPerPreset = 3 -- Max items per AI unit preset
@@ -210,40 +207,40 @@ CF.InitFactions = function(activity)
 	CF.RelationsBonuses = {}
 	CF.ExpansionBonuses = {}
 
-	CF["MineBonuses"] = {}
-	CF["LabBonuses"] = {}
-	CF["AirfieldBonuses"] = {}
-	CF["SuperWeaponBonuses"] = {}
-	CF["FactoryBonuses"] = {}
-	CF["CloneBonuses"] = {}
-	CF["HospitalBonuses"] = {}
+	CF.MineBonuses = {}
+	CF.LabBonuses = {}
+	CF.AirfieldBonuses = {}
+	CF.SuperWeaponBonuses = {}
+	CF.FactoryBonuses = {}
+	CF.CloneBonuses = {}
+	CF.HospitalBonuses = {}
 
-	CF["HackTimeBonuses"] = {}
-	CF["HackRewardBonuses"] = {}
+	CF.HackTimeBonuses = {}
+	CF.HackRewardBonuses = {}
 
-	CF["DropShipCapacityBonuses"] = {}
+	CF.DropShipCapacityBonuses = {}
 
 	-- Special arrays for factions with pre-equipped items
 	-- Everything in this array (indexed by preset name) will not be included by inventory saving routines
-	CF["DiscardableItems"] = {}
+	CF.DiscardableItems = {}
 	-- Everything in this array will be marked for deletion after actor is created
-	CF["ItemsToRemove"] = {}
+	CF.ItemsToRemove = {}
 
-	CF["BrainHuntRatios"] = {}
+	CF.BrainHuntRatios = {}
 
-	CF["PreferedBrainInventory"] = {}
+	CF.PreferedBrainInventory = {}
 
-	CF["SuperWeaponScripts"] = {}
+	CF.SuperWeaponScripts = {}
 
-	CF["ResearchQueues"] = {}
+	CF.ResearchQueues = {}
 
 	-- Specify presets which are not affected by tactical AI unit management
-	CF["UnassignableUnits"] = {}
+	CF.UnassignableUnits = {}
 
 	-- Set this to true if your faction uses pre-equipped actors
-	CF["PreEquippedActors"] = {}
+	CF.PreEquippedActors = {}
 
-	CF["PresetNames"] = {
+	CF.PresetNames = {
 		"Infantry 1",
 		"Infantry 2",
 		"Shotgun",
@@ -255,7 +252,7 @@ CF.InitFactions = function(activity)
 		"Engineer",
 		"Defender",
 	}
-	CF["PresetTypes"] = {
+	CF.PresetTypes = {
 		INFANTRY1 = 1,
 		INFANTRY2 = 2,
 		SHOTGUN = 3,
@@ -269,25 +266,25 @@ CF.InitFactions = function(activity)
 	}
 
 	-- Arrays with a combination of presets used by this faction, script will randomly select presets for deployment from this arrays if available
-	CF["PreferedTacticalPresets"] = {}
+	CF.PreferedTacticalPresets = {}
 
 	-- Default presets array, everything is evenly selected by AI
-	CF["DefaultTacticalPresets"] = {
-		CF["PresetTypes"].INFANTRY1,
-		CF["PresetTypes"].INFANTRY2,
-		CF["PresetTypes"].SNIPER,
-		CF["PresetTypes"].SHOTGUN,
-		CF["PresetTypes"].HEAVY1,
-		CF["PresetTypes"].HEAVY2,
-		CF["PresetTypes"].ARMOR1,
-		CF["PresetTypes"].ARMOR2,
-		CF["PresetTypes"].ENGINEER,
+	CF.DefaultTacticalPresets = {
+		CF.PresetTypes.INFANTRY1,
+		CF.PresetTypes.INFANTRY2,
+		CF.PresetTypes.SNIPER,
+		CF.PresetTypes.SHOTGUN,
+		CF.PresetTypes.HEAVY1,
+		CF.PresetTypes.HEAVY2,
+		CF.PresetTypes.ARMOR1,
+		CF.PresetTypes.ARMOR2,
+		CF.PresetTypes.ENGINEER,
 	}
 	-- These AI models are left over from UL2 but preserved for backwards compatibility
-	CF["AIModels"] = { "RANDOM", "SIMPLE", "CONSOLE HUNTERS", "SQUAD" }
-	CF["FactionAIModels"] = {}
+	CF.AIModels = { "RANDOM", "SIMPLE", "CONSOLE HUNTERS", "SQUAD" }
+	CF.FactionAIModels = {}
 
-	CF["WeaponTypes"] = {
+	CF.WeaponTypes = {
 		ANY = -1,
 		PISTOL = 0,
 		RIFLE = 1,
@@ -300,90 +297,96 @@ CF.InitFactions = function(activity)
 		TOOL = 8,
 		BOMB = 9,
 	}
-	CF["ActorTypes"] = { ANY = -1, LIGHT = 0, HEAVY = 1, ARMOR = 2, TURRET = 3 }
-	CF["FactionTypes"] = { ORGANIC = 0, SYNTHETIC = 1 }
+	CF.ActorTypes = {
+		ANY = -1,
+		LIGHT = 0,
+		HEAVY = 1,
+		ARMOR = 2,
+		TURRET = 3
+	}
+	CF.FactionTypes = { ORGANIC = 0, SYNTHETIC = 1 }
 
-	CF["ItmNames"] = {}
-	CF["ItmPresets"] = {}
-	CF["ItmModules"] = {}
-	CF["ItmPrices"] = {}
-	CF["ItmDescriptions"] = {}
-	CF["ItmUnlockData"] = {}
-	CF["ItmClasses"] = {}
-	CF["ItmTypes"] = {}
-	CF["ItmPowers"] = {} -- AI will select weapons based on this value
+	CF.ItmNames = {}
+	CF.ItmPresets = {}
+	CF.ItmModules = {}
+	CF.ItmPrices = {}
+	CF.ItmDescriptions = {}
+	CF.ItmUnlockData = {}
+	CF.ItmClasses = {}
+	CF.ItmTypes = {}
+	CF.ItmPowers = {} -- AI will select weapons based on this value
 
-	CF["ActNames"] = {}
-	CF["ActPresets"] = {}
-	CF["ActModules"] = {}
-	CF["ActPrices"] = {}
-	CF["ActDescriptions"] = {}
-	CF["ActUnlockData"] = {}
-	CF["ActClasses"] = {}
-	CF["ActTypes"] = {}
-	CF["EquipmentTypes"] = {} -- Factions with pre-equipped actors specify which weapons class this unit is equivalent
-	CF["ActPowers"] = {}
-	CF["ActOffsets"] = {}
+	CF.ActNames = {}
+	CF.ActPresets = {}
+	CF.ActModules = {}
+	CF.ActPrices = {}
+	CF.ActDescriptions = {}
+	CF.ActUnlockData = {}
+	CF.ActClasses = {}
+	CF.ActTypes = {}
+	CF.EquipmentTypes = {} -- Factions with pre-equipped actors specify which weapons class this unit is equivalent
+	CF.ActPowers = {}
+	CF.ActOffsets = {}
 
 	-- Bombs, used only by VoidWanderers
-	CF["BombNames"] = {}
-	CF["BombPresets"] = {}
-	CF["BombModules"] = {}
-	CF["BombClasses"] = {}
-	CF["BombPrices"] = {}
-	CF["BombDescriptions"] = {}
-	CF["BombOwnerFactions"] = {}
-	CF["BombUnlockData"] = {}
+	CF.BombNames = {}
+	CF.BombPresets = {}
+	CF.BombModules = {}
+	CF.BombClasses = {}
+	CF.BombPrices = {}
+	CF.BombDescriptions = {}
+	CF.BombOwnerFactions = {}
+	CF.BombUnlockData = {}
 
-	CF["RequiredModules"] = {}
+	CF.RequiredModules = {}
 
-	CF["FactionNatures"] = {}
+	CF.FactionNatures = {}
 
-	CF["Brains"] = {}
-	CF["BrainModules"] = {}
-	CF["BrainClasses"] = {}
-	CF["BrainPrices"] = {}
+	CF.Brains = {}
+	CF.BrainModules = {}
+	CF.BrainClasses = {}
+	CF.BrainPrices = {}
 
-	CF["Crafts"] = {}
-	CF["CraftModules"] = {}
-	CF["CraftClasses"] = {}
-	CF["CraftPrices"] = {}
+	CF.Crafts = {}
+	CF.CraftModules = {}
+	CF.CraftClasses = {}
+	CF.CraftPrices = {}
 
-	CF["MusicTypes"] = { SHIP_CALM = 0, SHIP_INTENSE = 1, MISSION_CALM = 2, MISSION_INTENSE = 3, VICTORY = 4, DEFEAT = 5 }
+	CF.MusicTypes = { SHIP_CALM = 0, SHIP_INTENSE = 1, MISSION_CALM = 2, MISSION_INTENSE = 3, VICTORY = 4, DEFEAT = 5 }
 
-	CF["Music"] = {}
-	CF["Music"][CF["MusicTypes"].SHIP_CALM] = {}
-	CF["Music"][CF["MusicTypes"].SHIP_INTENSE] = {}
-	CF["Music"][CF["MusicTypes"].MISSION_CALM] = {}
-	CF["Music"][CF["MusicTypes"].MISSION_INTENSE] = {}
+	CF.Music = {}
+	CF.Music[CF.MusicTypes.SHIP_CALM] = {}
+	CF.Music[CF.MusicTypes.SHIP_INTENSE] = {}
+	CF.Music[CF.MusicTypes.MISSION_CALM] = {}
+	CF.Music[CF.MusicTypes.MISSION_INTENSE] = {}
 
 	-- Load factions
-	--CF["FactionFiles"] = CF["ReadFactionsList"](CF["ModuleName"].."/Factions/Factions.cfg" , CF["ModuleName"].."/Factions/")
-	CF["FactionFiles"] = { "Mods/VoidWanderers.rte/Factions/Factions.lua" }
+	--CF.FactionFiles = CF.ReadFactionsList(CF.ModuleName.."/Factions/Factions.cfg" , CF.ModuleName.."/Factions/")
+	CF.FactionFiles = { "Mods/VoidWanderers.rte/Factions/Factions.lua" }
 
 	-- Load factions data
-	for i = 1, #CF["FactionFiles"] do
-		--print("Loading "..CF["FactionFiles"][i])
-		f = loadfile(CF["FactionFiles"][i])
+	for i = 1, #CF.FactionFiles do
+		--print("Loading "..CF.FactionFiles[i])
+		f = loadfile(CF.FactionFiles[i])
 		if f ~= nil then
-			local lastfactioncount = #CF["Factions"]
+			local lastfactioncount = #CF.Factions
 
 			-- Execute script
 			f()
 
 			-- Check for faction consistency only if it is a faction file
-			if lastfactioncount ~= #CF["Factions"] then
-				local id = CF["Factions"][#CF["Factions"]]
+			if lastfactioncount ~= #CF.Factions then
+				local id = CF.Factions[#CF.Factions]
 
 				--Check if faction modules installed. Check only works with old v1 or most new v2 faction files.
-				--print(CF["InfantryModules"][CF["Factions"][#CF["Factions"]]])
-				for m = 1, #CF["RequiredModules"][id] do
-					local module = CF["RequiredModules"][id][m]
+				--print(CF.InfantryModules[CF.Factions[#CF.Factions]])
+				for m = 1, #CF.RequiredModules[id] do
+					local module = CF.RequiredModules[id][m]
 
 					if module ~= nil then
 						if PresetMan:GetModuleID(module) == -1 then
-							CF["FactionPlayable"][id] = false
-							print("ERROR!!! " .. id .. " DISABLED!!! " .. CF["RequiredModules"][id][m] .. " NOT FOUND!!!")
+							CF.FactionPlayable[id] = false
+							print("ERROR!!! " .. id .. " DISABLED!!! " .. CF.RequiredModules[id][m] .. " NOT FOUND!!!")
 						end
 					end
 				end
@@ -394,41 +397,41 @@ CF.InitFactions = function(activity)
 
 				-- Verify faction file data and add mission values if any
 				-- Verify items
-				for i = 1, #CF["ItmNames"][id] do
-					if CF["ItmModules"][id][i] == nil then
+				for i = 1, #CF.ItmNames[id] do
+					if CF.ItmModules[id][i] == nil then
 						factionok = false
-						err = "CF["ItmModules"] is missing."
+						err = "CF.ItmModules is missing."
 					end
 
-					if CF["ItmPrices"][id][i] == nil then
+					if CF.ItmPrices[id][i] == nil then
 						factionok = false
-						err = "CF["ItmPrices"] is missing."
+						err = "CF.ItmPrices is missing."
 					end
 
-					if CF["ItmDescriptions"][id][i] == nil then
+					if CF.ItmDescriptions[id][i] == nil then
 						factionok = false
-						err = "CF["ItmDescriptions"] is missing."
+						err = "CF.ItmDescriptions is missing."
 					end
 
-					if CF["ItmUnlockData"][id][i] == nil then
+					if CF.ItmUnlockData[id][i] == nil then
 						factionok = false
-						err = "CF["ItmUnlockData"] is missing."
+						err = "CF.ItmUnlockData is missing."
 					end
 
-					if CF["ItmTypes"][id][i] == nil then
+					if CF.ItmTypes[id][i] == nil then
 						factionok = false
-						err = "CF["ItmTypes"] is missing."
+						err = "CF.ItmTypes is missing."
 					end
 
-					if CF["ItmPowers"][id][i] == nil then
+					if CF.ItmPowers[id][i] == nil then
 						factionok = false
-						err = "CF["ItmPowers"] is missing."
+						err = "CF.ItmPowers is missing."
 					end
 
 					-- If something is wrong then disable faction and print error message
 					if not factionok then
-						CF["FactionPlayable"][id] = false
-						print("ERROR!!! " .. id .. " DISABLED!!! " .. CF["ItmNames"][id][i] .. " : " .. err)
+						CF.FactionPlayable[id] = false
+						print("ERROR!!! " .. id .. " DISABLED!!! " .. CF.ItmNames[id][i] .. " : " .. err)
 						break
 					end
 				end
@@ -439,78 +442,78 @@ CF.InitFactions = function(activity)
 
 				-- Verify faction generic data
 				info[#info + 1] = "CF['FactionNames']"
-				data[#info] = CF["FactionNames"][id]
+				data[#info] = CF.FactionNames[id]
 
 				info[#info + 1] = "CF['FactionDescriptions']"
-				data[#info] = CF["FactionDescriptions"][id]
+				data[#info] = CF.FactionDescriptions[id]
 
 				info[#info + 1] = "CF['FactionPlayable']"
-				data[#info] = CF["FactionPlayable"][id]
+				data[#info] = CF.FactionPlayable[id]
 
 				info[#info + 1] = "CF['RequiredModules']"
-				data[#info] = CF["RequiredModules"][id]
+				data[#info] = CF.RequiredModules[id]
 
 				info[#info + 1] = "CF['FactionNatures']"
-				data[#info] = CF["FactionNatures"][id]
+				data[#info] = CF.FactionNatures[id]
 				--[[ UL2 stuff - don't need these!
-				info[#info + 1] = "CF["ScanBonuses"]"
-				data[#info] = CF["ScanBonuses"][id]
+				info[#info + 1] = "CF.ScanBonuses"
+				data[#info] = CF.ScanBonuses[id]
 				
-				info[#info + 1] = "CF["RelationsBonuses"]"
-				data[#info] = CF["RelationsBonuses"][id]
+				info[#info + 1] = "CF.RelationsBonuses"
+				data[#info] = CF.RelationsBonuses[id]
 
-				info[#info + 1] = "CF["ExpansionBonuses"]"
-				data[#info] = CF["ExpansionBonuses"][id]
+				info[#info + 1] = "CF.ExpansionBonuses"
+				data[#info] = CF.ExpansionBonuses[id]
 
-				info[#info + 1] = "CF["MineBonuses"]"
-				data[#info] = CF["MineBonuses"][id]
+				info[#info + 1] = "CF.MineBonuses"
+				data[#info] = CF.MineBonuses[id]
 
-				info[#info + 1] = "CF["LabBonuses"]"
-				data[#info] = CF["LabBonuses"][id]
+				info[#info + 1] = "CF.LabBonuses"
+				data[#info] = CF.LabBonuses[id]
 
-				info[#info + 1] = "CF["AirfieldBonuses"]"
-				data[#info] = CF["AirfieldBonuses"][id]
+				info[#info + 1] = "CF.AirfieldBonuses"
+				data[#info] = CF.AirfieldBonuses[id]
 
-				info[#info + 1] = "CF["SuperWeaponBonuses"]"
-				data[#info] = CF["SuperWeaponBonuses"][id]
+				info[#info + 1] = "CF.SuperWeaponBonuses"
+				data[#info] = CF.SuperWeaponBonuses[id]
 
-				info[#info + 1] = "CF["FactoryBonuses"]"
-				data[#info] = CF["FactoryBonuses"][id]
+				info[#info + 1] = "CF.FactoryBonuses"
+				data[#info] = CF.FactoryBonuses[id]
 
-				info[#info + 1] = "CF["CloneBonuses"]"
-				data[#info] = CF["CloneBonuses"][id]
+				info[#info + 1] = "CF.CloneBonuses"
+				data[#info] = CF.CloneBonuses[id]
 
-				info[#info + 1] = "CF["HospitalBonuses"]"
-				data[#info] = CF["HospitalBonuses"][id]
+				info[#info + 1] = "CF.HospitalBonuses"
+				data[#info] = CF.HospitalBonuses[id]
 ]]
 				--
 				info[#info + 1] = "CF['Brains']"
-				data[#info] = CF["Brains"][id]
+				data[#info] = CF.Brains[id]
 
 				info[#info + 1] = "CF['BrainModules']"
-				data[#info] = CF["BrainModules"][id]
+				data[#info] = CF.BrainModules[id]
 
 				info[#info + 1] = "CF['BrainClasses']"
-				data[#info] = CF["BrainClasses"][id]
+				data[#info] = CF.BrainClasses[id]
 
 				info[#info + 1] = "CF['BrainPrices']"
-				data[#info] = CF["BrainPrices"][id]
+				data[#info] = CF.BrainPrices[id]
 
 				info[#info + 1] = "CF['Crafts']"
-				data[#info] = CF["Crafts"][id]
+				data[#info] = CF.Crafts[id]
 
 				info[#info + 1] = "CF['CraftModules']"
-				data[#info] = CF["CraftModules"][id]
+				data[#info] = CF.CraftModules[id]
 
 				info[#info + 1] = "CF['CraftClasses']"
-				data[#info] = CF["CraftClasses"][id]
+				data[#info] = CF.CraftClasses[id]
 
 				info[#info + 1] = "CF['CraftPrices']"
-				data[#info] = CF["CraftPrices"][id]
+				data[#info] = CF.CraftPrices[id]
 
 				for i = 1, #info do
 					if data[i] == nil then
-						CF["FactionPlayable"][id] = false
+						CF.FactionPlayable[id] = false
 						print("ERROR!!! " .. id .. " DISABLED!!! " .. info[i] .. " is missing")
 						break
 					end
@@ -521,71 +524,71 @@ CF.InitFactions = function(activity)
 				local err = ""
 
 				-- Verify actors
-				for i = 1, #CF["ActNames"][id] do
-					if CF["ActModules"][id][i] == nil then
+				for i = 1, #CF.ActNames[id] do
+					if CF.ActModules[id][i] == nil then
 						factionok = false
 						err = "CF['ActModules'] is missing."
 					end
 
-					if CF["ActPrices"][id][i] == nil then
+					if CF.ActPrices[id][i] == nil then
 						factionok = false
 						err = "CF['ActPrices'] is missing."
 					end
 
-					if CF["ActDescriptions"][id][i] == nil then
+					if CF.ActDescriptions[id][i] == nil then
 						factionok = false
 						err = "CF['ActDescriptions'] is missing."
 					end
 
-					if CF["ActUnlockData"][id][i] == nil then
+					if CF.ActUnlockData[id][i] == nil then
 						factionok = false
 						err = "CF['ActUnlockData'] is missing."
 					end
 
-					if CF["ActTypes"][id][i] == nil then
+					if CF.ActTypes[id][i] == nil then
 						factionok = false
 						err = "CF['ActTypes'] is missing."
 					end
 
-					if CF["ActPowers"][id][i] == nil then
+					if CF.ActPowers[id][i] == nil then
 						factionok = false
 						err = "CF['ActPowers'] is missing."
 					end
 
 					-- If something is wrong then disable faction and print error message
 					if not factionok then
-						CF["FactionPlayable"][id] = false
-						print("ERROR!!! " .. id .. " DISABLED!!! " .. CF["ActNames"][id][i] .. " : " .. err)
+						CF.FactionPlayable[id] = false
+						print("ERROR!!! " .. id .. " DISABLED!!! " .. CF.ActNames[id][i] .. " : " .. err)
 						break
 					end
 				end
 			end
 		else
-			print("ERROR!!! Could not load: " .. CF["FactionFiles"][i])
+			print("ERROR!!! Could not load: " .. CF.FactionFiles[i])
 		end
 	end
 
-	CF["InitExtensionsData"](activity)
+	CF.InitExtensionsData(activity)
 
 	-- Load extensions
-	CF["ExtensionFiles"] = CF["ReadExtensionsList"](
-		CF["ModuleName"] .. "/Extensions/Extensions.cfg",
-		CF["ModuleName"] .. "/Extensions/"
+	CF.ExtensionFiles = CF.ReadExtensionsList(
+		CF.ModuleName .. "/Extensions/Extensions.cfg",
+		CF.ModuleName .. "/Extensions/"
 	)
 
-	local extensionstorage = "Mods/" .. CF["ModuleName"] .. "/Extensions/"
+	local extensionstorage = "Mods/" .. CF.ModuleName .. "/Extensions/"
 
 	-- Load extensions data
-	for i = 1, #CF["ExtensionFiles"] do
-		--[[f = loadfile(extensionstorage..CF["ExtensionFiles"][i])
+	for i = 1, #CF.ExtensionFiles do
+		--[[f = loadfile(extensionstorage..CF.ExtensionFiles[i])
 		if f ~= nil then
 			-- Execute script
 			f()
 		else
-			print ("ERROR!!! Could not load: "..CF["ExtensionFiles"][i])
+			print ("ERROR!!! Could not load: "..CF.ExtensionFiles[i])
 		end]]
 		--
-		dofile(CF["ExtensionFiles"][i])
+		dofile(CF.ExtensionFiles[i])
 	end
 end
 -----------------------------------------------------------------------------------------
@@ -597,152 +600,141 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF["GetPlayerAllyFaction"] = function(config)
-	return config["Player0AllyFaction"]
+CF.GetPlayerAllyFaction = function(config)
+	return config["PlayerAllyFaction"]
 end
 -----------------------------------------------------------------------------------------
 -- Update mission stats to store in campaign
 -----------------------------------------------------------------------------------------
-CF["UpdateGenericStats"] = function(config)
+CF.UpdateGenericStats = function(config)
 	print("CF['UpdateGenericStats']")
 
-	config["Kills"] = tonumber(config["Kills"]) + CF["Activity"]:GetTeamDeathCount(CF["CPUTeam"])
-	config["Deaths"] = tonumber(config["Deaths"]) + CF["Activity"]:GetTeamDeathCount(CF["PlayerTeam"])
-end
------------------------------------------------------------------------------------------
--- Initialize and reset mission variables
------------------------------------------------------------------------------------------
-CF["InitMission"] = function(config)
-	print("CF['InitMission']")
-	CF["Activity"]:SetTeamFunds(tonumber(config["PlayerGold"]), CF["PlayerTeam"])
-	CF["AIBudget"] = tonumber(config["LastMissionAIBudget"])
-
-	CF["PlayerFaction"] = CF["GetPlayerFaction"](config)
-	CF["CPUFaction"] = CF["GetCPUFaction"](config)
+	config["Kills"] = tonumber(config["Kills"]) + CF.Activity:GetTeamDeathCount(CF.CPUTeam)
+	config["Deaths"] = tonumber(config["Deaths"]) + CF.Activity:GetTeamDeathCount(CF.PlayerTeam)
 end
 -----------------------------------------------------------------------------------------
 -- Transfers player to strategy screen after 3 second of victory message
 -----------------------------------------------------------------------------------------
-CF["ReturnOnMissionEnd"] = function()
-	if not CF["StartReturnCountdown"] then
-		if CF["Activity"].ActivityState == Activity.OVER then
-			CF["StartReturnCountdown"] = true
-			CF["MissionEndTimer"]:Reset()
+CF.ReturnOnMissionEnd = function()
+	if not CF.StartReturnCountdown then
+		if CF.Activity.ActivityState == Activity.OVER then
+			CF.StartReturnCountdown = true
+			CF.MissionEndTimer:Reset()
 		end
 	end
 
-	if CF["StartReturnCountdown"] then
-		if CF["MissionEndTimer"]:IsPastSimMS(CF["MissionReturnInterval"]) then
-			--CF["LaunchMissionActivity"]("Unmapped Lands 2")
+	if CF.StartReturnCountdown then
+		if CF.MissionEndTimer:IsPastSimMS(CF.MissionReturnInterval) then
+			--CF.LaunchMissionActivity("Unmapped Lands 2")
 		end
 	end
 end
 -----------------------------------------------------------------------------------------
 -- For a given char returns its index, width, vector offsset  if any
 -----------------------------------------------------------------------------------------
-CF["GetCharData"] = function(char)
-	if CF["Chars"] == nil then
-		CF["Chars"] = {}
-		CF["Chars"][" "] = { 1, 8, nil }
-		CF["Chars"]["!"] = { 2, 5, Vector(-3, 0) }
-		CF["Chars"]['"'] = { 3, 8, Vector(0, -2) }
-		CF["Chars"]["#"] = { 4, 8, nil }
-		CF["Chars"]["$"] = { 5, 8, nil }
-		CF["Chars"]["%"] = { 6, 8, nil }
-		CF["Chars"]["&"] = { 7, 6, Vector(-2, 0) }
-		CF["Chars"]["`"] = { 8, 5, Vector(-3, -2) }
-		CF["Chars"]["("] = { 9, 6, Vector(-1, 0) }
-		CF["Chars"][")"] = { 10, 6, Vector(-2, 0) }
-		CF["Chars"]["*"] = { 11, 6, Vector(-2, 0) }
-		CF["Chars"]["+"] = { 12, 8, nil }
-		CF["Chars"][","] = { 13, 5, Vector(-3, 5) }
-		CF["Chars"]["-"] = { 14, 9, nil }
-		CF["Chars"]["."] = { 15, 5, Vector(-3, 4) }
-		CF["Chars"]["/"] = { 16, 6, Vector(-1, 0) }
-		CF["Chars"]["0"] = { 17, 9, nil }
-		CF["Chars"]["1"] = { 18, 6, Vector(-2, 0) }
-		CF["Chars"]["2"] = { 19, 8, nil }
-		CF["Chars"]["3"] = { 20, 8, nil }
-		CF["Chars"]["4"] = { 21, 8, nil }
-		CF["Chars"]["5"] = { 22, 8, nil }
-		CF["Chars"]["6"] = { 23, 8, nil }
-		CF["Chars"]["7"] = { 24, 8, nil }
-		CF["Chars"]["8"] = { 25, 8, nil }
-		CF["Chars"]["9"] = { 26, 8, nil }
-		CF["Chars"][":"] = { 27, 5, Vector(-3, -1) }
-		CF["Chars"][""] = { 28, 5, Vector(-3, -1) }
-		CF["Chars"]["<"] = { 29, 7, Vector(-1, 0) }
-		CF["Chars"]["="] = { 30, 8, Vector(0, -1) }
-		CF["Chars"][">"] = { 31, 7, Vector(-1, 0) }
-		CF["Chars"]["?"] = { 32, 8, nil }
-		CF["Chars"]["@"] = { 33, 11, Vector(0, -1) }
-		CF["Chars"]["A"] = { 34, 8, nil }
-		CF["Chars"]["B"] = { 35, 8, nil }
-		CF["Chars"]["C"] = { 36, 8, Vector(0, -3) }
-		CF["Chars"]["D"] = { 37, 9, nil }
-		CF["Chars"]["E"] = { 38, 8, nil }
-		CF["Chars"]["F"] = { 39, 8, nil }
-		CF["Chars"]["G"] = { 40, 8, nil }
-		CF["Chars"]["H"] = { 41, 8, nil }
-		CF["Chars"]["I"] = { 42, 6, Vector(-2, 0) }
-		CF["Chars"]["J"] = { 43, 8, nil }
-		CF["Chars"]["K"] = { 44, 8, nil }
-		CF["Chars"]["L"] = { 45, 8, Vector(0, 3) }
-		CF["Chars"]["M"] = { 46, 10, Vector(2, -1) }
-		CF["Chars"]["N"] = { 47, 8, nil }
-		CF["Chars"]["O"] = { 48, 8, nil }
-		CF["Chars"]["P"] = { 49, 8, nil }
-		CF["Chars"]["Q"] = { 50, 8, nil }
-		CF["Chars"]["R"] = { 51, 8, nil }
-		CF["Chars"]["S"] = { 52, 8, nil }
-		CF["Chars"]["T"] = { 53, 7, Vector(-1, 0) }
-		CF["Chars"]["U"] = { 54, 8, nil }
-		CF["Chars"]["V"] = { 55, 8, nil }
-		CF["Chars"]["W"] = { 56, 10, Vector(2, 0) }
-		CF["Chars"]["X"] = { 57, 8, nil }
-		CF["Chars"]["Y"] = { 58, 8, nil }
-		CF["Chars"]["Z"] = { 59, 8, nil }
-		CF["Chars"]["["] = { 60, 6, Vector(-1, 0) }
-		CF["Chars"]["\\"] = { 61, 6, Vector(-1, 0) }
-		CF["Chars"]["]"] = { 62, 6, Vector(-1, 0) }
-		CF["Chars"]["^"] = { 63, 8, Vector(-1, -3) }
-		CF["Chars"]["_"] = { 64, 8, Vector(0, 4) }
-		CF["Chars"]["'"] = { 65, 8, Vector(0, -3) }
-		CF["Chars"]["a"] = { 66, 8, nil }
-		CF["Chars"]["b"] = { 67, 8, nil }
-		CF["Chars"]["c"] = { 68, 8, nil }
-		CF["Chars"]["d"] = { 69, 8, nil }
-		CF["Chars"]["e"] = { 70, 8, nil }
-		CF["Chars"]["f"] = { 71, 8, nil }
-		CF["Chars"]["g"] = { 72, 8, nil }
-		CF["Chars"]["h"] = { 73, 8, nil }
-		CF["Chars"]["i"] = { 74, 5, Vector(-3, 0) }
-		CF["Chars"]["j"] = { 75, 6, Vector(-2, 0) }
-		CF["Chars"]["k"] = { 76, 8, nil }
-		CF["Chars"]["l"] = { 77, 5, Vector(-3, 0) }
-		CF["Chars"]["m"] = { 78, 10, nil }
-		CF["Chars"]["n"] = { 79, 8, nil }
-		CF["Chars"]["o"] = { 80, 8, nil }
-		CF["Chars"]["p"] = { 81, 8, nil }
-		CF["Chars"]["q"] = { 82, 8, nil }
-		CF["Chars"]["r"] = { 83, 9, Vector(1, 0) }
-		CF["Chars"]["s"] = { 84, 8, nil }
-		CF["Chars"]["t"] = { 85, 8, nil }
-		CF["Chars"]["u"] = { 86, 8, nil }
-		CF["Chars"]["v"] = { 87, 8, nil }
-		CF["Chars"]["w"] = { 88, 10, Vector(1, 0) }
-		CF["Chars"]["x"] = { 89, 8, nil }
-		CF["Chars"]["y"] = { 90, 8, nil }
-		CF["Chars"]["z"] = { 91, 8, nil }
-		CF["Chars"]["{"] = { 92, 7, nil }
-		CF["Chars"]["|"] = { 93, 7, nil }
-		CF["Chars"]["}"] = { 94, 7, nil }
-		CF["Chars"]["~"] = { 95, 8, nil }
+CF.GetCharData = function(char)
+	if CF.Chars == nil then
+		CF.Chars = {}
+		CF.Chars[" "] = { 1, 8, nil }
+		CF.Chars["!"] = { 2, 5, Vector(-3, 0) }
+		CF.Chars['"'] = { 3, 8, Vector(0, -2) }
+		CF.Chars["#"] = { 4, 8, nil }
+		CF.Chars["$"] = { 5, 8, nil }
+		CF.Chars["%"] = { 6, 8, nil }
+		CF.Chars["&"] = { 7, 6, Vector(-2, 0) }
+		CF.Chars["`"] = { 8, 5, Vector(-3, -2) }
+		CF.Chars["("] = { 9, 6, Vector(-1, 0) }
+		CF.Chars[")"] = { 10, 6, Vector(-2, 0) }
+		CF.Chars["*"] = { 11, 6, Vector(-2, 0) }
+		CF.Chars["+"] = { 12, 8, nil }
+		CF.Chars[","] = { 13, 5, Vector(-3, 5) }
+		CF.Chars["-"] = { 14, 9, nil }
+		CF.Chars["."] = { 15, 5, Vector(-3, 4) }
+		CF.Chars["/"] = { 16, 6, Vector(-1, 0) }
+		CF.Chars["0"] = { 17, 9, nil }
+		CF.Chars["1"] = { 18, 6, Vector(-2, 0) }
+		CF.Chars["2"] = { 19, 8, nil }
+		CF.Chars["3"] = { 20, 8, nil }
+		CF.Chars["4"] = { 21, 8, nil }
+		CF.Chars["5"] = { 22, 8, nil }
+		CF.Chars["6"] = { 23, 8, nil }
+		CF.Chars["7"] = { 24, 8, nil }
+		CF.Chars["8"] = { 25, 8, nil }
+		CF.Chars["9"] = { 26, 8, nil }
+		CF.Chars[":"] = { 27, 5, Vector(-3, -1) }
+		CF.Chars[""] = { 28, 5, Vector(-3, -1) }
+		CF.Chars["<"] = { 29, 7, Vector(-1, 0) }
+		CF.Chars["="] = { 30, 8, Vector(0, -1) }
+		CF.Chars[">"] = { 31, 7, Vector(-1, 0) }
+		CF.Chars["?"] = { 32, 8, nil }
+		CF.Chars["@"] = { 33, 11, Vector(0, -1) }
+		CF.Chars["A"] = { 34, 8, nil }
+		CF.Chars["B"] = { 35, 8, nil }
+		CF.Chars["C"] = { 36, 8, Vector(0, -3) }
+		CF.Chars["D"] = { 37, 9, nil }
+		CF.Chars["E"] = { 38, 8, nil }
+		CF.Chars["F"] = { 39, 8, nil }
+		CF.Chars["G"] = { 40, 8, nil }
+		CF.Chars["H"] = { 41, 8, nil }
+		CF.Chars["I"] = { 42, 6, Vector(-2, 0) }
+		CF.Chars["J"] = { 43, 8, nil }
+		CF.Chars["K"] = { 44, 8, nil }
+		CF.Chars["L"] = { 45, 8, Vector(0, 3) }
+		CF.Chars["M"] = { 46, 10, Vector(2, -1) }
+		CF.Chars["N"] = { 47, 8, nil }
+		CF.Chars["O"] = { 48, 8, nil }
+		CF.Chars["P"] = { 49, 8, nil }
+		CF.Chars["Q"] = { 50, 8, nil }
+		CF.Chars["R"] = { 51, 8, nil }
+		CF.Chars["S"] = { 52, 8, nil }
+		CF.Chars["T"] = { 53, 7, Vector(-1, 0) }
+		CF.Chars["U"] = { 54, 8, nil }
+		CF.Chars["V"] = { 55, 8, nil }
+		CF.Chars["W"] = { 56, 10, Vector(2, 0) }
+		CF.Chars["X"] = { 57, 8, nil }
+		CF.Chars["Y"] = { 58, 8, nil }
+		CF.Chars["Z"] = { 59, 8, nil }
+		CF.Chars["["] = { 60, 6, Vector(-1, 0) }
+		CF.Chars["\\"] = { 61, 6, Vector(-1, 0) }
+		CF.Chars["]"] = { 62, 6, Vector(-1, 0) }
+		CF.Chars["^"] = { 63, 8, Vector(-1, -3) }
+		CF.Chars["_"] = { 64, 8, Vector(0, 4) }
+		CF.Chars["'"] = { 65, 8, Vector(0, -3) }
+		CF.Chars["a"] = { 66, 8, nil }
+		CF.Chars["b"] = { 67, 8, nil }
+		CF.Chars["c"] = { 68, 8, nil }
+		CF.Chars["d"] = { 69, 8, nil }
+		CF.Chars["e"] = { 70, 8, nil }
+		CF.Chars["f"] = { 71, 8, nil }
+		CF.Chars["g"] = { 72, 8, nil }
+		CF.Chars["h"] = { 73, 8, nil }
+		CF.Chars["i"] = { 74, 5, Vector(-3, 0) }
+		CF.Chars["j"] = { 75, 6, Vector(-2, 0) }
+		CF.Chars["k"] = { 76, 8, nil }
+		CF.Chars["l"] = { 77, 5, Vector(-3, 0) }
+		CF.Chars["m"] = { 78, 10, nil }
+		CF.Chars["n"] = { 79, 8, nil }
+		CF.Chars["o"] = { 80, 8, nil }
+		CF.Chars["p"] = { 81, 8, nil }
+		CF.Chars["q"] = { 82, 8, nil }
+		CF.Chars["r"] = { 83, 9, Vector(1, 0) }
+		CF.Chars["s"] = { 84, 8, nil }
+		CF.Chars["t"] = { 85, 8, nil }
+		CF.Chars["u"] = { 86, 8, nil }
+		CF.Chars["v"] = { 87, 8, nil }
+		CF.Chars["w"] = { 88, 10, Vector(1, 0) }
+		CF.Chars["x"] = { 89, 8, nil }
+		CF.Chars["y"] = { 90, 8, nil }
+		CF.Chars["z"] = { 91, 8, nil }
+		CF.Chars["{"] = { 92, 7, nil }
+		CF.Chars["|"] = { 93, 7, nil }
+		CF.Chars["}"] = { 94, 7, nil }
+		CF.Chars["~"] = { 95, 8, nil }
 	end
 
 	local i = nil
 
-	i = CF["Chars"][char]
+	i = CF.Chars[char]
 
 	if i == nil then
 		i = { 96, 8, nil }
@@ -753,10 +745,10 @@ end
 --------------------------------------------------------------------------
 -- Return size of string in pixels
 -----------------------------------------------------------------------------
-CF["GetStringPixelWidth"] = function(str)
+CF.GetStringPixelWidth = function(str)
 	local len = 0
 	for i = 1, #str do
-		local cindex, cwidth, coffset = CF["GetCharData"](string.sub(str, i, i))
+		local cindex, cwidth, coffset = CF.GetCharData(string.sub(str, i, i))
 		len = len + cwidth
 	end
 	return len - #str
@@ -764,7 +756,7 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["Split"] = function(str, pat)
+CF.Split = function(str, pat)
 	local t = {} -- NOTE: use {n = 0} in Lua-5.0
 	local fpat = "(.-)" .. pat
 	local last_end = 1
@@ -785,7 +777,7 @@ end
 -----------------------------------------------------------------------------
 -- Draw string on screen at speicified pos not wider that width and not higher than height
 -----------------------------------------------------------------------------
-CF["DrawString"] = function(str, pos, width, height)
+CF.DrawString = function(str, pos, width, height)
 	--TODO: Implement Primitive version
 	--PrimitiveMan:DrawTextPrimitive(pos, str, false, 0)
 	local x = pos.X
@@ -794,11 +786,11 @@ CF["DrawString"] = function(str, pos, width, height)
 	local drawthistime
 	local letterpreset = "Ltr"
 
-	local words = CF["Split"](str, " ")
+	local words = CF.Split(str, " ")
 	for w = 1, #words do
 		drawthistime = true
 
-		if x + CF["GetStringPixelWidth"](words[w]) > pos.X + width then
+		if x + CF.GetStringPixelWidth(words[w]) > pos.X + width then
 			x = pos.X
 			y = y + 11
 
@@ -818,7 +810,7 @@ CF["DrawString"] = function(str, pos, width, height)
 					return
 				end
 			else
-				local cindex, cwidth, coffset = CF["GetCharData"](chr)
+				local cindex, cwidth, coffset = CF.GetCharData(chr)
 
 				local pix = CreateMOPixel(letterpreset .. cindex)
 				local offset = coffset
@@ -843,7 +835,7 @@ end
 -----------------------------------------------------------------------------
 -- Converts time in second to string h:mm:ss
 -----------------------------------------------------------------------------
-CF["ConvertTimeToString"] = function(timenum)
+CF.ConvertTimeToString = function(timenum)
 	local timestr = ""
 
 	local hours = (timenum - timenum % 3600) / 3600
@@ -877,7 +869,7 @@ end
 -----------------------------------------------------------------------------------------
 -- Make item of specified preset, module and class
 -----------------------------------------------------------------------------------------
-CF["MakeItem"] = function(preset, class, module)
+CF.MakeItem = function(preset, class, module)
 	local item
 	if class == nil then
 		class = "HDFirearm"
@@ -910,7 +902,7 @@ CF.MakeActor = function(item, class, module, xp, identity, player, prestige, nam
 	if class == "AHuman" then
 		actor = module == nil and CreateAHuman(item) or CreateAHuman(item, module)
 		if limbs then
-			CF["ReplaceLimbs"](actor, limbs)
+			CF.ReplaceLimbs(actor, limbs)
 		end
 		for item in actor.Inventory do
 			if item then
@@ -944,8 +936,8 @@ CF.MakeActor = function(item, class, module, xp, identity, player, prestige, nam
 			xp = tonumber(xp)
 			actor:SetNumberValue("VW_XP", xp)
 			local setRank
-			for rank = 1, #CF["Ranks"] do
-				if xp >= CF["Ranks"][rank] then
+			for rank = 1, #CF.Ranks do
+				if xp >= CF.Ranks[rank] then
 					setRank = rank
 				else
 					break
@@ -953,7 +945,7 @@ CF.MakeActor = function(item, class, module, xp, identity, player, prestige, nam
 			end
 			if setRank then
 				actor:SetNumberValue("VW_Rank", setRank)
-				CF["BuffActor"](actor, setRank, actor:GetNumberValue("VW_Prestige"))
+				CF.BuffActor(actor, setRank, actor:GetNumberValue("VW_Prestige"))
 			end
 		end
 	else
@@ -1082,7 +1074,7 @@ end
 -----------------------------------------------------------------------------------------
 -- Get a specific limb by ID
 -----------------------------------------------------------------------------------------
-CF["GetLimbData"] = function(actor, id)
+CF.GetLimbData = function(actor, id)
 	local limb
 	if IsAHuman(actor) then
 		actor = ToAHuman(actor)
@@ -1118,10 +1110,10 @@ end
 -----------------------------------------------------------------------------------------
 -- Read the limb data of this AHuman and replace limbs accordingly
 -----------------------------------------------------------------------------------------
-CF["ReplaceLimbs"] = function(actor, limbs)
+CF.ReplaceLimbs = function(actor, limbs)
 	if IsAHuman(actor) then
 		actor = ToAHuman(actor)
-		for j = 1, #CF["LimbID"] do
+		for j = 1, #CF.LimbID do
 			local targetLimb = j == 1 and actor.FGArm
 				or (
 					j == 2 and actor.BGArm
@@ -1181,16 +1173,16 @@ CF["ReplaceLimbs"] = function(actor, limbs)
 			elseif targetLimb then
 				actor:RemoveAttachable(targetLimb, false, false)
 			end
-			actor:SetStringValue(CF["LimbID"][j], limbString)
+			actor:SetStringValue(CF.LimbID[j], limbString)
 		end
 		-- Replace helmets etc.
-		if actor.Head and #limbs > #CF["LimbID"] then
+		if actor.Head and #limbs > #CF.LimbID then
 			for att in actor.Head.Attachables do
 				if att.DamageMultiplier == 0 then
 					actor.Head:RemoveAttachable(att, false, false)
 				end
 			end
-			for i = #CF["LimbID"] + 1, #CF["LimbID"] + #limbs do
+			for i = #CF.LimbID + 1, #CF.LimbID + #limbs do
 				local limbString = limbs[i]
 				newLimb = CreateAttachable(limbString)
 				if newLimb == nil then
@@ -1217,7 +1209,7 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF["AttemptReplaceLimb"] = function(actor, limb)
+CF.AttemptReplaceLimb = function(actor, limb)
 	local j = 0
 	local isArm = string.find(limb.PresetName, " Arm")
 	local isLeg = string.find(limb.PresetName, " Leg")
@@ -1304,7 +1296,7 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF["RandomizeLimbs"] = function(actor, limbs)
+CF.RandomizeLimbs = function(actor, limbs)
 	if IsAHuman(actor) then
 		actor = ToAHuman(actor)
 		local reference = RandomAHuman("Actors - Heavy", actor.ModuleName)
@@ -1335,8 +1327,8 @@ CF["RandomizeLimbs"] = function(actor, limbs)
 					actor.BGArm = newArm
 				end
 			end
-			if math.random() <= actor:GetNumberValue("VW_XP") / CF["Ranks"][#CF["Ranks"]] then
-				CF["SetRandomName"](actor)
+			if math.random() <= actor:GetNumberValue("VW_XP") / CF.Ranks[#CF.Ranks] then
+				CF.SetRandomName(actor)
 			end
 		end
 		return true
@@ -1357,7 +1349,7 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF["SetRandomName"] = function(actor)
+CF.SetRandomName = function(actor)
 	if not actor:StringValueExists("VW_Name") then
 		actor:SetStringValue("VW_Name", CF.GenerateRandomName())
 	end
@@ -1425,7 +1417,7 @@ CF.HuntForActors = function(hunter, targetTeam)
 			end
 		end
 		local target
-		if #brains > 0 and math.random(150) < CF.Difficulty then
+		if #brains > 0 and math.random(150) < self.GS["Difficulty"] then
 			hunter.AIMode = Actor.AIMODE_GOTO
 			target = brains[math.random(#brains)]
 			hunter:AddAIMOWaypoint(target)
@@ -1469,22 +1461,16 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF.GetPlayerGold = function(c, p)
-	local v = c["Player" .. p .. "Gold"]
-	if v == nil then
-		v = 0
-	end
-
-	return tonumber(v)
+CF.GetPlayerGold = function(c)
+	return tonumber(c["PlayerGold"])
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF.SetPlayerGold = function(c, p, funds)
+CF.SetPlayerGold = function(c, funds)
 	-- Set the in-activity gold as well, although we don't use it
-	CF.Activity:SetTeamFunds(funds, p)
-
-	c["Player" .. p .. "Gold"] = math.ceil(funds)
+	CF.Activity:SetTeamFunds(funds)
+	c["PlayerGold"] = math.ceil(funds)
 end
 -----------------------------------------------------------------------------------------
 --
@@ -1496,15 +1482,13 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF.PayGold = function(c, p, amount)
-	local gold = CF["GetPlayerGold"](c, p) - amount
-
-	CF["SetPlayerGold"](c, p, gold)
+CF.ChangeGold = function(c, amount)
+	CF.SetPlayerGold(c, CF.GetPlayerGold(c) + amount)
 end
 -----------------------------------------------------------------------------------------
 -- Get table with inventory of actor, inventory cleared as a result
 -----------------------------------------------------------------------------------------
-CF["GetInventory"] = function(actor)
+CF.GetInventory = function(actor)
 	--print("GetInventory")
 	local inventory = {}
 	local classes = {}
@@ -1518,9 +1502,9 @@ CF["GetInventory"] = function(actor)
 				if item then
 					local skip = false
 
-					if CF["DiscardableItems"][actor.PresetName] ~= nil then
-						for i = 1, #CF["DiscardableItems"][actor.PresetName] do
-							if CF["DiscardableItems"][actor.PresetName][i] == item.PresetName then
+					if CF.DiscardableItems[actor.PresetName] ~= nil then
+						for i = 1, #CF.DiscardableItems[actor.PresetName] do
+							if CF.DiscardableItems[actor.PresetName][i] == item.PresetName then
 								skip = true
 								break
 							end
@@ -1540,9 +1524,9 @@ CF["GetInventory"] = function(actor)
 			for item in actor.Inventory do
 				local skip = false
 
-				if CF["DiscardableItems"][actor.PresetName] ~= nil then
-					for i = 1, #CF["DiscardableItems"][actor.PresetName] do
-						if CF["DiscardableItems"][actor.PresetName][i] == item.PresetName then
+				if CF.DiscardableItems[actor.PresetName] ~= nil then
+					for i = 1, #CF.DiscardableItems[actor.PresetName] do
+						if CF.DiscardableItems[actor.PresetName][i] == item.PresetName then
 							skip = true
 							break
 						end
@@ -1566,25 +1550,25 @@ end
 -----------------------------------------------------------------------------------------
 -- Calculate distance
 -----------------------------------------------------------------------------------------
-CF["Dist"] = function(pos1, pos2)
+CF.Dist = function(pos1, pos2)
 	return SceneMan:ShortestDistance(pos1, pos2, SceneMan.SceneWrapsX).Magnitude
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF["DistOver"] = function(pos1, pos2, magnitude)
+CF.DistOver = function(pos1, pos2, magnitude)
 	return SceneMan:ShortestDistance(pos1, pos2, SceneMan.SceneWrapsX):MagnitudeIsGreaterThan(magnitude)
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF["DistUnder"] = function(pos1, pos2, magnitude)
+CF.DistUnder = function(pos1, pos2, magnitude)
 	return SceneMan:ShortestDistance(pos1, pos2, SceneMan.SceneWrapsX):MagnitudeIsLessThan(magnitude)
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF["CountActors"] = function(team)
+CF.CountActors = function(team)
 	local c = 0
 
 	for actor in MovableMan.Actors do
@@ -1602,19 +1586,19 @@ end
 -----------------------------------------------------------------------------------------
 --	Returns how many science points corresponds to selected difficulty level
 -----------------------------------------------------------------------------------------
-CF["GetTechLevelFromDifficulty"] = function(c, p, diff, maxdiff)
+CF.GetTechLevelFromDifficulty = function(c, p, diff, maxdiff)
 	local maxpoints = 0
-	local f = CF["GetPlayerFaction"](c, p)
+	local f = CF.GetPlayerFaction(c, p)
 
-	for i = 1, #CF["ItmNames"][f] do
-		if CF["ItmUnlockData"][f][i] > maxpoints then
-			maxpoints = CF["ItmUnlockData"][f][i]
+	for i = 1, #CF.ItmNames[f] do
+		if CF.ItmUnlockData[f][i] > maxpoints then
+			maxpoints = CF.ItmUnlockData[f][i]
 		end
 	end
 
-	for i = 1, #CF["ActNames"][f] do
-		if CF["ActUnlockData"][f][i] > maxpoints then
-			maxpoints = CF["ActUnlockData"][f][i]
+	for i = 1, #CF.ActNames[f] do
+		if CF.ActUnlockData[f][i] > maxpoints then
+			maxpoints = CF.ActUnlockData[f][i]
 		end
 	end
 
@@ -1623,7 +1607,7 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF["CalculateReward"] = function(base, diff)
+CF.CalculateReward = function(base, diff)
 	local coeff = 1 + (diff - 1) * 0.35
 
 	return math.floor(base * coeff)
@@ -1631,8 +1615,8 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF["IsLocationHasAttribute"] = function(loc, attr)
-	local attrs = CF["LocationAttributes"][loc]
+CF.IsLocationHasAttribute = function(loc, attr)
+	local attrs = CF.LocationAttributes[loc]
 
 	if attrs ~= nil then
 		for i = 1, #attrs do
@@ -1647,7 +1631,7 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF["GiveExp"] = function(c, exppts)
+CF.GiveExp = function(c, exppts)
 	local levelup = false
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -1661,12 +1645,12 @@ CF["GiveExp"] = function(c, exppts)
 
 			curexp = curexp + exppts
 
-			--print (CF["ExpPerLevel"])
-			--print (math.floor(curexp / CF["ExpPerLevel"]))
+			--print (CF.ExpPerLevel)
+			--print (math.floor(curexp / CF.ExpPerLevel))
 
-			while math.floor(curexp / CF["ExpPerLevel"]) > 0 do
-				if curlvl < CF["MaxLevel"] then
-					curexp = curexp - CF["ExpPerLevel"]
+			while math.floor(curexp / CF.ExpPerLevel) > 0 do
+				if curlvl < CF.MaxLevel then
+					curexp = curexp - CF.ExpPerLevel
 					cursklpts = cursklpts + 1
 					curlvl = curlvl + 1
 					levelup = true

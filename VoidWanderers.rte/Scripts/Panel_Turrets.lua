@@ -2,7 +2,7 @@
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:InitTurretsControlPanelUI()
-	local count = tonumber(self.GS["Player0VesselTurrets"])
+	local count = tonumber(self.GS["PlayerVesselTurrets"])
 
 	self.TurretsControlPanelPos = {}
 
@@ -46,7 +46,7 @@ end
 -- Find and assign appropriate landing zone actors
 -----------------------------------------------------------------------------------------
 function VoidWanderers:LocateTurretControlPanelActors()
-	local N = tonumber(self.GS["Player0VesselTurrets"])
+	local N = tonumber(self.GS["PlayerVesselTurrets"])
 	local n = 1
 	for actor in MovableMan.AddedActors do
 		if actor.PresetName == "Turret Control Panel" then
@@ -62,7 +62,7 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:DestroyTurretsControlPanelUI()
-	local count = tonumber(self.GS["Player0VesselTurrets"])
+	local count = tonumber(self.GS["PlayerVesselTurrets"])
 	for i = 1, count do
 		if self.TurretsControlPanelActor and self.TurretsControlPanelActor[i] ~= nil and MovableMan:IsActor(self.TurretsControlPanelActor[i]) then
 			self.TurretsControlPanelActor[i].ToDelete = true
@@ -74,7 +74,7 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:ProcessTurretsControlPanelUI()
-	local count = tonumber(self.GS["Player0VesselTurrets"])
+	local count = tonumber(self.GS["PlayerVesselTurrets"])
 
 	for turr = 1, count do
 		if MovableMan:IsActor(self.TurretsControlPanelActor[turr]) then
@@ -182,7 +182,7 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 										then
 											if
 												CF["CountUsedTurretsInArray"](self.Turrets)
-												< tonumber(self.GS["Player0VesselTurretStorage"])
+												< tonumber(self.GS["PlayerVesselTurretStorage"])
 											then
 												if self.Turrets[#self.Turrets]["Preset"] == "Remove turret" then
 													self.Turrets[#self.Turrets] = nil
@@ -251,7 +251,7 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 								"Storage: "
 									.. CF["CountUsedTurretsInArray"](self.Turrets)
 									.. " / "
-									.. self.GS["Player0VesselTurretStorage"],
+									.. self.GS["PlayerVesselTurretStorage"],
 								pos + Vector(-60, -24),
 								136,
 								10
@@ -428,7 +428,7 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:DeployTurrets()
 	self.TurretsDeployedActors = {}
-	local count = tonumber(self.GS["Player0VesselTurrets"])
+	local count = tonumber(self.GS["PlayerVesselTurrets"])
 
 	for turr = 1, count do
 		local preset = self.GS["DeployedTurret" .. turr .. "Preset"]
@@ -486,7 +486,7 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:RemoveDeployedTurrets()
 	if self.TurretsDeployedActors ~= nil then
-		local count = tonumber(self.GS["Player0VesselTurrets"])
+		local count = tonumber(self.GS["PlayerVesselTurrets"])
 
 		for turr = 1, count do
 			if MovableMan:IsActor(self.TurretsDeployedActors[turr]) then

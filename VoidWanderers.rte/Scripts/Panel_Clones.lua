@@ -357,7 +357,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 					"Capacity: "
 						.. CF["CountUsedClonesInArray"](self.Clones)
 						.. "/"
-						.. self.GS["Player0VesselClonesCapacity"],
+						.. self.GS["PlayerVesselClonesCapacity"],
 					pos + Vector(-130, -60),
 					300,
 					10
@@ -367,7 +367,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 				self.ClonesControlPanelModesTexts[self.ClonesControlPanelModes.CLONES] = "Bodies - Life support usage: "
 					.. CF["CountActors"](CF["PlayerTeam"])
 					.. "/"
-					.. self.GS["Player0VesselLifeSupport"]
+					.. self.GS["PlayerVesselLifeSupport"]
 
 				if cont:IsState(Controller.WEAPON_FIRE) then
 					if not self.FirePressed[player] then
@@ -382,7 +382,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 										CF["LocationAttributeTypes"].BLACKMARKET
 									)
 								then
-									CF["SetPlayerGold"](self.GS, 0, CF["GetPlayerGold"](self.GS, 0) + self.SelectedClonePrice)
+									CF.ChangeGold(self.GS, self.SelectedClonePrice)
 								end
 
 								-- Remove actor from array
@@ -409,7 +409,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 								self.ClonesControlMessageText = "Clone storage is empty"
 							end
 						else
-							if CF["CountActors"](CF["PlayerTeam"]) < tonumber(self.GS["Player0VesselLifeSupport"]) then
+							if CF["CountActors"](CF["PlayerTeam"]) < tonumber(self.GS["PlayerVesselLifeSupport"]) then
 								-- Create new unit
 								if self.SelectedClone ~= 0 then
 									if MovableMan:GetMOIDCount() < CF["MOIDLimit"] then
@@ -523,7 +523,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 						if
 							self.SelectedClone > 0
 							and CF["CountUsedStorageInArray"](self.StorageItems) < tonumber(
-								self.GS["Player0VesselStorageCapacity"]
+								self.GS["PlayerVesselStorageCapacity"]
 							)
 							and #self.Clones[self.SelectedClone]["Items"] > 0
 						then
@@ -806,7 +806,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 					"Capacity: "
 						.. CF["CountUsedStorageInArray"](self.StorageItems)
 						.. "/"
-						.. self.GS["Player0VesselStorageCapacity"],
+						.. self.GS["PlayerVesselStorageCapacity"],
 					pos + Vector(12, -60),
 					300,
 					10
@@ -865,7 +865,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 		local count = CF["CountUsedClonesInArray"](self.Clones)
 		local toresettimer = true
 		
-		if count < tonumber(self.GS["Player0VesselClonesCapacity"]) then
+		if count < tonumber(self.GS["PlayerVesselClonesCapacity"]) then
 			local hasactor = false
 
 			-- Search for body and put it in storage
@@ -906,7 +906,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 							if
 								self.Time >= self.ClonesLastDetectedBodyTime + self.ClonesInputDelay
 								and CF["CountUsedClonesInArray"](self.Clones)
-									< tonumber(self.GS["Player0VesselClonesCapacity"])
+									< tonumber(self.GS["PlayerVesselClonesCapacity"])
 							then
 								local c = #self.Clones + 1
 
@@ -940,7 +940,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 										-- If we have free space add items to storage, spawn nearby otherwise
 										if
 											CF["CountUsedStorageInArray"](self.StorageItems)
-											< tonumber(self.GS["Player0VesselStorageCapacity"])
+											< tonumber(self.GS["PlayerVesselStorageCapacity"])
 										then
 											-- Put item to storage array
 											CF["PutItemToStorageArray"](self.StorageItems, inv[i], cls[i], mdl[i])
@@ -964,7 +964,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 									self:SwitchToActor(self.ClonesControlPanelActor, controller.Player, CF["PlayerTeam"])
 								end
 								if actor.GoldCarried > 0 then
-									CF["SetPlayerGold"](self.GS, 0, CF["GetPlayerGold"](self.GS, 0) + actor.GoldCarried)
+									CF.ChangeGold(self.GS, actor.GoldCarried)
 								end
 
 								actor.ToDelete = true
@@ -996,7 +996,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 					)
 				else
 					self:AddObjectivePoint(
-						"Stand here to store body\n" .. count .. " / " .. self.GS["Player0VesselClonesCapacity"],
+						"Stand here to store body\n" .. count .. " / " .. self.GS["PlayerVesselClonesCapacity"],
 						self.ClonesInputPos,
 						CF["PlayerTeam"],
 						GameActivity.ARROWDOWN

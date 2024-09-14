@@ -116,7 +116,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 				end
 			end
 
-			local limit = tonumber(self.GS["Player0VesselCommunication"])
+			local limit = tonumber(self.GS["PlayerVesselCommunication"])
 
 			if braincount > 0 and braincount < self.PlayerCount then
 				CF.DrawString("All brains must be on the landing deck", pos + Vector(-54, -6), 124, 36)
@@ -162,7 +162,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 
 			if not anybraindetached then
 				CF.DrawString(
-					"DEPLOY [ " .. tostring(count) .. "/" .. self.GS["Player0VesselCommunication"] .. " ]",
+					"DEPLOY [ " .. tostring(count) .. "/" .. self.GS["PlayerVesselCommunication"] .. " ]",
 					pos + Vector(-30, -16),
 					130,
 					36
@@ -184,7 +184,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 						if IsHeldDevice(item) and not ToHeldDevice(item).UnPickupable then
 							local count = CF.CountUsedStorageInArray(self.StorageItems)
 
-							if count < tonumber(self.GS["Player0VesselStorageCapacity"]) then
+							if count < tonumber(self.GS["PlayerVesselStorageCapacity"]) then
 								CF.PutItemToStorageArray(
 									self.StorageItems,
 									item.PresetName,

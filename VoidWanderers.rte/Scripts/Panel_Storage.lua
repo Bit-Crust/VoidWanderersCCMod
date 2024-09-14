@@ -351,11 +351,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 									or CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].BLACKMARKET)
 								then
 									if self.StorageSelectedItemPrice ~= nil then
-										CF["SetPlayerGold"](
-											self.GS,
-											0,
-											CF["GetPlayerGold"](self.GS, 0) + self.StorageSelectedItemPrice
-										)
+										CF.ChangeGold(self.GS, self.StorageSelectedItemPrice)
 									end
 								end
 							end
@@ -466,7 +462,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 				"Capacity: "
 					.. CF["CountUsedStorageInArray"](self.StorageItems)
 					.. "/"
-					.. self.GS["Player0VesselStorageCapacity"],
+					.. self.GS["PlayerVesselStorageCapacity"],
 				pos + Vector(-130, -60),
 				300,
 				10
@@ -490,7 +486,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 	if self.StorageInputPos ~= nil and self.StorageControlPanelActor ~= nil then
 		local count = CF["CountUsedStorageInArray"](self.StorageItems)
 
-		if count < tonumber(self.GS["Player0VesselStorageCapacity"]) then
+		if count < tonumber(self.GS["PlayerVesselStorageCapacity"]) then
 			local hasitem = false
 			local toreset = true
 
@@ -532,7 +528,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 							if
 								self.Time >= self.StorageLastDetectedItemTime + adjustedDelay
 								and CF["CountUsedStorageInArray"](self.StorageItems)
-									< tonumber(self.GS["Player0VesselStorageCapacity"])
+									< tonumber(self.GS["PlayerVesselStorageCapacity"])
 							then
 								local needrefresh = CF["PutItemToStorageArray"](
 									self.StorageItems,
@@ -577,7 +573,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 				if hasitem and self.StorageLastDetectedItemTime ~= nil then
 				else
 					self:AddObjectivePoint(
-						"Stand here to receive items\n" .. count .. " / " .. self.GS["Player0VesselStorageCapacity"],
+						"Stand here to receive items\n" .. count .. " / " .. self.GS["PlayerVesselStorageCapacity"],
 						self.StorageInputPos,
 						CF["PlayerTeam"],
 						GameActivity.ARROWDOWN

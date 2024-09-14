@@ -184,7 +184,7 @@ function VoidWanderers:MissionUpdate()
 
 			for actor in MovableMan.Actors do
 				if self:IsAlly(actor) and actor.GoldCarried > 0 then
-					CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + actor.GoldCarried)
+					CF.ChangeGold(self.GS, actor.GoldCarried)
 					actor.GoldCarried = 0
 				end
 			end

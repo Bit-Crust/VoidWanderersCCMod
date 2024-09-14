@@ -51,12 +51,12 @@ function VoidWanderers:StartActivity(isNewGame)
 	self.Ship = nil
 	self.EngineEmitters = nil
 
-	self.PlayerFaction = self.GS["Player0Faction"]
+	self.PlayerFaction = self.GS["PlayerFaction"]
 
 	-- Artificial Gravity System
 	self.AGS = Vector(0, rte.PxTravelledPerFrame / (1 + SceneMan.Scene.GlobalAcc.Y))
 
-	self.distanceToAttemptEvent = 100 - CF.Difficulty * 0.5
+	self.distanceToAttemptEvent = 100 - self.GS["Difficulty"] * 0.5
 	
 	-- Load generic level data
 	self.SceneConfig = CF.ReadSceneConfigFile(SceneMan.Scene.ModuleName, SceneMan.Scene.PresetName .. ".dat")
@@ -76,7 +76,7 @@ function VoidWanderers:StartActivity(isNewGame)
 	end
 	
 	-- Display gold like normal since the buy menu is disabled
-	self:SetTeamFunds(CF.GetPlayerGold(self.GS, CF.PlayerTeam), CF.PlayerTeam)
+	self:SetTeamFunds(CF.GetPlayerGold(self.GS), CF.PlayerTeam)
 
 	if self.GS["AISkillPlayer"] then
 		self:SetTeamAISkill(CF.PlayerTeam, tonumber(self.GS["AISkillPlayer"]))
@@ -203,8 +203,6 @@ function VoidWanderers:StartActivity(isNewGame)
 								if itm then
 									actor:AddInventoryItem(itm)
 								end
-							else
-								break
 							end
 						end
 
@@ -304,8 +302,6 @@ function VoidWanderers:StartActivity(isNewGame)
 								if itm then
 									actor:AddInventoryItem(itm)
 								end
-							else
-								break
 							end
 						end
 						local x = self.GS["Deployed" .. i .. "X"]
@@ -456,8 +452,6 @@ function VoidWanderers:StartActivity(isNewGame)
 								if itm then
 									actor:AddInventoryItem(itm)
 								end
-							else
-								break
 							end
 						end
 						local x = self.GS["Deployed" .. i .. "X"]
@@ -621,7 +615,7 @@ function VoidWanderers:StartActivity(isNewGame)
 		end
 
 		-- isNewGame can only ever be undefined or false with how it currently is, so. . . this is how it is
-		if isNewGame == nil then
+		if isNewGame ~= false then
 			-- Spawn crates
 			local hiddenRate = fowEnabled and 0.25 or 0.5
 			local crts = CF.GetPointsArray(self.Pts, "Deploy", self.MissionDeploySet, "Crates")
@@ -698,7 +692,7 @@ function VoidWanderers:StartActivity(isNewGame)
 			end
 
 			-- Set unseen
-			if self.GS["FogOfWar"] == "true" then
+			if self.GS["FogOfWar"] then
 				SceneMan:MakeAllUnseen(Vector(CF.FogOfWarResolution, CF.FogOfWarResolution), CF.CPUTeam)
 				SceneMan:MakeAllUnseen(Vector(CF.FogOfWarResolution, CF.FogOfWarResolution), CF.PlayerTeam)
 
@@ -1138,7 +1132,7 @@ function VoidWanderers:TriggerShipAssault()
 					local goldThreshold = 25000
 					if
 						math.random()
-						< math.min(CF.GetPlayerGold(self.GS, CF.PlayerTeam), goldThreshold) / (goldThreshold * 2)
+						< math.min(CF.GetPlayerGold(self.GS), goldThreshold) / (goldThreshold * 2)
 					then
 						id = "REAVERS"
 					end
@@ -1395,8 +1389,8 @@ function VoidWanderers:UpdateActivity()
 
 	-- Add any gold gained in-game
 	local realGold = self:GetTeamFunds(CF.PlayerTeam)
-	if realGold ~= CF.GetPlayerGold(self.GS, CF.PlayerTeam) then
-		CF.SetPlayerGold(self.GS, CF.PlayerTeam, realGold)
+	if realGold ~= CF.GetPlayerGold(self.GS) then
+		CF.SetPlayerGold(self.GS, realGold)
 	end
 
 	if self.SceneTimer:IsPastSimMS(25) then
@@ -1783,13 +1777,13 @@ function VoidWanderers:UpdateActivity()
 				end
 			end
 		else
-			local count = CF.CountActors(CF.PlayerTeam) - tonumber(self.GS["Player0VesselLifeSupport"])
+			local count = CF.CountActors(CF.PlayerTeam) - tonumber(self.GS["PlayerVesselLifeSupport"])
 			local s = count == 1 and "BODY" or "BODIES"
 
 			FrameMan:ClearScreenText(0)
 			FrameMan:SetScreenText(
 				"LIFE SUPPORT OVERLOADED\nSTORE OR DUMP "
-					.. CF.CountActors(CF.PlayerTeam) - tonumber(self.GS["Player0VesselLifeSupport"])
+					.. CF.CountActors(CF.PlayerTeam) - tonumber(self.GS["PlayerVesselLifeSupport"])
 					.. " "
 					.. s,
 				0,
@@ -1852,7 +1846,7 @@ function VoidWanderers:UpdateActivity()
 		end
 	end
 
-	local flightSpeed = tonumber(self.GS["Player0VesselSpeed"])
+	local flightSpeed = tonumber(self.GS["PlayerVesselSpeed"])
 	local engineBurst = false
 	local engineBoost = self.EngineEmitters and flightSpeed * 0.005 or nil
 
@@ -1897,8 +1891,8 @@ function VoidWanderers:UpdateActivity()
 			else
 				self.GS["Distance"] = d
 
-				local ax = (dx - sx) / d * (tonumber(self.GS["Player0VesselSpeed"]) / CF.KmPerPixel)
-				local ay = (dy - sy) / d * (tonumber(self.GS["Player0VesselSpeed"]) / CF.KmPerPixel)
+				local ax = (dx - sx) / d * (tonumber(self.GS["PlayerVesselSpeed"]) / CF.KmPerPixel)
+				local ay = (dy - sy) / d * (tonumber(self.GS["PlayerVesselSpeed"]) / CF.KmPerPixel)
 
 				sx = sx + ax
 				sy = sy + ay
@@ -1927,7 +1921,7 @@ function VoidWanderers:UpdateActivity()
 				if self.EngineEmitters == nil then
 					self.EngineEmitters = {}
 					for background in SceneMan.Scene.BackgroundLayers do
-						background.AutoScrollStepX = -math.floor(math.sqrt(tonumber(self.GS["Player0VesselSpeed"])))
+						background.AutoScrollStepX = -math.floor(math.sqrt(tonumber(self.GS["PlayerVesselSpeed"])))
 					end
 
 					for i = 1, #self.EnginePos do
@@ -1940,7 +1934,7 @@ function VoidWanderers:UpdateActivity()
 						end
 					end
 					engineBurst = true
-					engineBoost = tonumber(self.GS["Player0VesselSpeed"]) * 0.5
+					engineBoost = tonumber(self.GS["PlayerVesselSpeed"]) * 0.5
 				end
 			end
 		end
@@ -2193,7 +2187,7 @@ function VoidWanderers:UpdateActivity()
 		end
 
 		if self.GS["Mode"] == "Vessel" then
-			if CF.CountActors(CF.PlayerTeam) > tonumber(self.GS["Player0VesselLifeSupport"]) then
+			if CF.CountActors(CF.PlayerTeam) > tonumber(self.GS["PlayerVesselLifeSupport"]) then
 				self.OverCrowded = true
 
 				if self.Time % 3 == 0 then
@@ -2443,7 +2437,7 @@ function VoidWanderers:UpdateActivity()
 
 				if
 					self.Time % 4 == 0
-					and count > tonumber(self.GS["Player0VesselCommunication"])
+					and count > tonumber(self.GS["PlayerVesselCommunication"])
 					and self.GS["BrainsOnMission"] ~= "True"
 					and actor:GetNumberValue("VW_Prestige") == 0
 				then
@@ -2606,7 +2600,7 @@ function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 					actor = ToActor(actor)
 					local i = tonumber(self.GS["MissionReturningTroops"])
 					local assignable = true
-					local f = CF.GetPlayerFaction(self.GS, 0)
+					local f = CF.GetPlayerFaction(self.GS, 1)
 
 					-- Check if unit is playable
 					if CF.UnassignableUnits[f] ~= nil then
@@ -2650,7 +2644,7 @@ function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 				end
 			end
 			--Nullify the funds we just gained from the orbited craft
-			self:SetTeamFunds(CF.GetPlayerGold(self.GS, CF.PlayerTeam), CF.PlayerTeam)
+			self:SetTeamFunds(CF.GetPlayerGold(self.GS), CF.PlayerTeam)
 			FrameMan:ClearScreenText(0)
 		end
 	end
@@ -2914,7 +2908,7 @@ function VoidWanderers:GiveMissionRewards(disablepenalties)
 			self.GS["Player" .. self.missionData["missionTarget"] .. "Reputation"]
 		) - math.ceil(self.missionData["reputationReward"] * CF.ReputationPenaltyRatio)
 	end
-	CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + self.missionData["goldReward"])
+	CF.ChangeGold(self.GS, self.missionData["goldReward"])
 
 	-- Refresh Black Market listing after every completed mission
 	self.GS["BlackMarket" .. "Station Ypsilon-2" .. "ItemsLastRefresh"] = nil
@@ -3148,7 +3142,7 @@ function VoidWanderers:GiveRandomExplorationReward()
 	if r == rewards.gold then
 		local amount = math.floor(math.random(self.missionData["difficulty"] * 250, self.missionData["difficulty"] * 500))
 
-		CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + amount)
+		CF.ChangeGold(self.GS, amount)
 		text = {}
 		text[1] = "Bank account access codes found.\n" .. tostring(amount) .. "oz of gold received."
 	elseif r == rewards.experience then

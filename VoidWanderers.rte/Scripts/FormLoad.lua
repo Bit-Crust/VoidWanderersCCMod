@@ -40,7 +40,7 @@ function VoidWanderers:FormLoad()
 			local reason = ""
 
 			-- Check that all used factions are installed
-			for j = 0, CF.MaxCPUPlayers do
+			for j = 1, CF.MaxCPUPlayers do
 				if config["Player" .. j .. "Active"] == "True" then
 					local f = config["Player" .. j .. "Faction"]
 
@@ -57,8 +57,8 @@ function VoidWanderers:FormLoad()
 			end
 
 			if not isbroken then
-				self.Slots[i]["Faction"] = CF.FactionNames[config["Player0Faction"]]
-				self.Slots[i]["Gold"] = config["Player0Gold"]
+				self.Slots[i]["Faction"] = CF.FactionNames[config["PlayerFaction"]]
+				self.Slots[i]["Gold"] = config["PlayerGold"]
 
 				local tm = tonumber(config["Time"]) or 0
 				local hrs

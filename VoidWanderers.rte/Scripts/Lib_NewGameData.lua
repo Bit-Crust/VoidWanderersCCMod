@@ -1,191 +1,262 @@
 -----------------------------------------------------------------------------------------
--- Initializes all game data when new game started and returns new config
+-- Initializes all game data when new game started and returns new gameState
 -----------------------------------------------------------------------------------------
-CF["MakeNewConfig"] = function(difficulty, playerSkill, cpuSkill, f, cpus, activity)
-	local config = {}
-	local gameplay = true
+CF.MakeFreshGameState = function(playerFaction, cpus, activity)
+	local gameState = {}
+	local diff = activity.Difficulty
 
 	-- Init game time
-	config["Time"] = 0
+	gameState["Time"] = tostring(0)
 
-	local PositiveIndex
-	local NegativeIndex
-
-	local aiscience = 0
+	gameState["Difficulty"] = tostring(diff)
+	gameState["FogOfWar"] = activity:GetFogOfWarEnabled() and "True" or "False"
+	gameState["AISkillPlayer"] = tostring(activity:GetTeamAISkill(Activity.TEAM_1))
+	gameState["AISkillCPU"] = tostring(activity:GetTeamAISkill(Activity.TEAM_2))
 
 	-- Difficulty related variables
-	if difficulty <= GameActivity.CAKEDIFFICULTY then
-		PositiveIndex = 1.5
-		NegativeIndex = 0.5
-
-		config["MissionDifficultyBonus"] = -2
-	elseif difficulty <= GameActivity.EASYDIFFICULTY then
-		PositiveIndex = 1.25
-		NegativeIndex = 0.75
-
-		config["MissionDifficultyBonus"] = -1
-	elseif difficulty <= GameActivity.MEDIUMDIFFICULTY then
-		PositiveIndex = 1.0
-		NegativeIndex = 1.0
-
-		config["MissionDifficultyBonus"] = -0
-	elseif difficulty <= GameActivity.HARDDIFFICULTY then
-		PositiveIndex = 0.90
-		NegativeIndex = 1.10
-
-		config["MissionDifficultyBonus"] = 1
-	elseif difficulty <= GameActivity.NUTSDIFFICULTY then
-		PositiveIndex = 0.80
-		NegativeIndex = 1.20
-
-		config["MissionDifficultyBonus"] = 2
-	elseif difficulty <= GameActivity.MAXDIFFICULTY then
-		PositiveIndex = 0.70
-		NegativeIndex = 1.30
-
-		config["MissionDifficultyBonus"] = 3
+	if diff <= GameActivity.CAKEDIFFICULTY then
+		gameState["MissionDifficultyBonus"] = -2
+	elseif diff <= GameActivity.EASYDIFFICULTY then
+		gameState["MissionDifficultyBonus"] = -1
+	elseif diff <= GameActivity.MEDIUMDIFFICULTY then
+		gameState["MissionDifficultyBonus"] = -0
+	elseif diff <= GameActivity.HARDDIFFICULTY then
+		gameState["MissionDifficultyBonus"] = 1
+	elseif diff <= GameActivity.NUTSDIFFICULTY then
+		gameState["MissionDifficultyBonus"] = 2
+	elseif diff <= GameActivity.MAXDIFFICULTY then
+		gameState["MissionDifficultyBonus"] = 3
 	end
-
-	config["Difficulty"] = difficulty
-	config["AISkillPlayer"] = playerSkill
-	config["AISkillCPU"] = cpuSkill
-
-	config["PositiveIndex"] = PositiveIndex
-	config["NegativeIndex"] = NegativeIndex
-
-	config["FogOfWar"] = activity:GetFogOfWarEnabled()
 
 	-- Set up players
-	config["Player0Faction"] = f
-	config["Player0Active"] = "True"
-	config["Player0Type"] = "Player"
-	config["Player0Gold"] = math.floor(activity:GetStartingGold())
+	gameState["PlayerFaction"] = tostring(playerFaction)
+	gameState["PlayerGold"] = tostring(math.floor(activity:GetStartingGold()))
 
 	-- Assign player ship
-	config["Player0Vessel"] = "Lynx"
-	--config["Player0Vessel"] = "Titan" -- DEBUG
-	--config["Player0Vessel"] = "Ager 9th" -- DEBUG
+	gameState["PlayerVessel"] = "Lynx"
+	--gameState["PlayerVessel"] = "Ager 9th" -- DEBUG
 
-	-- Set vessel attrs
-	config["Player0VesselStorageCapacity"] = CF["VesselStartStorageCapacity"][config["Player0Vessel"]]
-	config["Player0VesselClonesCapacity"] = CF["VesselStartClonesCapacity"][config["Player0Vessel"]]
-
-	config["Player0VesselLifeSupport"] = CF["VesselStartLifeSupport"][config["Player0Vessel"]]
-	config["Player0VesselCommunication"] = CF["VesselStartCommunication"][config["Player0Vessel"]]
-
-	config["Player0VesselSpeed"] = CF["VesselStartSpeed"][config["Player0Vessel"]]
-	config["Player0VesselTurrets"] = CF["VesselStartTurrets"][config["Player0Vessel"]]
-	config["Player0VesselTurretStorage"] = CF["VesselStartTurretStorage"][config["Player0Vessel"]]
-	config["Player0VesselBombBays"] = CF["VesselStartBombBays"][config["Player0Vessel"]]
-	config["Player0VesselBombStorage"] = CF["VesselStartBombStorage"][config["Player0Vessel"]]
-
-	config["Time"] = 1
+	-- Set vessel attributes
+	gameState["PlayerVesselStorageCapacity"] = tostring(CF.VesselStartStorageCapacity[gameState["PlayerVessel"]])
+	gameState["PlayerVesselClonesCapacity"] = tostring(CF.VesselStartClonesCapacity[gameState["PlayerVessel"]])
+	gameState["PlayerVesselLifeSupport"] = tostring(CF.VesselStartLifeSupport[gameState["PlayerVessel"]])
+	gameState["PlayerVesselCommunication"] = tostring(CF.VesselStartCommunication[gameState["PlayerVessel"]])
+	gameState["PlayerVesselSpeed"] = tostring(CF.VesselStartSpeed[gameState["PlayerVessel"]])
+	gameState["PlayerVesselTurrets"] = tostring(CF.VesselStartTurrets[gameState["PlayerVessel"]])
+	gameState["PlayerVesselTurretStorage"] = tostring(CF.VesselStartTurretStorage[gameState["PlayerVessel"]])
+	gameState["PlayerVesselBombBays"] = tostring(CF.VesselStartBombBays[gameState["PlayerVessel"]])
+	gameState["PlayerVesselBombStorage"] = tostring(CF.VesselStartBombStorage[gameState["PlayerVessel"]])
 
 	-- Set up initial location - Tradestar
-	config["Planet"] = CF["Planet"][1]
-	config["Location"] = CF["Location"][1]
+	gameState["Planet"] = tostring(CF.Planet[1])
+	gameState["Location"] = tostring(CF.Location[1])
 
-	local locpos = CF["LocationPos"][config["Location"]]
+	local locpos = CF.LocationPos[gameState["Location"]]
 
-	config["ShipX"] = locpos.X
-	config["ShipY"] = locpos.Y
-
-	--Debug
-	--config["Planet"] = "CC-11Y"
-	--config["Location"] = "Ketanot Hills"
-
-	local found = 0
-
-	-- Find available player actor
-	for i = 1, #CF["ActNames"][f] do
-		if CF["ActUnlockData"][f][i] == 0 then
-			found = i
-			break
-		end
-	end
-
-	-- Find available player weapon
-	local weaps = {}
-
-	-- Find available player items
-	for i = 1, #CF["ItmNames"][f] do
-		if CF["ItmUnlockData"][f][i] == 0 then
-			weaps[#weaps + 1] = i
-		end
-	end
-
-	-- DEBUG Add all available weapons
-	--local weaps = {}
-	--for i = 1, #CF["ItmNames"][f] do
-	--	weaps[#weaps + 1] = i
-	--end
-
-	-- Assign initial player actors in storage
-	for i = 1, 4 do
-		config["ClonesStorage" .. i .. "Preset"] = CF["ActPresets"][f][found]
-		if CF["ActClasses"][f][found] ~= nil then
-			config["ClonesStorage" .. i .. "Class"] = CF["ActClasses"][f][found]
-		else
-			config["ClonesStorage" .. i .. "Class"] = "AHuman"
-		end
-		config["ClonesStorage" .. i .. "Module"] = CF["ActModules"][f][found]
-		config["ClonesStorage" .. i .. "Identity"] = i - 1
-
-		local slt = 1
-		for j = #weaps, 1, -1 do
-			config["ClonesStorage" .. i .. "Item" .. slt .. "Preset"] = CF["ItmPresets"][f][weaps[j]]
-			if CF["ItmClasses"][f][weaps[j]] ~= nil then
-				config["ClonesStorage" .. i .. "Item" .. slt .. "Class"] = CF["ItmClasses"][f][weaps[j]]
-			else
-				config["ClonesStorage" .. i .. "Item" .. slt .. "Class"] = "HDFirearm"
-			end
-			config["ClonesStorage" .. i .. "Item" .. slt .. "Module"] = CF["ItmModules"][f][weaps[j]]
-			slt = slt + 1
-		end
-	end --]]--
-
-	-- Set initial scene
-	config["Scene"] = CF["VesselScene"][config["Player0Vessel"]]
-
-	-- Set operation mode
-	config["Mode"] = "Vessel"
+	gameState["ShipX"] = tostring(locpos.X)
+	gameState["ShipY"] = tostring(locpos.Y)
+	gameState["Scene"] = CF.VesselScene[gameState["PlayerVessel"]]
+	gameState["Mode"] = "Vessel"
 
 	local activecpus = 0
 
-	for i = 1, CF["MaxCPUPlayers"] do
+	for i = 1, CF.MaxCPUPlayers do
 		if cpus[i] then
-			config["Player" .. i .. "Faction"] = cpus[i]
-			config["Player" .. i .. "Active"] = "True"
-			config["Player" .. i .. "Type"] = "CPU"
+			gameState["Player" .. i .. "Faction"] = cpus[i]
+			gameState["Player" .. i .. "Active"] = "True"
+			gameState["Player" .. i .. "Type"] = "CPU"
 
-			if config["Player" .. i .. "Faction"] == config["Player0Faction"] then
-				config["Player" .. i .. "Reputation"] = 500
-			else
-				-- Organic factions automatically get negative rep from synthetic factions and vice versa
-				if
-					CF["FactionNatures"][config["Player0Faction"]] == CF["FactionNatures"][config["Player" .. i .. "Faction"]]
-				then
-					config["Player" .. i .. "Reputation"] = 0
-				else
-					config["Player" .. i .. "Reputation"] = math.floor(
-						CF["ReputationHuntThreshold"] * (CF["Difficulty"] * 0.01) + 0.5
-					)
-				end
+			gameState["Player" .. i .. "Reputation"] = 0
+			if gameState["Player" .. i .. "Faction"] == gameState["PlayerFaction"] then
+				gameState["Player" .. i .. "Reputation"] = 500
+			elseif CF.FactionNatures[gameState["PlayerFaction"]] == CF.FactionNatures[gameState["Player" .. i .. "Faction"]] then
+				gameState["Player" .. i .. "Reputation"] = CF.ReputationHuntThreshold * (tonumber(gameState["Difficulty"]) / 100)
 			end
 
 			activecpus = activecpus + 1
 		else
-			config["Player" .. i .. "Faction"] = "Nobody"
-			config["Player" .. i .. "Active"] = "False"
-			config["Player" .. i .. "Type"] = "None"
+			break
 		end
 	end
 
-	config["ActiveCPUs"] = activecpus
+	gameState["ActiveCPUs"] = activecpus
 
-	CF["GenerateRandomMissions"](config)
+	CF.GenerateRandomMissions(gameState)
 
-	return config
+	local repBudget = 800
+
+	local actors = CF.MakeListOfMostPowerfulActorsOfClass(gameState, 1, CF.ActorTypes.ANY, "AHuman", repBudget * 2)
+
+	local pistols = CF.MakeListOfMostPowerfulWeapons(gameState, 1, CF.WeaponTypes.PISTOL, repBudget)
+	local rifles = CF.MakeListOfMostPowerfulWeapons(gameState, 1, CF.WeaponTypes.RIFLE, repBudget * 2)
+	local shotguns = CF.MakeListOfMostPowerfulWeapons(gameState, 1, CF.WeaponTypes.SHOTGUN, repBudget * 2)
+	local snipers = CF.MakeListOfMostPowerfulWeapons(gameState, 1, CF.WeaponTypes.SNIPER, repBudget * 2)
+	local shields = CF.MakeListOfMostPowerfulWeapons(gameState, 1, CF.WeaponTypes.SHIELD, repBudget)
+	local diggers = CF.MakeListOfMostPowerfulWeapons(gameState, 1, CF.WeaponTypes.DIGGER, repBudget * 0)
+	local grenades = CF.MakeListOfMostPowerfulWeapons(gameState, 1, CF.WeaponTypes.GRENADE, repBudget)
+
+	if not actors then
+		print("Pricy humans, alright.")
+		actors = CF.MakeListOfMostPowerfulActorsOfClass(gameState, 1, CF.ActorTypes.ANY, "AHuman", math.huge)
+		if not actors then
+			print("No humans? That's cool. . .")
+			actors = CF.MakeListOfMostPowerfulActorsOfClass(gameState, 1, CF.ActorTypes.ANY, "ACrab", math.huge)
+			if not actors then
+				print("No limbed actors??? That's hip!")
+				actors = CF.MakeListOfMostPowerfulActorsOfClass(gameState, 1, CF.ActorTypes.ANY, "Any", math.huge)
+			end
+		end
+	end
+
+	-- Assign initial player actors in storage
+	for i = 1, gameState["PlayerVesselClonesCapacity"] do
+		local chosenActor = actors[math.random(#actors)]
+		gameState["ClonesStorage" .. i .. "Preset"] = CF.ActPresets[playerFaction][chosenActor["Actor"]]
+		gameState["ClonesStorage" .. i .. "Class"] = CF.ActClasses[playerFaction][chosenActor["Actor"]]
+		gameState["ClonesStorage" .. i .. "Module"] = CF.ActModules[playerFaction][chosenActor["Actor"]]
+		gameState["ClonesStorage" .. i .. "Identity"] = i - 1
+
+		local item = nil
+		local slt = 1
+		local list = nil
+		local count = 1
+
+		::insert::
+		if list then
+			if count <= 1 then
+				item = list[math.random(#list)]
+				gameState["ClonesStorage" .. i .. "Item" .. slt .. "Preset"] = CF.ItmPresets[playerFaction][item["Item"]]
+				gameState["ClonesStorage" .. i .. "Item" .. slt .. "Class"] = CF.ItmClasses[playerFaction][item["Item"]]
+				gameState["ClonesStorage" .. i .. "Item" .. slt .. "Module"] = CF.ItmModules[playerFaction][item["Item"]]
+				slt = slt + 1
+			else
+				gameState["ClonesStorage" .. i .. "Item" .. slt .. "Preset"] = CF.ItmPresets[playerFaction][item["Item"]]
+				gameState["ClonesStorage" .. i .. "Item" .. slt .. "Class"] = CF.ItmClasses[playerFaction][item["Item"]]
+				gameState["ClonesStorage" .. i .. "Item" .. slt .. "Module"] = CF.ItmModules[playerFaction][item["Item"]]
+				count = count - 1
+				goto insert
+			end
+		end
+		
+		if slt == 1 then
+			-- coin flip unless guy one, or guy two and no shotguns
+			if rifles and (math.random(2) == 1 or i == 1 or (i == 2 and not shotguns)) then
+				list = rifles
+				goto insert
+			-- coin flip unless we're guy two
+			elseif shotguns and (math.random(2) == 1 or i == 2) then
+				list = shotguns
+				goto insert
+			-- coin flip
+			elseif snipers and (math.random(2) == 1) then
+				list = snipers
+				goto insert
+			-- last chance
+			elseif pistols then
+				list = pistols
+				goto insert
+			-- give up
+			else
+				slt = 2
+			end
+		end
+		if slt == 2 then
+			-- grab one or two pistols if we have none
+			-- grab one if we do have one and we're akimbo inclined
+			if pistols and (list ~= pistols or math.random(2) == 1) then
+				if list ~= pistols then
+					count = math.random(2)
+					list = pistols
+					item = list[math.random(#list)]
+					goto insert
+				else
+					list = pistols
+					goto insert
+				end
+			-- grab a shield if no pistols or no akimbo inclination and no real gun
+			elseif shields then
+				list = shields
+				goto insert
+			-- give up
+			else
+				slt = 3
+			end
+		end
+		if slt == 3 then
+			-- coin flip unless he's the last guy
+			if diggers and (math.random(2) == 1 or i == 4) then
+				list = diggers
+				goto insert
+			-- grenade otherwise
+			elseif grenades then
+				list = grenades
+				goto insert
+			-- give up
+			else
+				slt = 4
+			end
+		end
+		if slt == 4 then
+			if grenades then
+				count = math.random(2)
+				list = grenades
+				item = list[math.random(#list)]
+				goto insert
+			end
+		end
+	end
+
+	-- Give the starting brains some small arms
+	for i = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		local item = nil
+		local slt = 1
+		local list = nil
+		local count = 1 
+
+		::insert::
+		if list then
+			if count <= 1 then
+				item = list[math.random(#list)]
+				gameState["Brain" .. i .. "Item" .. slt .. "Preset"] = CF.ItmPresets[playerFaction][item["Item"]]
+				gameState["Brain" .. i .. "Item" .. slt .. "Class"] = CF.ItmClasses[playerFaction][item["Item"]]
+				gameState["Brain" .. i .. "Item" .. slt .. "Module"] = CF.ItmModules[playerFaction][item["Item"]]
+				slt = slt + 1
+			else
+				gameState["Brain" .. i .. "Item" .. slt .. "Preset"] = CF.ItmPresets[playerFaction][item["Item"]]
+				gameState["Brain" .. i .. "Item" .. slt .. "Class"] = CF.ItmClasses[playerFaction][item["Item"]]
+				gameState["Brain" .. i .. "Item" .. slt .. "Module"] = CF.ItmModules[playerFaction][item["Item"]]
+				count = count - 1
+				goto insert
+			end
+		end
+		
+		if slt == 1 then
+			if pistols then
+				list = pistols
+				goto insert
+			else
+				slt = 2
+			end
+		end
+		if slt == 2 then
+			if pistols and (math.random(2) == 1) then
+				list = { item }
+				goto insert
+			elseif shields then
+				list = shields
+				goto insert
+			else
+				slt = 3
+			end
+		end
+		if slt == 3 then
+			gameState["Brain" .. i .. "Item" .. slt .. "Preset"] = "Medikit"
+			gameState["Brain" .. i .. "Item" .. slt .. "Class"] = "HDFirearm"
+			gameState["Brain" .. i .. "Item" .. slt .. "Module"] = "Base.rte"
+		end
+	end
+
+	return gameState
 end
 -----------------------------------------------------------------------------------------
 --

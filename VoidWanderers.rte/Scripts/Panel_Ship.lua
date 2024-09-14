@@ -628,7 +628,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							if IsHeldDevice(item) and not ToHeldDevice(item).UnPickupable then
 								local count = CF["CountUsedStorageInArray"](self.StorageItems)
 
-								if count < tonumber(self.GS["Player0VesselStorageCapacity"]) then
+								if count < tonumber(self.GS["PlayerVesselStorageCapacity"]) then
 									CF["PutItemToStorageArray"](
 										self.StorageItems,
 										item.PresetName,
@@ -647,7 +647,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						self:SaveActors(false)
 						self:SaveCurrentGameState()
 
-						print(self.GS["Player0Gold"])
+						print(self.GS["PlayerGold"])
 
 						self:LaunchScript("Void Wanderers", "StrategyScreenMain.lua")
 						FORM_TO_LOAD = BASE_PATH .. "FormSave.lua"
@@ -1348,7 +1348,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				self.ShipControlUpgrades[1] = {}
 				self.ShipControlUpgrades[1]["Name"] = "Cryo-chambers"
 				self.ShipControlUpgrades[1]["Variable"] = "Player0VesselClonesCapacity"
-				self.ShipControlUpgrades[1]["Max"] = CF["VesselMaxClonesCapacity"][self.GS["Player0Vessel"]]
+				self.ShipControlUpgrades[1]["Max"] = CF["VesselMaxClonesCapacity"][self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[1]["Description"] = "How many bodies you can store"
 				self.ShipControlUpgrades[1]["Price"] = CF["ClonePrice"]
 				self.ShipControlUpgrades[1]["Bundle"] = 1
@@ -1356,7 +1356,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				self.ShipControlUpgrades[2] = {}
 				self.ShipControlUpgrades[2]["Name"] = "Storage"
 				self.ShipControlUpgrades[2]["Variable"] = "Player0VesselStorageCapacity"
-				self.ShipControlUpgrades[2]["Max"] = CF["VesselMaxStorageCapacity"][self.GS["Player0Vessel"]]
+				self.ShipControlUpgrades[2]["Max"] = CF["VesselMaxStorageCapacity"][self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[2]["Description"] = "How many items you can store"
 				self.ShipControlUpgrades[2]["Price"] = CF["StoragePrice"]
 				self.ShipControlUpgrades[2]["Bundle"] = 5
@@ -1364,7 +1364,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				self.ShipControlUpgrades[3] = {}
 				self.ShipControlUpgrades[3]["Name"] = "Life support"
 				self.ShipControlUpgrades[3]["Variable"] = "Player0VesselLifeSupport"
-				self.ShipControlUpgrades[3]["Max"] = CF["VesselMaxLifeSupport"][self.GS["Player0Vessel"]]
+				self.ShipControlUpgrades[3]["Max"] = CF["VesselMaxLifeSupport"][self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[3]["Description"] = "How many bodies can be active on ship simultaneously"
 				self.ShipControlUpgrades[3]["Price"] = CF["LifeSupportPrice"]
 				self.ShipControlUpgrades[3]["Bundle"] = 1
@@ -1372,7 +1372,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				self.ShipControlUpgrades[4] = {}
 				self.ShipControlUpgrades[4]["Name"] = "Communication"
 				self.ShipControlUpgrades[4]["Variable"] = "Player0VesselCommunication"
-				self.ShipControlUpgrades[4]["Max"] = CF["VesselMaxCommunication"][self.GS["Player0Vessel"]]
+				self.ShipControlUpgrades[4]["Max"] = CF["VesselMaxCommunication"][self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[4]["Description"] = "How many bodies you can control on planet surface"
 				self.ShipControlUpgrades[4]["Price"] = CF["CommunicationPrice"]
 				self.ShipControlUpgrades[4]["Bundle"] = 1
@@ -1380,7 +1380,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				self.ShipControlUpgrades[5] = {}
 				self.ShipControlUpgrades[5]["Name"] = "Engine"
 				self.ShipControlUpgrades[5]["Variable"] = "Player0VesselSpeed"
-				self.ShipControlUpgrades[5]["Max"] = CF["VesselMaxSpeed"][self.GS["Player0Vessel"]]
+				self.ShipControlUpgrades[5]["Max"] = CF["VesselMaxSpeed"][self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[5]["Description"] =
 					"Speed of the vessel. Faster ships are harder to intercept."
 				self.ShipControlUpgrades[5]["Price"] = CF["EnginePrice"]
@@ -1389,7 +1389,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				self.ShipControlUpgrades[6] = {}
 				self.ShipControlUpgrades[6]["Name"] = "Turret systems"
 				self.ShipControlUpgrades[6]["Variable"] = "Player0VesselTurrets"
-				self.ShipControlUpgrades[6]["Max"] = CF["VesselMaxTurrets"][self.GS["Player0Vessel"]]
+				self.ShipControlUpgrades[6]["Max"] = CF["VesselMaxTurrets"][self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[6]["Description"] = "How many turrets can be deployed inside the ship"
 				self.ShipControlUpgrades[6]["Price"] = CF["TurretPrice"]
 				self.ShipControlUpgrades[6]["Bundle"] = 1
@@ -1397,7 +1397,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				self.ShipControlUpgrades[7] = {}
 				self.ShipControlUpgrades[7]["Name"] = "Turret storage"
 				self.ShipControlUpgrades[7]["Variable"] = "Player0VesselTurretStorage"
-				self.ShipControlUpgrades[7]["Max"] = CF["VesselMaxTurretStorage"][self.GS["Player0Vessel"]]
+				self.ShipControlUpgrades[7]["Max"] = CF["VesselMaxTurretStorage"][self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[7]["Description"] = "How many turrets can be stored in the ship"
 				self.ShipControlUpgrades[7]["Price"] = CF["TurretStoragePrice"]
 				self.ShipControlUpgrades[7]["Bundle"] = 1
@@ -1405,7 +1405,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				self.ShipControlUpgrades[8] = {}
 				self.ShipControlUpgrades[8]["Name"] = "Bomb bays"
 				self.ShipControlUpgrades[8]["Variable"] = "Player0VesselBombBays"
-				self.ShipControlUpgrades[8]["Max"] = CF["VesselMaxBombBays"][self.GS["Player0Vessel"]]
+				self.ShipControlUpgrades[8]["Max"] = CF["VesselMaxBombBays"][self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[8]["Description"] = "How many bombs can be launched simultaneously"
 				self.ShipControlUpgrades[8]["Price"] = CF["BombBayPrice"]
 				self.ShipControlUpgrades[8]["Bundle"] = 1
@@ -1413,7 +1413,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				self.ShipControlUpgrades[9] = {}
 				self.ShipControlUpgrades[9]["Name"] = "Bomb storage"
 				self.ShipControlUpgrades[9]["Variable"] = "Player0VesselBombStorage"
-				self.ShipControlUpgrades[9]["Max"] = CF["VesselMaxBombStorage"][self.GS["Player0Vessel"]]
+				self.ShipControlUpgrades[9]["Max"] = CF["VesselMaxBombStorage"][self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[9]["Description"] = "How many bombs can be stored in the ship"
 				self.ShipControlUpgrades[9]["Price"] = CF["BombStoragePrice"]
 				self.ShipControlUpgrades[9]["Bundle"] = 1
@@ -1538,7 +1538,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						if current < maximum and price <= CF["GetPlayerGold"](self.GS, 0) then
 							self.GS[self.ShipControlUpgrades[self.ShipControlSelectedUpgrade]["Variable"]] = current
 								+ amount
-							CF["SetPlayerGold"](self.GS, 0, CF["GetPlayerGold"](self.GS, 0) - price)
+							CF.ChangeGold(self.GS, -price)
 
 							-- Re-init turrets panels to add new turrets to ship
 							if self.ShipControlSelectedUpgrade == 6 then
@@ -1565,7 +1565,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				for i = 1, #CF["Vessel"] do
 					local id = CF["Vessel"][i]
 
-					if self.GS["Player0Vessel"] ~= id then
+					if self.GS["PlayerVessel"] ~= id then
 						local nv = #self.ShipControlShips + 1
 
 						self.ShipControlShips[nv] = id
@@ -1625,12 +1625,12 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				-- Show specs
 				local id = self.ShipControlShips[self.ShipControlSelectedShip]
 				local price = CF["VesselPrice"][id]
-				local bonus = CF["VesselPrice"][self.GS["Player0Vessel"]] * CF["ShipSellCoeff"]
+				local bonus = CF["VesselPrice"][self.GS["PlayerVessel"]] * CF["ShipSellCoeff"]
 				local instl = 0
 
 				-- Cryo chambers
 				local newcryo = CF["VesselStartClonesCapacity"][id]
-				local oldcryo = tonumber(self.GS["Player0VesselClonesCapacity"])
+				local oldcryo = tonumber(self.GS["PlayerVesselClonesCapacity"])
 				local maxcryo = CF["VesselMaxClonesCapacity"][id]
 				local actcryo = newcryo + oldcryo
 				local exccryo = 0
@@ -1655,7 +1655,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				-- Storage
 				local newstor = CF["VesselStartStorageCapacity"][id]
-				local oldstor = tonumber(self.GS["Player0VesselStorageCapacity"])
+				local oldstor = tonumber(self.GS["PlayerVesselStorageCapacity"])
 				local maxstor = CF["VesselMaxStorageCapacity"][id]
 				local actstor = newstor + oldstor
 				local excstor = 0
@@ -1680,7 +1680,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				-- Life support
 				local newlife = CF["VesselStartLifeSupport"][id]
-				local oldlife = tonumber(self.GS["Player0VesselLifeSupport"])
+				local oldlife = tonumber(self.GS["PlayerVesselLifeSupport"])
 				local maxlife = CF["VesselMaxLifeSupport"][id]
 				local actlife = newlife + oldlife
 				local exclife = 0
@@ -1705,7 +1705,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				-- Communcation
 				local newcomm = CF["VesselStartCommunication"][id]
-				local oldcomm = tonumber(self.GS["Player0VesselCommunication"])
+				local oldcomm = tonumber(self.GS["PlayerVesselCommunication"])
 				local maxcomm = CF["VesselMaxCommunication"][id]
 				local actcomm = newcomm + oldcomm
 				local exccomm = 0
@@ -1731,14 +1731,14 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				-- Engine
 				local actengn = CF["VesselStartSpeed"][id]
 				local maxengn = CF["VesselMaxSpeed"][id]
-				local excengn = tonumber(self.GS["Player0VesselEngine"])
+				local excengn = tonumber(self.GS["PlayerVesselEngine"])
 
 				CF["DrawString"]("Engine:", pos + Vector(8, 0), 140, 40)
 				CF["DrawString"]("" .. actengn .. "/" .. maxengn, pos + Vector(8 + 90, 0), 140, 40)
 
 				-- Turrets
 				local newturr = CF["VesselStartTurrets"][id]
-				local oldturr = tonumber(self.GS["Player0VesselTurrets"])
+				local oldturr = tonumber(self.GS["PlayerVesselTurrets"])
 				local maxturr = CF["VesselMaxTurrets"][id]
 				local actturr = newturr + oldturr
 				local excturr = 0
@@ -1763,7 +1763,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				-- Turrets storage
 				local newturs = CF["VesselStartTurretStorage"][id]
-				local oldturs = tonumber(self.GS["Player0VesselTurretStorage"])
+				local oldturs = tonumber(self.GS["PlayerVesselTurretStorage"])
 				local maxturs = CF["VesselMaxTurretStorage"][id]
 				local actturs = newturs + oldturs
 				local excturs = 0
@@ -1788,7 +1788,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				-- Bomb bays
 				local newbmbb = CF["VesselStartBombBays"][id]
-				local oldbmbb = tonumber(self.GS["Player0VesselBombBays"])
+				local oldbmbb = tonumber(self.GS["PlayerVesselBombBays"])
 				local maxbmbb = CF["VesselMaxBombBays"][id]
 				local actbmbb = newbmbb + oldbmbb
 				local excbmbb = 0
@@ -1813,7 +1813,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				-- Bombs storage
 				local newbmbs = CF["VesselStartBombStorage"][id]
-				local oldbmbs = tonumber(self.GS["Player0VesselBombStorage"])
+				local oldbmbs = tonumber(self.GS["PlayerVesselBombStorage"])
 				local maxbmbs = CF["VesselMaxBombStorage"][id]
 				local actbmbs = newbmbs + oldbmbs
 				local excbmbs = 0
@@ -1897,29 +1897,29 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 						if ok then
 							-- Pay
-							CF["SetPlayerGold"](self.GS, 0, CF["GetPlayerGold"](self.GS, 0) - total)
+							CF.ChangeGold(self.GS, -total)
 
 							-- Clear turrets pos
-							local count = tonumber(self.GS["Player0VesselTurrets"])
+							local count = tonumber(self.GS["PlayerVesselTurrets"])
 							for i = 1, count do
 								self.GS["Actors - Turret" .. i .. "X"] = nil
 								self.GS["Actors - Turret" .. i .. "Y"] = nil
 							end
 
 							-- Assign new ship
-							self.GS["Player0Vessel"] = id
+							self.GS["PlayerVessel"] = id
 
-							self.GS["Player0VesselStorageCapacity"] = actstor
-							self.GS["Player0VesselClonesCapacity"] = actcryo
-							self.GS["Player0VesselLifeSupport"] = actlife
-							self.GS["Player0VesselCommunication"] = actcomm
-							self.GS["Player0VesselSpeed"] = actengn
-							self.GS["Player0VesselTurrets"] = actturr
-							self.GS["Player0VesselTurretStorage"] = actturs
-							self.GS["Player0VesselBombBays"] = actbmbb
-							self.GS["Player0VesselBombStorage"] = actbmbs
+							self.GS["PlayerVesselStorageCapacity"] = actstor
+							self.GS["PlayerVesselClonesCapacity"] = actcryo
+							self.GS["PlayerVesselLifeSupport"] = actlife
+							self.GS["PlayerVesselCommunication"] = actcomm
+							self.GS["PlayerVesselSpeed"] = actengn
+							self.GS["PlayerVesselTurrets"] = actturr
+							self.GS["PlayerVesselTurretStorage"] = actturs
+							self.GS["PlayerVesselBombBays"] = actbmbb
+							self.GS["PlayerVesselBombStorage"] = actbmbs
 
-							self.GS["Scene"] = CF["VesselScene"][self.GS["Player0Vessel"]]
+							self.GS["Scene"] = CF["VesselScene"][self.GS["PlayerVessel"]]
 
 							-- Save everything and restart script
 							self:SaveActors(true)

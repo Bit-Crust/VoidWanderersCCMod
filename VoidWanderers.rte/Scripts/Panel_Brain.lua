@@ -27,7 +27,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 
 				if cont:IsState(Controller.PRESS_DOWN) then
 					-- Create faction appropriate brain because we can do that
-					local rb = CF.MakeBrain(self.GS, 0, CF.PlayerTeam, act.Pos + Vector(0, 20), false)
+					local rb = CF.MakeBrain(self.GS, CF.PlayerFaction, CF.PlayerTeam, act.Pos + Vector(0, 20), false)
 
 					if rb then
 						rb.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
@@ -50,8 +50,6 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 								if itm then
 									rb:AddInventoryItem(itm)
 								end
-							else
-								break
 							end
 						end
 
@@ -128,7 +126,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 						self.GS["Brain" .. player .. "Detached"] = "False"
 						self.createdBrainCases[player] = rb
 						if act.GoldCarried > 0 then
-							CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + act.GoldCarried)
+							CF.ChangeGold(self.GS, act.GoldCarried)
 						end
 
 						if self.GS["Brain" .. player .. "Identity"] == nil then

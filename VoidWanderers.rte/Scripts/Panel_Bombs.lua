@@ -145,7 +145,7 @@ function VoidWanderers:ProcessBombsControlPanelUI()
 							self.BombingTarget = bombpos.X
 							self.BombingStart = self.Time
 							self.BombingLoadTime = math.ceil(
-								#self.BombPayload / tonumber(self.GS["Player0VesselBombBays"])
+								#self.BombPayload / tonumber(self.GS["PlayerVesselBombBays"])
 							) * CF.BombLoadInterval
 							self.BombingRange = range
 							self.BombingLastBombShot = self.Time

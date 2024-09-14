@@ -54,10 +54,6 @@ function VoidWanderers:StartActivity(isNewGame)
 		TimerMan.DeltaTimeSecs = 0.0166667
 	end
 
-	CHOSEN_DIFFICULTY = self.Difficulty
-	CHOSEN_AISKILLPLAYER = self:GetTeamAISkill(Activity.TEAM_1)
-	CHOSEN_AISKILLCPU = self:GetTeamAISkill(Activity.TEAM_2)
-
 	-- Panel behaviors have to be defined every time because they are methods of this activity
 	dofile(LIB_PATH .. "Panel_Clones.lua")
 	dofile(LIB_PATH .. "Panel_Ship.lua")
@@ -275,24 +271,24 @@ function VoidWanderers:LoadCurrentGameState()
 			CF["UnlockRandomQuantumItem"](self.GS)
 		end
 
-		local val = self.GS["Player0VesselTurrets"]
+		local val = self.GS["PlayerVesselTurrets"]
 		if val == nil then
-			self.GS["Player0VesselTurrets"] = CF["VesselStartTurrets"][self.GS["Player0Vessel"]]
+			self.GS["PlayerVesselTurrets"] = CF["VesselStartTurrets"][self.GS["PlayerVessel"]]
 		end
 
-		local val = self.GS["Player0VesselTurretStorage"]
+		local val = self.GS["PlayerVesselTurretStorage"]
 		if val == nil then
-			self.GS["Player0VesselTurretStorage"] = CF["VesselStartTurretStorage"][self.GS["Player0Vessel"]]
+			self.GS["PlayerVesselTurretStorage"] = CF["VesselStartTurretStorage"][self.GS["PlayerVessel"]]
 		end
 
-		local val = self.GS["Player0VesselBombBays"]
+		local val = self.GS["PlayerVesselBombBays"]
 		if val == nil then
-			self.GS["Player0VesselBombBays"] = CF["VesselStartBombBays"][self.GS["Player0Vessel"]]
+			self.GS["PlayerVesselBombBays"] = CF["VesselStartBombBays"][self.GS["PlayerVessel"]]
 		end
 
-		local val = self.GS["Player0VesselBombStorage"]
+		local val = self.GS["PlayerVesselBombStorage"]
 		if val == nil then
-			self.GS["Player0VesselBombStorage"] = CF["VesselStartBombStorage"][self.GS["Player0Vessel"]]
+			self.GS["PlayerVesselBombStorage"] = CF["VesselStartBombStorage"][self.GS["PlayerVessel"]]
 		end
 	end
 end
@@ -432,24 +428,24 @@ function VoidWanderers:LoadSaveData()
 			CF["UnlockRandomQuantumItem"](self.GS)
 		end
 
-		local val = self.GS["Player0VesselTurrets"]
+		local val = self.GS["PlayerVesselTurrets"]
 		if val == nil then
-			self.GS["Player0VesselTurrets"] = CF["VesselStartTurrets"][self.GS["Player0Vessel"]]
+			self.GS["PlayerVesselTurrets"] = CF["VesselStartTurrets"][self.GS["PlayerVessel"]]
 		end
 
-		local val = self.GS["Player0VesselTurretStorage"]
+		local val = self.GS["PlayerVesselTurretStorage"]
 		if val == nil then
-			self.GS["Player0VesselTurretStorage"] = CF["VesselStartTurretStorage"][self.GS["Player0Vessel"]]
+			self.GS["PlayerVesselTurretStorage"] = CF["VesselStartTurretStorage"][self.GS["PlayerVessel"]]
 		end
 
-		local val = self.GS["Player0VesselBombBays"]
+		local val = self.GS["PlayerVesselBombBays"]
 		if val == nil then
-			self.GS["Player0VesselBombBays"] = CF["VesselStartBombBays"][self.GS["Player0Vessel"]]
+			self.GS["PlayerVesselBombBays"] = CF["VesselStartBombBays"][self.GS["PlayerVessel"]]
 		end
 
-		local val = self.GS["Player0VesselBombStorage"]
+		local val = self.GS["PlayerVesselBombStorage"]
 		if val == nil then
-			self.GS["Player0VesselBombStorage"] = CF["VesselStartBombStorage"][self.GS["Player0Vessel"]]
+			self.GS["PlayerVesselBombStorage"] = CF["VesselStartBombStorage"][self.GS["PlayerVessel"]]
 		end
 	end
 end

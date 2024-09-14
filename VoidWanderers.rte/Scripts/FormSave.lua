@@ -34,9 +34,9 @@ function VoidWanderers:FormLoad()
 
 			config = CF["ReadConfigFile"](self.ModuleName, "savegame" .. i .. ".dat")
 
-			if config["Player0Faction"] ~= nil then
-				self.Slots[i]["Faction"] = CF["FactionNames"][config["Player0Faction"]]
-				self.Slots[i]["Gold"] = config["Player0Gold"]
+			if config["PlayerFaction"] ~= nil then
+				self.Slots[i]["Faction"] = CF["FactionNames"][config["PlayerFaction"]]
+				self.Slots[i]["Gold"] = config["PlayerGold"]
 
 				local tm = tonumber(config["Time"])
 				local hrs

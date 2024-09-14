@@ -34,6 +34,7 @@ function VoidWanderers:MissionCreate(isNewGame)
 		table.insert(selection, i)
 	end
 
+	local team1Player = 1
 	local team2Player = CF.GetAngriestPlayer(self.GS)
 	local team3Player = selection[math.random(#selection)]
 	local team4Player = selection[math.random(#selection)]
@@ -67,7 +68,7 @@ function VoidWanderers:MissionCreate(isNewGame)
 	self.missionData["missionNextIntervention"] = self.Time + CF.AmbientReinforcementsInterval * 2.5
 
 	-- Read some out
-	print("TEAM 1: " .. CF.GetPlayerFaction(self.GS, 0))
+	print("TEAM 1: " .. CF.GetPlayerFaction(self.GS, team1Player))
 	print("TEAM 2: " .. CF.GetPlayerFaction(self.GS, team2Player))
 	print("TEAM 3: " .. CF.GetPlayerFaction(self.GS, team3Player))
 	print("TEAM 4: " .. CF.GetPlayerFaction(self.GS, team4Player))

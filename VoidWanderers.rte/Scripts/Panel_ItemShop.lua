@@ -257,7 +257,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 							if self.ItemShopItems[itm]["Type"] == CF["WeaponTypes"].BOMB then
 								if
 									CF["CountUsedBombsInArray"](self.Bombs)
-										< tonumber(self.GS["Player0VesselBombStorage"])
+										< tonumber(self.GS["PlayerVesselBombStorage"])
 									and self.ItemShopSelectedItemPrice <= CF["GetPlayerGold"](self.GS, 0)
 								then
 									CF["PutBombToStorageArray"](
@@ -267,17 +267,13 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 										self.ItemShopItems[itm]["Module"]
 									)
 									CF["SetBombsArray"](self.GS, self.Bombs)
-									CF["SetPlayerGold"](
-										self.GS,
-										0,
-										CF["GetPlayerGold"](self.GS, 0) - self.ItemShopSelectedItemPrice
-									)
+									CF.ChangeGold(self.GS, -self.ItemShopSelectedItemPrice)
 								end
 							else
 								if
 									self.ItemShopItems[itm]["Preset"]
 									and CF["CountUsedStorageInArray"](self.StorageItems) < tonumber(
-										self.GS["Player0VesselStorageCapacity"]
+										self.GS["PlayerVesselStorageCapacity"]
 									)
 									and self.ItemShopSelectedItemPrice <= CF["GetPlayerGold"](self.GS, 0)
 								then
@@ -288,11 +284,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 										self.ItemShopItems[itm]["Module"]
 									)
 
-									CF["SetPlayerGold"](
-										self.GS,
-										0,
-										CF["GetPlayerGold"](self.GS, 0) - self.ItemShopSelectedItemPrice
-									)
+									CF.ChangeGold(self.GS, -self.ItemShopSelectedItemPrice)
 
 									-- Store everything
 									CF["SetStorageArray"](self.GS, self.StorageItems)
@@ -386,7 +378,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 					"Bomb capacity: "
 						.. CF["CountUsedBombsInArray"](self.Bombs)
 						.. "/"
-						.. self.GS["Player0VesselBombStorage"],
+						.. self.GS["PlayerVesselBombStorage"],
 					pos + Vector(-130, -60),
 					300,
 					10
@@ -396,7 +388,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 					"Capacity: "
 						.. CF["CountUsedStorageInArray"](self.StorageItems)
 						.. "/"
-						.. self.GS["Player0VesselStorageCapacity"],
+						.. self.GS["PlayerVesselStorageCapacity"],
 					pos + Vector(-130, -60),
 					300,
 					10

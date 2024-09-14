@@ -129,7 +129,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 				self.BombsControlPanelInBombMode = true
 
 				-- Launch bombs
-				for i = 1, tonumber(self.GS["Player0VesselBombBays"]) do
+				for i = 1, tonumber(self.GS["PlayerVesselBombBays"]) do
 					--print (self.BombPayload[self.BombingCount]["Preset"])
 					--print (self.BombPayload[self.BombingCount]["Class"])
 
@@ -284,7 +284,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 				end
 				if safe then
 					self:PutGlow("ControlPanel_LZ_Button", pos)
-					local storageCapacity = tonumber(self.GS["Player0VesselStorageCapacity"])
+					local storageCapacity = tonumber(self.GS["PlayerVesselStorageCapacity"])
 						- CF.CountUsedStorageInArray(CF.GetStorageArray(self.GS, false))
 					for i = 1, #items do
 						if i <= storageCapacity then
@@ -435,7 +435,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 							local i = tonumber(self.GS["MissionReturningTroops"])
 
 							-- Check if unit is playable
-							local f = CF.GetPlayerFaction(self.GS, 0)
+							local f = self.GS["PlayerFaction"]
 							if CF.UnassignableUnits[f] ~= nil then
 								for i = 1, #CF.UnassignableUnits[f] do
 									if actor.PresetName == CF.UnassignableUnits[f][i] then
@@ -576,7 +576,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 								if
 									self.Bombs[self.BombsControlPanelSelectedItem]["Count"] > 0
 									and #self.BombPayload
-										< tonumber(self.GS["Player0VesselBombBays"]) * CF.BombsPerBay
+										< tonumber(self.GS["PlayerVesselBombBays"]) * CF.BombsPerBay
 								then
 									self.Bombs[self.BombsControlPanelSelectedItem]["Count"] = self.Bombs[self.BombsControlPanelSelectedItem]["Count"]
 										- 1
@@ -604,7 +604,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 
 				CF.DrawString("PAYLOAD: ", pos + Vector(-40, -8) + Vector(0, -10), 120, 10)
 				CF.DrawString(
-					tostring(#self.BombPayload) .. " / " .. self.GS["Player0VesselBombBays"] * CF.BombsPerBay,
+					tostring(#self.BombPayload) .. " / " .. self.GS["PlayerVesselBombBays"] * CF.BombsPerBay,
 					pos + Vector(20, -8) + Vector(0, -10),
 					120,
 					10
@@ -696,7 +696,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 				end
 			end
 			for _, item in pairs(items) do
-				if CF.CountUsedStorageInArray(storage) < tonumber(self.GS["Player0VesselStorageCapacity"]) then
+				if CF.CountUsedStorageInArray(storage) < tonumber(self.GS["PlayerVesselStorageCapacity"]) then
 					CF.PutItemToStorageArray(storage, item.PresetName, item.ClassName, item.ModuleName)
 				else
 					break
@@ -714,13 +714,13 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		end
 		if totalGoldCarried > 0 then
 			self.MissionReport[#self.MissionReport + 1] = totalGoldCarried .. " oz of gold collected"
-			CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + totalGoldCarried)
+			CF.ChangeGold(self.GS, totalGoldCarried)
 		end
 
 		-- Dump mission report to config to be saved
 		CF.SaveMissionReport(self.GS, self.MissionReport)
 
-		local scene = CF.VesselScene[self.GS["Player0Vessel"]]
+		local scene = CF.VesselScene[self.GS["PlayerVessel"]]
 		-- Set new operating mode
 		self.GS["Mode"] = "Vessel"
 		self.GS["Scene"] = scene

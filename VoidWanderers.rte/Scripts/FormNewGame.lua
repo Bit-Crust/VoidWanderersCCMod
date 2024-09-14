@@ -297,10 +297,8 @@ function VoidWanderers:BtnOk_OnClick()
 		end
 	end
 
-	print("failure here")
-
-	-- Create new game data
-	self.GS = CF.MakeNewConfig(CHOSEN_DIFFICULTY, CHOSEN_AISKILLPLAYER, CHOSEN_AISKILLCPU, player, cpu, self)
+	-- Create new game state
+	self.GS = CF.MakeFreshGameState(player, cpu, self)
 	self:WriteSaveData()
 	self:LoadSaveData()
 	self:FormClose()

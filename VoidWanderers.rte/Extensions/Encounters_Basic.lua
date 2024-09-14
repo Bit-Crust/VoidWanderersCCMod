@@ -135,15 +135,15 @@ function(self, variant)
 
 			self.RandomEncounterText = ""
 
-			CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + gold)
+			CF.ChangeGold(self.GS, gold)
 
 			-- Finish encounter
 			self.RandomEncounterID = nil
 		else
 			-- If captain is still alive then initiate negotiations
 
-			--if fee > CF.GetPlayerGold(self.GS, 0) then
-			--	fee = CF.GetPlayerGold(self.GS, 0)
+			--if fee > CF.GetPlayerGold(self.GS) then
+			--	fee = CF.GetPlayerGold(self.GS)
 			--end
 
 			self.RandomEncounterPirateFee = fee
@@ -173,10 +173,10 @@ function(self, variant)
 
 	if not self.RandomEncounterPirateAttackLaunched then
 		if variant == 1 then
-			local gold = CF.GetPlayerGold(self.GS, 0)
+			local gold = CF.GetPlayerGold(self.GS)
 			if gold < math.random(self.RandomEncounterPirateFee) then
 				if gold >= self.RandomEncounterPirateFee * 0.5 then
-					CF.SetPlayerGold(self.GS, 0, 0)
+					CF.SetPlayerGold(self.GS, 0)
 					self.RandomEncounterText = "Thank you for your payment. My troops will come by to collect the rest. "
 						.. self.RandomEncounterPirate["Captain"]
 						.. " out."
@@ -206,7 +206,7 @@ function(self, variant)
 				self.AssaultWarningTime = math.random(5, 6)
 			else
 				self.MissionReport = {}
-				local newGold = CF.GetPlayerGold(self.GS, 0) - self.RandomEncounterPirateFee
+				local newGold = CF.GetPlayerGold(self.GS) - self.RandomEncounterPirateFee
 				if newGold <= 0 then
 					self.MissionReport[#self.MissionReport + 1] = self.RandomEncounterPirate["MsgDebt"]
 						or "Consider yourself lucky, punk. Next time we take your ship. "
@@ -219,7 +219,7 @@ function(self, variant)
 							.. self.RandomEncounterPirate["Captain"]
 							.. " out."
 				end
-				CF.SetPlayerGold(self.GS, 0, math.max(newGold, 0))
+				CF.SetPlayerGold(self.GS, math.max(newGold, 0))
 				-- Finish encounter
 				self.RandomEncounterID = nil
 				CF.SaveMissionReport(self.GS, self.MissionReport)
@@ -483,7 +483,7 @@ function(self, variant)
 			if r == 1 then
 				-- Destroy stored clone if any
 				if #self.Clones > 0 then
-					local rclone = math.random(tonumber(self.GS["Player0VesselClonesCapacity"]))
+					local rclone = math.random(tonumber(self.GS["PlayerVesselClonesCapacity"]))
 					-- If damaged cell hit the clone then remove actor from array
 					local newarr = {}
 					local ii = 1
@@ -499,10 +499,10 @@ function(self, variant)
 				end
 				CF.SetClonesArray(self.GS, self.Clones)
 
-				self.GS["Player0VesselClonesCapacity"] = tonumber(self.GS["Player0VesselClonesCapacity"]) - 1
+				self.GS["PlayerVesselClonesCapacity"] = tonumber(self.GS["PlayerVesselClonesCapacity"]) - 1
 
-				if self.GS["Player0VesselClonesCapacity"] <= 0 then
-					self.GS["Player0VesselClonesCapacity"] = 1
+				if self.GS["PlayerVesselClonesCapacity"] <= 0 then
+					self.GS["PlayerVesselClonesCapacity"] = 1
 				end
 
 				losstext = "and destroyed one of our cryo-chambers."
@@ -518,14 +518,14 @@ function(self, variant)
 					end
 				end
 
-				self.GS["Player0VesselStorageCapacity"] = tonumber(self.GS["Player0VesselStorageCapacity"]) - damage
+				self.GS["PlayerVesselStorageCapacity"] = tonumber(self.GS["PlayerVesselStorageCapacity"]) - damage
 
-				if self.GS["Player0VesselStorageCapacity"] <= 0 then
-					self.GS["Player0VesselStorageCapacity"] = 1
+				if self.GS["PlayerVesselStorageCapacity"] <= 0 then
+					self.GS["PlayerVesselStorageCapacity"] = 1
 				end
 
 				-- If we have some items left in nonexisting cell then throw them around
-				while CF.CountUsedStorageInArray(self.StorageItems) > self.GS["Player0VesselStorageCapacity"] do
+				while CF.CountUsedStorageInArray(self.StorageItems) > self.GS["PlayerVesselStorageCapacity"] do
 					local rweap = math.random(#self.StorageItems)
 					if self.StorageItems[rweap]["Count"] > 0 then
 						self.StorageItems[rweap]["Count"] = self.StorageItems[rweap]["Count"] - 1
@@ -553,29 +553,29 @@ function(self, variant)
 				losstext = "and destroyed some of our storage cells."
 			elseif r == 3 then
 				-- Destroy life support
-				self.GS["Player0VesselLifeSupport"] = tonumber(self.GS["Player0VesselLifeSupport"]) - 1
+				self.GS["PlayerVesselLifeSupport"] = tonumber(self.GS["PlayerVesselLifeSupport"]) - 1
 
-				if self.GS["Player0VesselLifeSupport"] <= 0 then
-					self.GS["Player0VesselLifeSupport"] = 1
+				if self.GS["PlayerVesselLifeSupport"] <= 0 then
+					self.GS["PlayerVesselLifeSupport"] = 1
 				end
 
 				losstext = "and destroyed our oxygen regeneration tank. Our life support system degraded."
 			elseif r == 4 then
 				-- Destroy life support
-				self.GS["Player0VesselCommunication"] = tonumber(self.GS["Player0VesselCommunication"]) - 1
+				self.GS["PlayerVesselCommunication"] = tonumber(self.GS["PlayerVesselCommunication"]) - 1
 
-				if self.GS["Player0VesselCommunication"] <= 0 then
-					self.GS["Player0VesselCommunication"] = 1
+				if self.GS["PlayerVesselCommunication"] <= 0 then
+					self.GS["PlayerVesselCommunication"] = 1
 				end
 
 				losstext = "and destroyed one of our antennas. Communication power has depleted."
 			elseif r == 5 then
 				-- Destroy engine
-				self.GS["Player0VesselSpeed"] = math.floor(tonumber(self.GS["Player0VesselSpeed"]) * 0.9 + 0.5)
+				self.GS["PlayerVesselSpeed"] = math.floor(tonumber(self.GS["PlayerVesselSpeed"]) * 0.9 + 0.5)
 					- math.random(5)
 
-				if self.GS["Player0VesselSpeed"] <= 5 then
-					self.GS["Player0VesselSpeed"] = 5
+				if self.GS["PlayerVesselSpeed"] <= 5 then
+					self.GS["PlayerVesselSpeed"] = 5
 				end
 
 				losstext = "and damaged our engine. We've lost some speed."
@@ -588,8 +588,8 @@ function(self, variant)
 				.. losstext
 			CF.SaveMissionReport(self.GS, self.MissionReport)
 		else
-			local gold = math.random(1000 - CF.Difficulty * 5)
-			CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + gold)
+			local gold = math.random(1000 - self.GS["Difficulty"] * 5)
+			CF.ChangeGold(self.GS, gold)
 
 			self.MissionReport = {}
 			self.MissionReport[#self.MissionReport + 1] = "We managed to find some intact parts of "
@@ -627,7 +627,7 @@ CF_RandomEncountersFunctions[id] =
 function (self, variant)
 	if not self.RandomEncounterIsInitialized then
 		self.RandomEncounterDroneActivated = false
-		self.RandomEncounterDroneCharges = math.max(10 - math.floor(tonumber(self.GS["Player0VesselSpeed"]) * 0.1 + 0.5), 1)
+		self.RandomEncounterDroneCharges = math.max(10 - math.floor(tonumber(self.GS["PlayerVesselSpeed"]) * 0.1 + 0.5), 1)
 		self.RandomEncounterShotFired = 0
 		self.RandomEncounterDroneInterval = 0
 		self.RandomEncounterDroneRechargeInterval = 3
@@ -644,7 +644,7 @@ function (self, variant)
 	end
 
 	if variant == 1 then
-		if math.random(50) < tonumber(self.GS["Player0VesselSpeed"]) then
+		if math.random(50) < tonumber(self.GS["PlayerVesselSpeed"]) then
 			self.MissionReport = {}
 			self.MissionReport[#self.MissionReport + 1] = "Got away safely!"
 			CF.SaveMissionReport(self.GS, self.MissionReport)
@@ -821,7 +821,7 @@ function (self, variant)
 
 	if variant == 2 then
 		local reaction = {"OOO KURWAAAAA!!", "DAVAI BLYAT!!", "OH MAN, OH GOD, OH MAN!!", "LEEROOOY JENKINNSSS!!", "GAME OVER MAN, GAME OVER!!"}
-		local shipSpeed = tonumber(self.GS["Player0VesselSpeed"])
+		local shipSpeed = tonumber(self.GS["PlayerVesselSpeed"])
 		self.RandomEncounterText = math.random(100) < shipSpeed and reaction[math.random(#reaction)] or "BRACE FOR IMPACT!!"
 		self.RandomEncounterVariants = {}
 		self.RandomEncounterChosenVariant = 0
