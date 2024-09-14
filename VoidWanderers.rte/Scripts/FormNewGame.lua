@@ -285,20 +285,19 @@ function VoidWanderers:BtnOk_OnClick()
 	for i = 1, self.MaxCPUPlayersSelectable do
 		if (self.SelectedCPUFactions[i] == 0) then
 			table.remove(self.SelectedCPUFactions, i)
-			print("Removing team " .. i)
 			self.SelectedCPUFactions[self.MaxCPUPlayersSelectable] = 0
 			i = i - 1
 		end
 	end
 	
 	local cpu = {player}
-	for i = 2, self.MaxCPUPlayersSelectable do
+	for i = 1, self.MaxCPUPlayersSelectable do
 		if self.SelectedCPUFactions[i] ~= 0 then
-			cpu[i] = self.FactionButtons[self.SelectedCPUFactions[i]]["FactionId"]
-		else
-			cpu[i] = nil
+			cpu[i + 1] = self.FactionButtons[self.SelectedCPUFactions[i]]["FactionId"]
 		end
 	end
+
+	print("failure here")
 
 	-- Create new game data
 	self.GS = CF.MakeNewConfig(CHOSEN_DIFFICULTY, CHOSEN_AISKILLPLAYER, CHOSEN_AISKILLCPU, player, cpu, self)
