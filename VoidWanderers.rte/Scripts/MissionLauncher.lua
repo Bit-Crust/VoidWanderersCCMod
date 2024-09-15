@@ -38,12 +38,11 @@ function VoidWanderers:StartActivity(isNewGame)
 	dofile(LIB_PATH .. "Lib_Storage.lua")
 	dofile(LIB_PATH .. "Lib_Encounters.lua")
 	
-	-- Save Load Handler, maybe
+	-- Save Load Handler
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler")
 	self.saveLoadHandler:Initialize(false)
 	
 	-- Init a couple properties and constants
-	self.IsInitialized = false
 	self.FirePressed = {}
 	
 	self.BuyMenuEnabled = false
@@ -132,6 +131,7 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:UpdateActivity()
 	print("UPDATE! -- VoidWanderers:UpdateActivity()!")
+	dofile(SCRIPT_TO_LAUNCH)
 end
 -----------------------------------------------------------------------------------------
 -- Update Activity

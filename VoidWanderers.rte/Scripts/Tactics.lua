@@ -875,7 +875,8 @@ function VoidWanderers:DrawIcon(preset, pos)
 	end
 end
 -----------------------------------------------------------------------------------------
---
+-- Draw rank icon via blending primitives with palettes.
+-- Palettes are introduced as common RGB byte values that are processed by the loop below.
 -----------------------------------------------------------------------------------------
 local rankBaseColor = {
 	{72,40,8},
