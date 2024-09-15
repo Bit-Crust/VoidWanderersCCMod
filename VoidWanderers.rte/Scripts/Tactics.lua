@@ -730,8 +730,6 @@ function VoidWanderers:StartActivity(isNewGame)
 	-- Icon display data
 	self.Icon = CreateMOSRotating("Icon_Generic", self.ModuleName)
 	self.IconFrame = {}
-
-	-- Combination icons
 	self.IconFrame[1] = { comboOf = { 4, 5, 6 }, findByGroup = { "Tools - Breaching", "Tools - Diggers" } }
 	self.IconFrame[2] = { comboOf = { 3, 7, 8 }, findByGroup = { "Weapons - Sniper", "Weapons - Explosive" } }
 	self.IconFrame[3] = { comboOf = { 4, 8, 9 }, findByGroup = { "Weapons - Sniper" }, findByName = {
@@ -753,10 +751,12 @@ function VoidWanderers:StartActivity(isNewGame)
 	self.IconFrame[8] = { findByGroup = { "Weapons - Sniper" } }
 	self.IconFrame[9] = { findByName = { "Scanner", "Disarmer" } }
 	self.IconFrame[10] = { findByName = { "Medikit", "Medical Dart Gun", "First Aid Kit", "Medical Healer Mk3" } } --findByGroup = {"Tools - Healing"}
-	--self.IconFrame[agile] = {findByName = {"Grapple Gun", "Warp Grenade", "Dov Translocator", "Feather"}}
+	--self.IconFrame[11] = {findByName = {"Grapple Gun", "Warp Grenade", "Dov Translocator", "Feather"}}
 
-	self.RankIcon = CreateMOSRotating("Icon_Rank", self.ModuleName)
-	self.PrestigeIcon = CreateMOSRotating("Icon_Prestige", self.ModuleName)
+	self.RankShadeIcon = CreateMOSRotating("Icon_Rank_Shade", self.ModuleName)
+	self.RankBaseIcon = CreateMOSRotating("Icon_Rank_Base", self.ModuleName)
+	self.RankRaisedIcon = CreateMOSRotating("Icon_Rank_Raised", self.ModuleName)
+	self.RankEmbossedIcon = CreateMOSRotating("Icon_Rank_Embossed", self.ModuleName)
 	self.xpSound = CreateSoundContainer("Geiger Click", "Base.rte")
 	self.levelUpSound = CreateSoundContainer("Confirm", "Base.rte")
 	-- Typing
@@ -877,20 +877,64 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
+local rankBaseColor = {
+	{72,40,8},
+	{56,8,8},
+	{24,44,8},
+	{8,8,40},
+	{56,40,56},
+	{8,24,40},
+	{80,20,40},
+	{56,8,8}
+}
+local rankRaisedColor = {
+	{250,234,121},
+	{230,24,8},
+	{121,178,68},
+	{125,190,246},
+	{218,218,226},
+	{76,238,255},
+	{218,218,226},
+	{234,153,28}
+}
+local rankEmbossColor = {
+	{198,133,64},
+	{170,24,8},
+	{109,121,20},
+	{52,113,198},
+	{165,170,170},
+	{52,113,198},
+	{170,93,101},
+	{170,24,8}
+}
+
+for _, part in pairs({ rankBaseColor, rankRaisedColor, rankEmbossColor }) do
+	for _, palette in pairs(part) do
+		for channel = 1, #palette do
+			palette[channel] = (1 - palette[channel] / 256) * 100
+		end
+	end
+end
+
 function VoidWanderers:DrawRankIcon(preset, pos, prestige)
 	if preset then
-		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-			local screen = self:ScreenOfPlayer(player)
-			PrimitiveMan:DrawBitmapPrimitive(
-				player,
-				pos,
-				(prestige ~= 0 and self.PrestigeIcon or self.RankIcon),
-				0,
-				preset
-			)
-			if prestige > 1 then
-				PrimitiveMan:DrawTextPrimitive(player, pos, "x" .. prestige, true, 0)
-			end
+		local p = math.min(prestige + 1, 8)
+		local primitive = BitmapPrimitive(Activity.PLAYER_NONE, pos, self.RankShadeIcon, 0, preset, false, false)
+		PrimitiveMan:DrawPrimitives(DrawBlendMode.NoBlend, 000, 000, 000, 0, { primitive })
+
+		local pal = rankBaseColor
+		primitive = BitmapPrimitive(Activity.PLAYER_NONE, pos, self.RankBaseIcon, 0, preset, false, false)
+		PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive })
+		
+		pal = rankRaisedColor
+		primitive = BitmapPrimitive(Activity.PLAYER_NONE, pos, self.RankRaisedIcon, 0, preset, false, false)
+		PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive })
+		
+		pal = rankEmbossColor
+		primitive = BitmapPrimitive(Activity.PLAYER_NONE, pos, self.RankEmbossedIcon, 0, preset, false, false)
+		PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive })
+		if prestige > 7 then
+			PrimitiveMan:DrawTextPrimitive(Activity.PLAYER_NONE, pos, "+" .. (prestige - 7), true, 0)
 		end
 	end
 end
@@ -1393,6 +1437,7 @@ function VoidWanderers:UpdateActivity()
 		CF.SetPlayerGold(self.GS, realGold)
 	end
 
+
 	if self.SceneTimer:IsPastSimMS(25) then
 		for i = 1, #self.actorList do
 			local victim = self.actorList[i]
@@ -1826,10 +1871,10 @@ function VoidWanderers:UpdateActivity()
 			self:DestroyStorageControlPanelUI()
 			self:DestroyShipControlPanelUI()
 			self:DestroyBeamControlPanelUI()
-			--self:DestroyClonesControlPanelUI()
-			self:DestroyBeamControlPanelUI()
+
 			self:DestroyItemShopControlPanelUI()
 			self:DestroyCloneShopControlPanelUI()
+
 			self:DestroyTurretsControlPanelUI()
 
 			self:StartMusic(CF.MusicTypes.SHIP_INTENSE)

@@ -240,7 +240,6 @@ function(self, variant)
 
 				-- Disable consoles
 				self:DestroyStorageControlPanelUI()
-				--self:DestroyClonesControlPanelUI()
 				self:DestroyBeamControlPanelUI()
 				self:DestroyTurretsControlPanelUI()
 			end

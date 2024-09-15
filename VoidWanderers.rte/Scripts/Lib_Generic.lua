@@ -1469,7 +1469,6 @@ end
 -----------------------------------------------------------------------------------------
 CF.SetPlayerGold = function(c, funds)
 	-- Set the in-activity gold as well, although we don't use it
-	CF.Activity:SetTeamFunds(funds)
 	c["PlayerGold"] = math.ceil(funds)
 end
 -----------------------------------------------------------------------------------------
