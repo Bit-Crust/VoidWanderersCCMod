@@ -143,7 +143,7 @@ function VoidWanderers:StartActivity(isNewGame)
 
 			for i = 1, CF.MaxSavedActors do
 				if self.onboardActors and self.onboardActors[i] then
-					actor = self.onboardActors[i]
+					local actor = self.onboardActors[i]
 
 					local x = self.GS["Actor" .. i .. "X"]
 					local y = self.GS["Actor" .. i .. "Y"]
@@ -170,8 +170,7 @@ function VoidWanderers:StartActivity(isNewGame)
 					actor.Vel = actor.Vel * 0
 					actor.AngularVel = actor.AngularVel * 0
 					MovableMan:AddActor(actor:Clone())
-					actor.ToDelete = true
-					actor = nil
+					DeleteEntity(actor)
 				elseif self.GS["Actor" .. i .. "Preset"] then
 					local limbData = {}
 					for j = 1, #CF.LimbID do
@@ -242,7 +241,7 @@ function VoidWanderers:StartActivity(isNewGame)
 		
 			for i = 1, CF.MaxSavedActors do
 				if self.deployedActors and self.deployedActors[i] then
-					actor = self.deployedActors[i]
+					local actor = self.deployedActors[i]
 
 					local x = self.GS["Deployed" .. i .. "X"]
 					local y = self.GS["Deployed" .. i .. "Y"]
@@ -269,8 +268,7 @@ function VoidWanderers:StartActivity(isNewGame)
 					actor.Vel = actor.Vel * 0
 					actor.AngularVel = actor.AngularVel * 0
 					MovableMan:AddActor(actor:Clone())
-					actor.ToDelete = true
-					actor = nil
+					DeleteEntity(actor)
 				elseif self.GS["Deployed" .. i .. "Preset"] then
 					local limbData = {}
 					for j = 1, #CF.LimbID do
@@ -391,7 +389,7 @@ function VoidWanderers:StartActivity(isNewGame)
 			self.GS["MissionDeployedTroops"] = 1
 			for i = 1, CF.MaxSavedActors do
 				if self.deployedActors and self.deployedActors[i] then
-					actor = self.deployedActors[i]
+					local actor = self.deployedActors[i]
 
 					local x = self.GS["Deployed" .. i .. "X"]
 					local y = self.GS["Deployed" .. i .. "Y"]
@@ -418,8 +416,7 @@ function VoidWanderers:StartActivity(isNewGame)
 					actor.Vel = actor.Vel * 0
 					actor.AngularVel = actor.AngularVel * 0
 					MovableMan:AddActor(actor:Clone())
-					actor.ToDelete = true
-					actor = nil
+					DeleteEntity(actor)
 					self.GS["MissionDeployedTroops"] = tonumber(self.GS["MissionDeployedTroops"]) + 1
 				elseif self.GS["Deployed" .. i .. "Preset"] then
 					local limbData = {}
@@ -1069,7 +1066,7 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:TriggerShipAssault()
-	if not CF.EnableAssaults then
+	if not CF.EnableRandomEncounters then
 		return
 	end
 

@@ -623,7 +623,6 @@ CF_RandomEncountersInitialVariants[id] = {"Initiate evade maneuvers and fire cou
 CF_RandomEncountersVariantsInterval[id] = 24
 CF_RandomEncountersOneTime[id] = false
 CF_RandomEncountersFunctions[id] = 
-
 function (self, variant)
 	if not self.RandomEncounterIsInitialized then
 		self.RandomEncounterDroneActivated = false
@@ -788,7 +787,6 @@ CF.RandomEncountersInitialVariants[id] = {"Let's slow down.", "Full speed ahead!
 CF.RandomEncountersVariantsInterval[id] = 24
 CF.RandomEncountersOneTime[id] = false
 CF.RandomEncountersFunctions[id] = 
-
 function (self, variant)
 	if not self.RandomEncounterIsInitialized then
 		self.RandomEncounterAsteroidStart = false
@@ -865,3 +863,15 @@ function (self, variant)
 	end
 end]]
 --
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+--[[ Faction assault
+local id = "ASSAULT"
+CF.RandomEncounters[#CF.RandomEncounters + 1] = id
+CF.RandomEncountersEligibilityFunctions[id] = function(self)
+	
+end
+]]
+--
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------

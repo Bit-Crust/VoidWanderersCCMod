@@ -24,7 +24,7 @@ function VoidWanderers:StartActivity(isNewGame)
 	setmetatable(_G, mt)
 
 	STATE_CONFIG_FILE = "current.dat"
-		
+	
 	LIB_PATH = self.ModuleName .. "/Scripts/"
 	BASE_PATH = self.ModuleName .. "/Scripts/"
 
@@ -147,8 +147,8 @@ function VoidWanderers:OnSave()
 	if self.ambientData then
 		self.saveLoadHandler:SaveTableAsString("ambientData", self.ambientData)
 	end
-	if self.assaultData then
-		self.saveLoadHandler:SaveTableAsString("assaultData", self.assaultData)
+	if self.encounterData then
+		self.saveLoadHandler:SaveTableAsString("encounterData", self.encounterData)
 	end
 	local controlledActors = { }
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do

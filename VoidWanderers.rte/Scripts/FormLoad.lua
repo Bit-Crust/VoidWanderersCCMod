@@ -39,6 +39,10 @@ function VoidWanderers:FormLoad()
 			local isbroken = false
 			local reason = ""
 
+			if not config["PlayerGold"] then
+				isbroken = true
+			end
+
 			-- Check that all used factions are installed
 			for j = 1, CF.MaxCPUPlayers do
 				if config["Player" .. j .. "Active"] == "True" then

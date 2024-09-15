@@ -236,7 +236,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 									self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Module"] = mdl[j]
 								end
 
-								self.deployedActors[deployedactor] = actor:Clone()
+								self.deployedActors[deployedactor] = MovableMan:RemoveActor(actor)
 								deployedactor = deployedactor + 1
 							else
 								-- Save actors to onboard config

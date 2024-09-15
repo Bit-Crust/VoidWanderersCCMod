@@ -184,7 +184,7 @@ CF.InitFactions = function(activity)
 	-- How much percents of price to add if player and ally factions natures are not the same
 	CF.SyntheticsToOrganicRatio = 0.70
 
-	CF.EnableAssaults = true -- Set to false to disable assaults
+	CF.EnableRandomEncounters = true
 
 	CF.FogOfWarResolution = 4
 

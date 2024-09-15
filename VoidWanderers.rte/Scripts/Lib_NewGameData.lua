@@ -74,8 +74,6 @@ CF.MakeFreshGameState = function(playerFaction, cpus, activity)
 			end
 
 			activecpus = activecpus + 1
-		else
-			break
 		end
 	end
 
