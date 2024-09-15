@@ -1417,7 +1417,7 @@ CF.HuntForActors = function(hunter, targetTeam)
 			end
 		end
 		local target
-		if #brains > 0 and math.random(150) < self.GS["Difficulty"] then
+		if #brains > 0 and math.random(3) <= 1 then
 			hunter.AIMode = Actor.AIMODE_GOTO
 			target = brains[math.random(#brains)]
 			hunter:AddAIMOWaypoint(target)

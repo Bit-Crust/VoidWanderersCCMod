@@ -600,7 +600,6 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, 78))
 			end
 			---------------------------------------------------------------------------------------------------
-			-- Show last mission report
 			if self.ShipControlMode == self.ShipControlPanelModes.REPORT then
 				-- Show current planet
 				self:PutGlow("ControlPanel_Ship_Report", pos)

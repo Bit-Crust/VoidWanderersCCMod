@@ -78,10 +78,6 @@ function VoidWanderers:MissionCreate(isNewGame)
 
 	self.missionData["reinforcementsTriggered"] = false
 	self.missionData["reinforcementsNext"] = self.Time + math.ceil(self.missionData["interval"] * 0.5)
-	--[[self.MissionShootParticleCannon = false
-	self.MissionParticleCannonLastShot = self.Time
-	self.MissionParticleCannonInterval = 6
-	self.SuperWeaponInitialized = false]]
 
 	self.missionData["baseEffectTimer"] = Timer()
 	self.missionData["baseEffectTimer"]:Reset()
@@ -93,8 +89,15 @@ function VoidWanderers:MissionUpdate()
 	if self.missionData["stage"] == CF.MissionStages.ACTIVE then
 		local friends = 0
 		local enemies = 0
-
+		
+		local actorList = {}
 		for actor in MovableMan.Actors do
+			table.insert(actorList, actor)
+		end
+		for actor in MovableMan.AddedActors do
+			table.insert(actorList, actor)
+		end
+		for _, actor in ipairs(actorList) do
 			if IsAHuman(actor) or IsACrab(actor) or IsACraft(actor) then
 				if actor.Team == CF.PlayerTeam then
 					local inside = false
@@ -143,7 +146,7 @@ function VoidWanderers:MissionUpdate()
 		self.missionData["missionStatus"] = "Dropships: " .. math.ceil(self.missionData["enemyDropShips"])
 
 		-- Start checking for defeat only when all units were spawned
-		if self.SpawnTable == nil and friends == 0 and self.missionData["reinforcementsTriggered"] then
+		if friends == 0 and self.missionData["reinforcementsTriggered"] then
 			self.missionData["stage"] = CF.MissionStages.FAILED
 			self.missionData["statusShowStart"] = self.Time
 

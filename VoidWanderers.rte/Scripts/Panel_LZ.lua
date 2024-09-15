@@ -36,6 +36,7 @@ function VoidWanderers:InitLZControlPanelUI()
 					self.LZControlPanelActor[player + 1].Pos = self.LZControlPanelPos[player + 1]
 					self.LZControlPanelActor[player + 1].Team = CF.PlayerTeam
 					MovableMan:AddActor(self.LZControlPanelActor[player + 1])
+					self.LZControlPanelActor[player + 1]:SetNumberValue("VW_PanelNumber", player + 1)
 					if self.BrainsAbsent then
 						self:SetPlayerBrain(self.LZControlPanelActor[player + 1], player)
 						self:SwitchToActor(self.LZControlPanelActor[player + 1], player, CF.PlayerTeam)
@@ -194,12 +195,19 @@ function VoidWanderers:ProcessLZControlPanelUI()
 			end
 		end
 	end
+	
+	local controlled = { false, false, false, false }
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		if self.LZControlPanelActor[player + 1] then
-			if not self.LZControlPanelActor[player + 1]:GetController():IsPlayerControlled(Activity.PLAYER_NONE) then
-				self:PutGlow("ControlPanel_LZ", self.LZControlPanelPos[player + 1])
-			end
+		local act = self:GetControlledActor(player)
+		if act and act.PresetName == "LZ Control Panel" then
+			controlled[act:GetNumberValue("VW_PanelNumber")] = true
+		end
+	end
+	
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		if self.LZControlPanelActor[player + 1] and not controlled[player + 1] then
+			self:PutGlow("ControlPanel_LZ", self.LZControlPanelPos[player + 1])
 		end
 	end
 	
