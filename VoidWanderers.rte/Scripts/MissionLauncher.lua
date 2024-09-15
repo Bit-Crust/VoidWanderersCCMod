@@ -36,7 +36,6 @@ function VoidWanderers:StartActivity(isNewGame)
 	dofile(LIB_PATH .. "Lib_NewGameData.lua")
 	dofile(LIB_PATH .. "Lib_Spawn.lua")
 	dofile(LIB_PATH .. "Lib_Storage.lua")
-	dofile(LIB_PATH .. "Lib_Encounters.lua")
 	
 	-- Save Load Handler
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler")
