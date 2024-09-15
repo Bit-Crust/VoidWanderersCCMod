@@ -1564,9 +1564,22 @@ end
 CF.DistUnder = function(pos1, pos2, magnitude)
 	return SceneMan:ShortestDistance(pos1, pos2, SceneMan.SceneWrapsX):MagnitudeIsLessThan(magnitude)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+-- Save mission report
+-----------------------------------------------------------------------------
+CF.SaveMissionReport = function(c, rep)
+	-- Dump mission report to config to be saved
+	for i = 1, CF.MaxMissionReportLines do
+		c["MissionReport" .. i] = nil
+	end
+
+	for i = 1, #rep do
+		c["MissionReport" .. i] = rep[i]
+	end
+end
+-----------------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 CF.CountActors = function(team)
 	local c = 0
 

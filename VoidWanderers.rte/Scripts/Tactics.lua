@@ -1840,7 +1840,7 @@ function VoidWanderers:UpdateActivity()
 		end
 
 		-- Show assault warning
-		if self.AssaultTime > self.Time then
+		if self.Time < self.AssaultTime then
 			FrameMan:ClearScreenText(0)
 			FrameMan:SetScreenText(
 				CF.GetPlayerFaction(self.GS, tonumber(self.AssaultEnemyPlayer))
@@ -1869,8 +1869,6 @@ function VoidWanderers:UpdateActivity()
 			self:DeployTurrets()
 
 			-- Remove control actors
-			self:DestroyStorageControlPanelUI()
-			self:DestroyShipControlPanelUI()
 			self:DestroyBeamControlPanelUI()
 
 			self:DestroyItemShopControlPanelUI()
@@ -1993,8 +1991,8 @@ function VoidWanderers:UpdateActivity()
 			if not self.ShopsCreated then
 				-- Destroy any previously created item shops and create a new one
 				self:DestroyItemShopControlPanelUI()
-				self:InitItemShopControlPanelUI()
 				self:DestroyCloneShopControlPanelUI()
+				self:InitItemShopControlPanelUI()
 				self:InitCloneShopControlPanelUI()
 				self.ShopsCreated = true
 			end
