@@ -64,12 +64,12 @@ function Create(self)
 				end
 			end
 
-			-- We need this fake cfg because CF["MakeList"] operates only on configs to get data
-			local cfg = {}
-			cfg["PlayerFaction"] = f
+			-- We need this fake gameState because CF["MakeList"] operates only on configs to get data
+			local fakeState = {}
+			fakeState["Player0Faction"] = f
 
 			--print (cfg)
-			local weaps = CF_Call(self, {"MakeListOfMostPowerfulWeapons"}, {cfg, 0, weaponTypes[math.random(#weaponTypes)], 100000})[1]
+			local weaps = CF_Call(self, {"MakeListOfMostPowerfulWeapons"}, {fakeState, 0, weaponTypes.ANY, 100000})[1]
 
 			if math.random() < artifactChance or weaps == nil then
 				local r = math.random(#artItmPresets)

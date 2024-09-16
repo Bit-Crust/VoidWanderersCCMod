@@ -1766,6 +1766,7 @@ function VoidWanderers:UpdateActivity()
 					end
 				end
 			end
+
 			-- Enable prestige where needed
 			local actorMaxxed = actor:GetNumberValue("VW_XP") >= CF.Ranks[#CF.Ranks]
 			if actorMaxxed or actor:GetNumberValue("VW_Prestige") >= 1 then
@@ -1775,6 +1776,7 @@ function VoidWanderers:UpdateActivity()
 					pie.Enabled = actorMaxxed
 				end
 			end
+
 			-- Process prestige request
 			if actorMaxxed and actor:NumberValueExists("VW_AttemptPrestige") then
 				actor:RemoveNumberValue("VW_AttemptPrestige")

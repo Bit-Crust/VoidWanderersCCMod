@@ -187,37 +187,37 @@ function Create(self)
 
 	-- Apply toughness buffs
 	local toughnessFactor = (1 + 2 * self.ToughnessLevel / 5)
-	self.AimDistance = self.AimDistance * toughnessFactor
-	self.ImpulseDamageThreshold = self.ImpulseDamageThreshold * toughnessFactor
-	self.GibWoundLimit = self.GibWoundLimit * toughnessFactor
-	self.GibImpulseLimit = self.GibImpulseLimit * toughnessFactor
-	if self.BGArm then
-		self.BGArm.GibWoundLimit = self.BGArm.GibWoundLimit * toughnessFactor
-		self.BGArm.GibImpulseLimit = self.BGArm.GibImpulseLimit * toughnessFactor
+	self.AimDistance = reference.AimDistance * toughnessFactor
+	self.ImpulseDamageThreshold = reference.ImpulseDamageThreshold * toughnessFactor
+	self.GibWoundLimit = reference.GibWoundLimit * toughnessFactor
+	self.GibImpulseLimit = reference.GibImpulseLimit * toughnessFactor
+	if self.BGArm and reference.BGArm then
+		self.BGArm.GibWoundLimit = reference.BGArm.GibWoundLimit * toughnessFactor
+		self.BGArm.GibImpulseLimit = reference.BGArm.GibImpulseLimit * toughnessFactor
 		self.BGArm.GripStrength = 400000
 	end
-	if self.FGArm then
-		self.FGArm.GibWoundLimit = self.FGArm.GibWoundLimit * toughnessFactor
-		self.FGArm.GibImpulseLimit = self.FGArm.GibImpulseLimit * toughnessFactor
+	if self.FGArm and reference.FGArm then
+		self.FGArm.GibWoundLimit = reference.FGArm.GibWoundLimit * toughnessFactor
+		self.FGArm.GibImpulseLimit = reference.FGArm.GibImpulseLimit * toughnessFactor
 		self.FGArm.GripStrength = 400000
 	end
-	if self.BGLeg then
-		self.BGLeg.GibWoundLimit = self.BGLeg.GibWoundLimit * toughnessFactor
-		self.BGLeg.GibImpulseLimit = self.BGLeg.GibImpulseLimit * toughnessFactor
+	if self.BGLeg and reference.BGLeg then
+		self.BGLeg.GibWoundLimit = reference.BGLeg.GibWoundLimit * toughnessFactor
+		self.BGLeg.GibImpulseLimit = reference.BGLeg.GibImpulseLimit * toughnessFactor
 	end
-	if self.FGLeg then
-		self.FGLeg.GibWoundLimit = self.FGLeg.GibWoundLimit * toughnessFactor
-		self.FGLeg.GibImpulseLimit = self.FGLeg.GibImpulseLimit * toughnessFactor
+	if self.FGLeg and reference.FGLeg then
+		self.FGLeg.GibWoundLimit = reference.FGLeg.GibWoundLimit * toughnessFactor
+		self.FGLeg.GibImpulseLimit = reference.FGLeg.GibImpulseLimit * toughnessFactor
 	end
-	if self.Head then
-		self.Head.GibWoundLimit = self.Head.GibWoundLimit * toughnessFactor
-		self.Head.GibImpulseLimit = self.Head.GibImpulseLimit * toughnessFactor
+	if self.Head and reference.Head then
+		self.Head.GibWoundLimit = reference.Head.GibWoundLimit * toughnessFactor
+		self.Head.GibImpulseLimit = reference.Head.GibImpulseLimit * toughnessFactor
 	end
-	if self.Jetpack then
+	if self.Jetpack and reference.Jetpack then
 		local softnessFactor = math.sqrt(toughnessFactor)
-		self.Jetpack.JetTimeTotal = self.Jetpack.JetTimeTotal * softnessFactor
-		self.Jetpack.JetTimeLeft = self.Jetpack.JetTimeLeft * softnessFactor
-		self.Jetpack.JetReplenishRate = self.Jetpack.JetReplenishRate * softnessFactor
+		self.Jetpack.JetTimeTotal = reference.Jetpack.JetTimeTotal * softnessFactor
+		self.Jetpack.JetTimeLeft = reference.Jetpack.JetTimeLeft * softnessFactor
+		self.Jetpack.JetReplenishRate = reference.Jetpack.JetReplenishRate * softnessFactor
 		for em in self.Jetpack.Emissions do
 			em.ParticlesPerMinute = em.ParticlesPerMinute * softnessFactor;
 			em.BurstSize = em.BurstSize * softnessFactor;
@@ -346,6 +346,8 @@ function Create(self)
 
 		self.QuantumStorageItem = count
 	end
+
+	DeleteEntity(reference)
 end
 
 function Update(self)

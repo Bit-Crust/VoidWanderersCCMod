@@ -617,12 +617,12 @@ end
 -------------------------------------------------------------------------------
 --[[ Hostile drone
 local id = "HOSTILE_DRONE";
-CF_RandomEncounters[#CF_RandomEncounters + 1] = id
-CF_RandomEncountersInitialTexts[id] = "A pre-historic assault drone is floating nearby. We don't know if it is dead or not."
-CF_RandomEncountersInitialVariants[id] = {"Initiate evade maneuvers and fire countermeasures!" , "Just ignore the damn thing."}
-CF_RandomEncountersVariantsInterval[id] = 24
-CF_RandomEncountersOneTime[id] = false
-CF_RandomEncountersFunctions[id] = 
+CF.RandomEncounters[#CF.RandomEncounters + 1] = id
+CF.RandomEncountersInitialTexts[id] = "A pre-historic assault drone is floating nearby. We don't know if it is dead or not."
+CF.RandomEncountersInitialVariants[id] = {"Initiate evade maneuvers and fire countermeasures!" , "Just ignore the damn thing."}
+CF.RandomEncountersVariantsInterval[id] = 24
+CF.RandomEncountersOneTime[id] = false
+CF.RandomEncountersFunctions[id] = 
 function (self, variant)
 	if not self.RandomEncounterIsInitialized then
 		self.RandomEncounterDroneActivated = false

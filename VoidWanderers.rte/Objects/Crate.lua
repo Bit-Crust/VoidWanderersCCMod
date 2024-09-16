@@ -78,12 +78,12 @@ function Create(self)
 			end
 
 			-- We need this fake cfg because CF["MakeList"] operates only on configs to get data
-			local cfg = {}
-			cfg["PlayerFaction"] = f
+			local fakeState = {}
+			fakeState["Player0Faction"] = f
 
 			--print (cfg)
 
-			local acts = CF_Call(self, {"MakeListOfMostPowerfulActors"}, {cfg, 0, actorTypes[math.random(#actorTypes)], 100000})[1]
+			local acts = CF_Call(self, {"MakeListOfMostPowerfulActors"}, {fakeState, 0, actorTypes.ANY, math.huge})[1]
 
 			if math.random() < artifactChance or acts == nil then
 				local r = math.random(#artActPresets)
