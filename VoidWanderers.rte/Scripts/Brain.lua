@@ -346,8 +346,6 @@ function Create(self)
 
 		self.QuantumStorageItem = count
 	end
-
-	DeleteEntity(reference)
 end
 
 function Update(self)

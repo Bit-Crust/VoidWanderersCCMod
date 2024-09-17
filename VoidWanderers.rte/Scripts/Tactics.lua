@@ -330,6 +330,7 @@ function VoidWanderers:StartActivity(isNewGame)
 					break
 				end
 			end
+			self:ClearDeployed()
 		end
 
 		self:LocatePlayerBrains(isNewGame ~= false, true)
@@ -482,6 +483,7 @@ function VoidWanderers:StartActivity(isNewGame)
 					break
 				end
 			end
+			self:ClearDeployed()
 		end
 		
 		self:LocatePlayerBrains(isNewGame ~= false, true)
