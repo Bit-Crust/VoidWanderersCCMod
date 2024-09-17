@@ -137,7 +137,6 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:OnSave()
 	print("SAVE! -- VoidWanderers:OnSave()!")
-	self.GS["Time"] = tostring(self.Time)
 	if self.GS then
 		self.saveLoadHandler:SaveTableAsString("gameState", self.GS)
 	end
@@ -295,7 +294,6 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:SaveCurrentGameState()
-	self.GS["Time"] = tostring(self.Time)
 	CF.WriteConfigFile(self.GS, self.ModuleName, STATE_CONFIG_FILE)
 end
 -----------------------------------------------------------------------------------------

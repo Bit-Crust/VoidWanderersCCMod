@@ -2120,6 +2120,7 @@ function VoidWanderers:UpdateActivity()
 	--if self.TickTimer:IsPastSimMS(self.TickInterval) then
 	if self.TickTimer:IsPastRealMS(self.TickInterval) then
 		self.Time = self.Time + 1
+		self.GS["Time"] = tostring(self.Time)
 		self.TickTimer:Reset()
 
 		-- Give passive experience points for non-brain actors

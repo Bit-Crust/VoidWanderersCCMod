@@ -37,7 +37,7 @@ end
 function Create(self)
 	-- Set up constants and temps
 	local quantumCapacityPerLevel = CF_Read(self, {"QuantumCapacityPerLevel"})
-	local reference = ToActor(PresetMan:GetPreset(self.ClassName, self.PresetName, self.ModuleName))
+	local reference = _G["To" .. self.ClassName](PresetMan:GetPreset(self.ClassName, self.PresetName, self.ModuleName))
 	
 	self.DistPerPower = 75
 	self.CoolDownInterval = 3000
@@ -214,6 +214,7 @@ function Create(self)
 		self.Head.GibImpulseLimit = reference.Head.GibImpulseLimit * toughnessFactor
 	end
 	if self.Jetpack and reference.Jetpack then
+		print("jetpack recognized")
 		local softnessFactor = math.sqrt(toughnessFactor)
 		self.Jetpack.JetTimeTotal = reference.Jetpack.JetTimeTotal * softnessFactor
 		self.Jetpack.JetTimeLeft = reference.Jetpack.JetTimeLeft * softnessFactor
