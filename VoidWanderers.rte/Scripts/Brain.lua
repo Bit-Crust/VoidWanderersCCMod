@@ -214,7 +214,6 @@ function Create(self)
 		self.Head.GibImpulseLimit = reference.Head.GibImpulseLimit * toughnessFactor
 	end
 	if self.Jetpack and reference.Jetpack then
-		print("jetpack recognized")
 		local softnessFactor = math.sqrt(toughnessFactor)
 		self.Jetpack.JetTimeTotal = reference.Jetpack.JetTimeTotal * softnessFactor
 		self.Jetpack.JetTimeLeft = reference.Jetpack.JetTimeLeft * softnessFactor

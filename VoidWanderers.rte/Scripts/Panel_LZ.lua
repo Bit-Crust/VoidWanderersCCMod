@@ -480,7 +480,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 											self.GS["Deployed" .. i .. "Item" .. j .. "Module"] = mdl[j]
 										end
 								
-										self.deployedActors[i] = MovableMan:RemoveActor(actor)
+										self.deployedActors[i] = actor
 										self.GS["MissionReturningTroops"] = tonumber(self.GS["MissionReturningTroops"]) + 1
 									end
 								end
@@ -490,6 +490,10 @@ function VoidWanderers:ProcessLZControlPanelUI()
 								end
 								--print (#pre)
 							end
+						end
+						
+						for _, actor in pairs(self.deployedActors) do
+							MovableMan:RemoveActor(actor)
 						end
 
 						self.GS["DeserializeDeployedTeam"] = "True"

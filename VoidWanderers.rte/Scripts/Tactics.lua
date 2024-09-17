@@ -170,7 +170,8 @@ function VoidWanderers:StartActivity(isNewGame)
 					actor.Vel = actor.Vel * 0
 					actor.AngularVel = actor.AngularVel * 0
 					MovableMan:AddActor(actor:Clone())
-					DeleteEntity(actor)
+					actor = nil
+					self.onboardActors[i] = nil
 				elseif self.GS["Actor" .. i .. "Preset"] then
 					local limbData = {}
 					for j = 1, #CF.LimbID do
@@ -352,16 +353,6 @@ function VoidWanderers:StartActivity(isNewGame)
 			end
 		end
 
-		if isNewGame == false then
-			local previouslyControlledActors = self.saveLoadHandler:ReadSavedStringAsTable("controlledActors")
-			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-				local actor = previouslyControlledActors[player + 1]
-				if IsActor(actor) then
-					self:SwitchToActor(actor, player, CF.PlayerTeam)
-				end
-			end
-		end
-
 		self:InitConsoles()
 
 		-- If we're on temp-location then cancel this location
@@ -417,7 +408,8 @@ function VoidWanderers:StartActivity(isNewGame)
 					actor.Vel = actor.Vel * 0
 					actor.AngularVel = actor.AngularVel * 0
 					MovableMan:AddActor(actor:Clone())
-					DeleteEntity(actor)
+					actor = nil
+					self.onboardActors[i] = nil
 					self.GS["MissionDeployedTroops"] = tonumber(self.GS["MissionDeployedTroops"]) + 1
 				elseif self.GS["Deployed" .. i .. "Preset"] then
 					local limbData = {}
@@ -483,20 +475,9 @@ function VoidWanderers:StartActivity(isNewGame)
 					break
 				end
 			end
-			self:ClearDeployed()
 		end
 		
 		self:LocatePlayerBrains(isNewGame ~= false, true)
-		
-		if isNewGame == false then
-			local previouslyControlledActors = self.saveLoadHandler:ReadSavedStringAsTable("controlledActors")
-			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-				local actor = previouslyControlledActors[player + 1]
-				if IsActor(actor) then
-					self:SwitchToActor(actor, player, CF.PlayerTeam)
-				end
-			end
-		end
 
 		self.SpawnTable = {}
 		self.MissionReport = {}
@@ -717,6 +698,16 @@ function VoidWanderers:StartActivity(isNewGame)
 			-- Set unseen for AI (maybe some day it will matter ))))
 			for team = Activity.TEAM_2, Activity.MAXTEAMCOUNT - 1 do
 				SceneMan:MakeAllUnseen(Vector(CF.FogOfWarResolution, CF.FogOfWarResolution), team)
+			end
+		end
+	end
+
+	if isNewGame == false then
+		local previouslyControlledActors = self.saveLoadHandler:ReadSavedStringAsTable("controlledActors")
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			local actor = previouslyControlledActors[player + 1]
+			if IsActor(actor) then
+				self:SwitchToActor(actor, player, CF.PlayerTeam)
 			end
 		end
 	end

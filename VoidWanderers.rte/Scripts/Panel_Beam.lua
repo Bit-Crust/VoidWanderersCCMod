@@ -176,15 +176,13 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 				if not self.FirePressed[player] then
 					self.FirePressed[player] = true
 
-					local savedactor = 1
-					local deployedactor = 1
-
-					-- Save all items
+					-- Save ground items
+					storageCapacity = tonumber(self.GS["PlayerVesselStorageCapacity"])
 					for item in MovableMan.Items do
 						if IsHeldDevice(item) and not ToHeldDevice(item).UnPickupable then
 							local count = CF.CountUsedStorageInArray(self.StorageItems)
 
-							if count < tonumber(self.GS["PlayerVesselStorageCapacity"]) then
+							if count < storageCapacity then
 								CF.PutItemToStorageArray(
 									self.StorageItems,
 									item.PresetName,
@@ -200,11 +198,13 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 					CF.SetStorageArray(self.GS, self.StorageItems)
 
 					-- Clean previously saved actors and inventories in config
-					self:ClearActors()
 					self:ClearDeployed()
-					
 					self.deployedActors = {}
+					local deployedactor = 1
+					
+					self:ClearActors()
 					self.onboardActors = {}
+					local savedactor = 1
 
 					-- Save actors to config and transfer them to scene
 					for actor in MovableMan.Actors do
@@ -236,7 +236,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 									self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Module"] = mdl[j]
 								end
 
-								self.deployedActors[deployedactor] = MovableMan:RemoveActor(actor)
+								self.deployedActors[deployedactor] = actor
 								deployedactor = deployedactor + 1
 							else
 								-- Save actors to onboard config
@@ -261,16 +261,19 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 									self.GS["Actor" .. savedactor .. "Item" .. j .. "Module"] = mdl[j]
 								end
 								
-								self.onboardActors[savedactor] = MovableMan:RemoveActor(actor)
+								self.onboardActors[savedactor] = actor
 								savedactor = savedactor + 1
 							end
 						end
 					end
 
-					-- Prepare for transfer
-					-- Select scene
-					local locationScenes = CF.LocationScenes[locationID]
-					local scene = locationScenes[math.random(#locationScenes)]
+					for _, actor in pairs(self.deployedActors) do
+						MovableMan:RemoveActor(actor)
+					end
+
+					for _, actor in pairs(self.onboardActors) do
+						MovableMan:RemoveActor(actor)
+					end
 
 					if braincount == self.PlayerCount then
 						self.GS["BrainsOnMission"] = "True"
@@ -279,18 +282,20 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 					end
 					self.BrainsAtStake = false
 
-					--print (locationID)
-					--print (scene)
+					-- Prepare for transfer
+					-- Select scene
+					local locationScenes = CF.LocationScenes[locationID]
+					local scene = locationScenes[math.random(#locationScenes)]
 
 					-- Set new operating mode
-					self.GS["Mode"] = "Mission"
 					self.GS["DeserializeDeployedTeam"] = "True"
 					self.GS["DeserializeOnboard"] = "True"
+					self.GS["Mode"] = "Mission"
 					self.GS["Scene"] = scene
 					self:SaveCurrentGameState()
 
 					self:LaunchScript(scene, "Tactics.lua")
-					self:DestroyConsoles() --]]--
+					self:DestroyConsoles()
 					return true
 				end
 			else
