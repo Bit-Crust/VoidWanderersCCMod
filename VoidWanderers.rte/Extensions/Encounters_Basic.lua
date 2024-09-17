@@ -1,5 +1,7 @@
 -------------------------------------------------------------------------------
---[[local id = "TEST"
+-------------------------------------------------------------------------------
+--[[ Test encounter
+local id = "TEST"
 
 CF.RandomEncounters[#CF.RandomEncounters + 1] = id
 	
@@ -19,10 +21,11 @@ function (self, variant)
 		self.RandomEncounterID = nil
 		CF.SaveMissionReport(self.GS, self.MissionReport)
 	end
-end--]]
---
+end
+--]]
 -------------------------------------------------------------------------------
--- Define pirate identities
+-------------------------------------------------------------------------------
+--[[ Define pirate identities
 CF.RandomEncounterPirates = {}
 
 -- Generic organic mid-heavy pirates
@@ -32,42 +35,12 @@ CF.RandomEncounterPirates[pid]["Captain"] = "Apone"
 CF.RandomEncounterPirates[pid]["Ship"] = "Sulako"
 CF.RandomEncounterPirates[pid]["Org"] = "The Free Galactic Brotherhood"
 CF.RandomEncounterPirates[pid]["FeeInc"] = 500
---[[
-CF.RandomEncounterPirates[pid]["EncounterText"] = ""
-CF.RandomEncounterPirates[pid]["ReplyHostile"] = ""
-CF.RandomEncounterPirates[pid]["ReplyBribe"] = ""
-CF.RandomEncounterPirates[pid]["MsgBribe"] = ""
-CF.RandomEncounterPirates[pid]["MsgHostile"] = ""
-CF.RandomEncounterPirates[pid]["MsgDefeat"] = ""
-]]
---
 CF.RandomEncounterPirates[pid]["Act"] = { "Raider", "Soldier Light", "Soldier Heavy", "Browncoat", "Exterminator" }
-CF.RandomEncounterPirates[pid]["ActMod"] = {
-	"Ronin.rte",
-	"Coalition.rte",
-	"Coalition.rte",
-	"Browncoats.rte",
-	"Browncoats.rte",
-}
-
-CF.RandomEncounterPirates[pid]["Itm"] = {
-	"AR-25 Hammerfist",
-	"PY-07 Trailblazer",
-	"M16A2",
-	"Assault Rifle",
-	"Auto Shotgun",
-}
-CF.RandomEncounterPirates[pid]["ItmMod"] = {
-	"Browncoats.rte",
-	"Browncoats.rte",
-	"Ronin.rte",
-	"Coalition.rte",
-	"Coalition.rte",
-}
-
+CF.RandomEncounterPirates[pid]["ActMod"] = { "Ronin.rte", "Coalition.rte", "Coalition.rte", "Browncoats.rte", "Browncoats.rte" }
+CF.RandomEncounterPirates[pid]["Itm"] = { "AR-25 Hammerfist", "PY-07 Trailblazer", "M16A2", "Assault Rifle", "Auto Shotgun" }
+CF.RandomEncounterPirates[pid]["ItmMod"] = { "Browncoats.rte", "Browncoats.rte", "Ronin.rte", "Coalition.rte", "Coalition.rte" }
 CF.RandomEncounterPirates[pid]["Thrown"] = { "Shredder SB-08", "Timed Explosive" }
 CF.RandomEncounterPirates[pid]["ThrownMod"] = { "Imperatus.rte", "Coalition.rte" }
-
 CF.RandomEncounterPirates[pid]["Units"] = 12
 CF.RandomEncounterPirates[pid]["Burst"] = 3
 CF.RandomEncounterPirates[pid]["Interval"] = 14
@@ -79,26 +52,17 @@ CF.RandomEncounterPirates[pid]["Captain"] = "SHODAN"
 CF.RandomEncounterPirates[pid]["Ship"] = "Von Braun"
 CF.RandomEncounterPirates[pid]["Org"] = "The Free Nexus"
 CF.RandomEncounterPirates[pid]["FeeInc"] = 500
-
 CF.RandomEncounterPirates[pid]["Act"] = { "Dummy", "All Purpose Robot", "Combat Robot", "Whitebot", "Silver Man" }
-CF.RandomEncounterPirates[pid]["ActMod"] = {
-	"Dummy.rte",
-	"Imperatus.rte",
-	"Imperatus.rte",
-	"Techion.rte",
-	"Techion.rte",
-}
-
+CF.RandomEncounterPirates[pid]["ActMod"] = { "Dummy.rte", "Imperatus.rte", "Imperatus.rte", "Techion.rte", "Techion.rte" }
 CF.RandomEncounterPirates[pid]["Itm"] = { "Blaster", "Repeater", "Bullpup AR-14", "Mauler SG-23", "Pulse Rifle" }
 CF.RandomEncounterPirates[pid]["ItmMod"] = { "Dummy.rte", "Dummy.rte", "Imperatus.rte", "Imperatus.rte", "Techion.rte" }
-
 CF.RandomEncounterPirates[pid]["Thrown"] = { "Scrambler", "Timed Explosive" }
 CF.RandomEncounterPirates[pid]["ThrownMod"] = { "Ronin.rte", "Coalition.rte" }
-
 CF.RandomEncounterPirates[pid]["Units"] = 12
 CF.RandomEncounterPirates[pid]["Burst"] = 2
 CF.RandomEncounterPirates[pid]["Interval"] = 10
 
+-- Pirates
 local id = "PIRATE_GENERIC"
 CF.RandomEncounters[#CF.RandomEncounters + 1] = id
 CF.RandomEncountersInitialTexts[id] = ""
@@ -414,8 +378,10 @@ function(self, variant)
 		end
 	end
 end
+--]]
 -------------------------------------------------------------------------------
--- Abandoned ship exploration
+-------------------------------------------------------------------------------
+--[[ Abandoned ship exploration
 local id = "ABANDONED_VESSEL_GENERIC"
 CF.RandomEncounters[#CF.RandomEncounters + 1] = id
 CF.RandomEncountersInitialTexts[id] =
@@ -613,6 +579,7 @@ function(self, variant)
 		self.RandomEncounterID = nil
 	end
 end
+--]]
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 --[[ Hostile drone
@@ -775,8 +742,8 @@ function (self, variant)
 			end
 		end
 	end
-end]]
---
+end
+--]]
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 --[[ Asteroid field
@@ -861,17 +828,24 @@ function (self, variant)
 			self.RandomEncounterAsteroidNext = self.Time + self.RandomEncounterAsteroidInterval
 		end
 	end
-end]]
---
+end
+--]]
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
---[[ Faction assault
+-- Faction assault
 local id = "ASSAULT"
 CF.RandomEncounters[#CF.RandomEncounters + 1] = id
+
+CF.RandomEncountersScripts[id] = "VoidWanderers.rte/Scripts/Encounters/FactionAmbush.lua"
 CF.RandomEncountersEligibilityFunctions[id] = function(self)
-	
+	for i = 1, tonumber(self.GS["ActiveCPUs"]) do
+		local rep = tonumber(self.GS["Player" .. i .. "Reputation"])
+		if rep <= CF.ReputationHuntThreshold then
+			return true
+		end
+	end
+	return false
 end
-]]
---
+--]]
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------

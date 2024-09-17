@@ -796,6 +796,25 @@ CF.RandomSampleOfList = function(list, n)
 	return selection
 end
 -----------------------------------------------------------------------------
+-- Returns a weighted selection out of a list of options
+-----------------------------------------------------------------------------
+CF.WeightedSelection = function(list)
+	-- Build list of potential contractors' cumulative weights
+	local candidates = {}
+	local sum = 0
+	for i = 1, #list do
+		sum = sum + weight
+		table.insert(candidates, {sum, id})
+	end
+	local pick = math.random() * sum
+	for id = 1, #candidates do
+		if pick <= candidates[i] then
+			return i
+		end
+	end
+	return nil
+end
+-----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
 CF.GetAngriestPlayer = function(gamestate)

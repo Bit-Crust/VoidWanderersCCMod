@@ -157,7 +157,7 @@ CF["MissionRequiredData"][id][i]["Max"] = 16
 CF["GenericMissionCount"] = #CF["Mission"]
 
 -------------------------------------------------------------------------------
--- Ship counterattack fake encounter
+--[[ Ship counterattack fake encounter
 CF["RandomEncountersFunctions"]["COUNTERATTACK"] = 
 function(self, variant)
 	if not self.RandomEncounterIsInitialized then
@@ -221,4 +221,5 @@ function(self, variant)
 		self.GS["Location"] = nil
 	end
 end
+--]]
 -------------------------------------------------------------------------------

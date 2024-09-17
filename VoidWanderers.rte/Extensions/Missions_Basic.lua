@@ -3,7 +3,7 @@ local id = "Assault"
 CF["Mission"][#CF["Mission"] + 1] = id
 
 CF["MissionName"][id] = "Assault"
-CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Mission_Assault.lua"
+CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Missions/Assault.lua"
 CF["MissionMinReputation"][id] = -math.huge -- This mission is always available
 CF["MissionBriefingText"][id] = "Attack the enemy installation and wipe out any enemy forces."
 CF["MissionGoldRewardPerDifficulty"][id] = 0
@@ -16,7 +16,7 @@ local id = "Assassinate"
 CF["Mission"][#CF["Mission"] + 1] = id
 
 CF["MissionName"][id] = "Assassinate"
-CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Mission_Assassinate.lua"
+CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Missions/Assassinate.lua"
 CF["MissionMinReputation"][id] = 0
 CF["MissionBriefingText"][id] = "Locate and assassinate enemy commander."
 CF["MissionGoldRewardPerDifficulty"][id] = 600
@@ -35,7 +35,7 @@ local id = "Mine"
 CF["Mission"][#CF["Mission"] + 1] = id
 
 CF["MissionName"][id] = "Establish Mining"
-CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Mission_Mine.lua"
+CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Missions/Mine.lua"
 CF["MissionMinReputation"][id] = 700
 CF["MissionBriefingText"][id] = "Establish mining camp and protect enough miners from enemy. Brain presence recommended."
 CF["MissionGoldRewardPerDifficulty"][id] = 0
@@ -66,7 +66,7 @@ local id = "Dropships"
 CF["Mission"][#CF["Mission"] + 1] = id
 
 CF["MissionName"][id] = "Disrupt Mining"
-CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Mission_Dropships.lua"
+CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Missions/Dropships.lua"
 CF["MissionMinReputation"][id] = 600
 CF["MissionBriefingText"][id] =
 	"Disrupt enemy mining operations and destroy all incoming drop ships. Brain presence recommended."
@@ -80,7 +80,7 @@ local id = "Zombies"
 CF["Mission"][#CF["Mission"] + 1] = id
 
 CF["MissionName"][id] = "Zombie onslaught"
-CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Mission_Zombies.lua"
+CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Missions/Zombies.lua"
 CF["MissionMinReputation"][id] = 800
 CF["MissionBriefingText"][id] = "Destroy hacked cloning vats producing aggressive unbaked bodies."
 CF["MissionGoldRewardPerDifficulty"][id] = 800
@@ -99,7 +99,7 @@ local id = "Defend"
 CF["Mission"][#CF["Mission"] + 1] = id
 
 CF["MissionName"][id] = "Hold position"
-CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Mission_Defend.lua"
+CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Missions/Defend.lua"
 CF["MissionMinReputation"][id] = 1000
 CF["MissionBriefingText"][id] =
 	"Assist allied troops and protect the base from incoming enemies. Brain presence recommended."
@@ -113,7 +113,7 @@ local id = "Destroy"
 CF["Mission"][#CF["Mission"] + 1] = id
 
 CF["MissionName"][id] = "Destroy"
-CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Mission_Destroy.lua"
+CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Missions/Destroy.lua"
 CF["MissionMinReputation"][id] = 1300
 CF["MissionBriefingText"][id] = "Locate and destroy enemy data relays."
 CF["MissionGoldRewardPerDifficulty"][id] = 1250
@@ -126,7 +126,7 @@ local id = "Squad"
 CF["Mission"][#CF["Mission"] + 1] = id
 
 CF["MissionName"][id] = "Wipe squad"
-CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Mission_Squad.lua"
+CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Missions/Squad.lua"
 CF["MissionMinReputation"][id] = 1500
 CF["MissionBriefingText"][id] = "Locate and destroy enemy spec ops squad and their commander."
 CF["MissionGoldRewardPerDifficulty"][id] = 1300
@@ -151,7 +151,7 @@ local id = "Evacuate"
 CF["Mission"][#CF["Mission"] + 1] = id
 
 CF["MissionName"][id] = "Evacuate"
-CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Mission_Evacuate.lua"
+CF["MissionScript"][id] = "VoidWanderers.rte/Scripts/Missions/Evacuate.lua"
 CF["MissionMinReputation"][id] = 1700
 CF["MissionBriefingText"][id] = "Rescue and evacuate allied commander amid the enemy assault."
 CF["MissionGoldRewardPerDifficulty"][id] = 1500

@@ -2,7 +2,7 @@
 	Miranda Zone Reavers by Major
 	Supported out of the box
 ]]
---
+--[[
 
 local id = "REAVERS"
 CF["RandomEncounters"][#CF["RandomEncounters"] + 1] = id
@@ -427,11 +427,10 @@ function(self, variant)
 				local futurePos = rocket.Pos + rocket.Vel * rte.PxTravelledPerFrame
 				if self.RandomEncounterGates and self.RandomEncounterGates:IsInside(rocket.Pos) then
 					rocket.Health = rocket.Health - 1
-					--[[elseif not SceneMan:IsWithinBounds(futurePos.X, futurePos.Y, 100) and math.random() > healthFactor then
+				elseif not SceneMan:IsWithinBounds(futurePos.X, futurePos.Y, 100) and math.random() > healthFactor then
 					-- The rocket made it to safety, add an extra Reaver
 					self.RandomEncounterReaversUnitCount = self.RandomEncounterReaversUnitCount + 1
-					rocket.ToDelete = true]]
-					--
+					rocket.ToDelete = true
 				end
 			else
 				self.RandomEncounterRocket = nil
@@ -515,4 +514,5 @@ function(self, variant)
 		end
 	end
 end
+--]]
 -------------------------------------------------------------------------------
