@@ -7,7 +7,7 @@
 --				there are enough MOIDs to start assault
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionCreate(isNewGame)
+function VoidWanderers:MissionCreate()
 	print("DEFEND CREATE")
 	
 	-- Mission difficulty settings

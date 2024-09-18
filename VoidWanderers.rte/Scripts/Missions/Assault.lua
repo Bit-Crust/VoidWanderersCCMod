@@ -6,7 +6,7 @@
 --				1/3 of it's actors. Initial spawn rate varies based on mission difficulty
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionCreate(isNewGame)
+function VoidWanderers:MissionCreate()
 	print("ASSAULT CREATE")
 	
 	-- Mission difficulty settings
@@ -112,7 +112,7 @@ function VoidWanderers:MissionUpdate()
 		self.missionData["missionStatus"] = "Enemies left: " .. tostring(count)
 
 		-- Start checking for victory only when all units were spawned
-		if self.SpawnTable == nil and count == 0 and not MovableMan.AddedActors() then
+		if count == 0 and not MovableMan.AddedActors() then
 			self:GiveMissionRewards()
 			self.missionData["stage"] = CF.MissionStages.COMPLETED
 

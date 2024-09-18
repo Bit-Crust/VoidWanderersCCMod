@@ -4,7 +4,7 @@
 --	Events: 	After a while AI will send some dropships to replace dead miners
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionCreate(isNewGame)
+function VoidWanderers:MissionCreate()
 	print("DROPSHIPS CREATE")
 	
 	-- Mission difficulty settings
@@ -97,7 +97,7 @@ function VoidWanderers:MissionCreate(isNewGame)
 		nw["AIMode"] = Actor.AIMODE_GOLDDIG
 		nw["Pos"] = miners[i]
 
-		table.insert(self.SpawnTable, nw)
+		self:SpawnViaTable(nw)
 	end
 
 	-- Spawn security
@@ -109,7 +109,7 @@ function VoidWanderers:MissionCreate(isNewGame)
 		nw["AIMode"] = Actor.AIMODE_SENTRY
 		nw["Pos"] = security[i]
 
-		table.insert(self.SpawnTable, nw)
+		self:SpawnViaTable(nw)
 	end
 		
 	-- Spawn snipers
@@ -121,7 +121,7 @@ function VoidWanderers:MissionCreate(isNewGame)
 		nw["AIMode"] = Actor.AIMODE_SENTRY
 		nw["Pos"] = snipers[i]
 
-		table.insert(self.SpawnTable, nw)
+		self:SpawnViaTable(nw)
 	end
 end
 -----------------------------------------------------------------------------------------

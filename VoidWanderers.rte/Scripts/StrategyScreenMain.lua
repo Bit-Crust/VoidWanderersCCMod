@@ -319,13 +319,10 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:UpdateActivity()
 	-- Just check for intialization flags in update loop to avoid unnecessary function calls during all the mission
-	if self.IsInitialized == nil then
-		self.IsInitialized = false
-	end
-
 	if not self.IsInitialized then
 		--Init mission if we're still not
-		self:StartActivity()
+		print("Void Wanderers: Start activity via update.")
+		self:StartActivity(true)
 	end
 
 	if self.ActivityState == Activity.OVER then

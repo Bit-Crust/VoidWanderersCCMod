@@ -90,55 +90,53 @@ function VoidWanderers:MissionUpdate()
 		local count = 0
 
 		-- Start checking for victory only when all units were spawned
-		if self.SpawnTable == nil then
-			if MovableMan:IsActor(self.missionData["brain"]) then
-				if not SceneMan:IsUnseen(self.missionData["brain"].Pos.X, self.missionData["brain"].Pos.Y, CF.PlayerTeam) then
-					self:AddObjectivePoint("KILL", self.missionData["brain"].AboveHUDPos, CF.PlayerTeam, GameActivity.ARROWDOWN)
+		if MovableMan:IsActor(self.missionData["brain"]) then
+			if not SceneMan:IsUnseen(self.missionData["brain"].Pos.X, self.missionData["brain"].Pos.Y, CF.PlayerTeam) then
+				self:AddObjectivePoint("KILL", self.missionData["brain"].AboveHUDPos, CF.PlayerTeam, GameActivity.ARROWDOWN)
+			end
+			if
+				self.missionData["reinforcementsTriggered"]
+				and self.missionData["reinforcements"] == 0
+				and self.Time >= self.missionData["reinforcementsLast"] + self.missionData["interval"]
+			then
+				self.missionData["reinforcements"] = -1
+				if self.missionData["brain"]:HasObject("Blueprint") then
+					self.missionData["brain"]:RemoveInventoryItem("Blueprint")
+					print("The enemy has destroyed the evidence!")
 				end
-				if
-					self.missionData["reinforcementsTriggered"]
-					and self.missionData["reinforcements"] == 0
-					and self.Time >= self.missionData["reinforcementsLast"] + self.missionData["interval"]
-				then
-					self.missionData["reinforcements"] = -1
-					if self.missionData["brain"]:HasObject("Blueprint") then
-						self.missionData["brain"]:RemoveInventoryItem("Blueprint")
-						print("The enemy has destroyed the evidence!")
-					end
-				end
-			else
-				for actor in MovableMan.Actors do
-					if actor.Team == CF.CPUTeam then
-						-- Kill some of the actors
-						if math.random() * actor.MaxHealth * 1.5 > actor.Health then
-							if math.random() < 0.5 then
-								if math.random() < 0.5 and IsAHuman(actor) and ToAHuman(actor).Head then
-									ToAHuman(actor).Head:GibThis()
-								else
-									actor:GibThis()
-								end
+			end
+		else
+			for actor in MovableMan.Actors do
+				if actor.Team == CF.CPUTeam then
+					-- Kill some of the actors
+					if math.random() * actor.MaxHealth * 1.5 > actor.Health then
+						if math.random() < 0.5 then
+							if math.random() < 0.5 and IsAHuman(actor) and ToAHuman(actor).Head then
+								ToAHuman(actor).Head:GibThis()
 							else
-								actor.Health = 0
+								actor:GibThis()
 							end
 						else
-							-- The rest will scatter
-							CF.HuntForActors(actor, Activity.NOTEAM)
+							actor.Health = 0
 						end
+					else
+						-- The rest will scatter
+						CF.HuntForActors(actor, Activity.NOTEAM)
 					end
 				end
-
-				self.missionData["reputationReward"] = CF.CalculateReward(
-					CF.ReputationPerDifficulty * 0.5,
-					self.missionData["difficulty"]
-				)
-				self.missionData["goldReward"] = 0
-				self:GiveMissionRewards(true)
-				self.MissionStage = CF.MissionStages.COMPLETED
-
-				-- Remember when we started showing misison status message
-				self.MissionStatusShowStart = self.Time
-				self.MissionEnd = self.Time
 			end
+
+			self.missionData["reputationReward"] = CF.CalculateReward(
+				CF.ReputationPerDifficulty * 0.5,
+				self.missionData["difficulty"]
+			)
+			self.missionData["goldReward"] = 0
+			self:GiveMissionRewards(true)
+			self.MissionStage = CF.MissionStages.COMPLETED
+
+			-- Remember when we started showing misison status message
+			self.MissionStatusShowStart = self.Time
+			self.MissionEnd = self.Time
 		end
 
 		-- Trigger reinforcements

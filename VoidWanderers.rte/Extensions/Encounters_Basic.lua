@@ -666,7 +666,7 @@ function (self, variant)
 			local r = math.random(#actors)
 			t = actors[r].Pos
 		else
-			t = self.Ship:GetRandomPoint()
+			t = self.vesselData["ship"]:GetRandomPoint()
 		end
 		
 		--t:FlashWhite(5000)
@@ -776,11 +776,11 @@ function (self, variant)
 		self.RandomEncounterAsteroidStart = true
 		self.RandomEncounterAsteroidNext = self.Time + 8
 
-		if self.EngineEmitters ~= nil then
-			for i = 1, #self.EngineEmitters do
-				self.EngineEmitters[i].ToDelete = true
+		if self.vesselData["engines"] ~= nil then
+			for i = 1, #self.vesselData["engines"] do
+				self.vesselData["engines"][i].ToDelete = true
 			end
-			self.EngineEmitters = nil
+			self.vesselData["engines"] = nil
 		end
 	end
 
@@ -832,7 +832,7 @@ end
 --]]
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
--- Faction assault
+--[[ Faction assault
 local id = "ASSAULT"
 CF.RandomEncounters[#CF.RandomEncounters + 1] = id
 

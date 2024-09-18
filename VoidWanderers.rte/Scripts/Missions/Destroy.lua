@@ -5,7 +5,7 @@
 --				brainhunt mode
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionCreate(isNewGame)
+function VoidWanderers:MissionCreate()
 	print("DESTROY CREATE")
 	
 	-- Mission difficulty settings
@@ -58,7 +58,7 @@ function VoidWanderers:MissionCreate(isNewGame)
 		nw["AIMode"] = Actor.AIMODE_SENTRY
 		nw["Pos"] = enmpos[i]
 
-		table.insert(self.SpawnTable, nw)
+		self:SpawnViaTable(nw)
 	end
 
 	local amount = math.ceil(CF.AmbientEnemyRate * #enm)

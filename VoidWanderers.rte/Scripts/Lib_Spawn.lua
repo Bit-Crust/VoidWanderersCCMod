@@ -1,75 +1,6 @@
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF.MakeRPGBrain = function(c, p, team, pos, level, giveweapons)
-	if giveweapons == nil then
-		giveweapons = true
-	end
-
-	local f = CF.GetPlayerFaction(c, p)
-	local brain = CF.MakeBrain(
-		c,
-		p,
-		team,
-		pos,
-		true
-	)
-
-	if brain then
-		-- Generate a skill set, randomly distribute available points
-		local skillset = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-		local availableSkills = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-		print(level * 10)
-		for i = 1, level * 10 do
-			local index = math.random(#availableSkills)
-			if skillset[availableSkills[index]] < 5 then
-				skillset[availableSkills[index]] = skillset[availableSkills[index]] + 1
-				if skillset[availableSkills[index]] == 5 then
-					table.remove(availableSkills, index)
-				end
-			end
-			if #availableSkills == 0 then
-				break
-			end
-		end
-		
-		-- Actually assign the skills
-		brain:SetNumberValue("VW_PreassignedSkills", 1)
-		local i = 1
-		brain:SetNumberValue("VW_ToughSkill", skillset[i])
-		i = i + 1
-		brain:SetNumberValue("VW_ShieldSkill", skillset[i])
-		i = i + 1
-		brain:SetNumberValue("VW_TelekenesisSkill", skillset[i])
-		i = i + 1
-		brain:SetNumberValue("VW_HealthSkill", math.min(skillset[i] * 20 + math.random(20), 100))
-		i = i + 1
-		brain:SetNumberValue("VW_RepairSkill", skillset[i])
-		i = i + 1
-		brain:SetNumberValue("VW_HealSkill", skillset[i])
-		i = i + 1
-		brain:SetNumberValue("VW_SelfHealSkill", skillset[i])
-		i = i + 1
-		brain:SetNumberValue("VW_ScannerSkill", skillset[i])
-		i = i + 1
-		brain:SetNumberValue("VW_SplitterSkill", skillset[i])
-		i = i + 1
-		brain:SetNumberValue("VW_QuantumSkill", skillset[i])
-	end
-
-	return brain
-end
------------------------------------------------------------------------------------------
---
------------------------------------------------------------------------------------------
-CF.MakeBrain = function(c, p, team, pos, giveWeapons)
-	--print ("CF.MakeBrain")
-	local f = c["PlayerFaction"]
-	return CF.MakeBrainWithPreset(c, p, team, pos, CF.Brains[f], CF.BrainClasses[f], CF.BrainModules[f], giveWeapons)
-end
------------------------------------------------------------------------------------------
---
------------------------------------------------------------------------------------------
 CF.MakeBrainWithPreset = function(c, p, team, pos, preset, class, module, giveWeapons)
 	--print ("CF.MakeBrainWithPreset")
 
@@ -151,43 +82,71 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF.SpawnAIUnitWithPreset = function(c, p, team, pos, aimode, pre)
-	local act = CF.MakeUnitFromPreset(c, p, pre)
-
-	if act ~= nil then
-		act.Team = team
-		if pos ~= nil then
-			act.Pos = pos
-		end
-
-		if aimode ~= nil then
-			act.AIMode = aimode
-		end
-	end
-
-	return act
+CF.MakeBrain = function(c, p, team, pos, giveWeapons)
+	--print ("CF.MakeBrain")
+	local f = c["PlayerFaction"]
+	return CF.MakeBrainWithPreset(c, p, team, pos, CF.Brains[f], CF.BrainClasses[f], CF.BrainModules[f], giveWeapons)
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF.SpawnAIUnit = function(c, p, team, pos, aimode)
-	local pre = math.random(CF.PresetTypes.ENGINEER) --The last two presets are ENGINEER and DEFENDER
-	local act = CF.MakeUnitFromPreset(c, p, pre)
-
-	if act ~= nil then
-		act.Team = team
-		if pos ~= nil then
-			act.Pos = pos
-		end
-
-		if aimode ~= nil then
-			act.AIMode = aimode
-		else
-			act.AIMode = math.random() < 0.5 and Actor.AIMODE_BRAINHUNT or Actor.AIMODE_PATROL
-		end
+CF.MakeRPGBrain = function(c, p, team, pos, level, giveweapons)
+	if giveweapons == nil then
+		giveweapons = true
 	end
 
-	return act
+	local f = CF.GetPlayerFaction(c, p)
+	local brain = CF.MakeBrain(
+		c,
+		p,
+		team,
+		pos,
+		true
+	)
+
+	if brain then
+		-- Generate a skill set, randomly distribute available points
+		local skillset = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+		local availableSkills = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+		print(level * 10)
+		for i = 1, level * 10 do
+			local index = math.random(#availableSkills)
+			if skillset[availableSkills[index]] < 5 then
+				skillset[availableSkills[index]] = skillset[availableSkills[index]] + 1
+				if skillset[availableSkills[index]] == 5 then
+					table.remove(availableSkills, index)
+				end
+			end
+			if #availableSkills == 0 then
+				break
+			end
+		end
+		
+		-- Actually assign the skills
+		brain:SetNumberValue("VW_PreassignedSkills", 1)
+		local i = 1
+		brain:SetNumberValue("VW_ToughSkill", skillset[i])
+		i = i + 1
+		brain:SetNumberValue("VW_ShieldSkill", skillset[i])
+		i = i + 1
+		brain:SetNumberValue("VW_TelekenesisSkill", skillset[i])
+		i = i + 1
+		brain:SetNumberValue("VW_HealthSkill", math.min(skillset[i] * 20 + math.random(20), 100))
+		i = i + 1
+		brain:SetNumberValue("VW_RepairSkill", skillset[i])
+		i = i + 1
+		brain:SetNumberValue("VW_HealSkill", skillset[i])
+		i = i + 1
+		brain:SetNumberValue("VW_SelfHealSkill", skillset[i])
+		i = i + 1
+		brain:SetNumberValue("VW_ScannerSkill", skillset[i])
+		i = i + 1
+		brain:SetNumberValue("VW_SplitterSkill", skillset[i])
+		i = i + 1
+		brain:SetNumberValue("VW_QuantumSkill", skillset[i])
+	end
+
+	return brain
 end
 -----------------------------------------------------------------------------------------
 --	Spawns some random infantry of specified faction, tries to spawn AHuman
@@ -276,34 +235,6 @@ CF.SpawnRandomInfantry = function(team, pos, faction, aimode)
 	return nil
 end
 -----------------------------------------------------------------------------------------
--- Create list of actors in faction of a type and class.
------------------------------------------------------------------------------------------
-CF.MakeListOfMostPowerfulActorsOfClass = function(gameState, player, actorType, actorClass, maxTech)
-	local acts = CF.MakeListOfMostPowerfulActors(gameState, player, actorType, maxTech)
-	local f = CF.GetPlayerFaction(gameState, player)
-
-	if acts then
-		-- Filter only of class
-		local tempActs = {}
-
-		for i = 1, #acts do
-			local ind = acts[i]["Actor"]
-
-			if "Any" == actorClass or CF.ActClasses[f][ind] == actorClass or not CF.ActClasses[f][ind] then
-				table.insert(tempActs, acts[i])
-			end
-		end
-
-		if #tempActs == 0 then
-			acts = nil
-		else
-			acts = tempActs
-		end
-	end
-
-	return acts
-end
------------------------------------------------------------------------------------------
 -- Create list of weapons of a type sorted by their power.
 -----------------------------------------------------------------------------------------
 CF.MakeListOfMostPowerfulWeapons = function(gameState, player, weaponType, maxTech)
@@ -371,6 +302,34 @@ CF.MakeListOfMostPowerfulActors = function(gameState, player, actorType, maxTech
 	if #acts == 0 then
 		acts = nil
 	end
+	return acts
+end
+-----------------------------------------------------------------------------------------
+-- Create list of actors in faction of a type and class.
+-----------------------------------------------------------------------------------------
+CF.MakeListOfMostPowerfulActorsOfClass = function(gameState, player, actorType, actorClass, maxTech)
+	local acts = CF.MakeListOfMostPowerfulActors(gameState, player, actorType, maxTech)
+	local f = CF.GetPlayerFaction(gameState, player)
+
+	if acts then
+		-- Filter only of class
+		local tempActs = {}
+
+		for i = 1, #acts do
+			local ind = acts[i]["Actor"]
+
+			if "Any" == actorClass or CF.ActClasses[f][ind] == actorClass or not CF.ActClasses[f][ind] then
+				table.insert(tempActs, acts[i])
+			end
+		end
+
+		if #tempActs == 0 then
+			acts = nil
+		else
+			acts = tempActs
+		end
+	end
+
 	return acts
 end
 -----------------------------------------------------------------------------------------
@@ -660,6 +619,47 @@ CF.MakeUnitFromPreset = function(c, p, pre)
 	end
 
 	return actor, offset
+end
+-----------------------------------------------------------------------------------------
+--
+-----------------------------------------------------------------------------------------
+CF.SpawnAIUnitWithPreset = function(c, p, team, pos, aimode, pre)
+	local act = CF.MakeUnitFromPreset(c, p, pre)
+
+	if act ~= nil then
+		act.Team = team
+		if pos ~= nil then
+			act.Pos = pos
+		end
+
+		if aimode ~= nil then
+			act.AIMode = aimode
+		end
+	end
+
+	return act
+end
+-----------------------------------------------------------------------------------------
+--
+-----------------------------------------------------------------------------------------
+CF.SpawnAIUnit = function(c, p, team, pos, aimode)
+	local pre = math.random(CF.PresetTypes.ENGINEER) --The last two presets are ENGINEER and DEFENDER
+	local act = CF.MakeUnitFromPreset(c, p, pre)
+
+	if act ~= nil then
+		act.Team = team
+		if pos ~= nil then
+			act.Pos = pos
+		end
+
+		if aimode ~= nil then
+			act.AIMode = aimode
+		else
+			act.AIMode = math.random() < 0.5 and Actor.AIMODE_BRAINHUNT or Actor.AIMODE_PATROL
+		end
+	end
+
+	return act
 end
 -----------------------------------------------------------------------------
 --

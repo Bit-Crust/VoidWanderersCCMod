@@ -90,8 +90,8 @@ function VoidWanderers:MissionCreate()
 		nw["AIMode"] = Actor.AIMODE_GOLDDIG
 		nw["Pos"] = miners[i]
 		nw["Ally"] = 1 -- Allies don't need comm-points to operate and don't get transfered to ship
-
-		table.insert(self.SpawnTable, nw)
+		
+		self:SpawnViaTable(nw)
 	end
 
 	self.missionData["enoughMiners"] = false

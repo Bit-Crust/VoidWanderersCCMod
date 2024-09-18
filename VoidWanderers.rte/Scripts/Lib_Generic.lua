@@ -179,7 +179,6 @@ CF.InitFactions = function(activity)
 	CF.MissionReturnInterval = 2500
 
 	CF.TickInterval = 1000
-	CF.FlightTickInterval = 25
 
 	-- How much percents of price to add if player and ally factions natures are not the same
 	CF.SyntheticsToOrganicRatio = 0.70

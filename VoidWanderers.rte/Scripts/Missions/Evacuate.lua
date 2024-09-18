@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionCreate(isNewGame)
+function VoidWanderers:MissionCreate()
 	print("EVACUATE CREATE")
 	
 	-- Mission difficulty settings

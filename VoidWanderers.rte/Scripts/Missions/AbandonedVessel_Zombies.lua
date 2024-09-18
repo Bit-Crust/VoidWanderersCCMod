@@ -2,7 +2,7 @@
 -----------------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionCreate(isNewGame)
+function VoidWanderers:MissionCreate()
 	print("ABANDONED VESSEL ZOMBIES CREATE")
 
 	-- Spawn random wandering enemies

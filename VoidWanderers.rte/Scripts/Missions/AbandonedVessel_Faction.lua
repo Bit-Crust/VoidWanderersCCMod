@@ -2,7 +2,7 @@
 -----------------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionCreate(isNewGame)
+function VoidWanderers:MissionCreate()
 	print("ABANDONED VESSEL FACTION CREATE")
 
 	-- Spawn random wandering enemies
@@ -70,8 +70,8 @@ function VoidWanderers:MissionCreate(isNewGame)
 		end
 		nw["Pos"] = enmpos[i]
 
-		table.insert(self.SpawnTable, nw)
-
+		self:SpawnViaTable(nw)
+		
 		-- Spawn another engineer
 		if math.random() < CF.AmbientEnemyDoubleSpawn then
 			local pre = CF.PresetTypes.HEAVY2
@@ -82,7 +82,7 @@ function VoidWanderers:MissionCreate(isNewGame)
 			nw["AIMode"] = Actor.AIMODE_SENTRY
 			nw["Pos"] = enmpos[i]
 
-			table.insert(self.SpawnTable, nw)
+			self:SpawnViaTable(nw)
 		end
 	end
 	for actor in MovableMan.Actors do

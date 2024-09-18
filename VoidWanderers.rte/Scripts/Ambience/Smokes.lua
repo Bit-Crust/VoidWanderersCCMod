@@ -38,7 +38,7 @@ function VoidWanderers:AmbientUpdate()
 		local ok = true
 
 		-- Select safe position for our explosion to avoid hitting any of our heroes
-		pos = self.Ship:GetRandomPoint()
+		pos = self.vesselData["ship"]:GetRandomPoint()
 
 		for actor in MovableMan.Actors do
 			if actor.Team == CF.PlayerTeam then

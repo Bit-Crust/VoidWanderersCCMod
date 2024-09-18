@@ -1,6 +1,6 @@
 function VoidWanderers:AmbientCreate()
 	self.AmbientSmokesNextHealthDamage = self.Time
-	self.Ship = SceneMan.Scene:GetArea("Vessel")
+	self.vesselData["ship"] = SceneMan.Scene:GetArea("Vessel")
 end
 -----------------------------------------------------------------------------------------
 --
@@ -15,7 +15,7 @@ function VoidWanderers:AmbientUpdate()
 	for i = 1, #coll do
 		for mo in coll[i] do
 			if mo.PinStrength == 0 then
-				if self.Ship:IsInside(mo.Pos) then
+				if self.vesselData["ship"]:IsInside(mo.Pos) then
 
 					mo.Vel = mo.Vel + Vector(0, grav)
 				else
@@ -30,9 +30,9 @@ function VoidWanderers:AmbientUpdate()
 						end
 					end
 					-- God forbid you exit the ship when the engines are on
-					if self.EngineEmitters ~= nil then
-						for i = 1, #self.EngineEmitters do
-							local em = self.EngineEmitters[i]
+					if self.vesselData["engines"] ~= nil then
+						for i = 1, #self.vesselData["engines"] do
+							local em = self.vesselData["engines"][i]
 							if em and IsAEmitter(em) and ToAEmitter(em):IsEmitting() then
 								mo.Vel = mo.Vel + Vector(0.2, 0)
 							end

@@ -299,7 +299,7 @@ function VoidWanderers:BtnOk_OnClick()
 
 	-- Create new game state
 	self.GS = CF.MakeFreshGameState(player, cpu, self)
-	self:WriteSaveData()
+	self:OnSave()
 	self:LoadSaveData()
 	self:FormClose()
 	self:LaunchScript(self.GS["Scene"], "Tactics.lua")

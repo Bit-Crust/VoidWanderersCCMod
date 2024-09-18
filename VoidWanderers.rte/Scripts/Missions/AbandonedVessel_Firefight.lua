@@ -2,7 +2,7 @@
 -----------------------------------------------------------------------------------------
 -- To-do: try to diminish the amount of allies this missino spawns cus god damn does it bloat the ship when you rescue them
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionCreate(isNewGame)
+function VoidWanderers:MissionCreate()
 	print("ABANDONED VESSEL FIREFIGHT CREATE")
 
 	-- Spawn random wandering enemies
@@ -105,7 +105,7 @@ function VoidWanderers:MissionCreate(isNewGame)
 					end
 				end
 
-				table.insert(self.SpawnTable, nw)
+				self:SpawnViaTable(nw)
 			end
 		end
 	end
@@ -165,7 +165,7 @@ function VoidWanderers:MissionUpdate()
 	end
 
 	-- Count units and switch modes accordingly
-	if self.SpawnTable == nil and not self.missionData["firefightEnded"] then
+	if not self.missionData["firefightEnded"] then
 		local count = {}
 
 		for t = 1, 2 do

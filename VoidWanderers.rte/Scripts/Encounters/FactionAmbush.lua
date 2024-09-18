@@ -5,7 +5,7 @@
 --				1/3 of it's actors. Initial spawn rate varies based on mission difficulty
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionCreate(isNewGame)
+function VoidWanderers:EncounterCreate()
 	print("FACTION AMBUSH CREATE")
 
 	-- Select random assault CPU based on how angry they are
@@ -44,115 +44,169 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionUpdate()
-	if self.missionData["stage"] == CF.MissionStages.ACTIVE then
-		local count = 0
-		
-		for actor in MovableMan.Actors do
-			if actor.Team == CF.CPUTeam and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
-				local inside = false
+function VoidWanderers:EncounterUpdate()
 
-				for i = 1, #self.missionData["missionBase"] do
-					if self.missionData["missionBase"][i]:IsWithinBox(actor.Pos) then
-						--actor:FlashWhite(250)
-						count = count + 1
-						inside = true
-						break
-					end
-				end
-				
-				if inside and SceneMan:IsUnseen(actor.Pos.X, actor.Pos.Y, CF.PlayerTeam) and self.Time % 4 == 0 then
-					self:AddObjectivePoint("KILL", actor.AboveHUDPos, CF.PlayerTeam, GameActivity.ARROWDOWN)
-				end
+	if self.AssaultTime > self.Time then
+		if self.Time % 2 == 0 then
+			self:MakeAlertSound(1 / math.max(self.AssaultTime - self.Time / 30, 1))
+		end
+	end
 
-				if not self.missionData["reinforcementsTriggered"] then
-					if actor.Health > 0 and math.random(100) > actor.Health then
-						self.missionData["reinforcementsTriggered"] = true
+	if self.Time < self.AssaultTime then
+		FrameMan:ClearScreenText(0)
+		FrameMan:SetScreenText(
+			CF.GetPlayerFaction(self.GS, tonumber(self.AssaultEnemyPlayer))
+				.. " "
+				.. CF.AssaultDifficultyTexts[self.AssaultDifficulty]
+				.. " approaching in T-"
+				.. self.AssaultTime - self.Time
+				.. "\nBATTLE STATIONS!",
+			0,
+			0,
+			1000,
+			true
+		)
+	end
 
-						self.missionData["reinforcementsLast"] = self.Time
-					end
-				end
+	-- Launch defense activity
+	if self.AssaultTime == self.Time then
+		self:DeployTurrets()
+
+		-- Remove control actors
+		self:DestroyBeamControlPanelUI()
+
+		self:DestroyItemShopControlPanelUI()
+		self:DestroyCloneShopControlPanelUI()
+
+		self:DestroyTurretsControlPanelUI()
+
+		self:StartMusic(CF.MusicTypes.SHIP_INTENSE)
+	end
+	self:ProcessClonesControlPanelUI()
+	-- Show enemies count
+	if self.Time % 10 == 0 and self.AssaultEnemiesToSpawn > 0 then
+		FrameMan:SetScreenText("Remaining assault bots: " .. self.AssaultEnemiesToSpawn, 0, 0, 1500, true)
+	end
+
+	if self.AssaultEnemiesToSpawn > 0 and self.AssaultNextSpawnTime - self.Time < self.AssaultWarningTime then
+		self:AddObjectivePoint("INTRUDER\nALERT", self.AssaultNextSpawnPos, CF.PlayerTeam, GameActivity.ARROWDOWN)
+
+		if self.TeleportEffectTimer:IsPastSimMS(50) then
+			local p = CreateMOSParticle("Tiny Blue Glow", self.ModuleName)
+			p.Pos = self.AssaultNextSpawnPos + Vector(math.random(-20, 20), math.random(10, 30))
+			MovableMan:AddParticle(p)
+			self.TeleportEffectTimer:Reset()
+		end
+	end
+	if self.Time % 2 == 0 then
+		self:MakeAlertSound(1 / 4 + 3 / 4 / math.max((self.Time - self.AssaultTime) / 3, 1))
+	end
+
+	-- Spawn enemies
+	if self.AssaultNextSpawnTime == self.Time then
+		-- Check end of assault conditions
+		if CF.CountActors(CF.CPUTeam) == 0 and self.AssaultEnemiesToSpawn == 0 then
+			-- End of assault
+			self.GS["Mode"] = "Vessel"
+
+			-- Give some exp
+			if self.MissionReport == nil then
+				self.MissionReport = {}
 			end
-		end
+			self.MissionReport[#self.MissionReport + 1] = "We survived this assault."
+			self:GiveRandomExperienceReward(self.AssaultDifficulty)
 
-		self.missionData["missionStatus"] = "Enemies left: " .. tostring(count)
+			-- Remove turrets
+			self:RemoveDeployedTurrets()
 
-		-- Start checking for victory only when all units were spawned
-		if self.SpawnTable == nil and count == 0 and not MovableMan.AddedActors() then
-			self:GiveMissionRewards()
-			self.missionData["stage"] = CF.MissionStages.COMPLETED
+			-- Re-init consoles
+			self:InitConsoles()
 
-			-- Remember when we started showing misison status message
-			self.missionData["statusShowStart"] = self.Time
-			self.missionData["missionEndTime"] = self.Time
-		end
+			-- Launch ship assault encounter
+			local id = "COUNTERATTACK"
+			self.RandomEncounterID = id
+			self.RandomEncounterVariant = 0
 
-		-- Send reinforcements if available
-		if
-			self.missionData["reinforcementsTriggered"]
-			and self.Time >= self.missionData["reinforcementsLast"] + self.missionData["interval"]
-		then
-			self.missionData["reinforcementsLast"] = self.Time
-			if
-				#self.missionData["landingZones"] > 0
-				and self.missionData["reinforcements"] > 0
-				and MovableMan:GetMOIDCount() < CF.MOIDLimit
-			then
-				self.missionData["reinforcements"] = self.missionData["reinforcements"] - 1
+			self.RandomEncounterDelayTimer = Timer()
+			self.RandomEncounterText = ""
+			self.RandomEncounterVariants = { "Blood for Ba'al!!", "Let them leave." }
+			self.RandomEncounterVariantsInterval = 12
+			self.RandomEncounterChosenVariant = 0
+			self.RandomEncounterIsInitialized = false
+			self.ShipControlSelectedEncounterVariant = 1
 
-				local count = math.random(2)
-				local f = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])
-				local ship = CF.MakeActor(CF.Crafts[f], CF.CraftClasses[f], CF.CraftModules[f])
-				if ship then
-					for i = 1, count do
-						local actor = CF.SpawnAIUnit(self.GS, self.missionData["missionTarget"], CF.CPUTeam, nil, nil)
-						if actor then
-							ship:AddInventoryItem(actor)
-						end
-					end
-					ship.Team = CF.CPUTeam
-					ship.Pos = Vector(self.missionData["landingZones"][math.random(#self.missionData["landingZones"])].X, -10)
-					ship.AIMode = Actor.AIMODE_DELIVER
-					MovableMan:AddActor(ship)
-				end
-			end
-		end
+			-- Set the availability of the next assault so that they don't happen back-to-back
+			self.encounterEnableTime = self.Time + CF.ShipAssaultCooldown
 
-		-- Trigger 'counterattack', send every third actor to attack player troops
-		if
-			not self.missionData["counterAttackTriggered"]
-			and self.missionData["counterAttackDelay"] > 0
-			and self.Time >= self.missionData["missionStartTime"] + self.missionData["counterAttackDelay"]
-		then
-			self.missionData["counterAttackTriggered"] = true
-			self:StartMusic(CF.MusicTypes.MISSION_INTENSE)
+			-- Switch to ship panel
+			local bridgeempty = true
+			local plrtoswitch = -1
 
-			local count = 0
-
-			for actor in MovableMan.Actors do
-				if actor.Team == CF.CPUTeam then
-					count = count + 1
-
-					if count % 3 == 0 then
-						CF.HuntForActors(actor, CF.PlayerTeam)
-					end
-				end
-			end
-		end
-	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
-		if not self.MissionEndMusicPlayed then
-			self:StartMusic(CF.MusicTypes.VICTORY)
-			self.MissionEndMusicPlayed = true
-		end
-		self.missionData["missionStatus"] = "MISSION COMPLETED"
-
-		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-				FrameMan:ClearScreenText(player)
-				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)
+				local act = self:GetControlledActor(player)
+
+				if act and MovableMan:IsActor(act) then
+					if act.PresetName ~= "Ship Control Panel" and plrtoswitch == -1 then
+						plrtoswitch = player
+					end
+
+					if act.PresetName == "Ship Control Panel" then
+						bridgeempty = false
+					end
+				end
+			end
+
+			if plrtoswitch > -1 and bridgeempty and MovableMan:IsActor(self.ShipControlPanelActor) then
+				self:SwitchToActor(self.ShipControlPanelActor, plrtoswitch, CF.PlayerTeam)
+			end
+			self.ShipControlMode = self.ShipControlPanelModes.REPORT
+		end
+
+		--print ("Spawn")
+		self.AssaultNextSpawnTime = self.Time + CF.AssaultDifficultySpawnInterval[self.AssaultDifficulty]
+
+		local cnt = math.random(
+			math.ceil(CF.AssaultDifficultySpawnBurst[self.AssaultDifficulty] * 0.5),
+			CF.AssaultDifficultySpawnBurst[self.AssaultDifficulty]
+		)
+		local engineer = false
+		for j = 1, cnt do
+			if self.AssaultEnemiesToSpawn > 0 then
+				local act = CF.SpawnAIUnitWithPreset(
+					self.GS,
+					self.AssaultEnemyPlayer,
+					CF.CPUTeam,
+					self.AssaultNextSpawnPos + Vector(math.random(-4, 4), math.random(-2, 2)),
+					Actor.AIMODE_BRAINHUNT,
+					math.random(self.AssaultDifficulty)
+				)
+
+				if act then
+					self.AssaultEnemiesToSpawn = self.AssaultEnemiesToSpawn - 1
+					if not engineer and math.random() < self.AssaultDifficulty / CF.MaxDifficulty then
+						act:AddInventoryItem(
+							(
+									math.random() < 0.5 and CreateHDFirearm("Heavy Digger", "Base.rte")
+									or CreateTDExplosive("Timed Explosive", "Coalition.rte")
+								)
+						)
+						engineer = true
+					end
+					act.HFlipped = cnt == 1 and math.random() < 0.5 or j % 2 == 0
+					MovableMan:AddActor(act)
+
+					act:FlashWhite(math.random(200, 300))
+				end
 			end
 		end
-	end --]]--
+		local sfx = CreateAEmitter("Teleporter Effect A")
+		sfx.Pos = self.AssaultNextSpawnPos
+		MovableMan:AddParticle(sfx)
+
+		self.AssaultWarningTime = 6 - math.floor(self.AssaultDifficulty * 0.5 + 0.5)
+		self.AssaultNextSpawnPos = self.AssaultSpawn and self.AssaultSpawn:GetRandomPoint()
+			or self.EnemySpawn[math.random(#self.EnemySpawn)]
+	end
 end
 -----------------------------------------------------------------------------------------
 --

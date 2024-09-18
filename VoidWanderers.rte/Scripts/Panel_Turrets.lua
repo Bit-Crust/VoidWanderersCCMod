@@ -361,8 +361,8 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 								self.TurretsControlPanelActor[turr].Pos.Y + ay * 8
 							)
 
-							--if self.Ship:IsInside(newpos) and SceneMan:GetTerrMatter(newpos.X, newpos.Y) == 0 then
-							if self.Ship:IsInside(newpos) then
+							--if self.vesselData["ship"]:IsInside(newpos) and SceneMan:GetTerrMatter(newpos.X, newpos.Y) == 0 then
+							if self.vesselData["ship"]:IsInside(newpos) then
 								self.TurretsControlPanelActor[turr].Pos = newpos
 								self.TurretsControlPanelPos[turr] = newpos
 								self.GS["Actors - Turret" .. turr .. "X"] = math.floor(newpos.X)

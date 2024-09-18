@@ -401,7 +401,7 @@ function(self, variant)
 				local boundsDist = self.RandomEncounterGatesDistance * 0.8 - 150
 				if
 					(
-						self.Ship:IsInside(rocket.Pos)
+						self.vesselData["ship"]:IsInside(rocket.Pos)
 						or not (rocket.Pos.X > SceneMan.SceneWidth - boundsDist or rocket.Pos.X < boundsDist)
 					) and not empty
 				then
@@ -461,7 +461,7 @@ function(self, variant)
 			for actor in MovableMan.Actors do
 				local boundsDist = self.RandomEncounterGatesDistance - actor.IndividualRadius
 				--Reavers in danger of flying out of bounds
-				if actor.Team == CF["CPUTeam"] and IsAHuman(actor) and not self.Ship:IsInside(actor.Pos) then --(actor.Pos.X > SceneMan.SceneWidth - boundsDist or actor.Pos.X < boundsDist) then
+				if actor.Team == CF["CPUTeam"] and IsAHuman(actor) and not self.vesselData["ship"]:IsInside(actor.Pos) then --(actor.Pos.X > SceneMan.SceneWidth - boundsDist or actor.Pos.X < boundsDist) then
 					local active = actor.Status < Actor.INACTIVE
 					if active then
 						actor.Status = Actor.UNSTABLE

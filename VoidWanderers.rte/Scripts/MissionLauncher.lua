@@ -86,7 +86,7 @@ function VoidWanderers:StartActivity(isNewGame)
 		self:LoadSaveData()
 		dofile(SCRIPT_TO_LAUNCH)
 		self:DestroyConsoles()
-		self:StartActivity(isNewGame)
+		self:StartActivity(false)
 	end
 
 	-- This makes certain the correct maps are considered
@@ -148,6 +148,9 @@ function VoidWanderers:OnSave()
 	end
 	if self.encounterData then
 		self.saveLoadHandler:SaveTableAsString("encounterData", self.encounterData)
+	end
+	if self.vesselData then
+		self.saveLoadHandler:SaveTableAsString("vesselData", self.vesselData)
 	end
 	local controlledActors = { }
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -295,20 +298,6 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:SaveCurrentGameState()
 	CF.WriteConfigFile(self.GS, self.ModuleName, STATE_CONFIG_FILE)
-end
------------------------------------------------------------------------------------------
---
------------------------------------------------------------------------------------------
-function VoidWanderers:WriteSaveData()
-	if self.GS then
-		self.saveLoadHandler:SaveTableAsString("gameState", self.GS)
-	end
-	if self.missionData then
-		self.saveLoadHandler:SaveTableAsString("missionData", self.missionData)
-	end
-	if self.deployment then
-		self.saveLoadHandler:SaveTableAsString("deploymentData", self.deployment)
-	end
 end
 -----------------------------------------------------------------------------------------
 --

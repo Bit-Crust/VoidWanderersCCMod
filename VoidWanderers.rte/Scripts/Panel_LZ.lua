@@ -661,7 +661,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 	end
 
 	if self.GS["DeserializeDeployedTeam"] == "True" then
-		if self.missionData["missionAvailable"] then
+		if self.missionData then
 			if self.missionData["stage"] ~= CF.MissionStages.COMPLETED then
 				self:GiveMissionPenalties()
 			end

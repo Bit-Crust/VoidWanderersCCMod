@@ -136,7 +136,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 					self.ClonesControlMode = self.ClonesControlPanelModes.SELL
 				end
 
-				-- don't let players dump bodies during assaults, that would not be good
+				-- Don't let players dump bodies during assaults, that would not be good
 				if self.GS["Mode"] == "Assault" and self.ClonesControlMode <= self.ClonesControlPanelModes.CLONES - 1 then
 					self.ClonesControlMode = self.ClonesControlPanelModes.CLONES
 				end
@@ -859,7 +859,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 	if
 		self.ClonesInputPos ~= nil
 		and self.ClonesControlPanelActor ~= nil
-		and self.GS["Mode"] ~= "Assault"
+		and self.GS["Mode"] == "Vessel"
 		and not self.RandomEncounterAttackLaunched
 	then
 		local count = CF["CountUsedClonesInArray"](self.Clones)

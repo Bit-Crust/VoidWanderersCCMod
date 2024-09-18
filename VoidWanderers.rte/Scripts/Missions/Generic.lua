@@ -15,7 +15,7 @@
 --	enemy actors, if not they will probably move to player LZ's since they are brain units
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionCreate(isNewGame)
+function VoidWanderers:MissionCreate()
 	print("GENERIC CREATE")
 
 	-- Enumerated constant
@@ -55,10 +55,10 @@ function VoidWanderers:MissionCreate(isNewGame)
 			aimode = math.random() < 0.7 and Actor.AIMODE_SENTRY or Actor.AIMODE_PATROL
 		end
 
-		table.insert(self.SpawnTable, { Preset=preset, Team=team, Player=player, AIMode=aimode, Pos=pos })
+		self:SpawnViaTable{ Preset=preset, Team=team, Player=player, AIMode=aimode, Pos=pos }
 
 		if math.random() < CF.AmbientEnemyDoubleSpawn then
-			table.insert(self.SpawnTable, { Preset=CF.PresetTypes.ENGINEER, Team=team, Player=player, AIMode=Actor.AIMODE_GOLDDIG, Pos=pos })
+			self:SpawnViaTable{ Preset=CF.PresetTypes.ENGINEER, Team=team, Player=player, AIMode=Actor.AIMODE_GOLDDIG, Pos=pos }
 		end
 	end
 

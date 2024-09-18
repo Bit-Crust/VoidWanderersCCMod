@@ -9,20 +9,6 @@ function VoidWanderers:MissionCreate()
 	
 	-- Mission difficulty settings
 	local diff = self.missionData["difficulty"]
-	
-	if diff == 1 then
-		self.missionData["troopCount"] = 3
-	elseif diff == 2 then
-		self.missionData["troopCount"] = 4
-	elseif diff == 3 then
-		self.missionData["troopCount"] = 5
-	elseif diff == 4 then
-		self.missionData["troopCount"] = 6
-	elseif diff == 5 then
-		self.missionData["troopCount"] = 7
-	elseif diff == 6 then
-		self.missionData["troopCount"] = 8
-	end
 
 	CF.CreateAIUnitPresets(
 		self.GS,
@@ -60,30 +46,22 @@ function VoidWanderers:MissionCreate()
 	end
 	self.missionData["sentryRadius"] = 100 + math.sqrt(FrameMan.PlayerScreenHeight ^ 2 + FrameMan.PlayerScreenWidth ^ 2) * 0.5
 
-	local pos = 1
-
 	-- Spawn troops
-	for i = 1, self.missionData["troopCount"] do
-		local nw = {}
-		nw["Preset"] = squad[i]
-		nw["Team"] = CF.CPUTeam
-		nw["Player"] = self.missionData["missionTarget"]
-		nw["AIMode"] = Actor.AIMODE_SENTRY
-		nw["Pos"] = troops[pos]
-		--nw["Digger"] = true
-
-		table.insert(self.SpawnTable, nw)
-
-		pos = pos + 1
-		if pos > #troops then
-			pos = 1
-		end
-	end --]]--
-
 	self.missionData["squad"] = {}
+	for i = 1, diff + 2 do
+		local actor = self:SpawnViaTable{
+			Preset = squad[math.random(#squad)],
+			Team = CF.CPUTeam,
+			Player = self.missionData["missionTarget"],
+			AIMode = Actor.AIMODE_GOTO,
+			Pos = troops[(i - 1) % #troops + 1]
+		}
+		actor:AddAIMOWaypoint(self.missionData["brain"])
+
+		table.insert(self.missionData["squad"], { Actor = actor, Abandoned = self.Time })
+	end
 
 	self.missionData["brainHuntTriggered"] = false
-	self.missionData["squadFilled"] = false
 	self.missionData["assaultWaitTime"] = self.Time
 end
 -----------------------------------------------------------------------------------------
@@ -118,40 +96,6 @@ function VoidWanderers:MissionUpdate()
 		end
 
 		self.missionData["missionStatus"] = "Enemies left: " .. tostring(count)
-
-		-- Fill squad
-		if not self.missionData["squadFilled"] then
-			for actor in MovableMan.Actors do
-				if actor.Team == CF.CPUTeam then
-					local isinsquad = false
-
-					for i = 1, #self.missionData["squad"] do
-						if MovableMan:IsActor(self.missionData["squad"][i]["Actor"]) then
-							if self.missionData["squad"][i]["Actor"].ID == actor.ID then
-								isinsquad = true
-								break
-							end
-						end
-					end
-
-					if not isinsquad then
-						local nw = #self.missionData["squad"] + 1
-						self.missionData["squad"][nw] = {}
-						self.missionData["squad"][nw]["Actor"] = actor
-						self.missionData["squad"][nw]["Abandoned"] = self.Time
-						if MovableMan:IsActor(self.missionData["brain"]) then
-							self.missionData["squad"][nw]["Actor"].AIMode = Actor.AIMODE_GOTO
-							self.missionData["squad"][nw]["Actor"]:AddAIMOWaypoint(self.missionData["brain"])
-						else
-							self.missionData["squad"][nw]["Actor"].AIMode = Actor.AIMODE_BRAINHUNT
-						end
-					end
-				end
-			end
-			if self.SpawnTable == nil then
-				self.missionData["squadFilled"] = true
-			end
-		end
 
 		-- Give squad orders
 		if MovableMan:IsActor(self.missionData["brain"]) then

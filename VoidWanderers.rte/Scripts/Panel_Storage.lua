@@ -510,7 +510,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 					end
 					adjustedDelay = math.floor(adjustedDelay / (1 + adjustedRapidity))
 
-					if self.Ship:IsInside(item.Pos) and not activated then
+					if self.vesselData["ship"]:IsInside(item.Pos) and not activated then
 						toreset = false
 
 						-- Debug

@@ -4,7 +4,7 @@
 --	Events:
 --
 -----------------------------------------------------------------------------------------
-function VoidWanderers:MissionCreate(isNewGame)
+function VoidWanderers:MissionCreate()
 	print("ZOMBIES CREATE")
 	
 	-- Mission difficulty settings
