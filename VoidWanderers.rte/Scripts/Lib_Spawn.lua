@@ -799,15 +799,15 @@ end
 -- Returns a weighted selection out of a list of options
 -----------------------------------------------------------------------------
 CF.WeightedSelection = function(list)
-	-- Build list of potential contractors' cumulative weights
+	-- Build list of cumulative weights
 	local candidates = {}
 	local sum = 0
 	for i = 1, #list do
-		sum = sum + weight
-		table.insert(candidates, {sum, id})
+		sum = sum + list[i]
+		table.insert(candidates, sum)
 	end
 	local pick = math.random() * sum
-	for id = 1, #candidates do
+	for i = 1, #candidates do
 		if pick <= candidates[i] then
 			return i
 		end

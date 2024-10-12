@@ -15,7 +15,6 @@ function Update(self)
 				CameraMan:SetScrollTarget(
 					CameraMan:GetScrollTarget(screen) - self.TravelImpulse * self.screenShakeRatio,
 					0.5,
-					false,
 					screen
 				)
 			end

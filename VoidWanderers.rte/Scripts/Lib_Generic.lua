@@ -63,8 +63,6 @@ CF.InitFactions = function(activity)
 
 	CF.ReputationPerDifficulty = 1000
 
-	CF.RandomEncounterProbability = 0.15
-
 	-- When reputation is below this level, the enemy starts attacking the player
 	CF.ReputationHuntThreshold = -500
 
@@ -86,10 +84,6 @@ CF.InitFactions = function(activity)
 	-- versions of UI glows, which live twice longer. In order to work main execution thread must
 	-- count frames so other function can decide if it's odd or even frame right now
 	CF.FrameCounter = 0
-
-	CF.ShipAssaultDelay = 30
-	CF.ShipCounterattackDelay = 20
-	CF.ShipAssaultCooldown = 150
 
 	CF.TeamReturnDelay = 5
 
@@ -183,7 +177,8 @@ CF.InitFactions = function(activity)
 	-- How much percents of price to add if player and ally factions natures are not the same
 	CF.SyntheticsToOrganicRatio = 0.70
 
-	CF.EnableRandomEncounters = true
+	CF.RandomEncountersEnabled = true
+	CF.RandomEncounterProbability = 0.0015
 
 	CF.FogOfWarResolution = 4
 
@@ -251,6 +246,7 @@ CF.InitFactions = function(activity)
 		"Engineer",
 		"Defender",
 	}
+
 	CF.PresetTypes = {
 		INFANTRY1 = 1,
 		INFANTRY2 = 2,
@@ -830,6 +826,8 @@ CF.DrawString = function(str, pos, width, height)
 			x = x + 6
 		end
 	end
+
+	return y - pos.Y + 12
 end
 -----------------------------------------------------------------------------
 -- Converts time in second to string h:mm:ss
@@ -1482,6 +1480,7 @@ end
 -----------------------------------------------------------------------------
 CF.ChangeGold = function(c, amount)
 	CF.SetPlayerGold(c, CF.GetPlayerGold(c) + amount)
+	return CF.GetPlayerGold(c);
 end
 -----------------------------------------------------------------------------------------
 -- Get table with inventory of actor, inventory cleared as a result

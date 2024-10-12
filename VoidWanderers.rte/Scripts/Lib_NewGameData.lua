@@ -33,7 +33,7 @@ CF.MakeFreshGameState = function(playerFaction, cpus, activity)
 	gameState["PlayerGold"] = tostring(math.floor(activity:GetStartingGold()))
 
 	-- Assign player ship
-	gameState["PlayerVessel"] = "Lynx"
+	gameState["PlayerVessel"] = "Mule"
 	--gameState["PlayerVessel"] = "Ager 9th" -- DEBUG
 
 	-- Set vessel attributes
@@ -107,12 +107,27 @@ CF.MakeFreshGameState = function(playerFaction, cpus, activity)
 	end
 
 	-- Assign initial player actors in storage
-	for i = 1, gameState["PlayerVesselClonesCapacity"] do
+	local cloneCapacity = tonumber(gameState["PlayerVesselClonesCapacity"]);
+	local actorPrefix = "ClonesStorage"
+
+	if cloneCapacity <= 0 then
+		actorPrefix = "Actor"
+		gameState["DeserializeOnboard"] = "True";
+	end
+
+	if actorPrefix == "Actor" or cloneCapacity < 4 then
+		cloneCapacity = 4;
+	end
+	
+	print(actorPrefix)
+	print(cloneCapacity)
+
+	for i = 1, cloneCapacity do
 		local chosenActor = actors[math.random(#actors)]
-		gameState["ClonesStorage" .. i .. "Preset"] = CF.ActPresets[playerFaction][chosenActor["Actor"]]
-		gameState["ClonesStorage" .. i .. "Class"] = CF.ActClasses[playerFaction][chosenActor["Actor"]]
-		gameState["ClonesStorage" .. i .. "Module"] = CF.ActModules[playerFaction][chosenActor["Actor"]]
-		gameState["ClonesStorage" .. i .. "Identity"] = i - 1
+		gameState[actorPrefix .. i .. "Preset"] = CF.ActPresets[playerFaction][chosenActor["Actor"]]
+		gameState[actorPrefix .. i .. "Class"] = CF.ActClasses[playerFaction][chosenActor["Actor"]]
+		gameState[actorPrefix .. i .. "Module"] = CF.ActModules[playerFaction][chosenActor["Actor"]]
+		gameState[actorPrefix .. i .. "Identity"] = i - 1
 
 		local item = nil
 		local slt = 1
@@ -123,14 +138,14 @@ CF.MakeFreshGameState = function(playerFaction, cpus, activity)
 		if list then
 			if count <= 1 then
 				item = list[math.random(#list)]
-				gameState["ClonesStorage" .. i .. "Item" .. slt .. "Preset"] = CF.ItmPresets[playerFaction][item["Item"]]
-				gameState["ClonesStorage" .. i .. "Item" .. slt .. "Class"] = CF.ItmClasses[playerFaction][item["Item"]]
-				gameState["ClonesStorage" .. i .. "Item" .. slt .. "Module"] = CF.ItmModules[playerFaction][item["Item"]]
+				gameState[actorPrefix .. i .. "Item" .. slt .. "Preset"] = CF.ItmPresets[playerFaction][item["Item"]]
+				gameState[actorPrefix .. i .. "Item" .. slt .. "Class"] = CF.ItmClasses[playerFaction][item["Item"]]
+				gameState[actorPrefix .. i .. "Item" .. slt .. "Module"] = CF.ItmModules[playerFaction][item["Item"]]
 				slt = slt + 1
 			else
-				gameState["ClonesStorage" .. i .. "Item" .. slt .. "Preset"] = CF.ItmPresets[playerFaction][item["Item"]]
-				gameState["ClonesStorage" .. i .. "Item" .. slt .. "Class"] = CF.ItmClasses[playerFaction][item["Item"]]
-				gameState["ClonesStorage" .. i .. "Item" .. slt .. "Module"] = CF.ItmModules[playerFaction][item["Item"]]
+				gameState[actorPrefix .. i .. "Item" .. slt .. "Preset"] = CF.ItmPresets[playerFaction][item["Item"]]
+				gameState[actorPrefix .. i .. "Item" .. slt .. "Class"] = CF.ItmClasses[playerFaction][item["Item"]]
+				gameState[actorPrefix .. i .. "Item" .. slt .. "Module"] = CF.ItmModules[playerFaction][item["Item"]]
 				count = count - 1
 				goto insert
 			end

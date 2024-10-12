@@ -416,7 +416,7 @@ function(self, variant)
 
 		self.RandomEncounterText = "Deploy your away team to the abandoned ship."
 		self.RandomEncounterVariants = {}
-		self.RandomEncounterChosenVariant = 0
+		self.vesselData["dialogOptionChosen"] = 0
 	end
 
 	if variant == 2 then
@@ -625,7 +625,7 @@ function (self, variant)
 		else
 			self.RandomEncounterText = "The drone is charging its' weapons, move units deeper inside the ship!"
 			self.RandomEncounterVariants = {}
-			self.RandomEncounterChosenVariant = 0
+			self.vesselData["dialogOptionChosen"] = 0
 			
 			self.RandomEncounterDroneActivated = true
 			self.RandomEncounterDroneNextFire = self.Time + 18
@@ -636,7 +636,7 @@ function (self, variant)
 		if math.random(2) == 1 then
 			self.RandomEncounterText = "Shit, it's readying the Ceasefire! INCOMING!"
 			self.RandomEncounterVariants = {}
-			self.RandomEncounterChosenVariant = 0
+			self.vesselData["dialogOptionChosen"] = 0
 			
 			self.RandomEncounterDroneActivated = true
 			self.RandomEncounterDroneNextFire = self.Time + 6
@@ -746,98 +746,34 @@ end
 --]]
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
---[[ Asteroid field
+local id = "REAVERS"
+CF.RandomEncounters[#CF.RandomEncounters + 1] = id
+
+CF.RandomEncounterScripts[id] = "VoidWanderers.rte/Scripts/Encounters/Reavers.lua"
+CF.RandomEncounterEligibilityTests[id] = function(self)
+	return self.GS["Planet"] == "MapPack-Space"
+		or self.GS["Planet"] == "MapPack-City"
+		or self.GS["Planet"] == "MapPack-Earth"
+		or self.GS["Planet"] == "CC-11y";
+end
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- Asteroid field
 local id = "ASTEROIDS"
 CF.RandomEncounters[#CF.RandomEncounters + 1] = id
-CF.RandomEncountersInitialTexts[id] = "We are intersecting a dense asteroid field! Advancing at current pace may damage the ship."
-CF.RandomEncountersInitialVariants[id] = {"Let's slow down.", "Full speed ahead!"}
-CF.RandomEncountersVariantsInterval[id] = 24
-CF.RandomEncountersOneTime[id] = false
-CF.RandomEncountersFunctions[id] = 
-function (self, variant)
-	if not self.RandomEncounterIsInitialized then
-		self.RandomEncounterAsteroidStart = false
-		self.RandomEncounterAsteroidCount = math.random(100, 200)
-		self.RandomEncounterAsteroidInterval = 1
-		self.RandomEncounterAsteroidVelocity = 5
-		self.RandomEncounterAsteroidNext = 0
-		self.RandomEncounterIsInitialized = true
-	end
-	
-	if variant == 1 then
-		local reaction = {"Easy does it...", "Steady as she goes..."}
-		self.RandomEncounterText = reaction[math.random(#reaction)]
-		self.RandomEncounterVariants = {}
-		self.RandomEncounterChosenVariant = 0
-		
-		self.RandomEncounterAsteroidInterval = 1
-		self.RandomEncounterAsteroidSpawn = 5
-		self.RandomEncounterAsteroidVelocity = 10
-		self.RandomEncounterAsteroidStart = true
-		self.RandomEncounterAsteroidNext = self.Time + 8
 
-		if self.vesselData["engines"] ~= nil then
-			for i = 1, #self.vesselData["engines"] do
-				self.vesselData["engines"][i].ToDelete = true
-			end
-			self.vesselData["engines"] = nil
-		end
-	end
-
-	if variant == 2 then
-		local reaction = {"OOO KURWAAAAA!!", "DAVAI BLYAT!!", "OH MAN, OH GOD, OH MAN!!", "LEEROOOY JENKINNSSS!!", "GAME OVER MAN, GAME OVER!!"}
-		local shipSpeed = tonumber(self.GS["PlayerVesselSpeed"])
-		self.RandomEncounterText = math.random(100) < shipSpeed and reaction[math.random(#reaction)] or "BRACE FOR IMPACT!!"
-		self.RandomEncounterVariants = {}
-		self.RandomEncounterChosenVariant = 0
-		
-		self.RandomEncounterAsteroidInterval = 0
-		self.RandomEncounterAsteroidSpawn = 1
-		self.RandomEncounterAsteroidVelocity = 40 + shipSpeed
-		self.RandomEncounterAsteroidStart = true
-		self.RandomEncounterAsteroidNext = self.Time + 4
-	end
-	
-	if self.RandomEncounterAsteroidStart then
-		if self.Time >= self.RandomEncounterAsteroidNext then
-		
-			if self.RandomEncounterAsteroidCount > 0 then
-				self.RandomEncounterDelayTimer:Reset()
-				for i = 1, self.RandomEncounterAsteroidSpawn do
-					local asteroid
-					if math.random() < 0.01 then
-						asteroid = CreateMOSRotating("Golden Asteroid " .. math.random(3), self.ModuleName)
-					else
-						asteroid = CreateMOSRotating("Asteroid " .. math.random(36), self.ModuleName)
-					end
-					asteroid.Pos = Vector(5 - 50 * i/self.RandomEncounterAsteroidSpawn, SceneMan.SceneHeight * (i - 1)/self.RandomEncounterAsteroidSpawn + math.random(SceneMan.SceneHeight/self.RandomEncounterAsteroidSpawn))
-					asteroid.Vel = Vector(self.RandomEncounterAsteroidVelocity, 0)
-					asteroid.AngularVel = math.random(-5, 5)
-					asteroid.GlobalAccScalar = 0.5
-					MovableMan:AddParticle(asteroid)
-
-					self.RandomEncounterAsteroidCount = self.RandomEncounterAsteroidCount - 1
-				end
-			elseif self.RandomEncounterDelayTimer:IsPastSimMS(5000) then
-				self.MissionReport = {}
-				self.MissionReport[#self.MissionReport + 1] = "Looks like we've made it through."
-				CF.SaveMissionReport(self.GS, self.MissionReport)
-				-- Finish encounter
-				self.RandomEncounterID = nil
-			end
-			self.RandomEncounterAsteroidNext = self.Time + self.RandomEncounterAsteroidInterval
-		end
-	end
-end
---]]
+CF.RandomEncounterScripts[id] = "VoidWanderers.rte/Scripts/Encounters/AsteroidField.lua";
+CF.RandomEncounterEligibilityTests[id] = function(self)
+	return self.GS["Planet"] == "MapPack-Space";
+end;
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
---[[ Faction assault
+-- Faction assault
 local id = "ASSAULT"
 CF.RandomEncounters[#CF.RandomEncounters + 1] = id
 
-CF.RandomEncountersScripts[id] = "VoidWanderers.rte/Scripts/Encounters/FactionAmbush.lua"
-CF.RandomEncountersEligibilityFunctions[id] = function(self)
+CF.RandomEncounterScripts[id] = "VoidWanderers.rte/Scripts/Encounters/FactionAmbush.lua"
+CF.RandomEncounterEligibilityTests[id] = function(self)
 	for i = 1, tonumber(self.GS["ActiveCPUs"]) do
 		local rep = tonumber(self.GS["Player" .. i .. "Reputation"])
 		if rep <= CF.ReputationHuntThreshold then

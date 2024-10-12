@@ -33,6 +33,40 @@ CF["VesselStartBombBays"][id] = 0
 CF["VesselMaxBombStorage"][id] = 15
 CF["VesselStartBombStorage"][id] = 0
 
+local id = "Mule"
+CF["Vessel"][#CF["Vessel"] + 1] = id
+CF["VesselPrice"][id] = 10000
+CF["VesselName"][id] = "Mule"
+CF["VesselScene"][id] = "Vessel Mule"
+CF["VesselModule"][id] = "VoidWanderers.rte"
+
+CF["VesselMaxClonesCapacity"][id] = 0
+CF["VesselStartClonesCapacity"][id] = 0
+
+CF["VesselMaxStorageCapacity"][id] = 120
+CF["VesselStartStorageCapacity"][id] = 60
+
+CF["VesselMaxLifeSupport"][id] = 8
+CF["VesselStartLifeSupport"][id] = 4
+
+CF["VesselMaxCommunication"][id] = 6
+CF["VesselStartCommunication"][id] = 4
+
+CF["VesselMaxSpeed"][id] = 50
+CF["VesselStartSpeed"][id] = 30
+
+CF["VesselMaxTurrets"][id] = 2
+CF["VesselStartTurrets"][id] = 0
+
+CF["VesselMaxTurretStorage"][id] = 8
+CF["VesselStartTurretStorage"][id] = 0
+
+CF["VesselMaxBombBays"][id] = 1
+CF["VesselStartBombBays"][id] = 0
+
+CF["VesselMaxBombStorage"][id] = 20
+CF["VesselStartBombStorage"][id] = 0
+
 local id = "Gryphon"
 CF["Vessel"][#CF["Vessel"] + 1] = id
 CF["VesselPrice"][id] = 50000

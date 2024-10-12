@@ -46,7 +46,7 @@ function VoidWanderers:ProcessBombsControlPanelUI()
 						right = true
 					end
 
-					if self.HoldTimer:IsPastSimMS(25) then
+					if self.HoldTimer:IsPastSimMS(CF["KeyRepeatDelay"]) then
 						self.HoldTimer:Reset()
 
 						if cont:IsState(Controller.HOLD_LEFT) then

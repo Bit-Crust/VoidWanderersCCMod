@@ -223,7 +223,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 									)
 
 									CF["SetTurretsArray"](self.GS, self.Turrets)
-									CF.ChangeGold(self.GS, -self.CloneShopSelectedClonePrice)
+									self:SetTeamFunds(CF.ChangeGold(self.GS, -self.CloneShopSelectedClonePrice), CF.PlayerTeam)
 								end
 							else
 								if
@@ -240,8 +240,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 									self.Clones[c]["Items"] = {}
 
 									CF["SetClonesArray"](self.GS, self.Clones)
-
-									CF.ChangeGold(self.GS, -self.CloneShopSelectedClonePrice)
+									self:SetTeamFunds(CF.ChangeGold(self.GS, -self.CloneShopSelectedClonePrice), CF.PlayerTeam)
 								end
 							end
 						else

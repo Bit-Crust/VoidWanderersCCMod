@@ -382,7 +382,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 										CF["LocationAttributeTypes"].BLACKMARKET
 									)
 								then
-									CF.ChangeGold(self.GS, self.SelectedClonePrice)
+									self:SetTeamFunds(CF.ChangeGold(self.GS, self.SelectedClonePrice), CF.PlayerTeam)
 								end
 
 								-- Remove actor from array
@@ -964,7 +964,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 									self:SwitchToActor(self.ClonesControlPanelActor, controller.Player, CF["PlayerTeam"])
 								end
 								if actor.GoldCarried > 0 then
-									CF.ChangeGold(self.GS, actor.GoldCarried)
+									self:SetTeamFunds(CF.ChangeGold(self.GS, actor.GoldCarried), CF.PlayerTeam)
 								end
 
 								actor.ToDelete = true

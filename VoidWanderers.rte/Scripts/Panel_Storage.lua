@@ -351,7 +351,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 									or CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].BLACKMARKET)
 								then
 									if self.StorageSelectedItemPrice ~= nil then
-										CF.ChangeGold(self.GS, self.StorageSelectedItemPrice)
+										self:SetTeamFunds(CF.ChangeGold(self.GS, self.StorageSelectedItemPrice), CF.PlayerTeam)
 									end
 								end
 							end

@@ -208,7 +208,7 @@ function(self, variant)
 
 		self.RandomEncounterText = "Deploy your away team to the enemy ship."
 		self.RandomEncounterVariants = {}
-		self.RandomEncounterChosenVariant = 0
+		self.vesselData["dialogOptionChosen"] = 0
 
 		self.missionData["difficulty"] = self.AssaultDifficulty
 

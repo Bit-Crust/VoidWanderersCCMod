@@ -8,6 +8,9 @@
 function VoidWanderers:EncounterCreate()
 	print("FACTION AMBUSH CREATE")
 
+	self.encounterData["assaultDelay"] = 30
+	self.vesselData["flightDisabled"] = true
+
 	-- Select random assault CPU based on how angry they are
 	local angry = {}
 	local anger = {}
@@ -26,32 +29,45 @@ function VoidWanderers:EncounterCreate()
 		self.encounterData["ambushAssailant"] = angry[antagonist]
 		self.encounterData["ambushDifficulty"] = anger[antagonist]
 	end
-	
-	self.AssaultTime = self.Time + CF.ShipAssaultDelay
-	self.AssaultEnemiesToSpawn = CF.AssaultDifficultyUnitCount[self.AssaultDifficulty]
-	self.AssaultNextSpawnTime = self.AssaultTime + CF.AssaultDifficultySpawnInterval[self.AssaultDifficulty] + 1
-	self.AssaultNextSpawnPos = self.AssaultSpawn and self.AssaultSpawn:GetRandomPoint()
-		or self.EnemySpawn[math.random(#self.EnemySpawn)]
-	self.AssaultWarningTime = 6 - math.floor(self.AssaultDifficulty * 0.5 + 0.5)
+
+	self:SendTransmission("Help, it's the " .. self.GS["Player" .. self.encounterData["ambushAssailant"] .. "Faction"], {"Ack!", "Ulp!"})
+	self:StartMusic(CF.MusicTypes.SHIP_INTENSE)
+
+	self.encounterData["enemiesToSpawn"] = CF.AssaultDifficultyUnitCount[self.encounterData["ambushDifficulty"]]
+	self.encounterData["nextSpawnTime"] = self.encounterData["encounterStartTime"] + CF.AssaultDifficultySpawnInterval[self.encounterData["ambushDifficulty"]] + 1
+	self.encounterData["nextSpawnPos"] = self.AssaultSpawn and self.AssaultSpawn:GetRandomPoint()
+		or (self.EnemySpawn and self.EnemySpawn[math.random(#self.EnemySpawn)] or nil);
+	self.encounterData["ambushWarningTime"] = 6 - math.floor(self.encounterData["ambushDifficulty"] * 0.5 + 0.5)
 
 	-- Create attacker's unit presets
 	CF.CreateAIUnitPresets(
 		self.GS,
-		self.AssaultEnemyPlayer,
-		CF.GetTechLevelFromDifficulty(self.GS, self.AssaultEnemyPlayer, self.AssaultDifficulty, CF.MaxDifficulty)
+		self.encounterData["ambushAssailant"],
+		CF.GetTechLevelFromDifficulty(
+			self.GS, 
+			self.encounterData["ambushAssailant"], 
+			self.encounterData["ambushDifficulty"], 
+			CF.MaxDifficulty
+		)
 	)
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:EncounterUpdate()
-
-	if self.AssaultTime > self.Time then
-		if self.Time % 2 == 0 then
-			self:MakeAlertSound(1 / math.max(self.AssaultTime - self.Time / 30, 1))
-		end
+	if self.vesselData["dialogOptionChosen"] ~= 0 then
+		self.encounterData["encounterConcluded"] = true
+		self.vesselData["flightDisabled"] = false
+		self.vesselData["dialog"] = nil
+		self:RemoveDeployedTurrets()
 	end
 
+	if self.encounterData["encounterStartTime"] > self.Time then
+		if self.Time % 2 == 0 then
+			self:MakeAlertSound(1 / math.max(self.encounterData["encounterStartTime"] - self.Time / 30, 1))
+		end
+	end
+	--[[
 	if self.Time < self.AssaultTime then
 		FrameMan:ClearScreenText(0)
 		FrameMan:SetScreenText(
@@ -125,15 +141,14 @@ function VoidWanderers:EncounterUpdate()
 			-- Launch ship assault encounter
 			local id = "COUNTERATTACK"
 			self.RandomEncounterID = id
-			self.RandomEncounterVariant = 0
 
-			self.RandomEncounterDelayTimer = Timer()
+			self.vesselData["dialogDefaultTimer"] = Timer()
 			self.RandomEncounterText = ""
 			self.RandomEncounterVariants = { "Blood for Ba'al!!", "Let them leave." }
 			self.RandomEncounterVariantsInterval = 12
-			self.RandomEncounterChosenVariant = 0
+			self.vesselData["dialogOptionChosen"] = 0
 			self.RandomEncounterIsInitialized = false
-			self.ShipControlSelectedEncounterVariant = 1
+			self.vesselData["dialogOptionSelected"] = 1
 
 			-- Set the availability of the next assault so that they don't happen back-to-back
 			self.encounterEnableTime = self.Time + CF.ShipAssaultCooldown
@@ -207,6 +222,7 @@ function VoidWanderers:EncounterUpdate()
 		self.AssaultNextSpawnPos = self.AssaultSpawn and self.AssaultSpawn:GetRandomPoint()
 			or self.EnemySpawn[math.random(#self.EnemySpawn)]
 	end
+	--]]
 end
 -----------------------------------------------------------------------------------------
 --

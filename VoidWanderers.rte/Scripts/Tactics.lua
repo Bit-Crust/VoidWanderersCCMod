@@ -3,11 +3,16 @@
 -- Start Activity
 -----------------------------------------------------------------------------------------
 function VoidWanderers:StartActivity(isNewGame)
-	print("VoidWanderers:Tactics:StartActivity - Begin")
+	print("VoidWanderers:Tactics:StartActivity - Begin");
 
 	-- Disable string rendering optimizations because letters start to fall down
-	CF.FrameCounter = 0
-	CF.GS = self.GS
+	CF.FrameCounter = 0;
+	CF.GS = self.GS;
+	
+	self.vesselData = {};
+	self.missionData = {};
+	self.ambientData = {};
+	self.encounterData = {};
 
 	if self.IsInitialized then
 		return
@@ -25,6 +30,9 @@ function VoidWanderers:StartActivity(isNewGame)
 	self.LastMusicType = -1
 	self.LastMusicTrack = -1
 
+	self.AlarmTimer = Timer()
+	self.AlarmTimer:Reset()
+
 	self.TickTimer = Timer()
 	self.TickTimer:Reset()
 	self.TickInterval = CF.TickInterval
@@ -35,22 +43,52 @@ function VoidWanderers:StartActivity(isNewGame)
 	self.HoldTimer = Timer()
 	self.HoldTimer:Reset()
 
-	self.RandomEncounterDelayTimer = nil
-
 	self.SceneTimer = Timer()
 	self.SceneTimer:Reset()
 
 	-- All items in this queue will be removed
 	self.ItemRemoveQueue = {}
 
-	self.RandomEncounterID = nil
-
 	self.PlayerFaction = self.GS["PlayerFaction"]
-
-	self.distanceToAttemptEvent = 100 - self.GS["Difficulty"] * 0.5
 	
 	-- Load generic level data
 	self.SceneConfig = CF.ReadSceneConfigFile(SceneMan.Scene.ModuleName, SceneMan.Scene.PresetName .. ".dat")
+
+	if SceneMan.Scene:GetOptionalArea("Vessel") then
+		if not isNewGame then
+			self.vesselData = self.saveLoadHandler:ReadSavedStringAsTable("vesselData")
+		else
+			self.vesselData = {}
+			self.vesselData["initialized"] = true
+			self.vesselData["artificialGravity"] = Vector(0, rte.PxTravelledPerFrame / (1 + SceneMan.Scene.GlobalAcc.Y))
+			self.vesselData["ship"] = SceneMan.Scene:GetOptionalArea("Vessel")
+			self.vesselData["spaceDeck"] = SceneMan.Scene:GetOptionalArea("SpaceWalk") or self.vesselData["ship"]
+			self.vesselData["flightDisabled"] = false
+			self.vesselData["flightAimless"] = false
+			self.vesselData["throttle"] = 1
+
+			self.vesselData["dialogDefaultTimer"] = Timer()
+
+			-- Create emitters
+			self.vesselData["engines"] = {}
+			for i = 1, 10 do
+				local x, y
+
+				x = tonumber(self.SceneConfig["Engine" .. i .. "X"])
+				y = tonumber(self.SceneConfig["Engine" .. i .. "Y"])
+				local em = CreateAEmitter("Vessel Main Thruster")
+				if em and x and y then
+					em.Pos = Vector(x, y)
+					self.vesselData["engines"][i] = em
+					MovableMan:AddParticle(em)
+					em:EnableEmission(not self.vesselData["flightDisabled"])
+					em.Throttle = self.vesselData["throttle"]
+				else
+					break
+				end
+			end
+		end
+	end
 
 	-- Load pre-spawned enemy locations. These locations also used during assaults to place teleported units
 	self.EnemySpawn = {}
@@ -83,6 +121,8 @@ function VoidWanderers:StartActivity(isNewGame)
 	if self.GS["Mode"] == "Vessel" then
 		print("VoidWanderers:Tactics:StartActivity:Vessel")
 
+		--self.dialog = {message="This is a test, heed my warning!This is a test, heed my warning!This is a test, heed my warning!", options={"This is option 1.This is option 1.This is option 1.This is option 1.This is option 1." , "This is OPTIONS"}}
+
 		if self.GS["Location"] ~= "Station Ypsilon-2" then
 			local newLoc = Vector(48, 48):DegRotate(tonumber(self.GS["Time"]) * 0.01)
 			newLoc = Vector(math.floor(newLoc.X), math.floor(newLoc.Y))
@@ -96,19 +136,6 @@ function VoidWanderers:StartActivity(isNewGame)
 			local x = tonumber(self.SceneConfig["BrainSpawn" .. i .. "X"])
 			local y = tonumber(self.SceneConfig["BrainSpawn" .. i .. "Y"])
 			self.BrainPos[i] = Vector(x, y)
-		end
-
-		self.EnginePos = {}
-		for i = 1, 10 do
-			local x, y
-
-			x = tonumber(self.SceneConfig["Engine" .. i .. "X"])
-			y = tonumber(self.SceneConfig["Engine" .. i .. "Y"])
-			if x and y then
-				self.EnginePos[i] = Vector(x, y)
-			else
-				break
-			end
 		end
 
 		self.AwayTeamPos = {}
@@ -477,40 +504,40 @@ function VoidWanderers:StartActivity(isNewGame)
 		self.AmbientCreate = nil
 		self.AmbientUpdate = nil
 		self.AmbientDestroy = nil
-		
-		-- Load ambience and mission data if possible
-		if not isNewGame then
-			self.encounterData = self.saveLoadHandler:ReadSavedStringAsTable("encounterData")
-			if self.encounterData and self.encounterData["scriptPath"] then
-				dofile(self.encounterData["scriptPath"])
-			end
-		end
 
 		-- Load ambience and mission data if possible
 		if not isNewGame then
 			self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData")
+			if self.missionData["initialized"] then
+				dofile(self.missionData["encounterScriptPath"])
+			end
 			self.ambientData = self.saveLoadHandler:ReadSavedStringAsTable("ambientData")
-			dofile(self.missionData["scriptPath"])
-			dofile(self.ambientData["scriptPath"])
+			if self.ambientData["initialized"] then
+				dofile(self.ambientData["encounterScriptPath"])
+			end
 		else
 			-- Generic mission data, some may be overwritten
 			self.missionData = {}
-			self.missionData["endMusicPlayed"] = false
-			self.missionData["missionStartTime"] = self.Time
-			self.missionData["stage"] = CF.MissionStages.ACTIVE
-			self.missionData["missionStatus"] = ""
-			self.missionData["difficulty"] = CF.GetLocationDifficulty(self.GS, self.GS["Location"])
+			self.missionData["endMusicPlayed"] = false;
+			self.missionData["initialized"] = true
+			self.missionData["missionStartTime"] = self.Time;
+			self.missionData["stage"] = CF.MissionStages.ACTIVE;
+			self.missionData["missionStatus"] = "";
+			self.missionData["difficulty"] = CF.GetLocationDifficulty(self.GS, self.GS["Location"]);
+			self.missionData["reputationReward"] = 0;
+			self.missionData["goldReward"] = 0;
 
 			local securityIncrement = CF.SecurityIncrementPerDeployment
 			-- Find available mission
 			for m = 1, CF.MaxMissions do
-				if self.GS["Location"] == self.GS["Mission" .. m .. "Location"] then -- GAMEPLAY
+				if self.GS["Location"] == self.GS["Mission" .. m .. "Location"] then
 					local missionType = self.GS["Mission" .. m .. "Type"]
 
-					self.missionData["difficulty"] = CF.GetFullMissionDifficulty(self.GS, self.GS["Location"], m) --tonumber(self.GS["Mission"..m.."Difficulty"])
+					self.missionData["difficulty"] = CF.GetFullMissionDifficulty(self.GS, self.GS["Location"], m)
 					self.missionData["missionContractor"] = tonumber(self.GS["Mission" .. m .. "SourcePlayer"])
 					self.missionData["missionTarget"] = tonumber(self.GS["Mission" .. m .. "TargetPlayer"])
 					self.missionData["scriptPath"] = CF.MissionScript[missionType]
+
 					self.missionData["goldReward"] = CF.CalculateReward(
 						CF.MissionGoldRewardPerDifficulty[missionType],
 						self.missionData["difficulty"]
@@ -548,14 +575,14 @@ function VoidWanderers:StartActivity(isNewGame)
 				end -- GAMEPLAY
 			end
 
-			-- Slightly increase location security every time deplyment happens
+			-- Increase location security every time deployment happens
 			CF.SetLocationSecurity(self.GS, self.GS["Location"], CF.GetLocationSecurity(self.GS, self.GS["Location"]) + securityIncrement)
 
 			-- Backup mission script
 			if self.missionData["scriptPath"] == nil then
-				if CF.LocationScript[self.GS["Location"]] then
-					local r = math.random(#CF.LocationScript[self.GS["Location"]])
-					self.missionData["scriptPath"] = CF.LocationScript[self.GS["Location"]][r]
+				local defaultScripts = CF.LocationScript[self.GS["Location"]]
+				if defaultScripts then
+					self.missionData["scriptPath"] = defaultScripts[math.random(#defaultScripts)]
 				else
 					self.missionData["scriptPath"] = "VoidWanderers.rte/Scripts/Missions/Generic.lua"
 				end
@@ -564,6 +591,7 @@ function VoidWanderers:StartActivity(isNewGame)
 			-- Generic ambient bits, I don't think they're ever used
 			self.ambientData = {}
 			self.ambientData["scriptPath"] = CF.LocationAmbientScript[self.GS["Location"]]
+			self.ambientData["initialized"] = true
 			
 			if self.ambientData["scriptPath"] == nil then
 				self.ambientData["scriptPath"] = "VoidWanderers.rte/Scripts/Ambience/Generic.lua"
@@ -683,29 +711,11 @@ function VoidWanderers:StartActivity(isNewGame)
 		end
 	end
 
-	self.vesselData = nil
-	if SceneMan.Scene:GetOptionalArea("Vessel") then
-		print("VoidWanderers:Tactics:StartActivity:VesselFound")
-		if not isNewGame then
-			self.vesselData = self.saveLoadHandler:ReadSavedStringAsTable("vesselData")
-		else
-			self.vesselData = {}
-			self.vesselData["artificialGravity"] = Vector(0, rte.PxTravelledPerFrame / (1 + SceneMan.Scene.GlobalAcc.Y))
-			self.vesselData["ship"] = SceneMan.Scene:GetOptionalArea("Vessel")
-
-			-- Create emitters
-			if self.vesselData["engines"] == nil then
-				self.vesselData["engines"] = {}
-				for i = 1, #self.EnginePos do
-					local em = CreateAEmitter("Vessel Main Thruster")
-					if em then
-						em.Pos = self.EnginePos[i] + Vector(2, 0)
-						self.vesselData["engines"][i] = em
-						MovableMan:AddParticle(em)
-						em:EnableEmission(false)
-					end
-				end
-			end
+	-- Load encounter data if non-empty
+	if not isNewGame then
+		self.encounterData = self.saveLoadHandler:ReadSavedStringAsTable("encounterData")
+		if self.encounterData["initialized"] then
+			dofile(self.encounterData["scriptPath"])
 		end
 	end
 
@@ -718,8 +728,6 @@ function VoidWanderers:StartActivity(isNewGame)
 			end
 		end
 	end
-
-	self.gravityPerFrame = SceneMan.Scene.GlobalAcc * TimerMan.DeltaTimeSecs
 
 	self.encounterEnableTime = 0
 
@@ -1213,140 +1221,17 @@ function VoidWanderers:UpdateActivity()
 		end
 	end
 
-	-- Process UI's and other vessel mode features
-	if self.GS["Mode"] == "Vessel" then
-		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT do
-			if self:GetPlayerBrain(player) then
-				self:GetBanner(GUIBanner.RED, player):ClearText()
-			end
-		end
-
-		-- Auto heal all actors when not in combat or random encounter
-		if not self.OverCrowded then
-			if self.RandomEncounterID == nil then
-				for actor in MovableMan.Actors do
-					if
-						actor.Health > 0
-						and actor.Health < actor.MaxHealth
-						and actor.Team == CF.PlayerTeam
-						and self.vesselData["ship"]:IsInside(actor.Pos)
-					then
-						actor.Health = math.min(actor.Health + 0.1, actor.MaxHealth)
-					end
-				end
-			end
-		else
-			local count = CF.CountActors(CF.PlayerTeam) - tonumber(self.GS["PlayerVesselLifeSupport"])
-			local s = count == 1 and "BODY" or "BODIES"
-
-			FrameMan:ClearScreenText(0)
-			FrameMan:SetScreenText(
-				"LIFE SUPPORT OVERLOADED\nSTORE OR DUMP "
-					.. count
-					.. " "
-					.. s,
-				0,
-				0,
-				1000,
-				true
-			)
-		end
-
-		-- Process random encounter function
-		if self.encounterData ~= nil then
-			self:EncounterUpdate()
-			-- If encounter was finished then remove turrets
-			if self.encounterData["encounterConcluded"] == true then
-				self.encounterData = {}
-				self:RemoveDeployedTurrets()
-			end
-		else
-			-- Process some control panels only when ship is not boarded
-			self:ProcessClonesControlPanelUI()
-			self:ProcessStorageControlPanelUI()
-			self:ProcessBrainControlPanelUI()
-			self:ProcessTurretsControlPanelUI()
-
-			self:ProcessShipControlPanelUI()
-			self:ProcessBeamControlPanelUI()
-
-			self:ProcessItemShopControlPanelUI()
-			self:ProcessCloneShopControlPanelUI()
-		end
-
-		local flightSpeed = tonumber(self.GS["PlayerVesselSpeed"])
-		local engineBurst = false
-		local engineBoost = 0
-
-		-- Fly to new location
-		if self.GS["Destination"] ~= nil and self.RandomEncounterID == nil then
-			-- Move ship
-			local dx = tonumber(self.GS["DestX"])
-			local dy = tonumber(self.GS["DestY"])
-
-			local sx = tonumber(self.GS["ShipX"])
-			local sy = tonumber(self.GS["ShipY"])
-
-			local d = math.floor(CF.Dist(Vector(sx, sy), Vector(dx, dy)))
-			self.GS["Distance"] = d
-
-			if d == 0 then
-				self.GS["Location"] = self.GS["Destination"]
-				self.GS["Destination"] = nil
-
-				local locpos = CF.LocationPos[self.GS["Location"]] or Vector()
-
-				self.GS["ShipX"] = locpos.X
-				self.GS["ShipY"] = locpos.Y
-			else
-				self:AttemptRandomEncounter()
-
-				engineBurst = true
-				engineBoost = flightSpeed
-
-				self.GS["ShipX"] = sx + (dx - sx) / d * (flightSpeed / CF.KmPerPixel)
-				self.GS["ShipY"] = sy + (dy - sy) / d * (flightSpeed / CF.KmPerPixel)
-			end
-		end
-
-		-- Enable emitters
-		for i, engine in ipairs(self.vesselData["engines"]) do
-			if engine and IsAEmitter(engine) then
-				engine = ToAEmitter(engine)
-				engine:EnableEmission(engineBurst)
-			end
-		end
-
-		local acceleration = 0.1
-		local targetVel = -math.ceil(engineBoost/5) + 0.2
-		for background in SceneMan.Scene.BackgroundLayers do
-			local scroll = background.AutoScrollStepX
-			background.AutoScrollStepX = scroll + math.min(acceleration, math.max(-acceleration, targetVel - scroll))
-		end
-
-		-- Create or delete shops if we arrived/departed to/from Star base
-		if
-			CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TRADESTAR)
-			or CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.BLACKMARKET)
-		then
-			if not self.ShopsCreated then
-				-- Destroy any previously created item shops and create a new one
-				self:DestroyItemShopControlPanelUI()
-				self:DestroyCloneShopControlPanelUI()
-				self:InitItemShopControlPanelUI()
-				self:InitCloneShopControlPanelUI()
-				self.ShopsCreated = true
-			end
-		else
-			if self.ShopsCreated then
-				self:DestroyItemShopControlPanelUI()
-				self:DestroyCloneShopControlPanelUI()
-				self.ShopsCreated = false
-			end
+	if self.encounterData["initialized"] then
+		self:EncounterUpdate()
+		-- If encounter was finished then remove turrets
+		if self.encounterData["encounterConcluded"] == true then
+			self.encounterData = {}
+			self.EncounterUpdate = nil
+			self.EncounterCreate = nil
 		end
 	end
 
-	if self.missionData then
+	if self.missionData["initialized"] then
 		self:ProcessLZControlPanelUI()
 
 		if self.AmbientUpdate ~= nil then
@@ -1436,45 +1321,175 @@ function VoidWanderers:UpdateActivity()
 			end
 		end
 	end
+
+	-- Clear the banner if there are brains
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT do
+		if self:GetPlayerBrain(player) then
+			self:GetBanner(GUIBanner.RED, player):ClearText()
+		end
+	end
 	
 	-- Generate artificial gravity inside the ship
-	if self.vesselData then
-		-- God forbid you exit the ship when the engines are on
-		if engineBoost then
-			for id = 1, MovableMan:GetMOIDCount() - 1 do
-				local mo = MovableMan:GetMOFromID(id)
-				if mo and IsMOSRotating(mo) and mo.PinStrength == 0 and mo.ID == mo.RootID then
-					if not self.vesselData["artificialGravity"] and engineBurst then
-						mo.Vel = mo.Vel + Vector(engineBoost, 0)
-						ToMOSRotating(mo).AngularVel = ToMOSRotating(mo).AngularVel
-							+ math.random(-0.5, 0.5) * engineBoost
-					elseif not self.vesselData["ship"]:IsInside(mo.Pos) then
-						mo.Vel = mo.Vel + Vector(engineBoost, 0)
+	if self.vesselData["initialized"] then
+		self:ProcessClonesControlPanelUI()
+		self:ProcessStorageControlPanelUI()
+		self:ProcessBrainControlPanelUI()
+		self:ProcessTurretsControlPanelUI()
+		self:ProcessShipControlPanelUI()
+		self:ProcessBeamControlPanelUI()
+		self:ProcessItemShopControlPanelUI()
+		self:ProcessCloneShopControlPanelUI()
+
+		local flightSpeed = tonumber(self.GS["PlayerVesselSpeed"])
+		local engineBurst = false
+		local engineBoost = 0
+
+		-- Fly to new location
+		if self.GS["Destination"] ~= nil and not self.vesselData["flightDisabled"] then
+			local dx = tonumber(self.GS["DestX"])
+			local dy = tonumber(self.GS["DestY"])
+
+			local sx = tonumber(self.GS["ShipX"])
+			local sy = tonumber(self.GS["ShipY"])
+
+			local d = CF.Dist(Vector(sx, sy), Vector(dx, dy))
+			self.GS["Distance"] = d
+
+			if d <= 0.5 then
+				self.GS["Location"] = self.GS["Destination"]
+				self.GS["Destination"] = nil
+
+				local locpos = CF.LocationPos[self.GS["Location"]] or Vector()
+
+				self.GS["ShipX"] = locpos.X
+				self.GS["ShipY"] = locpos.Y
+			else
+				engineBurst = true
+				engineBoost = flightSpeed
+
+				if not self.vesselData["flightAimless"] then
+					self:AttemptRandomEncounter()
+
+					self.GS["ShipX"] = sx + (dx - sx) / d * (flightSpeed / CF.KmPerPixel)
+					self.GS["ShipY"] = sy + (dy - sy) / d * (flightSpeed / CF.KmPerPixel)
+				end
+			end
+		end
+
+		-- Enable emitters
+		for i, engine in ipairs(self.vesselData["engines"]) do
+			if engine and IsAEmitter(engine) then
+				engine = ToAEmitter(engine)
+				engine:EnableEmission(engineBurst)
+				engine.Throttle = self.vesselData["throttle"]
+			end
+		end
+
+		local acceleration = 0.1
+		local targetVel = -math.ceil(engineBoost/5) + 0.2
+		for background in SceneMan.Scene.BackgroundLayers do
+			local scroll = background.AutoScrollStepX
+			background.AutoScrollStepX = scroll + math.min(acceleration, math.max(-acceleration, targetVel - scroll))
+		end
+
+		-- Create or delete shops if we arrived/departed to/from Star base
+		if
+			CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TRADESTAR)
+			or CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.BLACKMARKET)
+		then
+			if not self.ShopsCreated then
+				-- Destroy any previously created item shops and create a new one
+				self:DestroyItemShopControlPanelUI()
+				self:DestroyCloneShopControlPanelUI()
+				self:InitItemShopControlPanelUI()
+				self:InitCloneShopControlPanelUI()
+				self.ShopsCreated = true
+			end
+		else
+			if self.ShopsCreated then
+				self:DestroyItemShopControlPanelUI()
+				self:DestroyCloneShopControlPanelUI()
+				self.ShopsCreated = false
+			end
+		end
+
+		-- Auto heal all actors when not in combat or random encounter
+		local overCrowded = CF.CountActors(CF.PlayerTeam) > tonumber(self.GS["PlayerVesselLifeSupport"]);
+		if overCrowded then
+			local count = CF.CountActors(CF.PlayerTeam) - tonumber(self.GS["PlayerVesselLifeSupport"])
+			local s = count == 1 and "BODY" or "BODIES"
+
+			FrameMan:ClearScreenText(0)
+			FrameMan:SetScreenText(
+				"LIFE SUPPORT OVERLOADED\nSTORE OR DUMP "
+					.. count
+					.. " "
+					.. s,
+				0,
+				0,
+				1000,
+				true
+			)
+
+			self:MakeAlertSound(0.25)
+		end
+
+		for actor in MovableMan.Actors do
+			local sentient = actor.ClassName == "AHuman" or actor.ClassName == "ACrab"
+			
+			if sentient then
+				local ourTeam = actor.Team == CF.PlayerTeam;
+				local spaceWalking = not self.vesselData["ship"]:IsInside(actor.Pos) and not self.vesselData["spaceDeck"]:IsInside(actor.Pos)
+
+				if overCrowded or spaceWalking then
+					actor.Health = actor.Health - 1 / math.sqrt(1 + math.abs(actor.Mass + actor.Material.StructuralIntegrity))
+					-- Kill all actors outside the ship
+					if spaceWalking and ourTeam then
+						if not self.flyPhase then
+							self.flyPhase = {}
+						end
+						self.flyPhase[#self.flyPhase] = { actor }
+					end
+				else
+					if actor.Health > 0 and actor.Health < actor.MaxHealth and ourTeam then
+						actor.Health = math.min(actor.Health + 0.1, actor.MaxHealth)
 					end
 				end
 			end
 		end
 
-		local coll = { MovableMan.Actors, MovableMan.Items }
+		local coll = { MovableMan.Actors, MovableMan.Items, MovableMan.Particles }
 		for i = 1, #coll do
 			for mo in coll[i] do
 				if mo.PinStrength == 0 then
-					mo.Vel = mo.Vel - self.gravityPerFrame
-					if engineBoost and mo.ID == rte.NoMOID then -- Apply the same as above for items with no MOID
-						if not self.vesselData["artificialGravity"] and engineBurst then
-							mo.Vel = mo.Vel + Vector(engineBoost, 0)
-							if IsMOSRotating(mo) then
-								ToMOSRotating(mo).AngularVel = ToMOSRotating(mo).AngularVel
-									+ math.random(-0.5, 0.5) * engineBoost
-							end
-						elseif not self.vesselData["ship"]:IsInside(mo.Pos) then
-							mo.Vel = mo.Vel + Vector(engineBoost, 0)
+					local inShip = self.vesselData["ship"]:IsInside(mo.Pos);
+					local onDeck = self.vesselData["spaceDeck"]:IsInside(mo.Pos);
+					local artGrav = self.vesselData["artificialGravity"];
+					if artGrav then
+						if inShip then
+							mo.Vel = mo.Vel + artGrav
+						elseif onDeck then
+							mo.Vel = mo.Vel + artGrav / 2
 						end
 					end
-					if self.vesselData["artificialGravity"] and self.vesselData["ship"]:IsInside(mo.Pos) then
-						mo.Vel = mo.Vel + self.vesselData["artificialGravity"]
-					else
-						if IsAHuman(mo) then
+					if engineBoost > 0 then
+						--[[if not artGrav then
+							mo.Vel = mo.Vel + Vector(engineBoost / 400, 0)
+						else
+							if not inShip then
+								if onDeck then
+									mo.Vel = mo.Vel + Vector(engineBoost / 800, 0)
+								else
+									mo.Vel = mo.Vel + Vector(engineBoost / 400, 0)
+								end
+							end
+						end
+						for _, engine in pairs(self.vesselData["engines"]) do
+							if mo.Pos.X - engine.Pos.X + 48 - 4 * math.abs(mo.Pos.Y - engine.Pos.Y) > 0 then
+								mo.AngularVel = mo.AngularVel * 0.9 + math.random(-0.5, 0.5) * engineBoost / 10
+							end
+						end--]]
+						if false and IsAHuman(mo) then
 							local actor = ToAHuman(mo)
 							local stillness = 1 / (1 + (actor.Vel.Magnitude + math.abs(actor.AngularVel) * 0.1) * 0.1)
 							if actor.Team ~= CF.PlayerTeam then
@@ -1643,54 +1658,6 @@ function VoidWanderers:UpdateActivity()
 				local gains = damage * math.sqrt(25 + (actor.Vel + actor.PrevVel).Magnitude)
 				if gains >= 1 then
 					self:GiveXP(actor, gains)
-				end
-			end
-		end
-
-		if self.GS["Mode"] == "Vessel" then
-			if CF.CountActors(CF.PlayerTeam) > tonumber(self.GS["PlayerVesselLifeSupport"]) then
-				self.OverCrowded = true
-
-				if self.Time % 3 == 0 then
-					for actor in MovableMan.Actors do
-						if
-							(actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-						then
-							actor.Health = actor.Health
-								- math.ceil(
-									50 / math.sqrt(1 + math.abs(actor.Mass + actor.Material.StructuralIntegrity))
-								)
-						end
-					end
-				end
-
-				if self.Time % 2 == 0 then
-					self:MakeAlertSound(0.25)
-				end
-			else
-				self.OverCrowded = false
-
-				-- Kill all actors outside the ship
-				if self.vesselData and self.vesselData["ship"] then
-					for actor in MovableMan.Actors do
-						if
-							(actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-							and not self.vesselData["ship"]:IsInside(actor.Pos)
-						then
-							actor.Health = actor.Health
-								- math.ceil(50 / math.sqrt(1 + math.abs(actor.Mass + actor.Material.StructuralIntegrity)))
-							if not self.flyPhase then
-								self.flyPhase = {}
-							end
-							self.flyPhase[#self.flyPhase] = { actor }
-						end
-					end
-				end
-			end
-
-			if self.RandomEncounterID ~= nil then
-				if self.Time % 2 == 0 then
-					self:MakeAlertSound(0.25)
 				end
 			end
 		end
@@ -2032,7 +1999,7 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:AttemptRandomEncounter()
-	if not CF.EnableRandomEncounters then
+	if not CF.RandomEncountersEnabled then
 		return
 	end
 
@@ -2040,9 +2007,9 @@ function VoidWanderers:AttemptRandomEncounter()
 
 	if self.encounterEnableTime < self.Time then
 		for i, name in ipairs(CF.RandomEncounters) do
-			local eligibilityTest = CF.RandomEncountersEligibilityFunctions[name]
+			local eligibilityTest = CF.RandomEncounterEligibilityTests[name]
 			if eligibilityTest then
-				if eligibilityTest() == true then
+				if eligibilityTest(self) == true then
 					table.insert(potentialEncounters, name)
 				end
 			end
@@ -2052,156 +2019,58 @@ function VoidWanderers:AttemptRandomEncounter()
 	-- Trigger random encounter if there are any eligible to occur
 	if next(potentialEncounters) and math.random() < CF.RandomEncounterProbability then
 		local encounter = potentialEncounters[math.random(#potentialEncounters)]
-		-- DEBUG
-		--encounter = "PIRATE_GENERIC"
-		--encounter = "ABANDONED_VESSEL_GENERIC"
-		--encounter = "HOSTILE_DRONE"
-		--encounter = "REAVERS"
 
 		-- Launch encounter
 		if encounter ~= nil then
-			-- Reavers are after your gold
-			--[[if CF.RandomEncounters["REAVERS"] and id ~= "REAVERS" then
-				local goldThreshold = 25000
-				if
-					math.random()
-					< math.min(CF.GetPlayerGold(self.GS), goldThreshold) / (goldThreshold * 2)
-				then
-					id = "REAVERS"
-				end
-			end]]
-			-- Generic mission data, some may be overwritten
+			-- Generic encounter data, some may be overwritten
 			self.encounterData = {}
+			self.encounterData["initialized"] = true
+			self.encounterData["encounterName"] = encounter
 			self.encounterData["encounterStartTime"] = self.Time
-			self.missionData["missionAvailable"] = false
-			self.missionData["missionStatus"] = ""
-			self.missionData["difficulty"] = CF.GetLocationDifficulty(self.GS, self.GS["Location"])
+			self.encounterData["scriptPath"] = CF.RandomEncounterScripts[encounter]
+			self.encounterData["encounterConcluded"] = false
 
-			-- Generic ambient bits, I don't think they're ever used
-			self.ambientData = {}
-
-			-- Find available mission
-			for m = 1, CF.MaxMissions do
-				if self.GS["Location"] == self.GS["Mission" .. m .. "Location"] then -- GAMEPLAY
-					self.missionData["missionAvailable"] = true
-
-					local missionType = self.GS["Mission" .. m .. "Type"]
-					self.missionData["difficulty"] = CF.GetFullMissionDifficulty(self.GS, self.GS["Location"], m) --tonumber(self.GS["Mission"..m.."Difficulty"])
-					self.missionData["missionContractor"] = tonumber(self.GS["Mission" .. m .. "SourcePlayer"])
-					self.missionData["missionTarget"] = tonumber(self.GS["Mission" .. m .. "TargetPlayer"])
-
-					-- DEBUG
-					--self.missionData["difficulty"] = CF.MaxDifficulty
-					--missionType = "Assault"	--"Assassinate"	--"Dropships"	--"Mine"	--"Zombies"	--"Defend"	--"Destroy"	--"Squad"
-
-					self.missionData["scriptPath"] = CF.MissionScript[missionType]
-					self.missionData["goldReward"] = CF.CalculateReward(
-						CF.MissionGoldRewardPerDifficulty[missionType],
-						self.missionData["difficulty"]
-					)
-					self.missionData["reputationReward"] = CF.CalculateReward(
-						CF.MissionReputationRewardPerDifficulty[missionType],
-						self.missionData["difficulty"]
-					)
-
-
-					-- Create unit presets
-					CF.CreateAIUnitPresets(
-						self.GS,
-						self.missionData["missionContractor"],
-						CF.GetTechLevelFromDifficulty(
-							self.GS,
-							self.missionData["missionContractor"],
-							self.missionData["difficulty"],
-							CF.MaxDifficulty
-						)
-					)
-					CF.CreateAIUnitPresets(
-						self.GS,
-						self.missionData["missionTarget"],
-						CF.GetTechLevelFromDifficulty(
-							self.GS,
-							self.missionData["missionTarget"],
-							self.missionData["difficulty"],
-							CF.MaxDifficulty
-						)
-					)
-
-					break
-				end -- GAMEPLAY
-			end
-
-			-- Set up mission behaviors
-			if self.missionData["missionAvailable"] then
-				-- Increase location security every time mission started
-				local sec = CF.GetLocationSecurity(self.GS, self.GS["Location"])
-				sec = sec + CF.SecurityIncrementPerMission
-				CF.SetLocationSecurity(self.GS, self.GS["Location"], sec)
-			else
-				-- Slightly increase location security every time deplyment happens
-				local sec = CF.GetLocationSecurity(self.GS, self.GS["Location"])
-				sec = sec + CF.SecurityIncrementPerDeployment
-				CF.SetLocationSecurity(self.GS, self.GS["Location"], sec)
-
-				if CF.LocationScript[self.GS["Location"]] then
-					local r = math.random(#CF.LocationScript[self.GS["Location"]])
-					self.missionData["scriptPath"] = CF.LocationScript[self.GS["Location"]][r]
-				end
-			end
-			self.ambientData["scriptPath"] = CF.LocationAmbientScript[self.GS["Location"]]
-			
-			if self.missionData["scriptPath"] == nil then
-				self.missionData["scriptPath"] = "VoidWanderers.rte/Scripts/Missions/Generic.lua"
-			end
-
-			if self.ambientData["scriptPath"] == nil then
-				self.ambientData["scriptPath"] = "VoidWanderers.rte/Scripts/Ambience/Generic.lua"
-			end
-
-			dofile(self.missionData["scriptPath"])
-			dofile(self.ambientData["scriptPath"])
-			self:MissionCreate()
-			self:AmbientCreate()
-
-			self.RandomEncounterID = encounter
-			self.RandomEncounterVariant = 0
-
-			self.RandomEncounterDelayTimer = Timer()
-
-			self.RandomEncounterText = CF.RandomEncountersInitialTexts[id]
-			self.RandomEncounterVariants = CF.RandomEncountersInitialVariants[id]
-			self.RandomEncounterVariantsInterval = CF.RandomEncountersVariantsInterval[id]
-			self.RandomEncounterChosenVariant = 0
-			self.RandomEncounterIsInitialized = false
-			self.ShipControlSelectedEncounterVariant = 1
-
-			-- Switch to ship panel
-			local bridgeempty = true
-			local plrtoswitch = -1
-
-			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-				local act = self:GetControlledActor(player)
-
-				if act and MovableMan:IsActor(act) then
-					if act.PresetName ~= "Ship Control Panel" and plrtoswitch == -1 then
-						plrtoswitch = player
-					end
-
-					if act.PresetName == "Ship Control Panel" then
-						bridgeempty = false
-					end
-				end
-			end
-
-			if plrtoswitch > -1 and bridgeempty and MovableMan:IsActor(self.ShipControlPanelActor) then
-				self:SwitchToActor(self.ShipControlPanelActor, plrtoswitch, CF.PlayerTeam)
-			end
-			self.ShipControlMode = self.ShipControlPanelModes.REPORT
-
-			self:StartMusic(CF.MusicTypes.SHIP_INTENSE)
-			--]]--
+			dofile(self.encounterData["scriptPath"])
+			self:EncounterCreate()
 		end
 	end
+end
+-----------------------------------------------------------------------------------------
+--
+-----------------------------------------------------------------------------------------
+function VoidWanderers:GiveFocusToBridge()
+	local bridgeempty = true
+	local plrtoswitch = Activity.PLAYER_NONE
+
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		local act = self:GetControlledActor(player)
+
+		if act and MovableMan:IsActor(act) then
+			if act.PresetName ~= "Ship Control Panel" and plrtoswitch == -1 then
+				plrtoswitch = player
+			end
+
+			if act.PresetName == "Ship Control Panel" then
+				bridgeempty = false
+			end
+		end
+	end
+
+	if plrtoswitch ~= Activity.PLAYER_NONE and bridgeempty and MovableMan:IsActor(self.ShipControlPanelActor) then
+		self:SwitchToActor(self.ShipControlPanelActor, plrtoswitch, CF.PlayerTeam)
+	end
+	self.ShipControlMode = self.ShipControlPanelModes.REPORT
+end
+-----------------------------------------------------------------------------------------
+--
+-----------------------------------------------------------------------------------------
+function VoidWanderers:SendTransmission(message, options)
+	self.vesselData["dialog"] = { message=message, options=options }
+	self.vesselData["dialogDefaultTimer"]:Reset()
+	self.vesselData["dialogOptionSelected"] = 1
+	self.vesselData["dialogOptionChosen"] = 0
+	
+	self:GiveFocusToBridge()
 end
 -----------------------------------------------------------------------------------------
 --
@@ -2399,61 +2268,59 @@ end]]--
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
-	if orbitedCraft.PresetName ~= "Fake Drop Ship MK1" and self.GS["Mode"] == "Mission" then
-		if orbitedCraft.Team == CF.PlayerTeam and orbitedCraft:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
-			-- Bring back actors
-			for actor in orbitedCraft.Inventory do
-				if actor.Team == CF.PlayerTeam and IsActor(actor) then
-					actor = ToActor(actor)
-					local i = tonumber(self.GS["MissionReturningTroops"])
-					local assignable = true
-					local f = CF.GetPlayerFaction(self.GS, 1)
+	if orbitedCraft.Team == CF.PlayerTeam and orbitedCraft:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
+		-- Bring back actors
+		for actor in orbitedCraft.Inventory do
+			if actor.Team == CF.PlayerTeam and IsActor(actor) then
+				actor = ToActor(actor)
+				local i = tonumber(self.GS["MissionReturningTroops"])
+				local assignable = true
+				local f = CF.GetPlayerFaction(self.GS, 1)
 
-					-- Check if unit is playable
-					if CF.UnassignableUnits[f] ~= nil then
-						for i = 1, #CF.UnassignableUnits[f] do
-							if actor.PresetName == CF.UnassignableUnits[f][i] then
-								assignable = false
-							end
+				-- Check if unit is playable
+				if CF.UnassignableUnits[f] ~= nil then
+					for i = 1, #CF.UnassignableUnits[f] do
+						if actor.PresetName == CF.UnassignableUnits[f][i] then
+							assignable = false
 						end
-					end
-
-					-- Don't bring back allied units
-					if self:IsAlly(actor) then
-						assignable = false
-					end
-
-					self:ClearDeployed()
-					if
-						assignable and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-					then
-						self.GS["Deployed" .. i .. "Preset"] = actor.PresetName
-						self.GS["Deployed" .. i .. "Class"] = actor.ClassName
-						self.GS["Deployed" .. i .. "Module"] = actor.ModuleName
-						self.GS["Deployed" .. i .. "XP"] = actor:GetNumberValue("VW_XP")
-						self.GS["Deployed" .. i .. "Identity"] = actor:GetNumberValue("Identity")
-						self.GS["Deployed" .. i .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
-						self.GS["Deployed" .. i .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
-						self.GS["Deployed" .. i .. "Name"] = actor:GetStringValue("VW_Name")
-						
-						for j = 1, #CF.LimbID do
-							self.GS["Deployed" .. i .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
-						end
-
-						for j = 1, #pre do
-							self.GS["Deployed" .. i .. "Item" .. j .. "Preset"] = pre[j]
-							self.GS["Deployed" .. i .. "Item" .. j .. "Class"] = cls[j]
-							self.GS["Deployed" .. i .. "Item" .. j .. "Module"] = mdl[j]
-						end
-								
-						self.GS["MissionReturningTroops"] = tonumber(self.GS["MissionReturningTroops"]) + 1
 					end
 				end
+
+				-- Don't bring back allied units
+				if self:IsAlly(actor) then
+					assignable = false
+				end
+
+				self:ClearDeployed()
+				if
+					assignable and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
+				then
+					self.GS["Deployed" .. i .. "Preset"] = actor.PresetName
+					self.GS["Deployed" .. i .. "Class"] = actor.ClassName
+					self.GS["Deployed" .. i .. "Module"] = actor.ModuleName
+					self.GS["Deployed" .. i .. "XP"] = actor:GetNumberValue("VW_XP")
+					self.GS["Deployed" .. i .. "Identity"] = actor:GetNumberValue("Identity")
+					self.GS["Deployed" .. i .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
+					self.GS["Deployed" .. i .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
+					self.GS["Deployed" .. i .. "Name"] = actor:GetStringValue("VW_Name")
+					
+					for j = 1, #CF.LimbID do
+						self.GS["Deployed" .. i .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
+					end
+
+					for j = 1, #pre do
+						self.GS["Deployed" .. i .. "Item" .. j .. "Preset"] = pre[j]
+						self.GS["Deployed" .. i .. "Item" .. j .. "Class"] = cls[j]
+						self.GS["Deployed" .. i .. "Item" .. j .. "Module"] = mdl[j]
+					end
+							
+					self.GS["MissionReturningTroops"] = tonumber(self.GS["MissionReturningTroops"]) + 1
+				end
 			end
-			--Nullify the funds we just gained from the orbited craft
-			self:SetTeamFunds(CF.GetPlayerGold(self.GS), CF.PlayerTeam)
-			FrameMan:ClearScreenText(0)
 		end
+		--Nullify the funds we just gained from the orbited craft
+		self:SetTeamFunds(CF.GetPlayerGold(self.GS), CF.PlayerTeam)
+		FrameMan:ClearScreenText(0)
 	end
 end
 -----------------------------------------------------------------------------------------
@@ -2649,7 +2516,7 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:ObtainBaseBoxes(setname, setnumber)
 	-- Get base box
-	if self.missionData then
+	if self.missionData["initialized"] then
 		local bp = CF.GetPointsArray(self.Pts, setname, setnumber, "Base")
 		self.missionData["missionBase"] = {}
 
@@ -2715,7 +2582,7 @@ function VoidWanderers:GiveMissionRewards(disablepenalties)
 			self.GS["Player" .. self.missionData["missionTarget"] .. "Reputation"]
 		) - math.ceil(self.missionData["reputationReward"] * CF.ReputationPenaltyRatio)
 	end
-	CF.ChangeGold(self.GS, self.missionData["goldReward"])
+	self:SetTeamFunds(CF.ChangeGold(self.GS, self.missionData["goldReward"]), CF.PlayerTeam)
 
 	-- Refresh Black Market listing after every completed mission
 	self.GS["BlackMarket" .. "Station Ypsilon-2" .. "ItemsLastRefresh"] = nil
@@ -2791,12 +2658,16 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:GiveMissionPenalties()
 	print("MISSION FAILED")
-	self.GS["Player" .. self.missionData["missionContractor"] .. "Reputation"] = tonumber(
-		self.GS["Player" .. self.missionData["missionContractor"] .. "Reputation"]
-	) - math.ceil(self.missionData["reputationReward"] * CF.MissionFailedReputationPenaltyRatio)
-	self.GS["Player" .. self.missionData["missionTarget"] .. "Reputation"] = tonumber(
-		self.GS["Player" .. self.missionData["missionTarget"] .. "Reputation"]
-	) - math.ceil(self.missionData["reputationReward"] * CF.MissionFailedReputationPenaltyRatio)
+	if self.missionData["missionContractor"] then
+		self.GS["Player" .. self.missionData["missionContractor"] .. "Reputation"] = tonumber(
+			self.GS["Player" .. self.missionData["missionContractor"] .. "Reputation"]
+		) - math.ceil(self.missionData["reputationReward"] * CF.MissionFailedReputationPenaltyRatio)
+	end
+	if self.missionData["missionTarget"] then
+		self.GS["Player" .. self.missionData["missionTarget"] .. "Reputation"] = tonumber(
+			self.GS["Player" .. self.missionData["missionTarget"] .. "Reputation"]
+		) - math.ceil(self.missionData["reputationReward"] * CF.MissionFailedReputationPenaltyRatio)
+	end
 
 	self.MissionReport[#self.MissionReport + 1] = "MISSION FAILED"
 
@@ -2949,7 +2820,7 @@ function VoidWanderers:GiveRandomExplorationReward()
 	if r == rewards.gold then
 		local amount = math.floor(math.random(self.missionData["difficulty"] * 250, self.missionData["difficulty"] * 500))
 
-		CF.ChangeGold(self.GS, amount)
+		self:SetTeamFunds(CF.ChangeGold(self.GS, amount), CF.PlayerTeam)
 		text = {}
 		text[1] = "Bank account access codes found.\n" .. tostring(amount) .. "oz of gold received."
 	elseif r == rewards.experience then
@@ -3028,25 +2899,28 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:MakeAlertSound(volume)
-	local pos = Vector(SceneMan.SceneWidth * 0.5, SceneMan.SceneHeight * 0.5)
+	if self.AlarmTimer:IsPastRealMS(2000) then
+		self.AlarmTimer:Reset();
+		local pos = Vector(SceneMan.SceneWidth * 0.5, SceneMan.SceneHeight * 0.5)
 
-	if self.GS["Mode"] == "Vessel" then
-		local brain = self:GetPlayerBrain(Activity.PLAYER_1) or self:GetControlledActor(Activity.PLAYER_1)
-		if brain then
-			pos = brain.Pos
+		if self.GS["Mode"] == "Vessel" then
+			local brain = self:GetPlayerBrain(Activity.PLAYER_1) or self:GetControlledActor(Activity.PLAYER_1)
+			if brain then
+				pos = brain.Pos
+			end
 		end
-	end
 
-	if self.GS["Mode"] == "Mission" then
-		local brain = MovableMan:GetFirstBrainActor(CF.CPUTeam)
-		if brain then
-			pos = brain.Pos
+		if self.GS["Mode"] == "Mission" then
+			local brain = MovableMan:GetFirstBrainActor(CF.CPUTeam)
+			if brain then
+				pos = brain.Pos
+			end
 		end
+		local alarm = CreateAEmitter("Alarm Effect", CF.ModuleName)
+		alarm.Pos = pos
+		alarm.BurstSound.Volume = volume
+		MovableMan:AddParticle(alarm)
 	end
-	local alarm = CreateAEmitter("Alarm Effect", CF.ModuleName)
-	alarm.Pos = pos
-	alarm.BurstSound.Volume = volume
-	MovableMan:AddParticle(alarm)
 end
 -----------------------------------------------------------------------------------------
 --

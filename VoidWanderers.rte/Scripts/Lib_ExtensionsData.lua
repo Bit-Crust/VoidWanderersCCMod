@@ -130,6 +130,6 @@ CF.InitExtensionsData = function(activity)
 
 	-- Random encounters
 	CF.RandomEncounters = {}
-	CF.RandomEncountersScripts = {}
-	CF.RandomEncountersEligibilityFunctions = {}
+	CF.RandomEncounterScripts = {}
+	CF.RandomEncounterEligibilityTests = {}
 end

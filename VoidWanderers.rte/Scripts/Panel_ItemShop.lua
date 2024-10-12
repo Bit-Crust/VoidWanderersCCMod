@@ -267,7 +267,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 										self.ItemShopItems[itm]["Module"]
 									)
 									CF["SetBombsArray"](self.GS, self.Bombs)
-									CF.ChangeGold(self.GS, -self.ItemShopSelectedItemPrice)
+									self:SetTeamFunds(CF.ChangeGold(self.GS, -self.ItemShopSelectedItemPrice), CF.PlayerTeam)
 								end
 							else
 								if
@@ -284,7 +284,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 										self.ItemShopItems[itm]["Module"]
 									)
 
-									CF.ChangeGold(self.GS, -self.ItemShopSelectedItemPrice)
+									self:SetTeamFunds(CF.ChangeGold(self.GS, -self.ItemShopSelectedItemPrice), CF.PlayerTeam)
 
 									-- Store everything
 									CF["SetStorageArray"](self.GS, self.StorageItems)

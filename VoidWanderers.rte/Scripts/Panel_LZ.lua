@@ -149,17 +149,6 @@ function VoidWanderers:ProcessLZControlPanelUI()
 						MovableMan:AddItem(bomb)
 					end
 
-					-- Place special actor so the bombs can detect the fake dropship that drops them launches
-					-- Fake dropship will delete itself after 250 ms
-					local dropship = CreateACDropShip("Fake Drop Ship MK1", self.ModuleName)
-					if dropship then
-						dropship.Team = CF.PlayerTeam
-						dropship.Pos = bombpos + Vector(0, -20)
-						MovableMan:AddActor(dropship)
-					else
-						print("ERR: Dropship not created")
-					end
-
 					self.BombingCount = self.BombingCount + 1
 					if self.BombingCount > #self.BombPayload then
 						break
@@ -661,13 +650,11 @@ function VoidWanderers:ProcessLZControlPanelUI()
 	end
 
 	if self.GS["DeserializeDeployedTeam"] == "True" then
-		if self.missionData then
-			if self.missionData["stage"] ~= CF.MissionStages.COMPLETED then
-				self:GiveMissionPenalties()
-			end
-			-- Generate new missions
-			CF.GenerateRandomMissions(self.GS)
+		if self.missionData["stage"] ~= CF.MissionStages.COMPLETED then
+			self:GiveMissionPenalties()
 		end
+		-- Generate new missions
+		CF.GenerateRandomMissions(self.GS)
 
 		-- Update casualties report
 		if tonumber(self.GS["MissionDeployedTroops"]) > tonumber(self.GS["MissionReturningTroops"]) then
@@ -726,7 +713,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		end
 		if totalGoldCarried > 0 then
 			self.MissionReport[#self.MissionReport + 1] = totalGoldCarried .. " oz of gold collected"
-			CF.ChangeGold(self.GS, totalGoldCarried)
+			self:SetTeamFunds(CF.ChangeGold(self.GS, totalGoldCarried), CF.PlayerTeam)
 		end
 
 		-- Dump mission report to config to be saved
@@ -758,7 +745,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		self.MissionCreate = nil
 		self.MissionUpdate = nil
 		self.MissionDestroy = nil
-		self.missionData = nil
+		self.missionData = {}
 
 		self.AmbientCreate = nil
 		self.AmbientUpdate = nil

@@ -126,7 +126,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 						self.GS["Brain" .. player .. "Detached"] = "False"
 						self.createdBrainCases[player] = rb
 						if act.GoldCarried > 0 then
-							CF.ChangeGold(self.GS, act.GoldCarried)
+							self:SetTeamFunds(CF.ChangeGold(self.GS, act.GoldCarried), CF.PlayerTeam)
 						end
 
 						if self.GS["Brain" .. player .. "Identity"] == nil then
