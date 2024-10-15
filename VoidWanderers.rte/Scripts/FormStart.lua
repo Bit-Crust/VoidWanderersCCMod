@@ -14,7 +14,7 @@ function VoidWanderers:FormLoad()
 		el["Presets"][self.ButtonStates.IDLE] = "SideMenuButtonIdle"
 		el["Presets"][self.ButtonStates.MOUSE_OVER] = "SideMenuButtonMouseOver"
 		el["Presets"][self.ButtonStates.PRESSED] = "SideMenuButtonPressed"
-		el["Pos"] = self.Mid + Vector(0,-60)
+		el["Pos"] = self.Mid + Vector(0,-40)
 		el["Text"] = "Continue game"
 		el["Width"] = 140
 		el["Height"] = 40
@@ -30,7 +30,7 @@ function VoidWanderers:FormLoad()
 	el["Presets"][self.ButtonStates.IDLE] = "SideMenuButtonIdle"
 	el["Presets"][self.ButtonStates.MOUSE_OVER] = "SideMenuButtonMouseOver"
 	el["Presets"][self.ButtonStates.PRESSED] = "SideMenuButtonPressed"
-	el["Pos"] = self.Mid + Vector(0, -20)
+	el["Pos"] = self.Mid + Vector(0, -0)
 	el["Text"] = "New game"
 	el["Width"] = 140
 	el["Height"] = 40
@@ -45,7 +45,7 @@ function VoidWanderers:FormLoad()
 	el["Presets"][self.ButtonStates.IDLE] = "SideMenuButtonIdle"
 	el["Presets"][self.ButtonStates.MOUSE_OVER] = "SideMenuButtonMouseOver"
 	el["Presets"][self.ButtonStates.PRESSED] = "SideMenuButtonPressed"
-	el["Pos"] = self.Mid + Vector(0, 20)
+	el["Pos"] = self.Mid + Vector(0, 40)
 	el["Text"] = "Load game"
 	el["Width"] = 140
 	el["Height"] = 40

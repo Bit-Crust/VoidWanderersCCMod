@@ -3,12 +3,10 @@
 -- Start Activity
 -----------------------------------------------------------------------------------------
 function VoidWanderers:StartActivity(isNewGame)
-	print("VoidWanderers:Tactics:StartActivity - Begin");
-
-	-- Disable string rendering optimizations because letters start to fall down
-	CF.FrameCounter = 0;
-	CF.GS = self.GS;
+	print("VoidWanderers:Tactics:StartActivity");
 	
+	CF.GS = self.GS;
+
 	self.vesselData = {};
 	self.missionData = {};
 	self.ambientData = {};
@@ -840,8 +838,6 @@ function VoidWanderers:StartActivity(isNewGame)
 	
 	self.IsInitialized = true
 	self.BrainsAtStake = true
-
-	print("VoidWanderers:Tactics:StartActivity - End")
 end
 -----------------------------------------------------------------------------------------
 -- Update Activity

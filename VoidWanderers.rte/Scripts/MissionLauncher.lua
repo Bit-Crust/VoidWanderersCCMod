@@ -38,7 +38,7 @@ function VoidWanderers:StartActivity(isNewGame)
 	dofile(LIB_PATH .. "Lib_Storage.lua")
 	
 	-- Save Load Handler
-	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler")
+	self.saveLoadHandler = require("Scripts/Utility/SaveLoadHandler")
 	self.saveLoadHandler:Initialize(false)
 	
 	-- Init a couple properties and constants

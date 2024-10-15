@@ -67,7 +67,6 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:SceneButton_OnClick()
-	--CF["StopUIProcessing"] = true
 	local el = self.MousePressedElement
 
 	self:FormClose()

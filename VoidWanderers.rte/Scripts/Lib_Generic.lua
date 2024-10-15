@@ -74,17 +74,6 @@ CF.InitFactions = function(activity)
 
 	CF.EnableIcons = true
 
-	-- When enabled UL2 will use special rendering techniques to improve UI rendering
-	-- performance on weaker machines. Some artifacts may appear though.
-	CF.LowPerformance = false
-
-	-- The idea behind this optimization is that creation of particles eats most of the time.
-	-- To avoid that we draw some words and buttons on odd frames and some on even frames.
-	-- When in LowPerformance mode CF.DrawString and DrawButton functions will use special Ln-prefixed
-	-- versions of UI glows, which live twice longer. In order to work main execution thread must
-	-- count frames so other function can decide if it's odd or even frame right now
-	CF.FrameCounter = 0
-
 	CF.TeamReturnDelay = 5
 
 	CF.CratesRate = 0.25 -- Percentage of cases among available case spawn points
@@ -165,9 +154,6 @@ CF.InitFactions = function(activity)
 
 	CF.MaxSavedActors = 40
 	CF.MaxSavedItemsPerActor = 20
-
-	-- Set this to true to stop any UI processing. Useful when debuging and need to disable UI error message spam.
-	CF.StopUIProcessing = false
 
 	CF.LaunchActivities = true
 	CF.MissionReturnInterval = 2500
@@ -356,210 +342,198 @@ CF.InitFactions = function(activity)
 	CF.Music[CF.MusicTypes.MISSION_INTENSE] = {}
 
 	-- Load factions
-	--CF.FactionFiles = CF.ReadFactionsList(CF.ModuleName.."/Factions/Factions.cfg" , CF.ModuleName.."/Factions/")
-	CF.FactionFiles = { "Mods/VoidWanderers.rte/Factions/Factions.lua" }
+	local lastfactioncount = #CF.Factions
 
-	-- Load factions data
-	for i = 1, #CF.FactionFiles do
-		--print("Loading "..CF.FactionFiles[i])
-		f = loadfile(CF.FactionFiles[i])
-		if f ~= nil then
-			local lastfactioncount = #CF.Factions
+	-- Execute script
+	dofile("Mods/VoidWanderers.rte/Extensions/Factions.lua")
 
-			-- Execute script
-			f()
+	-- Check for faction consistency only if it is a faction file
+	if lastfactioncount ~= #CF.Factions then
+		local id = CF.Factions[#CF.Factions]
 
-			-- Check for faction consistency only if it is a faction file
-			if lastfactioncount ~= #CF.Factions then
-				local id = CF.Factions[#CF.Factions]
+		--Check if faction modules installed. Check only works with old v1 or most new v2 faction files.
+		--print(CF.InfantryModules[CF.Factions[#CF.Factions]])
+		for m = 1, #CF.RequiredModules[id] do
+			local module = CF.RequiredModules[id][m]
 
-				--Check if faction modules installed. Check only works with old v1 or most new v2 faction files.
-				--print(CF.InfantryModules[CF.Factions[#CF.Factions]])
-				for m = 1, #CF.RequiredModules[id] do
-					local module = CF.RequiredModules[id][m]
-
-					if module ~= nil then
-						if PresetMan:GetModuleID(module) == -1 then
-							CF.FactionPlayable[id] = false
-							print("ERROR!!! " .. id .. " DISABLED!!! " .. CF.RequiredModules[id][m] .. " NOT FOUND!!!")
-						end
-					end
-				end
-
-				-- Assume that faction file is correct
-				local factionok = true
-				local err = ""
-
-				-- Verify faction file data and add mission values if any
-				-- Verify items
-				for i = 1, #CF.ItmNames[id] do
-					if CF.ItmModules[id][i] == nil then
-						factionok = false
-						err = "CF.ItmModules is missing."
-					end
-
-					if CF.ItmPrices[id][i] == nil then
-						factionok = false
-						err = "CF.ItmPrices is missing."
-					end
-
-					if CF.ItmDescriptions[id][i] == nil then
-						factionok = false
-						err = "CF.ItmDescriptions is missing."
-					end
-
-					if CF.ItmUnlockData[id][i] == nil then
-						factionok = false
-						err = "CF.ItmUnlockData is missing."
-					end
-
-					if CF.ItmTypes[id][i] == nil then
-						factionok = false
-						err = "CF.ItmTypes is missing."
-					end
-
-					if CF.ItmPowers[id][i] == nil then
-						factionok = false
-						err = "CF.ItmPowers is missing."
-					end
-
-					-- If something is wrong then disable faction and print error message
-					if not factionok then
-						CF.FactionPlayable[id] = false
-						print("ERROR!!! " .. id .. " DISABLED!!! " .. CF.ItmNames[id][i] .. " : " .. err)
-						break
-					end
-				end
-
-				-- Assume that faction file is correct
-				local info = {}
-				local data = {}
-
-				-- Verify faction generic data
-				info[#info + 1] = "CF['FactionNames']"
-				data[#info] = CF.FactionNames[id]
-
-				info[#info + 1] = "CF['FactionDescriptions']"
-				data[#info] = CF.FactionDescriptions[id]
-
-				info[#info + 1] = "CF['FactionPlayable']"
-				data[#info] = CF.FactionPlayable[id]
-
-				info[#info + 1] = "CF['RequiredModules']"
-				data[#info] = CF.RequiredModules[id]
-
-				info[#info + 1] = "CF['FactionNatures']"
-				data[#info] = CF.FactionNatures[id]
-				--[[ UL2 stuff - don't need these!
-				info[#info + 1] = "CF.ScanBonuses"
-				data[#info] = CF.ScanBonuses[id]
-				
-				info[#info + 1] = "CF.RelationsBonuses"
-				data[#info] = CF.RelationsBonuses[id]
-
-				info[#info + 1] = "CF.ExpansionBonuses"
-				data[#info] = CF.ExpansionBonuses[id]
-
-				info[#info + 1] = "CF.MineBonuses"
-				data[#info] = CF.MineBonuses[id]
-
-				info[#info + 1] = "CF.LabBonuses"
-				data[#info] = CF.LabBonuses[id]
-
-				info[#info + 1] = "CF.AirfieldBonuses"
-				data[#info] = CF.AirfieldBonuses[id]
-
-				info[#info + 1] = "CF.SuperWeaponBonuses"
-				data[#info] = CF.SuperWeaponBonuses[id]
-
-				info[#info + 1] = "CF.FactoryBonuses"
-				data[#info] = CF.FactoryBonuses[id]
-
-				info[#info + 1] = "CF.CloneBonuses"
-				data[#info] = CF.CloneBonuses[id]
-
-				info[#info + 1] = "CF.HospitalBonuses"
-				data[#info] = CF.HospitalBonuses[id]
-]]
-				--
-				info[#info + 1] = "CF['Brains']"
-				data[#info] = CF.Brains[id]
-
-				info[#info + 1] = "CF['BrainModules']"
-				data[#info] = CF.BrainModules[id]
-
-				info[#info + 1] = "CF['BrainClasses']"
-				data[#info] = CF.BrainClasses[id]
-
-				info[#info + 1] = "CF['BrainPrices']"
-				data[#info] = CF.BrainPrices[id]
-
-				info[#info + 1] = "CF['Crafts']"
-				data[#info] = CF.Crafts[id]
-
-				info[#info + 1] = "CF['CraftModules']"
-				data[#info] = CF.CraftModules[id]
-
-				info[#info + 1] = "CF['CraftClasses']"
-				data[#info] = CF.CraftClasses[id]
-
-				info[#info + 1] = "CF['CraftPrices']"
-				data[#info] = CF.CraftPrices[id]
-
-				for i = 1, #info do
-					if data[i] == nil then
-						CF.FactionPlayable[id] = false
-						print("ERROR!!! " .. id .. " DISABLED!!! " .. info[i] .. " is missing")
-						break
-					end
-				end
-
-				-- Assume that faction file is correct
-				local factionok = true
-				local err = ""
-
-				-- Verify actors
-				for i = 1, #CF.ActNames[id] do
-					if CF.ActModules[id][i] == nil then
-						factionok = false
-						err = "CF['ActModules'] is missing."
-					end
-
-					if CF.ActPrices[id][i] == nil then
-						factionok = false
-						err = "CF['ActPrices'] is missing."
-					end
-
-					if CF.ActDescriptions[id][i] == nil then
-						factionok = false
-						err = "CF['ActDescriptions'] is missing."
-					end
-
-					if CF.ActUnlockData[id][i] == nil then
-						factionok = false
-						err = "CF['ActUnlockData'] is missing."
-					end
-
-					if CF.ActTypes[id][i] == nil then
-						factionok = false
-						err = "CF['ActTypes'] is missing."
-					end
-
-					if CF.ActPowers[id][i] == nil then
-						factionok = false
-						err = "CF['ActPowers'] is missing."
-					end
-
-					-- If something is wrong then disable faction and print error message
-					if not factionok then
-						CF.FactionPlayable[id] = false
-						print("ERROR!!! " .. id .. " DISABLED!!! " .. CF.ActNames[id][i] .. " : " .. err)
-						break
-					end
+			if module ~= nil then
+				if PresetMan:GetModuleID(module) == -1 then
+					CF.FactionPlayable[id] = false
+					print("ERROR!!! " .. id .. " DISABLED!!! " .. CF.RequiredModules[id][m] .. " NOT FOUND!!!")
 				end
 			end
-		else
-			print("ERROR!!! Could not load: " .. CF.FactionFiles[i])
+		end
+
+		-- Assume that faction file is correct
+		local factionok = true
+		local err = ""
+
+		-- Verify faction file data and add mission values if any
+		-- Verify items
+		for i = 1, #CF.ItmNames[id] do
+			if CF.ItmModules[id][i] == nil then
+				factionok = false
+				err = "CF.ItmModules is missing."
+			end
+
+			if CF.ItmPrices[id][i] == nil then
+				factionok = false
+				err = "CF.ItmPrices is missing."
+			end
+
+			if CF.ItmDescriptions[id][i] == nil then
+				factionok = false
+				err = "CF.ItmDescriptions is missing."
+			end
+
+			if CF.ItmUnlockData[id][i] == nil then
+				factionok = false
+				err = "CF.ItmUnlockData is missing."
+			end
+
+			if CF.ItmTypes[id][i] == nil then
+				factionok = false
+				err = "CF.ItmTypes is missing."
+			end
+
+			if CF.ItmPowers[id][i] == nil then
+				factionok = false
+				err = "CF.ItmPowers is missing."
+			end
+
+			-- If something is wrong then disable faction and print error message
+			if not factionok then
+				CF.FactionPlayable[id] = false
+				print("ERROR!!! " .. id .. " DISABLED!!! " .. CF.ItmNames[id][i] .. " : " .. err)
+				break
+			end
+		end
+
+		-- Assume that faction file is correct
+		local info = {}
+		local data = {}
+
+		-- Verify faction generic data
+		info[#info + 1] = "CF['FactionNames']"
+		data[#info] = CF.FactionNames[id]
+
+		info[#info + 1] = "CF['FactionDescriptions']"
+		data[#info] = CF.FactionDescriptions[id]
+
+		info[#info + 1] = "CF['FactionPlayable']"
+		data[#info] = CF.FactionPlayable[id]
+
+		info[#info + 1] = "CF['RequiredModules']"
+		data[#info] = CF.RequiredModules[id]
+
+		info[#info + 1] = "CF['FactionNatures']"
+		data[#info] = CF.FactionNatures[id]
+		--[[ UL2 stuff - don't need these!
+		info[#info + 1] = "CF.ScanBonuses"
+		data[#info] = CF.ScanBonuses[id]
+				
+		info[#info + 1] = "CF.RelationsBonuses"
+		data[#info] = CF.RelationsBonuses[id]
+
+		info[#info + 1] = "CF.ExpansionBonuses"
+		data[#info] = CF.ExpansionBonuses[id]
+
+		info[#info + 1] = "CF.MineBonuses"
+		data[#info] = CF.MineBonuses[id]
+
+		info[#info + 1] = "CF.LabBonuses"
+		data[#info] = CF.LabBonuses[id]
+
+		info[#info + 1] = "CF.AirfieldBonuses"
+		data[#info] = CF.AirfieldBonuses[id]
+
+		info[#info + 1] = "CF.SuperWeaponBonuses"
+		data[#info] = CF.SuperWeaponBonuses[id]
+
+		info[#info + 1] = "CF.FactoryBonuses"
+		data[#info] = CF.FactoryBonuses[id]
+
+		info[#info + 1] = "CF.CloneBonuses"
+		data[#info] = CF.CloneBonuses[id]
+
+		info[#info + 1] = "CF.HospitalBonuses"
+		data[#info] = CF.HospitalBonuses[id]
+		]]
+		--
+		info[#info + 1] = "CF['Brains']"
+		data[#info] = CF.Brains[id]
+
+		info[#info + 1] = "CF['BrainModules']"
+		data[#info] = CF.BrainModules[id]
+
+		info[#info + 1] = "CF['BrainClasses']"
+		data[#info] = CF.BrainClasses[id]
+
+		info[#info + 1] = "CF['BrainPrices']"
+		data[#info] = CF.BrainPrices[id]
+
+		info[#info + 1] = "CF['Crafts']"
+		data[#info] = CF.Crafts[id]
+
+		info[#info + 1] = "CF['CraftModules']"
+		data[#info] = CF.CraftModules[id]
+
+		info[#info + 1] = "CF['CraftClasses']"
+		data[#info] = CF.CraftClasses[id]
+
+		info[#info + 1] = "CF['CraftPrices']"
+		data[#info] = CF.CraftPrices[id]
+
+		for i = 1, #info do
+			if data[i] == nil then
+				CF.FactionPlayable[id] = false
+				print("ERROR!!! " .. id .. " DISABLED!!! " .. info[i] .. " is missing")
+				break
+			end
+		end
+
+		-- Assume that faction file is correct
+		local factionok = true
+		local err = ""
+
+		-- Verify actors
+		for i = 1, #CF.ActNames[id] do
+			if CF.ActModules[id][i] == nil then
+				factionok = false
+				err = "CF['ActModules'] is missing."
+			end
+
+			if CF.ActPrices[id][i] == nil then
+				factionok = false
+				err = "CF['ActPrices'] is missing."
+			end
+
+			if CF.ActDescriptions[id][i] == nil then
+				factionok = false
+				err = "CF['ActDescriptions'] is missing."
+			end
+
+			if CF.ActUnlockData[id][i] == nil then
+				factionok = false
+				err = "CF['ActUnlockData'] is missing."
+			end
+
+			if CF.ActTypes[id][i] == nil then
+				factionok = false
+				err = "CF['ActTypes'] is missing."
+			end
+
+			if CF.ActPowers[id][i] == nil then
+				factionok = false
+				err = "CF['ActPowers'] is missing."
+			end
+
+			-- If something is wrong then disable faction and print error message
+			if not factionok then
+				CF.FactionPlayable[id] = false
+				print("ERROR!!! " .. id .. " DISABLED!!! " .. CF.ActNames[id][i] .. " : " .. err)
+				break
+			end
 		end
 	end
 
@@ -575,14 +549,6 @@ CF.InitFactions = function(activity)
 
 	-- Load extensions data
 	for i = 1, #CF.ExtensionFiles do
-		--[[f = loadfile(extensionstorage..CF.ExtensionFiles[i])
-		if f ~= nil then
-			-- Execute script
-			f()
-		else
-			print ("ERROR!!! Could not load: "..CF.ExtensionFiles[i])
-		end]]
-		--
 		dofile(CF.ExtensionFiles[i])
 	end
 end

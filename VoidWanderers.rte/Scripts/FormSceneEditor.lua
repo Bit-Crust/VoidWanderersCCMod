@@ -2,8 +2,6 @@
 --	Load event. Put all UI element initialiations here.
 -----------------------------------------------------------------------------------------
 function VoidWanderers:FormLoad()
-	--CF["StopUIProcessing"] = true
-
 	print("Form load")
 
 	G_CursorActor = CreateActor("VW_Cursor")

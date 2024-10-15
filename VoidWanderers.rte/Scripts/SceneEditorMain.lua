@@ -6,16 +6,15 @@ function VoidWanderers:StartActivity()
 	print("VoidWanderers:StrategyScreen:StartActivity")
 
 	self.MenuNavigationSchemes = { KEYBOARD = 0, MOUSE = 1, GAMEPAD = 2 }
-	CF.MenuNavigationScheme = self.MenuNavigationSchemes.KEYBOARD
-	CF.FirstActivePlayer = Activity.PLAYER_NONE
+	self.MenuNavigationScheme = self.MenuNavigationSchemes.KEYBOARD
+	self.MenuNavigatingPlayer = Activity.PLAYER_NONE
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
-			CF.FirstActivePlayer = player
-			CF.FirstActivePlayerController = self:GetPlayerController(player);
+			self.MenuNavigatingPlayer = player
 			if self:GetPlayerController(player):IsMouseControlled() then
-				CF.MenuNavigationScheme = self.MenuNavigationSchemes.MOUSE
+				self.MenuNavigationScheme = self.MenuNavigationSchemes.MOUSE
 			elseif self:GetPlayerController(player):IsGamepadControlled() then
-				CF.MenuNavigationScheme = self.MenuNavigationSchemes.GAMEPAD
+				self.MenuNavigationScheme = self.MenuNavigationSchemes.GAMEPAD
 			end
 			break
 		else
@@ -216,13 +215,6 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:DrawButton(el, state, drawthistime)
 	local isvisible = true
-	local presetprefix
-
-	if CF.LowPerformance then
-		presetprefix = "Ln"
-	else
-		presetprefix = ""
-	end
 
 	if el["Visible"] ~= nil then
 		if el["Visible"] == false then
@@ -232,7 +224,7 @@ function VoidWanderers:DrawButton(el, state, drawthistime)
 
 	if isvisible then
 		if drawthistime then
-			local pix = CreateMOPixel(presetprefix .. el["Presets"][state])
+			local pix = CreateMOPixel(el["Presets"][state])
 			pix.Pos = el.Pos
 			MovableMan:AddParticle(pix)
 		end
@@ -280,19 +272,7 @@ end
 -- Redraw non-custom elements
 -----------------------------------------------------------------------------------------
 function VoidWanderers:RedrawKnownFormElements()
-	local drawthistime
-
 	for i = 1, #self.UI do
-		drawthistime = true
-
-		if CF.LowPerformance then
-			if CF.FrameCounter % 2 == i % 2 then
-				drawthistime = true
-			else
-				drawthistime = false
-			end
-		end
-
 		-- Redraw button
 		if self.UI[i]["Type"] == self.ElementTypes.BUTTON then
 			local state = self.ButtonStates.IDLE
@@ -305,7 +285,7 @@ function VoidWanderers:RedrawKnownFormElements()
 				state = self.ButtonStates.PRESSED
 			end
 
-			self:DrawButton(self.UI[i], state, drawthistime)
+			self:DrawButton(self.UI[i], state, true)
 		end
 
 		if self.UI[i]["Type"] == self.ElementTypes.LABEL then
@@ -337,20 +317,7 @@ function VoidWanderers:UpdateActivity()
 	end
 
 	if not self.IsInitialized then
-		--Init mission if we're still not
 		self:StartActivity()
-	end
-
-	if self.ActivityState == Activity.OVER then
-		return
-	end
-
-	if CF.StopUIProcessing then
-		return
-	end
-
-	if self.ProcessBeforeAnything ~= nil then
-		self:ProcessBeforeAnything()
 	end
 
 	-- Set the screen of disabled 4-th player when we're playing in 3-player mode
@@ -361,7 +328,7 @@ function VoidWanderers:UpdateActivity()
 
 	local cont = self.brain:GetController()
 
-	if CF.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
+	if self.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
 		if cont:IsState(Controller.MOVE_LEFT) then
 			self.Mouse = self.Mouse + Vector(-5, 0)
 		end
@@ -377,25 +344,12 @@ function VoidWanderers:UpdateActivity()
 		if cont:IsState(Controller.MOVE_DOWN) then
 			self.Mouse = self.Mouse + Vector(0, 5)
 		end
-	elseif CF.MenuNavigationScheme == self.MenuNavigationSchemes.MOUSE then
+	elseif self.MenuNavigationScheme == self.MenuNavigationSchemes.MOUSE then
 		-- Read mouse input
-		self.Mouse = self.Mouse + UInputMan:GetMouseMovement(CF.FirstActivePlayer)
+		self.Mouse = self.Mouse + UInputMan:GetMouseMovement(self.MenuNavigatingPlayer)
 	else
-		self.Mouse = self.Mouse + CF.FirstActivePlayerController.AnalogMove * 5
+		self.Mouse = self.Mouse + self:GetPlayerController(self.MenuNavigatingPlayer).AnalogMove * 5
 	end
-
-	-- Debug Toggle low performance flag on/off
-	--if UInputMan:KeyPressed(28) then
-	--	CF.LowPerformance = not CF.LowPerformance
-	--	print (CF.LowPerformance)
-	--end
-
-	-- Find out info about UInputMan buttons
-	--for i = 1, 128 do
-	--	if UInputMan:KeyPressed(i) then
-	--		print (i)
-	--	end
-	--end
 
 	-- Don't let the cursor leave the screen
 	if self.ButtonPressed then
@@ -441,7 +395,7 @@ function VoidWanderers:UpdateActivity()
 	end
 
 	-- Process mouse hovers and presses -- TODO: UInputMan doesn't seem to register the mouse press functions?
-	if true or CF.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
+	if true or self.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
 		self.MouseOverElement = self:GetMouseOverKnownFormElements()
 
 		if self.MouseOverElement then
@@ -533,15 +487,6 @@ function VoidWanderers:UpdateActivity()
 	self:RedrawKnownFormElements()
 	self:FormUpdate()
 	self:FormDraw()
-
-	-- Count frames for low performance version of CF["DrawString"]
-	CF["FrameCounter"] = CF["FrameCounter"] + 1
-
-	if CF["FrameCounter"] >= 10000 then
-		CF["FrameCounter"] = 0
-	end
-
-	--print (self.Mouse - self.Mid)--]]--
 end
 -----------------------------------------------------------------------------------------
 -- Thats all folks!!!

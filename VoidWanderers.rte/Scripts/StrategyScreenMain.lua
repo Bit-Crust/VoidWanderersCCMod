@@ -1,91 +1,79 @@
 -----------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------
--- Start Activity
+-- Initialize menu screen systems.
 -----------------------------------------------------------------------------------------
 function VoidWanderers:StartActivity()
-	print("VoidWanderers:StrategyScreen:StartActivity")
+	print("VoidWanderers:StrategyScreen:StartActivity");
 
-	self.AllowsUserSaving = false
+	self.AllowsUserSaving = false;
 
 	if self.IsInitialized == nil then
-		self.IsInitialized = false
+		self.IsInitialized = false;
 	elseif self.IsInitialized == true then
-		return
+		return;
 	end
 	
-	self.MenuNavigationSchemes = { KEYBOARD = 0, MOUSE = 1, GAMEPAD = 2 }
-	CF.MenuNavigationScheme = self.MenuNavigationSchemes.KEYBOARD
-	CF.FirstActivePlayer = Activity.PLAYER_NONE
+	self.MenuNavigationSchemes = { KEYBOARD = 0, MOUSE = 1, GAMEPAD = 2 };
+	self.MenuNavigationScheme = self.MenuNavigationSchemes.KEYBOARD;
+	self.MenuNavigatingPlayer = Activity.PLAYER_NONE;
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
-			CF.FirstActivePlayer = player
-			CF.FirstActivePlayerController = self:GetPlayerController(player);
+			self.MenuNavigatingPlayer = player;
 			if self:GetPlayerController(player):IsMouseControlled() then
-				CF.MenuNavigationScheme = self.MenuNavigationSchemes.MOUSE
+				self.MenuNavigationScheme = self.MenuNavigationSchemes.MOUSE;
 			elseif self:GetPlayerController(player):IsGamepadControlled() then
-				CF.MenuNavigationScheme = self.MenuNavigationSchemes.GAMEPAD
+				self.MenuNavigationScheme = self.MenuNavigationSchemes.GAMEPAD;
 			end
-			break
+			break;
 		end
 	end
 
-	---- -- -- self.ModuleName = "VoidWanderers.rte"
+	self.Mid = Vector(SceneMan.Scene.Width / 4, SceneMan.Scene.Height / 2);
 
-	self.MidX = SceneMan.Scene.Width / 4
-	self.MidY = SceneMan.Scene.Height / 2
-	self.Mid = Vector(self.MidX, self.MidY)
-	self.MidOffset = Vector(0,0)
+	self.Res = Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight);
 
-	self.ResX = FrameMan.PlayerScreenWidth
-	self.ResY = FrameMan.PlayerScreenHeight
+	self.Mouse = self.Mid * 1;
+	self.Scroll = self.Mid * 1;
 
-	self.ResX2 = FrameMan.PlayerScreenWidth / 2
-	self.ResY2 = FrameMan.PlayerScreenHeight / 2
+	self.ScrollTriggerThickness = Vector(50, 50);
+	self.ScrollingScreen = { X = false, Y = false };
 
-	self.Mouse = self.Mid * 1
-	self.Scroll = self.Mid * 1
-	self.ScrollMinimumDistance = self.ResY2 - 50
-	self.ScrollingScreen = true
+	self.Bound = Box(self.Mid.X + -self.Res.X / 2, 0, self.Mid.X + self.Res.X / 2, self.Mid.Y * 2);
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		self:SetPlayerBrain(nil, player)
-		FrameMan:ClearScreenText(player)
+		self:SetPlayerBrain(nil, player);
+		FrameMan:ClearScreenText(player);
 	end
 	
 	--Make invisible brains.
-	self.Cursor = nil
+	self.Cursor = nil;
 
-	local brainpos = {}
+	local brainpos = {};
+	brainpos[0] = self.Mid + Vector(0, 0);
+	brainpos[1] = self.Mid + Vector(self.Mid.X * 2, -self.Mid.Y / 2);
+	brainpos[2] = self.Mid + Vector(self.Mid.X * 2, 0);
+	brainpos[3] = self.Mid + Vector(self.Mid.X * 2, self.Mid.Y / 2);
 
-	brainpos[0] = self.Mid + Vector(0, 0)
-	brainpos[1] = self.Mid + Vector(self.ResX, -self.ResY2)
-	brainpos[2] = self.Mid + Vector(self.ResX, 0)
-	brainpos[3] = self.Mid + Vector(self.ResX, self.ResY2)
-
-	self.ObserverPos = brainpos[3]
+	self.ObserverPos = brainpos[3];
 		
-	local activeHumans = 0
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		local brn
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
-			activeHumans = activeHumans + 1
-			brn = CreateActor("Fake Brain Case")
-			brn.Scale = 0
-			brn.Team = Activity.TEAM_1
-			brn.Pos = brainpos[activeHumans - 1]
-			brn.HitsMOs = false
-			brn.GetsHitByMOs = false
-			MovableMan:AddActor(brn)
-			self:SetPlayerBrain(brn, player)
-			self:SwitchToActor(brn, player, Activity.TEAM_1)
-			CameraMan:SetScroll(self.Mid, self:ScreenOfPlayer(player))
-				
-			if self.Cursor == nil and brn ~= nil then
-				self.Cursor = brn
-			end
+			local brn = CreateActor("Fake Brain Case");
+			brn.Scale = 0;
+			brn.Team = Activity.TEAM_1;
+			brn.Pos = brainpos[player];
+			brn.HitsMOs = false;
+			brn.GetsHitByMOs = false;
+			MovableMan:AddActor(brn);
+			self:SetPlayerBrain(brn, player);
+			self:SwitchToActor(brn, player, Activity.TEAM_1);
+			CameraMan:SetOffset(brainpos[player] - self.Res / 2, self:ScreenOfPlayer(player));
 		end
 	end
 	
+	self.Cursor = self:GetPlayerBrain(self.MenuNavigatingPlayer);
+	self.Cursor.Pos = brainpos[0];
+	CameraMan:SetOffset(brainpos[0] - self.Res / 2, self:ScreenOfPlayer(self.MenuNavigatingPlayer));
+
 	self.FirePressed = {}
 	self.MouseFirePressed = true
 
@@ -95,7 +83,7 @@ function VoidWanderers:StartActivity()
 	self.MessageTimer = Timer()
 	self.MessageTimer:Reset()
 	self.MessageInterval = CF.MessageInterval
-	self.MessagePos = self.Mid + Vector(-75, self.ResY2 - 48)
+	self.MessagePos = self.Mid + Vector(-75, self.Res.Y / 2 - 48)
 	
 	self.Messages = {}
 
@@ -207,13 +195,6 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:DrawButton(el, state, drawthistime)
 	local isvisible = true
-	local presetprefix
-
-	if CF.LowPerformance then
-		presetprefix = "Ln"
-	else
-		presetprefix = ""
-	end
 
 	if el["Visible"] ~= nil then
 		if el["Visible"] == false then
@@ -223,7 +204,7 @@ function VoidWanderers:DrawButton(el, state, drawthistime)
 
 	if isvisible then
 		if drawthistime then
-			local pix = CreateMOPixel(presetprefix .. el["Presets"][state])
+			local pix = CreateMOPixel(el["Presets"][state])
 			pix.Pos = el.Pos
 			MovableMan:AddParticle(pix)
 		end
@@ -267,19 +248,7 @@ end
 -- Redraw non-custom elements
 -----------------------------------------------------------------------------------------
 function VoidWanderers:RedrawKnownFormElements()
-	local drawthistime
-
 	for i = 1, #self.UI do
-		drawthistime = true
-
-		if CF.LowPerformance then
-			if CF.FrameCounter % 2 == i % 2 then
-				drawthistime = true
-			else
-				drawthistime = false
-			end
-		end
-
 		-- Redraw button
 		if self.UI[i]["Type"] == self.ElementTypes.BUTTON then
 			local state = self.ButtonStates.IDLE
@@ -292,7 +261,7 @@ function VoidWanderers:RedrawKnownFormElements()
 				state = self.ButtonStates.PRESSED
 			end
 
-			self:DrawButton(self.UI[i], state, drawthistime)
+			self:DrawButton(self.UI[i], state, true)
 		end
 
 		if self.UI[i]["Type"] == self.ElementTypes.LABEL then
@@ -325,28 +294,14 @@ function VoidWanderers:UpdateActivity()
 		self:StartActivity(true)
 	end
 
-	if self.ActivityState == Activity.OVER then
-		return
-	end
-
-	if CF.StopUIProcessing then
-		return
-	end
-
-	if self.ProcessBeforeAnything ~= nil then
-		self:ProcessBeforeAnything()
-	end
-
 	-- Set the screen of disabled 4-th player when we're playing in 3-player mode
-	if self.ObserverPos and self:PlayerHuman(Activity.PLAYER_4) then
-		CameraMan:SetScrollTarget(self.ObserverPos, 0.04, self:ScreenOfPlayer(Activity.PLAYER_4))
-	end
+	CameraMan:SetScrollTarget(self.ObserverPos, 0.04, self:ScreenOfPlayer(Activity.PLAYER_4))
 
 	self:ClearObjectivePoints()
 
-	local cont = self.Cursor:GetController()
+	local cont = self:GetPlayerController(self.MenuNavigatingPlayer)
 
-	if CF.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
+	if self.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
 		if cont:IsState(Controller.MOVE_LEFT) then
 			self.Mouse = self.Mouse + Vector(-5, 0)
 		end
@@ -362,49 +317,33 @@ function VoidWanderers:UpdateActivity()
 		if cont:IsState(Controller.MOVE_DOWN) then
 			self.Mouse = self.Mouse + Vector(0, 5)
 		end
-	elseif CF.MenuNavigationScheme == self.MenuNavigationSchemes.MOUSE then
+	elseif self.MenuNavigationScheme == self.MenuNavigationSchemes.MOUSE then
 		-- Read mouse input
-		self.Mouse = self.Mouse + UInputMan:GetMouseMovement(CF.FirstActivePlayer)
+		self.Mouse = self.Mouse + UInputMan:GetMouseMovement(self.MenuNavigatingPlayer)
 	else
-		self.Mouse = self.Mouse + CF.FirstActivePlayerController.AnalogMove * 5
+		self.Mouse = self.Mouse + cont.AnalogMove * 5
 	end
-	
-	if self.ScrollingScreen == true and self.Mouse.Y > self.Scroll.Y + self.ScrollMinimumDistance then
-		self.Scroll.Y = self.Scroll.Y - (self.Scroll.Y + self.ScrollMinimumDistance - self.Mouse.Y) * 0.25
-	end
-	if self.ScrollingScreen == true and self.Mouse.Y < self.Scroll.Y - self.ScrollMinimumDistance then
-		self.Scroll.Y = self.Scroll.Y - (self.Scroll.Y - self.ScrollMinimumDistance - self.Mouse.Y) * 0.25
+
+	-- Don't let the cursor leave the screen
+	self.Mouse = self.Bound:GetWithinBox(self.Mouse);
+
+	for _, axis in ipairs{"X", "Y"} do
+		if self.ScrollingScreen[axis] then
+			if self.Mouse[axis] > self.Scroll[axis] + self.Res[axis] / 2 - self.ScrollTriggerThickness[axis] then
+				self.Scroll[axis] = self.Scroll[axis] - (self.Scroll[axis] + self.Res[axis] / 2 - self.ScrollTriggerThickness[axis] - self.Mouse[axis]) * 0.25
+			elseif self.Mouse[axis] < self.Scroll[axis] - self.Res[axis] / 2 + self.ScrollTriggerThickness[axis] then
+				self.Scroll[axis] = self.Scroll[axis] - (self.Scroll[axis] - self.Res[axis] / 2 + self.ScrollTriggerThickness[axis] - self.Mouse[axis]) * 0.25
+			end
+		end
 	end
 	
 	self.Cursor.Pos = self.Scroll * 1
-
-	-- Don't let the cursor leave the screen
-	local LEFT_BOUND = self.Mid.X + -self.ResX2 + self.MidOffset.X
-	local RIGHT_BOUND = self.Mid.X + self.ResX2 + self.MidOffset.X - 10
-	local TOP_BOUND = self.MidOffset.Y
-	local BOTTOM_BOUND = self.Mid.Y * 2 + self.MidOffset.Y - 10
-	
-	if self.Mouse.X < LEFT_BOUND then
-		self.Mouse.X = LEFT_BOUND
-	end
-
-	if self.Mouse.Y < TOP_BOUND then
-		self.Mouse.Y = TOP_BOUND
-	end
-
-	if self.Mouse.X > RIGHT_BOUND  then
-		self.Mouse.X = RIGHT_BOUND
-	end
-
-	if self.Mouse.Y > BOTTOM_BOUND  then
-		self.Mouse.Y = BOTTOM_BOUND
-	end
 
 	self:DrawMouseCursor()
 	self:DisplayCurrentMessage()
 
 	-- Process mouse hovers and presses -- TODO: UInputMan doesn't seem to register the mouse press functions?
-	if true or CF.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
+	if true or self.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
 		self.MouseOverElement = self:GetMouseOverKnownFormElements()
 
 		if self.MouseOverElement then
@@ -496,15 +435,6 @@ function VoidWanderers:UpdateActivity()
 	self:RedrawKnownFormElements()
 	self:FormUpdate()
 	self:FormDraw()
-
-	-- Count frames for low performance version of CF["DrawString"]
-	CF.FrameCounter = CF.FrameCounter + 1
-
-	if CF.FrameCounter >= 10000 then
-		CF.FrameCounter = 0
-	end
-
-	--print (self.Mouse - self.Mid)--]]--
 end
 -----------------------------------------------------------------------------------------
 -- Thats all folks!!!
