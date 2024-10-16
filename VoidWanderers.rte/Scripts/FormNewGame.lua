@@ -2,6 +2,8 @@
 --	Load event. Put all UI element initialiations here.
 -----------------------------------------------------------------------------------------
 function VoidWanderers:FormLoad()
+	self.ScrollingScreen = { X = false, Y = true };
+
 	local el
 
 	self.TileW = 60
@@ -113,7 +115,7 @@ function VoidWanderers:FormLoad()
 	el["Presets"][self.ButtonStates.IDLE] = "SideMenuButtonSmallIdle"
 	el["Presets"][self.ButtonStates.MOUSE_OVER] = "SideMenuButtonSmallMouseOver"
 	el["Presets"][self.ButtonStates.PRESSED] = "SideMenuButtonSmallPressed"
-	el["Pos"] = self.Mid + Vector(self.ResX2 - 70 - 20, -self.ResY2 + 12 + 20)
+	el["Pos"] = self.Mid + Vector(self.Res.X / 2 - 70 - 20, -self.Res.Y / 2 + 12 + 20)
 	el["Text"] = "Back"
 	el["Width"] = 140
 	el["Height"] = 40
@@ -138,8 +140,8 @@ function VoidWanderers:FormLoad()
 		end
 
 		self.FactionButtons[i]["Pos"] = Vector(
-			self.MidX - ((tilesperrow * self.TileW) / 2) + (xtile * self.TileW) - (self.TileW / 2),
-			self.MidY - (ytile * 70)
+			self.Mid.X - ((tilesperrow * self.TileW) / 2) + (xtile * self.TileW) - (self.TileW / 2),
+			self.Mid.Y - (ytile * 70)
 		)
 
 		xtile = xtile + 1
@@ -152,7 +154,7 @@ function VoidWanderers:FormLoad()
 	self:RedrawFactionButtons()
 
 	for i = 1, self.PlayableFactionCount do
-		local actor = CF["SpawnRandomInfantry"](
+		local actor = CF.SpawnRandomInfantry(
 			-1,
 			self.FactionButtons[i]["Pos"],
 			self.FactionButtons[i]["FactionId"],
@@ -206,8 +208,8 @@ function VoidWanderers:FormLoad()
 	for i = 1, self.MaxCPUPlayersSelectable do
 		self.SelectionButtons[i] = {}
 		self.SelectionButtons[i]["Pos"] = Vector(
-			self.MidX - ((tilesperrow * self.TileW) / 2) + (xtile * self.TileW) - (self.TileW / 2),
-			self.MidY + 90 + (ytile * tileH2) + 60
+			self.Mid.X - ((tilesperrow * self.TileW) / 2) + (xtile * self.TileW) - (self.TileW / 2),
+			self.Mid.Y + 90 + (ytile * tileH2) + 60
 		)
 		-- print(self.SelectionButtons[i]["Pos"])
 		self:RedrawFactionButton(self.SelectionButtons[i], self.ButtonStates.IDLE)
@@ -313,14 +315,12 @@ function VoidWanderers:GetFactionButtonUnderMouse(pos)
 		local elpos = self.FactionButtons[i]["Pos"]
 		local wx = self.FactionButtons[i]["Width"]
 		local wy = self.FactionButtons[i]["Height"]
-		-- print(pos.X .. " - " .. pos.Y)
-		-- print(elpos.X .. " - " .. elpos.Y)
-		-- print(wx .. " - " .. wy)
+
 		if
-				pos.X > elpos.X - (wx / 2)
-				and pos.X < elpos.X + (wx / 2)
-				and pos.Y > elpos.Y - (wy / 2)
-				and pos.Y < elpos.Y + (wy / 2)
+			pos.X > elpos.X - (wx / 2)
+			and pos.X < elpos.X + (wx / 2)
+			and pos.Y > elpos.Y - (wy / 2)
+			and pos.Y < elpos.Y + (wy / 2)
 		then
 			return i
 		end
@@ -365,7 +365,7 @@ function VoidWanderers:FormClick()
 
 		if not (isPlayerFaction or removeIndex > 0) then
 			-- If we're clear, add a unit and a faction to the list
-			local actor = CF["SpawnRandomInfantry"](
+			local actor = CF.SpawnRandomInfantry(
 				-1,
 				self.SelectionButtons[self.Phase + 1]["Pos"],
 				self.FactionButtons[f]["FactionId"],
@@ -476,9 +476,9 @@ function VoidWanderers:FormUpdate()
 	for i = 0, self.MaxCPUPlayersSelectable do
 		if self.NoMOIDPlaceholders[i] then
 			local s = "No MOIDs"
-			local l = CF["GetStringPixelWidth"](s)
+			local l = CF.GetStringPixelWidth(s)
 
-			CF["DrawString"](s, self.SelectionButtons[i + 1]["Pos"] + Vector(-l / 2, 0), 100, 100)
+			CF.DrawString(s, self.SelectionButtons[i + 1]["Pos"] + Vector(-l / 2, 0), 100, 100)
 		end
 	end
 end

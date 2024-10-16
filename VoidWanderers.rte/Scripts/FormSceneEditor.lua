@@ -71,7 +71,7 @@ function VoidWanderers:FormLoad()
 	el["Presets"][self.ButtonStates.IDLE] = "ButtonSceneEditorWideIdle"
 	el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
 	el["Presets"][self.ButtonStates.PRESSED] = "ButtonSceneEditorWidePressed"
-	el["RelPos"] = Vector(-self.ResX2 + 20 + sx / 2, -self.ResY2 + 20)
+	el["RelPos"] = Vector(-self.Res.X / 2 + 20 + sx / 2, -self.Res.Y / 2 + 20)
 	el["Text"] = "SAVE"
 	el["Width"] = sx
 	el["Height"] = sy
@@ -87,7 +87,7 @@ function VoidWanderers:FormLoad()
 	el["Presets"][self.ButtonStates.IDLE] = "ButtonSceneEditorWideIdle"
 	el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
 	el["Presets"][self.ButtonStates.PRESSED] = "ButtonSceneEditorWidePressed"
-	el["RelPos"] = Vector(-self.ResX2 + 20 + sx / 2 + 161, -self.ResY2 + 20)
+	el["RelPos"] = Vector(-self.Res.X / 2 + 20 + sx / 2 + 161, -self.Res.Y / 2 + 20)
 	el["Text"] = "Show Generic"
 	el["Width"] = sx
 	el["Height"] = sy
@@ -103,7 +103,7 @@ function VoidWanderers:FormLoad()
 	el["Presets"][self.ButtonStates.IDLE] = "ButtonSceneEditorWideIdle"
 	el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
 	el["Presets"][self.ButtonStates.PRESSED] = "ButtonSceneEditorWidePressed"
-	el["RelPos"] = Vector(-self.ResX2 + 20 + sx / 2 + 321, -self.ResY2 + 20)
+	el["RelPos"] = Vector(-self.Res.X / 2 + 20 + sx / 2 + 321, -self.Res.Y / 2 + 20)
 	el["Text"] = "Snap to grid 12px"
 	el["Width"] = sx
 	el["Height"] = sy
@@ -125,7 +125,7 @@ function VoidWanderers:FormLoad()
 		el["Presets"][self.ButtonStates.IDLE] = "ButtonSceneEditorWideIdle"
 		el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
 		el["Presets"][self.ButtonStates.PRESSED] = "ButtonSceneEditorWidePressed"
-		el["RelPos"] = Vector(-self.ResX2 + 20 + sx / 2 + x * sx, -self.ResY2 + 20 + y * sy)
+		el["RelPos"] = Vector(-self.Res.X / 2 + 20 + sx / 2 + x * sx, -self.Res.Y / 2 + 20 + y * sy)
 		el["Text"] = self.Data[i]["Name"]
 		el["Data"] = self.Data[i]["Name"]
 		el["Width"] = sx
@@ -294,7 +294,7 @@ function VoidWanderers:MissionType_OnClick()
 		el["Presets"][self.ButtonStates.IDLE] = "ButtonSceneEditorIdle"
 		el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonSceneEditorMouseOver"
 		el["Presets"][self.ButtonStates.PRESSED] = "ButtonSceneEditorPressed"
-		el["RelPos"] = Vector(-self.ResX2 + 20 + sx / 2 + x * sx + 161, -self.ResY2 + 20 + y * sy)
+		el["RelPos"] = Vector(-self.Res.X / 2 + 20 + sx / 2 + x * sx + 161, -self.Res.Y / 2 + 20 + y * sy)
 		el["Text"] = "SET " .. i
 		el["Data"] = i
 		el["Width"] = sx
@@ -321,7 +321,7 @@ function VoidWanderers:MissionType_OnClick()
 		el["Presets"][self.ButtonStates.IDLE] = "ButtonSceneEditorWideIdle"
 		el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
 		el["Presets"][self.ButtonStates.PRESSED] = "ButtonSceneEditorWidePressed"
-		el["RelPos"] = Vector(-self.ResX2 + 20 + sx / 2 + x * sx + 252, -self.ResY2 + 20 + y * sy)
+		el["RelPos"] = Vector(-self.Res.X / 2 + 20 + sx / 2 + x * sx + 252, -self.Res.Y / 2 + 20 + y * sy)
 		el["Text"] = CF["MissionRequiredData"][self.SelectedType][i]["Name"]
 		el["Data"] = i
 		el["Width"] = sx
@@ -380,7 +380,7 @@ function VoidWanderers:PointType_OnClick()
 		el["Presets"][self.ButtonStates.IDLE] = "ButtonSceneEditorIdle"
 		el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonSceneEditorMouseOver"
 		el["Presets"][self.ButtonStates.PRESSED] = "ButtonSceneEditorPressed"
-		el["RelPos"] = Vector(-self.ResX2 + 20 + sx / 2 + x * sx + 252 + 161, -self.ResY2 + 20 + y * sy)
+		el["RelPos"] = Vector(-self.Res.X / 2 + 20 + sx / 2 + x * sx + 252 + 161, -self.Res.Y / 2 + 20 + y * sy)
 		el["Text"] = tostring(i)
 		el["Data"] = i
 		el["Width"] = sx
@@ -439,12 +439,12 @@ function VoidWanderers:FormUpdate()
 		if self.ButtonPressed then
 			self.FixedPos = self.Mouse
 
-			if self.Mouse.Y < self.ResY2 then
-				self.FixedPos.Y = self.ResY2
+			if self.Mouse.Y < self.Res.Y / 2 then
+				self.FixedPos.Y = self.Res.Y / 2
 			end
 
-			if self.Mouse.Y > SceneMan.Scene.Height - self.ResY2 then
-				self.FixedPos.Y = SceneMan.Scene.Height - self.ResY2
+			if self.Mouse.Y > SceneMan.Scene.Height - self.Res.Y / 2 then
+				self.FixedPos.Y = SceneMan.Scene.Height - self.Res.Y / 2
 			end
 
 			self.Mouse = self.FixedPos

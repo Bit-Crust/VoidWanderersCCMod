@@ -40,15 +40,15 @@ function VoidWanderers:StartActivity()
 
 	---- -- -- self.ModuleName = "VoidWanderers.rte"
 
-	self.MidX = SceneMan.Scene.Width / 2
-	self.MidY = SceneMan.Scene.Height / 2
-	self.Mid = Vector(self.MidX, self.MidY)
+	self.Mid.X = SceneMan.Scene.Width / 2
+	self.Mid.Y = SceneMan.Scene.Height / 2
+	self.Mid = Vector(self.Mid.X, self.Mid.Y)
 
-	self.ResX = FrameMan.PlayerScreenWidth
-	self.ResY = FrameMan.PlayerScreenHeight
+	self.Res.X = FrameMan.PlayerScreenWidth
+	self.Res.Y = FrameMan.PlayerScreenHeight
 
-	self.ResX2 = FrameMan.PlayerScreenWidth / 2
-	self.ResY2 = FrameMan.PlayerScreenHeight / 2
+	self.Res.X / 2 = FrameMan.PlayerScreenWidth / 2
+	self.Res.Y / 2 = FrameMan.PlayerScreenHeight / 2
 
 	self.Mouse = self.Mid
 
@@ -71,7 +71,7 @@ function VoidWanderers:StartActivity()
 	self.MessageTimer = Timer()
 	self.MessageTimer:Reset()
 	self.MessageInterval = CF.MessageInterval
-	self.MessagePos = self.Mid + Vector(-75, self.ResY2 - 48)
+	self.MessagePos = self.Mid + Vector(-75, self.Res.Y / 2 - 48)
 
 	self.Messages = {}
 
@@ -353,20 +353,20 @@ function VoidWanderers:UpdateActivity()
 
 	-- Don't let the cursor leave the screen
 	if self.ButtonPressed then
-		if self.Mouse.X < G_CursorActor.Pos.X - self.ResX2 + 5 then
-			self.Mouse.X = G_CursorActor.Pos.X - self.ResX2 + 5
+		if self.Mouse.X < G_CursorActor.Pos.X - self.Res.X / 2 + 5 then
+			self.Mouse.X = G_CursorActor.Pos.X - self.Res.X / 2 + 5
 		end
 
-		if self.Mouse.Y < G_CursorActor.Pos.Y - self.ResY2 + 5 then
-			self.Mouse.Y = G_CursorActor.Pos.Y - self.ResY2 + 5
+		if self.Mouse.Y < G_CursorActor.Pos.Y - self.Res.Y / 2 + 5 then
+			self.Mouse.Y = G_CursorActor.Pos.Y - self.Res.Y / 2 + 5
 		end
 
-		if self.Mouse.X > G_CursorActor.Pos.X + self.ResX2 - 5 then
-			self.Mouse.X = G_CursorActor.Pos.X + self.ResX2 - 5
+		if self.Mouse.X > G_CursorActor.Pos.X + self.Res.X / 2 - 5 then
+			self.Mouse.X = G_CursorActor.Pos.X + self.Res.X / 2 - 5
 		end
 
-		if self.Mouse.Y > G_CursorActor.Pos.Y + self.ResY2 - 5 then
-			self.Mouse.Y = G_CursorActor.Pos.Y + self.ResY2 - 5
+		if self.Mouse.Y > G_CursorActor.Pos.Y + self.Res.Y / 2 - 5 then
+			self.Mouse.Y = G_CursorActor.Pos.Y + self.Res.Y / 2 - 5
 		end
 	else
 		if self.Mouse.X < 0 then

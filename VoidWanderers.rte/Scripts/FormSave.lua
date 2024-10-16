@@ -84,8 +84,8 @@ function VoidWanderers:FormLoad()
 		end
 
 		self.UI[i]["Pos"] = Vector(
-			self.MidX - ((tilesperrow * (180 - 2)) / 2) + (xtile * (180 - 2)) - ((180 - 2) / 2),
-			self.MidY - ((self.Rows * 68) / 2) + (ytile * 68) + (68 / 2)
+			self.Mid.X - ((tilesperrow * (180 - 2)) / 2) + (xtile * (180 - 2)) - ((180 - 2) / 2),
+			self.Mid.Y - ((self.Rows * 68) / 2) + (ytile * 68) + (68 / 2)
 		)
 
 		xtile = xtile + 1
@@ -155,7 +155,7 @@ function VoidWanderers:FormLoad()
 	el = {}
 	el["Type"] = self.ElementTypes.LABEL
 	el["Preset"] = nil
-	el["Pos"] = self.Mid + Vector(0, -self.ResY2 + 33)
+	el["Pos"] = self.Mid + Vector(0, -self.Res.Y / 2 + 33)
 	el["Text"] = "SAVE GAME"
 	el["Width"] = 800
 	el["Height"] = 100
@@ -168,7 +168,7 @@ function VoidWanderers:FormLoad()
 	el["Presets"][self.ButtonStates.IDLE] = "SideMenuButtonSmallIdle"
 	el["Presets"][self.ButtonStates.MOUSE_OVER] = "SideMenuButtonSmallMouseOver"
 	el["Presets"][self.ButtonStates.PRESSED] = "SideMenuButtonSmallPressed"
-	el["Pos"] = self.Mid + Vector(self.ResX2 - 70 - 20, -self.ResY2 + 12 + 20)
+	el["Pos"] = self.Mid + Vector(self.Res.X / 2 - 70 - 20, -self.Res.Y / 2 + 12 + 20)
 	el["Text"] = "Back"
 	el["Width"] = 140
 	el["Height"] = 40
@@ -180,7 +180,7 @@ function VoidWanderers:FormLoad()
 	el = {}
 	el["Type"] = self.ElementTypes.LABEL
 	el["Preset"] = nil
-	el["Pos"] = self.Mid + Vector(0, -self.ResY2 + 58)
+	el["Pos"] = self.Mid + Vector(0, -self.Res.Y / 2 + 58)
 	el["Text"] = ""
 	el["Width"] = 800
 	el["Height"] = 100
