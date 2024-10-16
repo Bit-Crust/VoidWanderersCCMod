@@ -1350,7 +1350,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				self.ShipControlUpgrades = {}
 				self.ShipControlUpgrades[1] = {}
 				self.ShipControlUpgrades[1]["Name"] = "Cryo-chambers"
-				self.ShipControlUpgrades[1]["Variable"] = "Player0VesselClonesCapacity"
+				self.ShipControlUpgrades[1]["Variable"] = "PlayerVesselClonesCapacity"
 				self.ShipControlUpgrades[1]["Max"] = CF.VesselMaxClonesCapacity[self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[1]["Description"] = "How many bodies you can store"
 				self.ShipControlUpgrades[1]["Price"] = CF.ClonePrice
@@ -1358,7 +1358,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				self.ShipControlUpgrades[2] = {}
 				self.ShipControlUpgrades[2]["Name"] = "Storage"
-				self.ShipControlUpgrades[2]["Variable"] = "Player0VesselStorageCapacity"
+				self.ShipControlUpgrades[2]["Variable"] = "PlayerVesselStorageCapacity"
 				self.ShipControlUpgrades[2]["Max"] = CF.VesselMaxStorageCapacity[self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[2]["Description"] = "How many items you can store"
 				self.ShipControlUpgrades[2]["Price"] = CF.StoragePrice
@@ -1366,7 +1366,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				self.ShipControlUpgrades[3] = {}
 				self.ShipControlUpgrades[3]["Name"] = "Life support"
-				self.ShipControlUpgrades[3]["Variable"] = "Player0VesselLifeSupport"
+				self.ShipControlUpgrades[3]["Variable"] = "PlayerVesselLifeSupport"
 				self.ShipControlUpgrades[3]["Max"] = CF.VesselMaxLifeSupport[self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[3]["Description"] = "How many bodies can be active on ship simultaneously"
 				self.ShipControlUpgrades[3]["Price"] = CF.LifeSupportPrice
@@ -1374,7 +1374,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				self.ShipControlUpgrades[4] = {}
 				self.ShipControlUpgrades[4]["Name"] = "Communication"
-				self.ShipControlUpgrades[4]["Variable"] = "Player0VesselCommunication"
+				self.ShipControlUpgrades[4]["Variable"] = "PlayerVesselCommunication"
 				self.ShipControlUpgrades[4]["Max"] = CF.VesselMaxCommunication[self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[4]["Description"] = "How many bodies you can control on planet surface"
 				self.ShipControlUpgrades[4]["Price"] = CF.CommunicationPrice
@@ -1382,7 +1382,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				self.ShipControlUpgrades[5] = {}
 				self.ShipControlUpgrades[5]["Name"] = "Engine"
-				self.ShipControlUpgrades[5]["Variable"] = "Player0VesselSpeed"
+				self.ShipControlUpgrades[5]["Variable"] = "PlayerVesselSpeed"
 				self.ShipControlUpgrades[5]["Max"] = CF.VesselMaxSpeed[self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[5]["Description"] =
 					"Speed of the vessel. Faster ships are harder to intercept."
@@ -1391,7 +1391,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				self.ShipControlUpgrades[6] = {}
 				self.ShipControlUpgrades[6]["Name"] = "Turret systems"
-				self.ShipControlUpgrades[6]["Variable"] = "Player0VesselTurrets"
+				self.ShipControlUpgrades[6]["Variable"] = "PlayerVesselTurrets"
 				self.ShipControlUpgrades[6]["Max"] = CF.VesselMaxTurrets[self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[6]["Description"] = "How many turrets can be deployed inside the ship"
 				self.ShipControlUpgrades[6]["Price"] = CF.TurretPrice
@@ -1399,7 +1399,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				self.ShipControlUpgrades[7] = {}
 				self.ShipControlUpgrades[7]["Name"] = "Turret storage"
-				self.ShipControlUpgrades[7]["Variable"] = "Player0VesselTurretStorage"
+				self.ShipControlUpgrades[7]["Variable"] = "PlayerVesselTurretStorage"
 				self.ShipControlUpgrades[7]["Max"] = CF.VesselMaxTurretStorage[self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[7]["Description"] = "How many turrets can be stored in the ship"
 				self.ShipControlUpgrades[7]["Price"] = CF.TurretStoragePrice
@@ -1407,7 +1407,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				self.ShipControlUpgrades[8] = {}
 				self.ShipControlUpgrades[8]["Name"] = "Bomb bays"
-				self.ShipControlUpgrades[8]["Variable"] = "Player0VesselBombBays"
+				self.ShipControlUpgrades[8]["Variable"] = "PlayerVesselBombBays"
 				self.ShipControlUpgrades[8]["Max"] = CF.VesselMaxBombBays[self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[8]["Description"] = "How many bombs can be launched simultaneously"
 				self.ShipControlUpgrades[8]["Price"] = CF.BombBayPrice
@@ -1415,7 +1415,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 				self.ShipControlUpgrades[9] = {}
 				self.ShipControlUpgrades[9]["Name"] = "Bomb storage"
-				self.ShipControlUpgrades[9]["Variable"] = "Player0VesselBombStorage"
+				self.ShipControlUpgrades[9]["Variable"] = "PlayerVesselBombStorage"
 				self.ShipControlUpgrades[9]["Max"] = CF.VesselMaxBombStorage[self.GS["PlayerVessel"]]
 				self.ShipControlUpgrades[9]["Description"] = "How many bombs can be stored in the ship"
 				self.ShipControlUpgrades[9]["Price"] = CF.BombStoragePrice

@@ -507,11 +507,11 @@ function VoidWanderers:StartActivity(isNewGame)
 		if not isNewGame then
 			self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData")
 			if self.missionData["initialized"] then
-				dofile(self.missionData["encounterScriptPath"])
+				dofile(self.missionData["scriptPath"])
 			end
 			self.ambientData = self.saveLoadHandler:ReadSavedStringAsTable("ambientData")
 			if self.ambientData["initialized"] then
-				dofile(self.ambientData["encounterScriptPath"])
+				dofile(self.ambientData["scriptPath"])
 			end
 		else
 			-- Generic mission data, some may be overwritten
