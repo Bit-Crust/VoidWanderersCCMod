@@ -113,7 +113,7 @@ function VoidWanderers:CreateActors()
 		self.brain = nil
 	end
 
-	self.brain = CreateActor("Fake Brain Case")
+	self.brain = CreateActor("Brain Case")
 	self.brain.Scale = 0
 	self.brain.Team = Activity.TEAM_1
 	self.brain.Pos = self.Mid

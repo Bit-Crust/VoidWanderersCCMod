@@ -494,13 +494,6 @@ function VoidWanderers:FormDraw() end
 function VoidWanderers:FormClose()
 	print("FormNewGame:Close")
 
-	-- Destroy actors
-	for actor in MovableMan.Actors do
-		if actor.PresetName ~= "Fake Brain Case" then
-			actor.ToDelete = true
-		end
-	end
-
 	-- Destroy plates
 	for i = 1, #self.FactionButtons do
 		if MovableMan:IsParticle(self.FactionButtons[i]["Particle"]) then

@@ -57,12 +57,14 @@ function VoidWanderers:StartActivity()
 		
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
-			local brn = CreateActor("Fake Brain Case");
+			local brn = CreateActor("Brain Case");
 			brn.Scale = 0;
 			brn.Team = Activity.TEAM_1;
 			brn.Pos = brainpos[player];
 			brn.HitsMOs = false;
 			brn.GetsHitByMOs = false;
+			brn.CharHeight = 10000;
+			brn.HUDVisible = false;
 			MovableMan:AddActor(brn);
 			self:SetPlayerBrain(brn, player);
 			self:SwitchToActor(brn, player, Activity.TEAM_1);
@@ -77,21 +79,12 @@ function VoidWanderers:StartActivity()
 	self.FirePressed = {}
 	self.MouseFirePressed = true
 
-	self.SceneTimer = Timer()
-	self.SceneTimer:Reset()
-
 	self.MessageTimer = Timer()
 	self.MessageTimer:Reset()
 	self.MessageInterval = CF.MessageInterval
 	self.MessagePos = self.Mid + Vector(-75, self.Res.Y / 2 - 48)
 	
 	self.Messages = {}
-
-	-- How many times to redraw cursor glows to make it less transparent
-	self.CURSOR_REDRAW_COUNT = 1
-
-	-- How many times to redraw button glows to make it less transparent
-	self.BUTTON_REDRAW_COUNT = 1
 
 	self.ElementTypes = { BUTTON = 0, LABEL = 1, PLANET = 2 }
 	self.ButtonStates = { IDLE = 0, MOUSE_OVER = 1, PRESSED = 2 }

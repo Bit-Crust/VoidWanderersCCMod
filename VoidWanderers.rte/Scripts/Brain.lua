@@ -704,7 +704,7 @@ function Update(self)
 
 	-- Process PDA input
 	if self:IsPlayerControlled() then
-		if self:NumberValueExists("EnablePDA") then
+		if self:NumberValueExists("VW_EnablePDA") then
 			-- Enable PDA only if we're not flying or something
 			if self.PDAEnabled then
 				self.PDAEnabled = false
@@ -715,7 +715,7 @@ function Update(self)
 				self.SelectedMenuItem = 1
 				self.ActiveMenu = self.Skills
 			end
-			self:RemoveNumberValue("EnablePDA")
+			self:RemoveNumberValue("VW_EnablePDA")
 		end
 	else
 		self.PDAEnabled = false

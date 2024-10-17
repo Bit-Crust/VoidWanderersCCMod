@@ -41,9 +41,6 @@ function VoidWanderers:StartActivity(isNewGame)
 	self.HoldTimer = Timer()
 	self.HoldTimer:Reset()
 
-	self.SceneTimer = Timer()
-	self.SceneTimer:Reset()
-
 	-- All items in this queue will be removed
 	self.ItemRemoveQueue = {}
 
@@ -857,362 +854,363 @@ function VoidWanderers:UpdateActivity()
 		CF.SetPlayerGold(self.GS, realGold)
 	end
 
-	if self.SceneTimer:IsPastSimMS(25) then
-		for i = 1, #self.actorList do
-			local victim = self.actorList[i]
-			if victim and not MovableMan:IsActor(victim.Pointer) then
-				--print(victim.Value .. " of value dead at (" .. math.floor(victim.ViewPoint.X + 0.5) .. ", " .. math.floor(victim.ViewPoint.Y + 0.5) .. ")!")
-				local dist = Vector()
-				local gain = victim.Team == -1 and 0 or 1
-				-- Give automatic reward to the first actor up-close to the enemy
-				local killer = MovableMan:GetClosestEnemyActor(victim.Team, victim.ViewPoint, 50, dist)
-				if killer and self:IsPlayerUnit(killer) then
-					gain = gain
-						+ victim.Value
-							/ (10 + math.abs(killer:GetGoldValue(0, 0.2, 0.2)))
-							* (3 - math.min(
-								killer.Health / killer.MaxHealth + dist.Magnitude / self.killClaimRange,
-								2
-							))
-					self:GiveXP(killer, gain)
-				elseif killer == nil or killer.Team == CF.PlayerTeam or killer.Team == Activity.NOTEAM then
-					-- Share XP between nearby actors
-					local killerCandidates = {}
-					for actor in MovableMan.Actors do
-						if self:IsPlayerUnit(actor) then
-							dist = SceneMan:ShortestDistance(actor.ViewPoint, victim.ViewPoint, SceneMan.SceneWrapsX)
-							if dist:MagnitudeIsLessThan(self.killClaimRange) then
-								-- Check for some possible terrain obstructances that will diminish the probability of claiming a kill
-								local obstructionTotal = 0
-								if dist:MagnitudeIsGreaterThan(actor.Radius) then
-									local checkPos = { actor.ViewPoint + dist * 0.2, victim.ViewPoint - dist * 0.2 }
-									for i = 1, #checkPos do
-										obstructionTotal = obstructionTotal
-											+ math.floor(
-												SceneMan:GetMaterialFromID(
-													SceneMan:GetTerrMatter(checkPos[i].X, checkPos[i].Y)
-												).StructuralIntegrity ^ 0.5
-											)
-									end
+	for i = 1, #self.actorList do
+		local victim = self.actorList[i]
+		if victim and not MovableMan:IsActor(victim.Pointer) then
+			--print(victim.Value .. " of value dead at (" .. math.floor(victim.ViewPoint.X + 0.5) .. ", " .. math.floor(victim.ViewPoint.Y + 0.5) .. ")!")
+			local dist = Vector()
+			local gain = victim.Team == -1 and 0 or 1
+			-- Give automatic reward to the first actor up-close to the enemy
+			local killer = MovableMan:GetClosestEnemyActor(victim.Team, victim.ViewPoint, 50, dist)
+			if killer and self:IsPlayerUnit(killer) then
+				gain = gain
+					+ victim.Value
+						/ (10 + math.abs(killer:GetGoldValue(0, 0.2, 0.2)))
+						* (3 - math.min(
+							killer.Health / killer.MaxHealth + dist.Magnitude / self.killClaimRange,
+							2
+						))
+				self:GiveXP(killer, gain)
+			elseif killer == nil or killer.Team == CF.PlayerTeam or killer.Team == Activity.NOTEAM then
+				-- Share XP between nearby actors
+				local killerCandidates = {}
+				for actor in MovableMan.Actors do
+					if self:IsPlayerUnit(actor) then
+						dist = SceneMan:ShortestDistance(actor.ViewPoint, victim.ViewPoint, SceneMan.SceneWrapsX)
+						if dist:MagnitudeIsLessThan(self.killClaimRange) then
+							-- Check for some possible terrain obstructances that will diminish the probability of claiming a kill
+							local obstructionTotal = 0
+							if dist:MagnitudeIsGreaterThan(actor.Radius) then
+								local checkPos = { actor.ViewPoint + dist * 0.2, victim.ViewPoint - dist * 0.2 }
+								for i = 1, #checkPos do
+									obstructionTotal = obstructionTotal
+										+ math.floor(
+											SceneMan:GetMaterialFromID(
+												SceneMan:GetTerrMatter(checkPos[i].X, checkPos[i].Y)
+											).StructuralIntegrity ^ 0.5
+										)
 								end
-								table.insert(
-									killerCandidates,
-									{ killer = actor, dist = dist.Magnitude + obstructionTotal }
-								)
 							end
+							table.insert(
+								killerCandidates,
+								{ killer = actor, dist = dist.Magnitude + obstructionTotal }
+							)
 						end
 					end
-					for _, actor in pairs(killerCandidates) do
-						local sharedGain = gain
-							+ (
-									victim.Value
-									/ (10 + math.abs(actor.killer:GetGoldValue(0, 0.2, 0.2)))
-									* (
-										3
-										- math.min(
-											actor.killer.Health / actor.killer.MaxHealth
-												+ actor.dist / self.killClaimRange,
-											2
-										)
+				end
+				for _, actor in pairs(killerCandidates) do
+					local sharedGain = gain
+						+ (
+								victim.Value
+								/ (10 + math.abs(actor.killer:GetGoldValue(0, 0.2, 0.2)))
+								* (
+									3
+									- math.min(
+										actor.killer.Health / actor.killer.MaxHealth
+											+ actor.dist / self.killClaimRange,
+										2
 									)
 								)
-								/ #killerCandidates
-						self:GiveXP(actor.killer, sharedGain)
-					end
+							)
+							/ #killerCandidates
+					self:GiveXP(actor.killer, sharedGain)
 				end
 			end
-			self.actorList[i] = nil
 		end
-		for actor in MovableMan.Actors do
-			local isFriendly = actor.Team == CF.PlayerTeam
-			if not isFriendly then
-				if actor.Pos.Y > 0 then
-					-- Save enemy actors in an external table to track their disappearance
-					if not actor:NumberValueExists("VW_FragValue") then
-						local fragValue = math.abs(actor:GetGoldValue(0, 1, 1))
-						if fragValue > 0 then
-							--[[
-							if IsAHuman(actor) and ToAHuman(actor).EquippedItem then
-								fragValue = fragValue + ToAHuman(actor).EquippedItem:GetGoldValue(0, 0.5, 0.5)
-							end
-							]]
-							--
-							local rank = actor:GetNumberValue("VW_Rank")
-							actor:SetNumberValue("VW_FragValue", rank + fragValue * (1 + rank / #CF.Ranks))
+		self.actorList[i] = nil
+	end
+	for actor in MovableMan.Actors do
+		local isFriendly = actor.Team == CF.PlayerTeam
+		if not isFriendly then
+			if actor.Pos.Y > 0 then
+				-- Save enemy actors in an external table to track their disappearance
+				if not actor:NumberValueExists("VW_FragValue") then
+					local fragValue = math.abs(actor:GetGoldValue(0, 1, 1))
+					if fragValue > 0 then
+						--[[
+						if IsAHuman(actor) and ToAHuman(actor).EquippedItem then
+							fragValue = fragValue + ToAHuman(actor).EquippedItem:GetGoldValue(0, 0.5, 0.5)
 						end
+						]]
+						--
+						local rank = actor:GetNumberValue("VW_Rank")
+						actor:SetNumberValue("VW_FragValue", rank + fragValue * (1 + rank / #CF.Ranks))
 					end
-					self.actorList[#self.actorList + 1] = {
-						Pointer = actor,
-						Team = actor.Team,
-						Value = actor:GetNumberValue("VW_FragValue"),
-						ViewPoint = Vector(actor.ViewPoint.X, actor.ViewPoint.Y),
-					}
 				end
-			elseif
-				actor:IsPlayerControlled()
-				and self:IsCommander(actor)
-				and (actor:GetController():IsState(Controller.WEAPON_FIRE) or actor
-					:GetController()
-					:IsState(Controller.WEAPON_RELOAD))
-				and IsAHuman(actor)
-				and ToAHuman(actor).EquippedItem
-				and not ToAHuman(actor).EquippedItem.ToDelete
-				and ToAHuman(actor).EquippedItem.ModuleName == CF.ModuleName
-			then
-				actor = ToAHuman(actor)
-				if actor.EquippedItem.PresetName == "Blueprint" then
-					local itm
-					local player = self.missionData["missionTarget"] or math.random(tonumber(self.GS["ActiveCPUs"]))
-					local faction = self.GS["Player" .. player .. "Faction"]
-					if faction then
-						if math.random() < 0.25 then
-							local actorList = CF.MakeListOfMostPowerfulActors(
-								self.GS,
-								player,
-								CF.ActorTypes.ANY,
-								math.abs(tonumber(self.GS["Player" .. player .. "Reputation"]))
-							)
-							if actorList then
-								for _, potentialActor in pairs(actorList) do
-									local actorName = CF.ActPresets[faction][potentialActor["Actor"]]
-									if
-										actorName
-										and CF.ActModules[faction][potentialActor["Actor"]] ~= "Base.rte"
-										and not self.GS["UnlockedActBlueprint_" .. actorName]
-									then
-										itm = actorName
-										break
-									end
+				self.actorList[#self.actorList + 1] = {
+					Pointer = actor,
+					Team = actor.Team,
+					Value = actor:GetNumberValue("VW_FragValue"),
+					ViewPoint = Vector(actor.ViewPoint.X, actor.ViewPoint.Y),
+				}
+			end
+		elseif
+			actor:IsPlayerControlled()
+			and self:IsCommander(actor)
+			and (actor:GetController():IsState(Controller.WEAPON_FIRE) or actor
+				:GetController()
+				:IsState(Controller.WEAPON_RELOAD))
+			and IsAHuman(actor)
+			and ToAHuman(actor).EquippedItem
+			and not ToAHuman(actor).EquippedItem.ToDelete
+			and ToAHuman(actor).EquippedItem.ModuleName == CF.ModuleName
+		then
+			actor = ToAHuman(actor)
+			if actor.EquippedItem.PresetName == "Blueprint" then
+				local itm
+				local player = self.missionData["missionTarget"] or math.random(tonumber(self.GS["ActiveCPUs"]))
+				local faction = self.GS["Player" .. player .. "Faction"]
+				if faction then
+					if math.random() < 0.25 then
+						local actorList = CF.MakeListOfMostPowerfulActors(
+							self.GS,
+							player,
+							CF.ActorTypes.ANY,
+							math.abs(tonumber(self.GS["Player" .. player .. "Reputation"]))
+						)
+						if actorList then
+							for _, potentialActor in pairs(actorList) do
+								local actorName = CF.ActPresets[faction][potentialActor["Actor"]]
+								if
+									actorName
+									and CF.ActModules[faction][potentialActor["Actor"]] ~= "Base.rte"
+									and not self.GS["UnlockedActBlueprint_" .. actorName]
+								then
+									itm = actorName
+									break
 								end
-							end
-							if itm == nil then
-								itm = CF.ActPresets[faction][math.random(#CF.ActPresets[faction])]
-								if itm and self.GS["UnlockedActBlueprint_" .. itm] then
-									itm = nil
-								end
-							end
-							if itm then
-								self.GS["UnlockedActBlueprint_" .. itm] = 1
 							end
 						end
 						if itm == nil then
-							local weaponList = CF.MakeListOfMostPowerfulWeapons(
-								self.GS,
-								player,
-								CF.WeaponTypes.ANY,
-								math.abs(tonumber(self.GS["Player" .. player .. "Reputation"]))
-							)
-							if weaponList then
-								for _, potentialWeapon in pairs(weaponList) do
-									local weaponName = CF.ItmPresets[faction][potentialWeapon["Item"]]
-									if
-										weaponName
-										and CF.ItmModules[faction][potentialWeapon["Item"]] ~= "Base.rte"
-										and not self.GS["UnlockedItmBlueprint_" .. weaponName]
-									then
-										itm = weaponName
-										break
-									end
-								end
-							end
-							if itm == nil then
-								itm = CF.ItmPresets[faction][math.random(#CF.ItmPresets[faction])]
-								if itm and self.GS["UnlockedItmBlueprint_" .. itm] then
-									itm = nil
-								end
-							end
-							if itm then
-								self.GS["UnlockedItmBlueprint_" .. itm] = 1
+							itm = CF.ActPresets[faction][math.random(#CF.ActPresets[faction])]
+							if itm and self.GS["UnlockedActBlueprint_" .. itm] then
+								itm = nil
 							end
 						end
-					end
-					local effect = CreateMOPixel("Text Effect", self.ModuleName)
-					effect:SetStringValue("Text", itm == nil and "Nothing of value was found."
-						or itm .. " blueprint unlocked!\nThe Trade Star will update their catalog shortly.")
-					effect.Pos = actor.AboveHUDPos + Vector(0, -8)
-					MovableMan:AddParticle(effect)
-
-					actor.EquippedItem.ToDelete = true
-					actor:FlashWhite(50)
-				elseif actor.EquippedItem.PresetName == "Blackprint" then
-					local itm
-					if math.random() < 0.25 then
-						itm = CF.ArtActPresets[math.random(#CF.ArtActPresets)]
-						if itm and not self.GS["UnlockedActBlackprint_" .. itm] then
-							self.GS["UnlockedActBlackprint_" .. itm] = 1
-						else
-							itm = nil
+						if itm then
+							self.GS["UnlockedActBlueprint_" .. itm] = 1
 						end
 					end
 					if itm == nil then
-						itm = CF.ArtItmPresets[math.random(#CF.ArtItmPresets)]
-						if itm and not self.GS["UnlockedItmBlackprint_" .. itm] then
-							self.GS["UnlockedItmBlackprint_" .. itm] = 1
-						else
-							itm = nil
+						local weaponList = CF.MakeListOfMostPowerfulWeapons(
+							self.GS,
+							player,
+							CF.WeaponTypes.ANY,
+							math.abs(tonumber(self.GS["Player" .. player .. "Reputation"]))
+						)
+						if weaponList then
+							for _, potentialWeapon in pairs(weaponList) do
+								local weaponName = CF.ItmPresets[faction][potentialWeapon["Item"]]
+								if
+									weaponName
+									and CF.ItmModules[faction][potentialWeapon["Item"]] ~= "Base.rte"
+									and not self.GS["UnlockedItmBlueprint_" .. weaponName]
+								then
+									itm = weaponName
+									break
+								end
+							end
+						end
+						if itm == nil then
+							itm = CF.ItmPresets[faction][math.random(#CF.ItmPresets[faction])]
+							if itm and self.GS["UnlockedItmBlueprint_" .. itm] then
+								itm = nil
+							end
+						end
+						if itm then
+							self.GS["UnlockedItmBlueprint_" .. itm] = 1
 						end
 					end
-					local effect = CreateMOPixel("Text Effect", self.ModuleName)
-					effect:SetStringValue("Text", itm == nil and "Nothing of value was found."
-						or itm .. " blackprint unlocked!\nThe Black Market will update their catalog shortly.")
-					effect.Pos = actor.AboveHUDPos + Vector(0, -8)
-					MovableMan:AddParticle(effect)
-
-					actor.EquippedItem.ToDelete = true
-					actor:FlashWhite(50)
 				end
-			end
-			-- Display icons
-			if CF.EnableIcons then
-				if
-					actor.HUDVisible
-					and (isFriendly or SettingsMan.ShowEnemyHUD)
-					and not SceneMan:IsUnseen(actor.Pos.X, actor.Pos.Y, CF.PlayerTeam)
-				then
-					local cont = actor:GetController()
-					local pieMenuOpen = cont:IsState(Controller.PIE_MENU_ACTIVE)
-					local prestige = actor:GetNumberValue("VW_Prestige")
-					local velOffset = actor.Vel * rte.PxTravelledPerFrame
+				local effect = CreateMOPixel("Text Effect", self.ModuleName)
+				effect:SetStringValue("Text", itm == nil and "Nothing of value was found."
+					or itm .. " blueprint unlocked!\nThe Trade Star will update their catalog shortly.")
+				effect.Pos = actor.AboveHUDPos + Vector(0, -8)
+				MovableMan:AddParticle(effect)
 
-					local offsetY = (actor:IsPlayerControlled() and actor.ItemInReach) and -8 or -1
-					local name = actor:GetStringValue("VW_Name")
-					if (name and name ~= "") or (CF.TypingActor and CF.TypingActor.ID == actor.ID) then
-						PrimitiveMan:DrawTextPrimitive(
-							actor.AboveHUDPos + velOffset + Vector(1, offsetY - 7),
-							name,
-							false,
-							1
-						)
-					elseif isFriendly then
-						local icons = {}
-						if self:IsAlly(actor) then
-							if not pieMenuOpen then
-								self:DrawIcon(0, actor.Pos + velOffset + Vector(-8, -math.ceil(actor.Height * 0.5) + 8))
+				actor.EquippedItem.ToDelete = true
+				actor:FlashWhite(50)
+			elseif actor.EquippedItem.PresetName == "Blackprint" then
+				local itm
+				if math.random() < 0.25 then
+					itm = CF.ArtActPresets[math.random(#CF.ArtActPresets)]
+					if itm and not self.GS["UnlockedActBlackprint_" .. itm] then
+						self.GS["UnlockedActBlackprint_" .. itm] = 1
+					else
+						itm = nil
+					end
+				end
+				if itm == nil then
+					itm = CF.ArtItmPresets[math.random(#CF.ArtItmPresets)]
+					if itm and not self.GS["UnlockedItmBlackprint_" .. itm] then
+						self.GS["UnlockedItmBlackprint_" .. itm] = 1
+					else
+						itm = nil
+					end
+				end
+				local effect = CreateMOPixel("Text Effect", self.ModuleName)
+				effect:SetStringValue("Text", itm == nil and "Nothing of value was found."
+					or itm .. " blackprint unlocked!\nThe Black Market will update their catalog shortly.")
+				effect.Pos = actor.AboveHUDPos + Vector(0, -8)
+				MovableMan:AddParticle(effect)
+
+				actor.EquippedItem.ToDelete = true
+				actor:FlashWhite(50)
+			end
+		end
+		-- Display icons
+		if CF.EnableIcons then
+			if
+				actor.HUDVisible
+				and (isFriendly or SettingsMan.ShowEnemyHUD)
+				and not SceneMan:IsUnseen(actor.Pos.X, actor.Pos.Y, CF.PlayerTeam)
+			then
+				local cont = actor:GetController()
+				local pieMenuOpen = cont:IsState(Controller.PIE_MENU_ACTIVE)
+				local prestige = actor:GetNumberValue("VW_Prestige")
+				local rank = actor:GetNumberValue("VW_Rank")
+				local name = actor:GetStringValue("VW_Name")
+				local velOffset = actor.Vel * rte.PxTravelledPerFrame
+
+				local offsetY = (actor:IsPlayerControlled() and actor.ItemInReach) and -8 or -1
+				if (name and name ~= "") or (CF.TypingActor and CF.TypingActor.ID == actor.ID) then
+					PrimitiveMan:DrawTextPrimitive(
+						actor.AboveHUDPos + velOffset + Vector(1, offsetY - 7),
+						name,
+						false,
+						1
+					)
+				elseif isFriendly then
+					local icons = {}
+					if self:IsAlly(actor) then
+						if not pieMenuOpen then
+							self:DrawIcon(0, actor.Pos + velOffset + Vector(-8, -math.ceil(actor.Height * 0.5) + 8))
+						end
+					else
+						local skip = {}
+						for i = 1, #self.IconFrame do
+							local skipThis = false
+							for s = 1, #skip do
+								if skip[s] == i then
+									skipThis = true
+									break
+								end
 							end
-						else
-							local skip = {}
-							for i = 1, #self.IconFrame do
-								local skipThis = false
-								for s = 1, #skip do
-									if skip[s] == i then
-										skipThis = true
+							if skipThis == false then
+								if self.IconFrame[i].comboOf then
+									while true do
+										local iconFound = true
+										if self.IconFrame[i].findByGroup then
+											for _, group in pairs(self.IconFrame[i].findByGroup) do
+												if not actor:HasObjectInGroup(group) then
+													iconFound = false
+												end
+											end
+											if iconFound == false then
+												break
+											end
+										end
+										if self.IconFrame[i].findByName then
+											for _, name in pairs(self.IconFrame[i].findByName) do
+												if actor:HasObject(name) then
+													iconFound = true
+													break
+												else
+													iconFound = false
+												end
+											end
+										end
+										if iconFound then
+											icons[#icons + 1] = i
+											for _, omit in pairs(self.IconFrame[i].comboOf) do
+												table.insert(skip, omit)
+											end
+										end
 										break
 									end
-								end
-								if skipThis == false then
-									if self.IconFrame[i].comboOf then
-										while true do
-											local iconFound = true
-											if self.IconFrame[i].findByGroup then
-												for _, group in pairs(self.IconFrame[i].findByGroup) do
-													if not actor:HasObjectInGroup(group) then
-														iconFound = false
-													end
-												end
-												if iconFound == false then
-													break
-												end
-											end
-											if self.IconFrame[i].findByName then
-												for _, name in pairs(self.IconFrame[i].findByName) do
-													if actor:HasObject(name) then
-														iconFound = true
-														break
-													else
-														iconFound = false
-													end
-												end
-											end
-											if iconFound then
-												icons[#icons + 1] = i
-												for _, omit in pairs(self.IconFrame[i].comboOf) do
-													table.insert(skip, omit)
-												end
-											end
+								elseif self.IconFrame[i].findByGroup then
+									for _, group in pairs(self.IconFrame[i].findByGroup) do
+										if actor:HasObjectInGroup(group) then
+											icons[#icons + 1] = i
 											break
 										end
-									elseif self.IconFrame[i].findByGroup then
-										for _, group in pairs(self.IconFrame[i].findByGroup) do
-											if actor:HasObjectInGroup(group) then
-												icons[#icons + 1] = i
-												break
-											end
-										end
-									elseif self.IconFrame[i].findByName then
-										for _, name in pairs(self.IconFrame[i].findByName) do
-											if actor:HasObject(name) then
-												icons[#icons + 1] = i
-												break
-											end
+									end
+								elseif self.IconFrame[i].findByName then
+									for _, name in pairs(self.IconFrame[i].findByName) do
+										if actor:HasObject(name) then
+											icons[#icons + 1] = i
+											break
 										end
 									end
 								end
 							end
-							if #icons > 0 then
-								if #icons > 3 then
-									-- Only if you are very special
-									self:DrawIcon(
-										self.Icon.FrameCount - 1,
-										actor.AboveHUDPos + velOffset + Vector(0, offsetY)
-									)
-								else
-									local pos = actor.AboveHUDPos
-										+ velOffset
-										+ Vector(-(13 * #icons * 0.5) + 7, offsetY)
-									for _, frame in pairs(icons) do
-										self:DrawIcon(frame, pos)
-										pos = pos + Vector(13, 0)
-									end
+						end
+						if #icons > 0 then
+							if #icons > 3 then
+								-- Only if you are very special
+								self:DrawIcon(
+									self.Icon.FrameCount - 1,
+									actor.AboveHUDPos + velOffset + Vector(0, offsetY)
+								)
+							else
+								local pos = actor.AboveHUDPos
+									+ velOffset
+									+ Vector(-(13 * #icons * 0.5) + 7, offsetY)
+								for _, frame in pairs(icons) do
+									self:DrawIcon(frame, pos)
+									pos = pos + Vector(13, 0)
 								end
 							end
 						end
 					end
-					local rank = actor:GetNumberValue("VW_Rank")
-					if rank > 0 or prestige ~= 0 then
-						local pos = actor.Pos + velOffset + Vector(-20, 8 - actor.Height * 0.5)
+				end
+				if rank > 0 or prestige > 0 then
+					local pos = actor.Pos + velOffset + Vector(-20, 8 - actor.Height * 0.5)
 
-						self:DrawRankIcon(rank, pos, prestige)
-						if pieMenuOpen then
-							local progress = CF.Ranks[rank + 1]
-									and actor:GetNumberValue("VW_XP") .. "/" .. CF.Ranks[rank + 1]
-								or CF.Ranks[rank] .. "/" .. CF.Ranks[rank]
-							PrimitiveMan:DrawTextPrimitive(
-								self:ScreenOfPlayer(cont.Player),
-								pos + Vector(0, 5),
-								progress,
-								true,
-								1
-							)
-						end
+					self:DrawRankIcon(rank, pos, prestige)
+					if pieMenuOpen then
+						local progress = CF.Ranks[rank + 1]
+								and actor:GetNumberValue("VW_XP") .. "/" .. CF.Ranks[rank + 1]
+							or CF.Ranks[rank] .. "/" .. CF.Ranks[rank]
+						PrimitiveMan:DrawTextPrimitive(
+							self:ScreenOfPlayer(cont.Player),
+							pos + Vector(0, 5),
+							progress,
+							true,
+							1
+						)
+					end
+					if prestige > 7 then
+						PrimitiveMan:DrawTextPrimitive(Activity.PLAYER_NONE, pos, "+" .. (prestige - 7), true, 0)
 					end
 				end
 			end
+		end
 
-			-- Enable prestige where needed
-			local actorMaxxed = actor:GetNumberValue("VW_XP") >= CF.Ranks[#CF.Ranks]
-			if actorMaxxed or actor:GetNumberValue("VW_Prestige") >= 1 then
-				actor.PieMenu:AddPieSliceIfPresetNameIsUnique(CF.PrestigeSlice:Clone(), self)
-				local pie = actor.PieMenu:GetFirstPieSliceByPresetName(CF.PrestigeSlice.PresetName)
-				if pie then
-					pie.Enabled = actorMaxxed
-				end
+		-- Enable prestige where needed
+		local actorMaxxed = actor:GetNumberValue("VW_XP") >= CF.Ranks[#CF.Ranks]
+		if actorMaxxed or actor:GetNumberValue("VW_Prestige") >= 1 then
+			actor.PieMenu:AddPieSliceIfPresetNameIsUnique(CF.PrestigeSlice:Clone(), self)
+			local pie = actor.PieMenu:GetFirstPieSliceByPresetName(CF.PrestigeSlice.PresetName)
+			if pie then
+				pie.Enabled = actorMaxxed
 			end
+		end
 
-			-- Process prestige request
-			if actorMaxxed and actor:NumberValueExists("VW_AttemptPrestige") then
-				actor:RemoveNumberValue("VW_AttemptPrestige")
-				actor:RemoveWounds(actor.WoundCount)
-				actor.Health = actor.MaxHealth
+		-- Process prestige request
+		if actorMaxxed and actor:NumberValueExists("VW_AttemptPrestige") then
+			actor:RemoveNumberValue("VW_AttemptPrestige")
+			actor:RemoveWounds(actor.WoundCount)
+			actor.Health = actor.MaxHealth
 
-				CF.UnBuffActor(actor, actor:GetNumberValue("VW_Rank"), actor:GetNumberValue("VW_Prestige"))
-				actor:SetNumberValue("VW_XP", math.floor((actor:GetNumberValue("VW_XP") - CF.Ranks[#CF.Ranks]) / 2))
-				actor:SetNumberValue("VW_Rank", 0)
-				actor:SetNumberValue("VW_Prestige", actor:GetNumberValue("VW_Prestige") + 1)
-				CF.BuffActor(actor, actor:GetNumberValue("VW_Rank"), actor:GetNumberValue("VW_Prestige"))
-				local cont = actor:GetController()
-				if cont:IsMouseControlled() or cont:IsKeyboardOnlyControlled() then
-					CF.SetNamingActor(actor, cont.Player)
-				end
+			CF.UnBuffActor(actor, actor:GetNumberValue("VW_Rank"), actor:GetNumberValue("VW_Prestige"))
+			actor:SetNumberValue("VW_XP", math.floor((actor:GetNumberValue("VW_XP") - CF.Ranks[#CF.Ranks]) / 2))
+			actor:SetNumberValue("VW_Rank", 0)
+			actor:SetNumberValue("VW_Prestige", actor:GetNumberValue("VW_Prestige") + 1)
+			CF.BuffActor(actor, actor:GetNumberValue("VW_Rank"), actor:GetNumberValue("VW_Prestige"))
+			local cont = actor:GetController()
+			if cont:IsMouseControlled() or cont:IsKeyboardOnlyControlled() then
+				CF.SetNamingActor(actor, cont.Player)
 			end
 		end
 	end
@@ -1861,8 +1859,6 @@ function VoidWanderers:DrawRankIcon(preset, pos, prestige)
 		pal = rankEmbossColor
 		primitive = BitmapPrimitive(Activity.PLAYER_NONE, pos, self.RankEmbossedIcon, 0, preset, false, false)
 		PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive })
-
-		PrimitiveMan:DrawTextPrimitive(Activity.PLAYER_NONE, pos, "x" .. prestige, true, 0)
 	end
 end
 -----------------------------------------------------------------------------------------

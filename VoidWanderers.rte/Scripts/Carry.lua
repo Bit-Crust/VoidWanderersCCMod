@@ -84,7 +84,9 @@ function Update(self)
 					else
 						foundMO = ToMOSRotating(foundMO:GetRootParent())
 					end
+
 					local radius = IsActor(foundMO) and foundMO.IndividualRadius + 1 or foundMO.Radius
+
 					if
 						(IsActor(foundMO) or foundMO:NumberValueExists("Carriable"))
 						and SceneMan
@@ -115,6 +117,7 @@ function Update(self)
 								and self.objectInReach.PresetName
 							or self.objectInReach:GetStringValue("VW_Name")
 						local screen = self.activity:ScreenOfPlayer(self:GetController().Player)
+
 						if screen ~= -1 then
 							local drawPos = self.AboveHUDPos
 								+ Vector(
@@ -137,12 +140,14 @@ function Update(self)
 							)
 							PrimitiveMan:DrawTextPrimitive(screen, drawPos, displayName, true, 0)
 						end
+
 						if self:GetController():IsState(Controller.WEAPON_PICKUP) then
 							self.pickedUpObject = self.objectInReach
 							self.pickedUpObjectName = displayName
 							self.objectInReach = nil
 							local actorItem = CreateHeldDevice("Null Item", "Base.rte")
 							self.pickedUpObject.Team = self.Team
+
 							if IsActor(self.pickedUpObject) then
 								self.pickedUpObject = ToActor(self.pickedUpObject)
 								local sound = self.pickedUpObject.AlarmSound or self.pickedUpObject.PainSound
@@ -165,17 +170,15 @@ function Update(self)
 								self.pickedUpObject.IgnoresTeamHits = true
 								actorItem.StanceOffset = Vector(armToUse.MaxLength * 0.66, armToUse.MaxLength * 0.33)
 							end
+
 							local totalMass = self.pickedUpObject.Mass + self.Mass
+
 							if totalMass >= 1 then
 								self.Vel = self.Vel * (self.pickedUpObject.Mass / totalMass)
 									+ self.pickedUpObject.Vel * (self.Mass / totalMass)
 							end
-							local massRatio = self.pickedUpObject.Mass > 1
-									and math.min(
-										(self.Mass - self.InventoryMass) / self.pickedUpObject.Mass,
-										2
-									)
-								or 1
+
+							local massRatio = self.pickedUpObject.Mass > 1 and math.min((self.Mass - self.InventoryMass) / self.pickedUpObject.Mass, 2) or 1
 							actorItem.SharpStanceOffset = Vector(armToUse.MaxLength * 0.75, 1)
 							actorItem.Lifetime = -1
 							actorItem.SharpLength = 1
