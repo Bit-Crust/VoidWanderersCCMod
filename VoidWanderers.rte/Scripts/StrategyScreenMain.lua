@@ -1,7 +1,14 @@
 -----------------------------------------------------------------------------------------
 -- Initialize menu screen systems.
 -----------------------------------------------------------------------------------------
-function VoidWanderers:StartActivity()
+
+local menuPanelBase = { 228 };
+local menuPanelTrim = { 227, 50, 190 };
+local menuPanelSheen = { 173 };
+local menuPanelInset = { 224 };
+local menuPanelGround = { 189, 190, 209, 213, 11, 12 };
+
+function VoidWanderers:StartActivity(isNewGame)
 	print("VoidWanderers:StrategyScreen:StartActivity");
 
 	self.AllowsUserSaving = false;
@@ -35,56 +42,23 @@ function VoidWanderers:StartActivity()
 	self.Scroll = self.Mid * 1;
 
 	self.ScrollTriggerThickness = Vector(50, 50);
-	self.ScrollingScreen = { X = false, Y = false };
+	self.ScrollingScreen = { X = true, Y = true };
 
-	self.Bound = Box(self.Mid.X + -self.Res.X / 2, 0, self.Mid.X + self.Res.X / 2, self.Mid.Y * 2);
+	self.Bound = Box(self.Mid.X + -self.Res.X / 2, self.Mid.Y + -self.Res.Y / 2, self.Mid.X + self.Res.X / 2, self.Mid.Y + self.Res.Y / 2);
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		self:SetPlayerBrain(nil, player);
 		FrameMan:ClearScreenText(player);
 	end
-	
-	--Make invisible brains.
-	self.Cursor = nil;
 
-	local brainpos = {};
-	brainpos[0] = self.Mid + Vector(0, 0);
-	brainpos[1] = self.Mid + Vector(self.Mid.X * 2, -self.Mid.Y / 2);
-	brainpos[2] = self.Mid + Vector(self.Mid.X * 2, 0);
-	brainpos[3] = self.Mid + Vector(self.Mid.X * 2, self.Mid.Y / 2);
-
-	self.ObserverPos = brainpos[3];
-		
-	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		if self:PlayerActive(player) and self:PlayerHuman(player) then
-			local brn = CreateActor("Brain Case");
-			brn.Scale = 0;
-			brn.Team = Activity.TEAM_1;
-			brn.Pos = brainpos[player];
-			brn.HitsMOs = false;
-			brn.GetsHitByMOs = false;
-			brn.CharHeight = 10000;
-			brn.HUDVisible = false;
-			MovableMan:AddActor(brn);
-			self:SetPlayerBrain(brn, player);
-			self:SwitchToActor(brn, player, Activity.TEAM_1);
-			CameraMan:SetOffset(brainpos[player] - self.Res / 2, self:ScreenOfPlayer(player));
-		end
-	end
-	
-	self.Cursor = self:GetPlayerBrain(self.MenuNavigatingPlayer);
-	self.Cursor.Pos = brainpos[0];
-	CameraMan:SetOffset(brainpos[0] - self.Res / 2, self:ScreenOfPlayer(self.MenuNavigatingPlayer));
+	self.CamOffset = {};
+	self.CamOffset[0] = self.Mid;
+	self.CamOffset[1] = self.Mid + Vector(self.Mid.X * 2, -self.Mid.Y / 2);
+	self.CamOffset[2] = self.Mid + Vector(self.Mid.X * 2, 0);
+	self.CamOffset[3] = self.Mid + Vector(self.Mid.X * 2, self.Mid.Y / 2);
 
 	self.FirePressed = {}
 	self.MouseFirePressed = true
-
-	self.MessageTimer = Timer()
-	self.MessageTimer:Reset()
-	self.MessageInterval = CF.MessageInterval
-	self.MessagePos = self.Mid + Vector(-75, self.Res.Y / 2 - 48)
-	
-	self.Messages = {}
 
 	self.ElementTypes = { BUTTON = 0, LABEL = 1, PLANET = 2 }
 	self.ButtonStates = { IDLE = 0, MOUSE_OVER = 1, PRESSED = 2 }
@@ -103,59 +77,6 @@ function VoidWanderers:StartActivity()
 	self.MousePressEndElement = nil
 
 	self.IsInitialized = true
-end
------------------------------------------------------------------------------------------
---
------------------------------------------------------------------------------------------
-function VoidWanderers:ClearMessages()
-	self.Messages = {}
-end
------------------------------------------------------------------------------------------
---
------------------------------------------------------------------------------------------
-function VoidWanderers:ShowMessage(msg, iscritical)
-	if #self.Messages == 0 then
-		self.MessageTimer:Reset()
-	end
-
-	local newmsg = {}
-	newmsg["Text"] = msg
-	newmsg["Critical"] = iscritical
-
-	table.insert(self.Messages, newmsg)
-end
------------------------------------------------------------------------------------------
---
------------------------------------------------------------------------------------------
-function VoidWanderers:DisplayCurrentMessage()
-	if #self.Messages > 0 then
-		if self.MessageTimer:IsPastSimMS(self.MessageInterval) then
-			table.remove(self.Messages, 1)
-			self.MessageTimer:Reset()
-		else
-			local msg = self.Messages[1]
-
-			if msg["Critical"] == true then
-				local pix = CreateMOPixel("MessagePanelRed")
-				pix.Pos = self.MessagePos
-				MovableMan:AddParticle(pix)
-			else
-				local pix = CreateMOPixel("MessagePanel")
-				pix.Pos = self.MessagePos
-				MovableMan:AddParticle(pix)
-			end
-
-			CF.DrawString(msg["Text"], self.MessagePos + Vector(-130, -40), 260, 80)
-		end
-	end
-end
------------------------------------------------------------------------------------------
---
------------------------------------------------------------------------------------------
-function VoidWanderers:DrawMouseCursor()
-	local pix = CreateMOPixel("Cursor")
-	pix.Pos = self.Mouse + Vector(6, 6)
-	MovableMan:AddParticle(pix)
 end
 -----------------------------------------------------------------------------------------
 -- Draw label element
@@ -186,25 +107,23 @@ end
 -----------------------------------------------------------------------------------------
 -- Draw button element
 -----------------------------------------------------------------------------------------
-function VoidWanderers:DrawButton(el, state, drawthistime)
-	local isvisible = true
-
-	if el["Visible"] ~= nil then
-		if el["Visible"] == false then
-			isvisible = false
-		end
-	end
-
-	if isvisible then
-		if drawthistime then
-			local pix = CreateMOPixel(el["Presets"][state])
-			pix.Pos = el.Pos
-			MovableMan:AddParticle(pix)
+function VoidWanderers:DrawButton(el, state)
+	if el.Visible ~= false then
+		if el.Text then
+			local w = CF.GetStringPixelWidth(el.Text)
+			CF.DrawString(el.Text, Vector(el.Pos.X - (w / 2) + 4, el.Pos.Y), el.Width, el.Height)
 		end
 
-		if el["Text"] then
-			local w = CF.GetStringPixelWidth(el["Text"])
-			CF.DrawString(el["Text"], Vector(el.Pos.X - (w / 2) + 4, el.Pos.Y), el["Width"], el["Height"])
+		PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2, el.Pos + Vector(el.Width, el.Height) / 2 - Vector(1, 1), menuPanelBase[1])
+		PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2 + Vector(1, 1), el.Pos + Vector(el.Width, el.Height) / 2 - Vector(3, 3), menuPanelTrim[state + 1])
+		if state == 0 then
+			PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2 + Vector(1, 1), el.Pos - Vector(el.Width, el.Height) / 2 + Vector(1, 1), menuPanelSheen[1])
+		end
+		if state == 2 then
+			PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2 + Vector(2, 2), el.Pos + Vector(el.Width, el.Height) / 2 - Vector(4, 4), menuPanelInset[1])
+			PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2 + Vector(3, 3), el.Pos + Vector(el.Width, el.Height) / 2 - Vector(4, 4), menuPanelGround[state + 1])
+		else
+			PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2 + Vector(2, 2), el.Pos + Vector(el.Width, el.Height) / 2 - Vector(4, 4), menuPanelGround[state + 1])
 		end
 	end
 end
@@ -258,7 +177,7 @@ function VoidWanderers:RedrawKnownFormElements()
 		end
 
 		if self.UI[i]["Type"] == self.ElementTypes.LABEL then
-			self:DrawLabel(self.UI[i], nil)
+			self:DrawLabel(self.UI[i])
 		end
 	end
 end
@@ -280,68 +199,82 @@ end
 -- Update Activity
 -----------------------------------------------------------------------------------------
 function VoidWanderers:UpdateActivity()
-	-- Just check for intialization flags in update loop to avoid unnecessary function calls during all the mission
 	if not self.IsInitialized then
 		--Init mission if we're still not
-		print("Void Wanderers: Start activity via update.")
-		self:StartActivity(true)
+		print("*");
+		self:StartActivity(true);
 	end
 
+	self:ClearObjectivePoints();
+
 	-- Set the screen of disabled 4-th player when we're playing in 3-player mode
-	CameraMan:SetScrollTarget(self.ObserverPos, 0.04, self:ScreenOfPlayer(Activity.PLAYER_4))
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		local screen = self:ScreenOfPlayer(player);
+		CameraMan:SetOffset(self.Scroll - self.Res / 2, screen);
+		CameraMan:SetOffset(self.CamOffset[screen] - self.Res / 2, screen);
+	end
 
-	self:ClearObjectivePoints()
-
-	local cont = self:GetPlayerController(self.MenuNavigatingPlayer)
+	-- Record previous mouse position to avoid scrolling artifacts.
+	local prevMouse = self.Mouse * 1;
+	
+	local cont = self:GetPlayerController(self.MenuNavigatingPlayer);
 
 	if self.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
 		if cont:IsState(Controller.MOVE_LEFT) then
-			self.Mouse = self.Mouse + Vector(-5, 0)
+			self.Mouse = self.Mouse + Vector(-5, 0);
 		end
 
 		if cont:IsState(Controller.MOVE_RIGHT) then
-			self.Mouse = self.Mouse + Vector(5, 0)
+			self.Mouse = self.Mouse + Vector(5, 0);
 		end
 
 		if cont:IsState(Controller.MOVE_UP) then
-			self.Mouse = self.Mouse + Vector(0, -5)
+			self.Mouse = self.Mouse + Vector(0, -5);
 		end
 
 		if cont:IsState(Controller.MOVE_DOWN) then
-			self.Mouse = self.Mouse + Vector(0, 5)
+			self.Mouse = self.Mouse + Vector(0, 5);
 		end
 	elseif self.MenuNavigationScheme == self.MenuNavigationSchemes.MOUSE then
 		-- Read mouse input
-		self.Mouse = self.Mouse + UInputMan:GetMouseMovement(self.MenuNavigatingPlayer)
+		self.Mouse = self.Mouse + UInputMan:GetMouseMovement(self.MenuNavigatingPlayer);
+
+		if self.ScrollingScreen.Y and not UInputMan.FlagLShiftState then
+			local scrollOffset = Vector(0, -UInputMan:MouseWheelMoved() * 10);
+			self.Scroll = self.Scroll + scrollOffset;
+			self.Mouse = self.Mouse + scrollOffset;
+		elseif self.ScrollingScreen.X and UInputMan.FlagLShiftState then
+			local scrollOffset = Vector(-UInputMan:MouseWheelMoved() * 10, 0);
+			self.Scroll = self.Scroll + scrollOffset;
+			self.Mouse = self.Mouse + scrollOffset;
+		end
 	else
-		self.Mouse = self.Mouse + cont.AnalogMove * 5
+		self.Mouse = self.Mouse + cont.AnalogMove * 5;
 	end
 
 	-- Don't let the cursor leave the screen
 	self.Mouse = self.Bound:GetWithinBox(self.Mouse);
 
+	local dim = { X = "Width", Y = "Height" };
+
 	for _, axis in ipairs{"X", "Y"} do
 		if self.ScrollingScreen[axis] then
 			if self.Mouse[axis] > self.Scroll[axis] + self.Res[axis] / 2 - self.ScrollTriggerThickness[axis] then
-				self.Scroll[axis] = self.Scroll[axis] - (self.Scroll[axis] + self.Res[axis] / 2 - self.ScrollTriggerThickness[axis] - self.Mouse[axis]) * 0.25
+				self.Scroll[axis] = self.Scroll[axis] - (self.Scroll[axis] + self.Res[axis] / 2 - self.ScrollTriggerThickness[axis] - self.Mouse[axis]) * 0.25;
 			elseif self.Mouse[axis] < self.Scroll[axis] - self.Res[axis] / 2 + self.ScrollTriggerThickness[axis] then
-				self.Scroll[axis] = self.Scroll[axis] - (self.Scroll[axis] - self.Res[axis] / 2 + self.ScrollTriggerThickness[axis] - self.Mouse[axis]) * 0.25
+				self.Scroll[axis] = self.Scroll[axis] - (self.Scroll[axis] - self.Res[axis] / 2 + self.ScrollTriggerThickness[axis] - self.Mouse[axis]) * 0.25;
 			end
+			self.Scroll[axis] = Clamp(self.Scroll[axis], self.Bound.Corner[axis] + self.Res[axis] / 2, self.Bound.Corner[axis] + self.Bound[dim[axis]] - self.Res[axis] / 2);
 		end
 	end
-	
-	self.Cursor.Pos = self.Scroll * 1
-
-	self:DrawMouseCursor()
-	self:DisplayCurrentMessage()
 
 	-- Process mouse hovers and presses -- TODO: UInputMan doesn't seem to register the mouse press functions?
-	if true or self.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
+	if self.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
 		self.MouseOverElement = self:GetMouseOverKnownFormElements()
 
 		if self.MouseOverElement then
-			if self.UI[self.MouseOverElement]["OnHover"] ~= nil then
-				self.UI[self.MouseOverElement]["OnHover"](self)
+			if self.UI[self.MouseOverElement].OnHover ~= nil then
+				self.UI[self.MouseOverElement].OnHover(self)
 			end
 		end
 
@@ -353,9 +286,9 @@ function VoidWanderers:UpdateActivity()
 				local dontpass = false
 
 				if self.MousePressedElement ~= nil then
-					if self.UI[self.MousePressedElement]["OnClick"] ~= nil then
+					if self.UI[self.MousePressedElement].OnClick ~= nil then
 						dontpass = true
-						self.UI[self.MousePressedElement]["OnClick"](self)
+						self.UI[self.MousePressedElement].OnClick(self)
 					end
 				end
 
@@ -377,25 +310,25 @@ function VoidWanderers:UpdateActivity()
 		self.MouseOverElement = self:GetMouseOverKnownFormElements()
 
 		if self.MouseOverElement then
-			if self.UI[self.MouseOverElement]["OnHover"] ~= nil then
-				self.UI[self.MouseOverElement]["OnHover"](self)
+			if self.UI[self.MouseOverElement].OnHover ~= nil then
+				self.UI[self.MouseOverElement].OnHover(self)
 			end
 		end
 
-		if UInputMan:MouseButtonPressed(0) then
+		if UInputMan:MouseButtonPressed(MouseButtons.MOUSE_LEFT, self.MenuNavigatingPlayer) then
 			self.MousePressStartElement = self:GetMouseOverKnownFormElements()
 			self.MousePressEndElement = nil
 			self.MousePressedElement = self:GetMouseOverKnownFormElements()
 		end
 
-		if UInputMan:MouseButtonHeld(0) then
+		if UInputMan:MouseButtonHeld(MouseButtons.MOUSE_LEFT, self.MenuNavigatingPlayer) then
 			self.MouseOverElement = nil
 			self.MouseButtonHeld = true
 		else
 			self.MouseButtonHeld = false
 		end
 
-		if UInputMan:MouseButtonReleased(0) then
+		if UInputMan:MouseButtonReleased(MouseButtons.MOUSE_LEFT, self.MenuNavigatingPlayer) then
 			-- Get element above which mouse was released
 			self.MousePressEndElement = self:GetMouseOverKnownFormElements()
 
@@ -403,9 +336,9 @@ function VoidWanderers:UpdateActivity()
 
 			if self.MousePressStartElement ~= nil and self.MousePressStartElement == self.MousePressEndElement then
 				if self.MousePressedElement ~= nil then
-					if self.UI[self.MousePressedElement]["OnClick"] ~= nil then
+					if self.UI[self.MousePressedElement].OnClick ~= nil then
 						dontpass = true
-						self.UI[self.MousePressedElement]["OnClick"](self)
+						self.UI[self.MousePressedElement].OnClick(self)
 					end
 				end
 			end
@@ -422,12 +355,10 @@ function VoidWanderers:UpdateActivity()
 		end
 	end
 
-	--print(self.MouseOverElement)
-	--print(self.MousePressedElement)
-
 	self:RedrawKnownFormElements()
 	self:FormUpdate()
 	self:FormDraw()
+	PrimitiveMan:DrawBitmapPrimitive(self:ScreenOfPlayer(self.MenuNavigatingPlayer), prevMouse + Vector(5, 5), "Mods/VoidWanderers.rte/UI/Generic/Cursor.png", 0)
 end
 -----------------------------------------------------------------------------------------
 -- Thats all folks!!!

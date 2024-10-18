@@ -30,11 +30,11 @@ function VoidWanderers:StartActivity()
 	print("VoidWanderers:MissionLauncher!")
 
 	if SCENE_TO_LAUNCH == nil then
-		SCENE_TO_LAUNCH = "VoidWanderers Strategy Screen"
+		SCENE_TO_LAUNCH = "Void Wanderers"
 	end
 
 	if SCRIPT_TO_LAUNCH == nil then
-		SCRIPT_TO_LAUNCH = BASE_PATH .. "SceneEditorMain.lua"
+		SCRIPT_TO_LAUNCH = BASE_PATH .. "StrategyScreenMain.lua"
 	end
 
 	FORM_TO_LOAD = BASE_PATH .. "FormSceneSelect.lua"

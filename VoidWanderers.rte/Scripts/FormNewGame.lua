@@ -332,9 +332,14 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:BtnBack_OnClick()
-	self:FormClose()
-	dofile(BASE_PATH .. "FormStart.lua")
-	self:FormLoad()
+	self:FormClose();
+	for _, set in pairs{MovableMan.Actors, MovableMan.AddedActors} do
+		for actor in set do
+			MovableMan:RemoveActor(actor);
+		end
+	end
+	dofile(BASE_PATH .. "FormStart.lua");
+	self:FormLoad();
 end
 -----------------------------------------------------------------------------------------
 --

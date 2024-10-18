@@ -1837,7 +1837,7 @@ local rankEmbossColor = {
 for _, part in pairs({ rankBaseColor, rankRaisedColor, rankEmbossColor }) do
 	for _, palette in pairs(part) do
 		for channel = 1, #palette do
-			palette[channel] = (1 - palette[channel] / 256) * 100
+			palette[channel] = (1 - palette[channel] / 255) * 100
 		end
 	end
 end
