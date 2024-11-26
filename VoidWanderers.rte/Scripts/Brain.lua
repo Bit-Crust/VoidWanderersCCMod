@@ -354,6 +354,7 @@ function Update(self)
 		return
 	end
 
+	-- Brains lose their brain-hood when they die, probably temporary bit
 	if self.Status >= Actor.DYING then
 		if self.BrainNumber == Activity.PLAYER_NONE then
 			self:DisableScript("VoidWanderers.rte/Scripts/Brain.lua")
