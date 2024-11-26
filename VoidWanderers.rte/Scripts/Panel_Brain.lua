@@ -27,7 +27,8 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 
 				if cont:IsState(Controller.PRESS_DOWN) then
 					-- Create faction appropriate brain because we can do that
-					local rb = CF.MakeBrain(self.GS, CF.PlayerFaction, CF.PlayerTeam, act.Pos + Vector(0, 20), false)
+					local f = self.GS.PlayerFaction;
+					local rb = CF.MakeBrainWithPreset(self.GS, CF.PlayerTeam, act.Pos + Vector(0, 20), CF.Brains[f], CF.BrainClasses[f], CF.BrainModules[f])
 
 					if rb then
 						rb.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)

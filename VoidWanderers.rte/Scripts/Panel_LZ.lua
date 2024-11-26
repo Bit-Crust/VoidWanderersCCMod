@@ -56,19 +56,15 @@ end
 -- Find and assign appropriate landing zone actors
 -----------------------------------------------------------------------------------------
 function VoidWanderers:LocateLZControlPanelActors()
-	if self.BrainsAbsent then
-		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				local actor = self:GetPlayerBrain(player);
-				if actor.PresetName == "LZ Control Panel" then
-					self.LZControlPanelActor[player + 1] = actor
-					self.LZControlPanelPos[player + 1] = actor.Pos
-				end
-			end
-		end
-	else
-		for actor in MovableMan.AddedActors do
-			if actor.PresetName == "LZ Control Panel" then
+	local tick = 0;
+	for actor in MovableMan.AddedActors do
+		if actor.PresetName == "LZ Control Panel" then
+			if self.BrainsAbsent then
+				self.LZControlPanelActor[tick + 1] = actor
+				self.LZControlPanelPos[tick + 1] = actor.Pos
+				self:SetPlayerBrain(self.LZControlPanelActor[tick + 1], tick)
+				tick = tick + 1
+			else
 				self.LZControlPanelActor[1] = actor
 				self.LZControlPanelPos[1] = actor.Pos
 				break

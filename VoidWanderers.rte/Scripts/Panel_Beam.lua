@@ -207,72 +207,77 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 					local savedactor = 1
 
 					-- Save actors to config and transfer them to scene
-					for actor in MovableMan.Actors do
-						if
-							actor.GetsHitByMOs
-							and actor.PresetName ~= "Brain Case"
-							and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-						then
-							local pre, cls, mdl = CF.GetInventory(actor)
+					for _, set in pairs{MovableMan.Actors, MovableMan.Particles} do
+						for actor in set do
+							if IsActor(actor) then
+								actor = ToActor(actor)
+							end
+							if
+								actor.GetsHitByMOs
+								and actor.PresetName ~= "Brain Case"
+								and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
+							then
+								local pre, cls, mdl = CF.GetInventory(actor)
 
-							if self.BeamControlPanelBox:IsWithinBox(actor.Pos) then
-								-- Save actors to deployment config
-								self.GS["Deployed" .. deployedactor .. "Preset"] = actor.PresetName
-								self.GS["Deployed" .. deployedactor .. "Class"] = actor.ClassName
-								self.GS["Deployed" .. deployedactor .. "Module"] = actor.ModuleName
-								self.GS["Deployed" .. deployedactor .. "XP"] = actor:GetNumberValue("VW_XP")
-								self.GS["Deployed" .. deployedactor .. "Identity"] = actor:GetNumberValue("Identity")
-								self.GS["Deployed" .. deployedactor .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
-								self.GS["Deployed" .. deployedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
-								self.GS["Deployed" .. deployedactor .. "Name"] = actor:GetStringValue("VW_Name")
+								if self.BeamControlPanelBox:IsWithinBox(actor.Pos) then
+									-- Save actors to deployment config
+									self.GS["Deployed" .. deployedactor .. "Preset"] = actor.PresetName
+									self.GS["Deployed" .. deployedactor .. "Class"] = actor.ClassName
+									self.GS["Deployed" .. deployedactor .. "Module"] = actor.ModuleName
+									self.GS["Deployed" .. deployedactor .. "XP"] = actor:GetNumberValue("VW_XP")
+									self.GS["Deployed" .. deployedactor .. "Identity"] = actor:GetNumberValue("Identity")
+									self.GS["Deployed" .. deployedactor .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
+									self.GS["Deployed" .. deployedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
+									self.GS["Deployed" .. deployedactor .. "Name"] = actor:GetStringValue("VW_Name")
 
-								for j = 1, #CF.LimbID do
-									self.GS["Deployed" .. deployedactor .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
-								end
+									for j = 1, #CF.LimbID do
+										self.GS["Deployed" .. deployedactor .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
+									end
 
-								for j = 1, #pre do
-									self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Preset"] = pre[j]
-									self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Class"] = cls[j]
-									self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Module"] = mdl[j]
-								end
+									for j = 1, #pre do
+										self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Preset"] = pre[j]
+										self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Class"] = cls[j]
+										self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Module"] = mdl[j]
+									end
 
-								self.deployedActors[deployedactor] = actor
-								deployedactor = deployedactor + 1
-							else
-								-- Save actors to onboard config
-								self.GS["Actor" .. savedactor .. "Preset"] = actor.PresetName
-								self.GS["Actor" .. savedactor .. "Class"] = actor.ClassName
-								self.GS["Actor" .. savedactor .. "Module"] = actor.ModuleName
-								self.GS["Actor" .. savedactor .. "XP"] = actor:GetNumberValue("VW_XP")
-								self.GS["Actor" .. savedactor .. "Identity"] = actor:GetNumberValue("Identity")
-								self.GS["Actor" .. savedactor .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
-								self.GS["Actor" .. savedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
-								self.GS["Actor" .. savedactor .. "Name"] = actor:GetStringValue("VW_Name")
-								self.GS["Actor" .. savedactor .. "X"] = math.floor(actor.Pos.X)
-								self.GS["Actor" .. savedactor .. "Y"] = math.floor(actor.Pos.Y)
+									self.deployedActors[deployedactor] = actor
+									deployedactor = deployedactor + 1
+								else
+									-- Save actors to onboard config
+									self.GS["Actor" .. savedactor .. "Preset"] = actor.PresetName
+									self.GS["Actor" .. savedactor .. "Class"] = actor.ClassName
+									self.GS["Actor" .. savedactor .. "Module"] = actor.ModuleName
+									self.GS["Actor" .. savedactor .. "XP"] = actor:GetNumberValue("VW_XP")
+									self.GS["Actor" .. savedactor .. "Identity"] = actor:GetNumberValue("Identity")
+									self.GS["Actor" .. savedactor .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
+									self.GS["Actor" .. savedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
+									self.GS["Actor" .. savedactor .. "Name"] = actor:GetStringValue("VW_Name")
+									self.GS["Actor" .. savedactor .. "X"] = math.floor(actor.Pos.X)
+									self.GS["Actor" .. savedactor .. "Y"] = math.floor(actor.Pos.Y)
 
-								for j = 1, #CF.LimbID do
-									self.GS["Actor" .. savedactor .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
-								end
+									for j = 1, #CF.LimbID do
+										self.GS["Actor" .. savedactor .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
+									end
 
-								for j = 1, #pre do
-									self.GS["Actor" .. savedactor .. "Item" .. j .. "Preset"] = pre[j]
-									self.GS["Actor" .. savedactor .. "Item" .. j .. "Class"] = cls[j]
-									self.GS["Actor" .. savedactor .. "Item" .. j .. "Module"] = mdl[j]
-								end
+									for j = 1, #pre do
+										self.GS["Actor" .. savedactor .. "Item" .. j .. "Preset"] = pre[j]
+										self.GS["Actor" .. savedactor .. "Item" .. j .. "Class"] = cls[j]
+										self.GS["Actor" .. savedactor .. "Item" .. j .. "Module"] = mdl[j]
+									end
 								
-								self.onboardActors[savedactor] = actor
-								savedactor = savedactor + 1
+									self.onboardActors[savedactor] = actor
+									savedactor = savedactor + 1
+								end
 							end
 						end
 					end
 
 					for _, actor in pairs(self.deployedActors) do
-						MovableMan:RemoveActor(actor)
+						self.deployedActors[_] = MovableMan:RemoveActor(actor)
 					end
 
 					for _, actor in pairs(self.onboardActors) do
-						MovableMan:RemoveActor(actor)
+						self.onboardActors[_] = MovableMan:RemoveActor(actor)
 					end
 
 					if braincount == self.PlayerCount then
