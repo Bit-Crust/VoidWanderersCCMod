@@ -1,19 +1,17 @@
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF.MakeBrainWithPreset = function(c, p, team, pos, preset, class, module, giveWeapons)
+CF.MakeBrainWithPreset = function(c, team, pos, preset, class, module, p)
 	--print ("CF.MakeBrainWithPreset")
-
-	local f = c["PlayerFaction"]
 
 	local actor = CF.MakeActor(preset, class, module)
 
 	if actor ~= nil then
-		if giveWeapons then
+		if p then
 			local weapon = nil
 			local weaponsgiven = 0
 			-- Create list of prefered weapons for brains
-			local list = CF.PreferedBrainInventory[f] or { CF.WeaponTypes.RIFLE, CF.WeaponTypes.DIGGER }
+			local list = CF.PreferedBrainInventory[c["Player" .. p .. "Faction"]] or { CF.WeaponTypes.RIFLE, CF.WeaponTypes.DIGGER }
 			for i = 1, #list do
 				local weaps
 				-- Try to give brain most powerful prefered weapon
@@ -84,8 +82,8 @@ end
 -----------------------------------------------------------------------------------------
 CF.MakeBrain = function(c, p, team, pos, giveWeapons)
 	--print ("CF.MakeBrain")
-	local f = c["PlayerFaction"]
-	return CF.MakeBrainWithPreset(c, p, team, pos, CF.Brains[f], CF.BrainClasses[f], CF.BrainModules[f], giveWeapons)
+	local f = c["Player" .. p .. "Faction"]
+	return CF.MakeBrainWithPreset(c, team, pos, CF.Brains[f], CF.BrainClasses[f], CF.BrainModules[f], giveWeapons and p or nil)
 end
 -----------------------------------------------------------------------------------------
 --
@@ -95,7 +93,6 @@ CF.MakeRPGBrain = function(c, p, team, pos, level, giveweapons)
 		giveweapons = true
 	end
 
-	local f = CF.GetPlayerFaction(c, p)
 	local brain = CF.MakeBrain(
 		c,
 		p,
@@ -108,7 +105,6 @@ CF.MakeRPGBrain = function(c, p, team, pos, level, giveweapons)
 		-- Generate a skill set, randomly distribute available points
 		local skillset = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 		local availableSkills = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-		print(level * 10)
 		for i = 1, level * 10 do
 			local index = math.random(#availableSkills)
 			if skillset[availableSkills[index]] < 5 then

@@ -10,7 +10,6 @@ CF = {}
 CF.InitFactions = function(activity)
 	print("CF.InitFactions")
 	CF.PlayerTeam = Activity.TEAM_1
-	CF.PlayerFaction = 1
 	CF.CPUTeam = Activity.TEAM_2
 	CF.RogueTeam = Activity.NOTEAM
 	CF.MOIDLimit = math.huge
@@ -171,7 +170,6 @@ CF.InitFactions = function(activity)
 	CF.Factions = {}
 
 	CF.Nobody = "Nobody"
-	CF.PlayerFaction = "Nobody"
 	CF.CPUFaction = "Nobody"
 
 	CF.MissionEndTimer = Timer()
@@ -333,7 +331,7 @@ CF.InitFactions = function(activity)
 	CF.CraftClasses = {}
 	CF.CraftPrices = {}
 
-	CF.MusicTypes = { SHIP_CALM = 0, SHIP_INTENSE = 1, MISSION_CALM = 2, MISSION_INTENSE = 3, VICTORY = 4, DEFEAT = 5 }
+	CF.MusicTypes = { SHIP_CALM = 0, SHIP_INTENSE = 1, MISSION_CALM = 2, MISSION_INTENSE = 3, VICTORY = 4, DEFEAT = 5, COMMERCE = 6 }
 
 	CF.Music = {}
 	CF.Music[CF.MusicTypes.SHIP_CALM] = {}
@@ -989,7 +987,7 @@ CF.BuffActor = function(actor, rank, prestige)
 		end
 	end
 	if actor.LimbPathPushForce then
-		actor:SetLimbPathSpeed(1, actor:GetLimbPathSpeed(1) * sqrtFactor)
+		actor:SetLimbPathTravelSpeed(1, actor:GetLimbPathTravelSpeed(1) * sqrtFactor)
 		actor.LimbPathPushForce = actor.LimbPathPushForce * (math.sqrt(sqrtFactor))
 	end
 	--print("actor ".. actor.PresetName .." buffed with" .. (prestige and " prestige " or "rank ").. rank)
@@ -1030,7 +1028,7 @@ CF.UnBuffActor = function(actor, rank, prestige)
 		end
 	end
 	if actor.LimbPathPushForce then
-		actor:SetLimbPathSpeed(1, actor:GetLimbPathSpeed(1) / sqrtFactor)
+		actor:SetLimbPathTravelSpeed(1, actor:GetLimbPathTravelSpeed(1) / sqrtFactor)
 		actor.LimbPathPushForce = actor.LimbPathPushForce / (math.sqrt(sqrtFactor))
 	end
 end
