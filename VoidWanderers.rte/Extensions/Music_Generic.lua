@@ -1,15 +1,7 @@
-local n = #CF.Music[CF.MusicTypes.SHIP_CALM] + 1
-CF.Music[CF.MusicTypes.SHIP_CALM][n] = "Scenario Menu Music DynamicSong"
-
-local n = #CF.Music[CF.MusicTypes.SHIP_INTENSE] + 1
-CF.Music[CF.MusicTypes.SHIP_INTENSE][n] = "Generic Battle Music ruinexploration"
-
-local n = #CF.Music[CF.MusicTypes.MISSION_CALM] + 1
-CF.Music[CF.MusicTypes.MISSION_CALM][n] = "Generic Battle Music cc2g"
-local n = #CF.Music[CF.MusicTypes.MISSION_CALM] + 1
-CF.Music[CF.MusicTypes.MISSION_CALM][n] = "Generic Battle Music ccambient4"
-local n = #CF.Music[CF.MusicTypes.MISSION_CALM] + 1
-CF.Music[CF.MusicTypes.MISSION_CALM][n] = "Generic Battle Music ccambient4"
-
-local n = #CF.Music[CF.MusicTypes.MISSION_INTENSE] + 1
-CF.Music[CF.MusicTypes.MISSION_INTENSE][n] = "Generic Boss Fight Music"
+CF.Music[CF.MusicTypes.SHIP_CALM] = "Void Wanderers Ship Calm"
+CF.Music[CF.MusicTypes.SHIP_INTENSE] = "Void Wanderers Ship Intense"
+CF.Music[CF.MusicTypes.MISSION_CALM] = "Void Wanderers Mission Calm"
+CF.Music[CF.MusicTypes.MISSION_INTENSE] = "Void Wanderers Mission Intense"
+CF.Music[CF.MusicTypes.VICTORY] = "Void Wanderers Victory"
+CF.Music[CF.MusicTypes.DEFEAT] = "Void Wanderers Defeat"
+CF.Music[CF.MusicTypes.COMMERCE] = "Void Wanderers Commerce"

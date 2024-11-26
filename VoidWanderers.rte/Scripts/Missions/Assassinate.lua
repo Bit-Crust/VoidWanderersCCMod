@@ -299,7 +299,7 @@ function VoidWanderers:MissionUpdate()
 		then
 			self.missionData["counterAttackTriggered"] = true
 			print("COUNTERATTACK!")
-			self:StartMusic(CF.MusicTypes.MISSION_ACTIVE)
+			self:StartMusic(CF.MusicTypes.MISSION_INTENSE)
 
 			local count = 0
 

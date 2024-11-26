@@ -179,22 +179,21 @@ function VoidWanderers:MissionUpdate()
 		then
 			self:GiveMissionRewards()
 			self.missionData["stage"] = CF.MissionStages.COMPLETED
+			self.missionData["statusShowStart"] = self.Time
 
 			self.missionData["interval"] = math.floor(self.missionData["interval"] * 1.5)
 
 			for actor in MovableMan.Actors do
 				if self:IsAlly(actor) and actor.GoldCarried > 0 then
-					self:SetPlayerFunds(CF.ChangeGold(self.GS, actor.GoldCarried), CF.PlayerTeam)
+					self:SetTeamFunds(CF.ChangeGold(self.GS, actor.GoldCarried), CF.PlayerTeam)
 					actor.GoldCarried = 0
 				end
 			end
-			-- Remember when we started showing misison status message
-			self.MissionStatusShowStart = self.Time
 		elseif
 			self.missionData["allyReinforcementsCount"] == 0 and friends < self.missionData["minersNeeded"]
 		then
 			self.missionData["stage"] = CF.MissionStages.FAILED
-			self.MissionStatusShowStart = self.Time
+			self.missionData["statusShowStart"] = self.Time
 
 			for actor in MovableMan.Actors do
 				if self:IsAlly(actor) then
@@ -277,7 +276,7 @@ function VoidWanderers:MissionUpdate()
 			self:StartMusic(CF.MusicTypes.VICTORY)
 			self.MissionEndMusicPlayed = true
 		end
-		if self.Time < self.MissionStatusShowStart + CF.MissionResultShowInterval then
+		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)
@@ -290,7 +289,7 @@ function VoidWanderers:MissionUpdate()
 			self.MissionEndMusicPlayed = true
 		end
 
-		if self.Time < self.MissionStatusShowStart + CF.MissionResultShowInterval then
+		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)
