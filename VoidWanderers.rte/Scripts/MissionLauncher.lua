@@ -173,27 +173,27 @@ function VoidWanderers:LoadCurrentGameState()
 		self.Time = tonumber(self.GS["Time"])
 
 		-- Move ship to tradestar if last location was removed
-		if CF["PlanetName"][self.GS["Planet"]] == nil then
+		if CF.PlanetName[self.GS["Planet"]] == nil then
 			--print (self.GS["Location"].." not found. Relocated to tradestar.")
 
-			self.GS["Planet"] = CF["Planet"][1]
+			self.GS["Planet"] = CF.Planet[1]
 			self.GS["Location"] = nil
 		end
 
 		if self.GS["Difficulty"] then
-			CF["Difficulty"] = tonumber(self.GS["Difficulty"])
+			CF.Difficulty = tonumber(self.GS["Difficulty"])
 		end
 		if self.GS["AISkillPlayer"] then
-			CF["AISkillPlayer"] = tonumber(self.GS["AISkillPlayer"])
+			CF.AISkillPlayer = tonumber(self.GS["AISkillPlayer"])
 		end
 		if self.GS["AISkillCPU"] then
-			CF["AISkillCPU"] = tonumber(self.GS["AISkillCPU"])
+			CF.AISkillCPU = tonumber(self.GS["AISkillCPU"])
 		end
 
 		-- Check missions for missing scenes, if any of them found - recreate missions
-		for i = 1, CF["MaxMissions"] do
-			if CF["LocationName"][self.GS["Mission" .. i .. "Location"]] == nil then
-				CF["GenerateRandomMissions"](self.GS)
+		for i = 1, CF.MaxMissions do
+			if CF.LocationName[self.GS["Mission" .. i .. "Location"]] == nil then
+				CF.GenerateRandomMissions(self.GS)
 				break
 			end
 		end
@@ -272,29 +272,29 @@ function VoidWanderers:LoadCurrentGameState()
 			end
 		end
 
-		local arr = CF["GetAvailableQuantumItems"](self.GS)
+		local arr = CF.GetAvailableQuantumItems(self.GS)
 		if #arr == 0 then
-			CF["UnlockRandomQuantumItem"](self.GS)
+			CF.UnlockRandomQuantumItem(self.GS)
 		end
 
 		local val = self.GS["PlayerVesselTurrets"]
 		if val == nil then
-			self.GS["PlayerVesselTurrets"] = CF["VesselStartTurrets"][self.GS["PlayerVessel"]]
+			self.GS["PlayerVesselTurrets"] = CF.VesselStartTurrets[self.GS["PlayerVessel"]]
 		end
 
 		local val = self.GS["PlayerVesselTurretStorage"]
 		if val == nil then
-			self.GS["PlayerVesselTurretStorage"] = CF["VesselStartTurretStorage"][self.GS["PlayerVessel"]]
+			self.GS["PlayerVesselTurretStorage"] = CF.VesselStartTurretStorage[self.GS["PlayerVessel"]]
 		end
 
 		local val = self.GS["PlayerVesselBombBays"]
 		if val == nil then
-			self.GS["PlayerVesselBombBays"] = CF["VesselStartBombBays"][self.GS["PlayerVessel"]]
+			self.GS["PlayerVesselBombBays"] = CF.VesselStartBombBays[self.GS["PlayerVessel"]]
 		end
 
 		local val = self.GS["PlayerVesselBombStorage"]
 		if val == nil then
-			self.GS["PlayerVesselBombStorage"] = CF["VesselStartBombStorage"][self.GS["PlayerVessel"]]
+			self.GS["PlayerVesselBombStorage"] = CF.VesselStartBombStorage[self.GS["PlayerVessel"]]
 		end
 	end
 end
@@ -318,24 +318,24 @@ function VoidWanderers:LoadSaveData()
 		if CF.PlanetName[self.GS["Planet"]] == nil then
 			--print (self.GS["Location"].." not found. Relocated to tradestar.")
 
-			self.GS["Planet"] = CF["Planet"][1]
+			self.GS["Planet"] = CF.Planet[1]
 			self.GS["Location"] = nil
 		end
 
 		if self.GS["Difficulty"] then
-			CF["Difficulty"] = tonumber(self.GS["Difficulty"])
+			CF.Difficulty = tonumber(self.GS["Difficulty"])
 		end
 		if self.GS["AISkillPlayer"] then
-			CF["AISkillPlayer"] = tonumber(self.GS["AISkillPlayer"])
+			CF.AISkillPlayer = tonumber(self.GS["AISkillPlayer"])
 		end
 		if self.GS["AISkillCPU"] then
-			CF["AISkillCPU"] = tonumber(self.GS["AISkillCPU"])
+			CF.AISkillCPU = tonumber(self.GS["AISkillCPU"])
 		end
 
 		-- Check missions for missing scenes, if any of them found - recreate missions
-		for i = 1, CF["MaxMissions"] do
-			if CF["LocationName"][self.GS["Mission" .. i .. "Location"]] == nil then
-				CF["GenerateRandomMissions"](self.GS)
+		for i = 1, CF.MaxMissions do
+			if CF.LocationName[self.GS["Mission" .. i .. "Location"]] == nil then
+				CF.GenerateRandomMissions(self.GS)
 				break
 			end
 		end
@@ -414,29 +414,29 @@ function VoidWanderers:LoadSaveData()
 			end
 		end
 
-		local arr = CF["GetAvailableQuantumItems"](self.GS)
+		local arr = CF.GetAvailableQuantumItems(self.GS)
 		if #arr == 0 then
-			CF["UnlockRandomQuantumItem"](self.GS)
+			CF.UnlockRandomQuantumItem(self.GS)
 		end
 
 		local val = self.GS["PlayerVesselTurrets"]
 		if val == nil then
-			self.GS["PlayerVesselTurrets"] = CF["VesselStartTurrets"][self.GS["PlayerVessel"]]
+			self.GS["PlayerVesselTurrets"] = CF.VesselStartTurrets[self.GS["PlayerVessel"]]
 		end
 
 		local val = self.GS["PlayerVesselTurretStorage"]
 		if val == nil then
-			self.GS["PlayerVesselTurretStorage"] = CF["VesselStartTurretStorage"][self.GS["PlayerVessel"]]
+			self.GS["PlayerVesselTurretStorage"] = CF.VesselStartTurretStorage[self.GS["PlayerVessel"]]
 		end
 
 		local val = self.GS["PlayerVesselBombBays"]
 		if val == nil then
-			self.GS["PlayerVesselBombBays"] = CF["VesselStartBombBays"][self.GS["PlayerVessel"]]
+			self.GS["PlayerVesselBombBays"] = CF.VesselStartBombBays[self.GS["PlayerVessel"]]
 		end
 
 		local val = self.GS["PlayerVesselBombStorage"]
 		if val == nil then
-			self.GS["PlayerVesselBombStorage"] = CF["VesselStartBombStorage"][self.GS["PlayerVessel"]]
+			self.GS["PlayerVesselBombStorage"] = CF.VesselStartBombStorage[self.GS["PlayerVessel"]]
 		end
 	end
 end

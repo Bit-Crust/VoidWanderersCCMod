@@ -15,7 +15,7 @@ function VoidWanderers:FormLoad()
 
 	local pos = Vector(
 		(SceneMan.Scene.Width - sx) / 2,
-		((SceneMan.Scene.Height + sy) / 4) / math.max(#CF["Location"] / (wx * sy), 1)
+		((SceneMan.Scene.Height + sy) / 4) / math.max(#CF.Location / (wx * sy), 1)
 	)
 
 	-- Create scene buttons

@@ -53,16 +53,16 @@ function VoidWanderers:FormLoad()
 	--self.Data[2] = {}
 	--self.Data[2]["Name"] = "Enemy"
 
-	for i = 1, CF["GenericMissionCount"] do
+	for i = 1, CF.GenericMissionCount do
 		self.Data[i] = {}
-		self.Data[i]["Name"] = CF["Mission"][i]
+		self.Data[i]["Name"] = CF.Mission[i]
 	end
 
 	print(self.SelectedLocationID)
 
-	for i = 1, #CF["LocationMissions"][self.SelectedLocationID] do
-		self.Data[CF["GenericMissionCount"] + i] = {}
-		self.Data[CF["GenericMissionCount"] + i]["Name"] = CF["LocationMissions"][self.SelectedLocationID][i]
+	for i = 1, #CF.LocationMissions[self.SelectedLocationID] do
+		self.Data[CF.GenericMissionCount + i] = {}
+		self.Data[CF.GenericMissionCount + i]["Name"] = CF.LocationMissions[self.SelectedLocationID][i]
 	end
 
 	el = {}
@@ -142,16 +142,16 @@ function VoidWanderers:FormLoad()
 	self.LastTypeElement = #self.UI
 
 	-- Load level data
-	self.SceneConfig = CF["ReadSceneConfigFile"](self.ModuleName, SceneMan.Scene.PresetName .. ".dat")
+	self.SceneConfig = CF.ReadSceneConfigFile(self.ModuleName, SceneMan.Scene.PresetName .. ".dat")
 
 	for k1 = 1, #self.Data do
 		local msntype = self.Data[k1]["Name"]
 
-		for k2 = 1, CF["MissionMaxSets"][msntype] do
-			for k3 = 1, #CF["MissionRequiredData"][msntype] do
-				local pttype = CF["MissionRequiredData"][msntype][k3]["Name"]
+		for k2 = 1, CF.MissionMaxSets[msntype] do
+			for k3 = 1, #CF.MissionRequiredData[msntype] do
+				local pttype = CF.MissionRequiredData[msntype][k3]["Name"]
 
-				for k4 = 1, CF["MissionRequiredData"][msntype][k3]["Max"] do
+				for k4 = 1, CF.MissionRequiredData[msntype][k3]["Max"] do
 					local id = msntype .. tostring(k2) .. pttype .. tostring(k4)
 
 					local x = self.SceneConfig[id .. "X"]
@@ -243,9 +243,9 @@ function VoidWanderers:Save_OnClick()
 			for k3, v3 in pairs(v2) do -- Point type
 				--print (k3)
 
-				local pnttype = CF["MissionRequiredData"][k][k3]["Name"]
+				local pnttype = CF.MissionRequiredData[k][k3]["Name"]
 				-- Clear data
-				for i = 1, CF["MissionRequiredData"][k][k3]["Max"] do
+				for i = 1, CF.MissionRequiredData[k][k3]["Max"] do
 					self.SceneConfig[msntype .. setnum .. pnttype .. tostring(i) .. "X"] = nil
 					self.SceneConfig[msntype .. setnum .. pnttype .. tostring(i) .. "Y"] = nil
 				end
@@ -261,7 +261,7 @@ function VoidWanderers:Save_OnClick()
 		end
 	end
 
-	CF["WriteSceneConfigFile"](self.SceneConfig, CF["ModuleName"], SceneMan.Scene.PresetName .. ".dat")
+	CF.WriteSceneConfigFile(self.SceneConfig, CF.ModuleName, SceneMan.Scene.PresetName .. ".dat")
 end
 -----------------------------------------------------------------------------------------
 --
@@ -287,7 +287,7 @@ function VoidWanderers:MissionType_OnClick()
 	local pos = Vector(SceneMan.Scene.Width / 2, 0)
 
 	-- Fill sets
-	for i = 1, CF["MissionMaxSets"][self.SelectedType] do
+	for i = 1, CF.MissionMaxSets[self.SelectedType] do
 		el = {}
 		el["Type"] = self.ElementTypes.BUTTON
 		el["Presets"] = {}
@@ -314,7 +314,7 @@ function VoidWanderers:MissionType_OnClick()
 	local y = 1
 
 	-- Fill point types
-	for i = 1, #CF["MissionRequiredData"][self.SelectedType] do
+	for i = 1, #CF.MissionRequiredData[self.SelectedType] do
 		el = {}
 		el["Type"] = self.ElementTypes.BUTTON
 		el["Presets"] = {}
@@ -322,7 +322,7 @@ function VoidWanderers:MissionType_OnClick()
 		el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
 		el["Presets"][self.ButtonStates.PRESSED] = "ButtonSceneEditorWidePressed"
 		el["RelPos"] = Vector(-self.Res.X / 2 + 20 + sx / 2 + x * sx + 252, -self.Res.Y / 2 + 20 + y * sy)
-		el["Text"] = CF["MissionRequiredData"][self.SelectedType][i]["Name"]
+		el["Text"] = CF.MissionRequiredData[self.SelectedType][i]["Name"]
 		el["Data"] = i
 		el["Width"] = sx
 		el["Height"] = sy
@@ -341,7 +341,7 @@ function VoidWanderers:MissionType_OnClick()
 
 	self:ShowElements()
 
-	--CF["DisableUIProcessing"] = true
+	--CF.DisableUIProcessing = true
 end
 -----------------------------------------------------------------------------------------
 --
@@ -373,7 +373,7 @@ function VoidWanderers:PointType_OnClick()
 	local pos = Vector(SceneMan.Scene.Width / 2, 0)
 
 	-- Fill sets
-	for i = 1, CF["MissionRequiredData"][self.SelectedType][self.SelectedPointType]["Max"] do
+	for i = 1, CF.MissionRequiredData[self.SelectedType][self.SelectedPointType]["Max"] do
 		el = {}
 		el["Type"] = self.ElementTypes.BUTTON
 		el["Presets"] = {}
@@ -415,7 +415,7 @@ function VoidWanderers:FormUpdate()
 		and self.SelectedPointType ~= nil
 		and self.SelectedPoint ~= nil
 	then
-		local mx = CF["MissionRequiredData"][self.SelectedType][self.SelectedPointType]["Max"]
+		local mx = CF.MissionRequiredData[self.SelectedType][self.SelectedPointType]["Max"]
 		local mv = UInputMan:MouseWheelMoved()
 
 		if mv > 0 then
@@ -467,7 +467,7 @@ function VoidWanderers:FormUpdate()
 				and self.SelectedPointType ~= nil
 				and self.SelectedPoint ~= nil
 			then
-				local mx = CF["MissionRequiredData"][self.SelectedType][self.SelectedPointType]["Max"]
+				local mx = CF.MissionRequiredData[self.SelectedType][self.SelectedPointType]["Max"]
 
 				if i <= mx then
 					self.SelectedPoint = i
@@ -483,7 +483,7 @@ function VoidWanderers:FormUpdate()
 				for k3, v3 in pairs(self.Pts[self.SelectedType][self.SelectedSet]) do
 					for k4, v4 in pairs(v3) do
 						--self:PutGlow("ControlPanel_Ship_LocationDot", v4)
-						if CF["DistUnder"](v4, self.Mouse, 5) then
+						if CF.DistUnder(v4, self.Mouse, 5) then
 							self.Pts[self.SelectedType][self.SelectedSet][k3][k4] = nil
 						end
 					end

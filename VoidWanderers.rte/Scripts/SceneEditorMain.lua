@@ -132,7 +132,7 @@ function VoidWanderers:CreateActors()
 
 	G_CursorActor = CreateActor("VW_Cursor")
 	if G_CursorActor then
-		G_CursorActor.Team = CF["PlayerTeam"]
+		G_CursorActor.Team = CF.PlayerTeam
 		local curactor = self:GetControlledActor(Activity.PLAYER_1)
 
 		if act and MovableMan:IsActor(curactor) then

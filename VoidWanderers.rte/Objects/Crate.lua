@@ -77,7 +77,7 @@ function Create(self)
 				end
 			end
 
-			-- We need this fake cfg because CF["MakeList"] operates only on configs to get data
+			-- We need this fake cfg because CF.MakeList operates only on configs to get data
 			local fakeState = {}
 			fakeState["Player1Faction"] = f
 

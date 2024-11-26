@@ -1,19 +1,19 @@
 -----------------------------------------------------------------------------
 -- Returns trimmed string
 -----------------------------------------------------------------------------
-CF["StringTrim"] = function(s)
+CF.StringTrim = function(s)
 	return s:gsub("^%s+", ""):gsub("%s+$", "")
 end
 -----------------------------------------------------------------------------
 -- Returns true if string ends with 'End'
 -----------------------------------------------------------------------------
-CF["StringEnds"] = function(String, End)
+CF.StringEnds = function(String, End)
 	return End == "" or string.sub(String, -string.len(End)) == End
 end
 -----------------------------------------------------------------------------
 -- Read data from file line by line and return the list
 -----------------------------------------------------------------------------
-CF["ReadFactionsList"] = function(filename, defaultpath)
+CF.ReadFactionsList = function(filename, defaultpath)
 	print("VoidWanderers::CF['ReadFactionsList']")
 	local config = {}
 
@@ -31,19 +31,19 @@ CF["ReadFactionsList"] = function(filename, defaultpath)
 		end
 
 		if enabled then
-			if CF["StringEnds"](s, ".rte") then
+			if CF.StringEnds(s, ".rte") then
 				local file = string.sub(s, 1, #s - 4)
 				local path = s .. "/FactionFiles/" .. file .. ".lua"
 
 				if PresetMan:GetModuleID(s) > -1 then
-					if CF["IsFilePathExists"](path) then
+					if CF.IsFilePathExists(path) then
 						-- Add found .lua file if it exists
 						config[#config + 1] = path
 					else
 						-- Check support folder for special cases popular mods
 						-- if lua file don't exist
 						local supportpath = "VoidWanderers.rte/Support/" .. file .. ".lua"
-						if CF["IsFilePathExists"](supportpath) then
+						if CF.IsFilePathExists(supportpath) then
 							print("SUPPORT " .. supportpath .. " FOUND, EXECUTING")
 							local paths
 							f = loadfile(supportpath)
@@ -78,7 +78,7 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["ReadExtensionsList"] = function(filename, defaultpath)
+CF.ReadExtensionsList = function(filename, defaultpath)
 	print("VoidWanderers::CF['ReadExtensionsList']")
 	local config = {}
 
@@ -96,10 +96,10 @@ CF["ReadExtensionsList"] = function(filename, defaultpath)
 		end
 
 		if enabled then
-			if CF["StringEnds"](s, ".rte") then
+			if CF.StringEnds(s, ".rte") then
 				--local fileName = string.sub(s, 1, #s - 4)
 				local supportpath = s .. "/Support/VoidWanderers.lua"
-				if CF["IsFilePathExists"](supportpath) then
+				if CF.IsFilePathExists(supportpath) then
 					print("EXTENSION SUPPORT " .. supportpath .. " FOUND, EXECUTING")
 					local paths
 					f = loadfile(supportpath)
@@ -134,7 +134,7 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["ParseLine"] = function(s)
+CF.ParseLine = function(s)
 	local pos1, pos2
 
 	pos = string.find(s, "=")
@@ -175,14 +175,14 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["ReadSceneConfigFile"] = function(modulename, filename)
+CF.ReadSceneConfigFile = function(modulename, filename)
 	local config = {}
 
 	local filepath = nil
-	if CF["IsFilePathExists"]("Mods/" .. modulename .. "/Scenes/Data/" .. filename) then
+	if CF.IsFilePathExists("Mods/" .. modulename .. "/Scenes/Data/" .. filename) then
 		filepath = modulename .. "/Scenes/Data/" .. filename
-	elseif CF["IsFilePathExists"]("Mods/" .. CF["ModuleName"] .. "/Scenes/Data/" .. filename) then
-		filepath = CF["ModuleName"] .. "/Scenes/Data/" .. filename
+	elseif CF.IsFilePathExists("Mods/" .. CF.ModuleName .. "/Scenes/Data/" .. filename) then
+		filepath = CF.ModuleName .. "/Scenes/Data/" .. filename
 	end
 	if filepath then
 		local f = LuaMan:FileOpen(filepath, "r")
@@ -191,7 +191,7 @@ CF["ReadSceneConfigFile"] = function(modulename, filename)
 			line = LuaMan:FileReadLine(f)
 			local param, value
 
-			param, value = CF["ParseLine"](line)
+			param, value = CF.ParseLine(line)
 			if param ~= nil then
 				config[param] = value
 			end
@@ -204,7 +204,7 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["WriteSceneConfigFile"] = function(config, modulename, filename)
+CF.WriteSceneConfigFile = function(config, modulename, filename)
 	local file = LuaMan:FileOpen(modulename .. "/Scenes/Data/" .. filename, "w")
 
 	local sorted = CF.GetSortedListFromTable(config)
@@ -218,7 +218,7 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["WriteConfigFile"] = function(config, modulename, filename)
+CF.WriteConfigFile = function(config, modulename, filename)
 	local file = LuaMan:FileOpen(modulename .. "/CampaignData/" .. filename, "w")
 
 	local sorted = CF.GetSortedListFromTable(config)
@@ -232,7 +232,7 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["GetSortedListFromTable"] = function(arr)
+CF.GetSortedListFromTable = function(arr)
 	local newarr = {}
 
 	for key, value in pairs(arr) do
@@ -257,7 +257,7 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["DeleteCurrentConfig"] = function(modulename)
+CF.DeleteCurrentConfig = function(modulename)
 	local file = LuaMan:FileOpen(modulename .. "/CampaignData/current.dat", "w")
 
 	for i, line in pairs(config) do
@@ -269,7 +269,7 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["IsFileExists"] = function(modulename, filename)
+CF.IsFileExists = function(modulename, filename)
 	return LuaMan:FileExists(modulename .. "/CampaignData/" .. filename)
 	--[[ Old method:
 	local file = LuaMan:FileOpen(modulename.."/CampaignData/"..filename , "r")
@@ -286,13 +286,13 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["IsFilePathExists"] = function(path)
+CF.IsFilePathExists = function(path)
 	return LuaMan:FileExists(path)
 end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["GetCharPixelWidth"] = function(char)
+CF.GetCharPixelWidth = function(char)
 	local ChrLen = {}
 	local n = nil
 
@@ -330,10 +330,10 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF["GetStringPixelWidth"] = function(str)
+CF.GetStringPixelWidth = function(str)
 	local len = 0
 	for i = 1, #str do
-		len = len + CF["GetCharPixelWidth"](string.sub(str, i, i))
+		len = len + CF.GetCharPixelWidth(string.sub(str, i, i))
 	end
 	return len
 end

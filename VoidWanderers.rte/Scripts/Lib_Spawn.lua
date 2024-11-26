@@ -593,12 +593,12 @@ CF.MakeUnitFromPreset = function(c, p, pre)
 						CF.RandomizeLimbs(actor)
 					end
 				end
-				for i = 1, math.ceil(CF["MaxItemsPerPreset"] * RangeRand(0.5, 1.0)) do
+				for i = 1, math.ceil(CF.MaxItemsPerPreset * RangeRand(0.5, 1.0)) do
 					if c["Player" .. p .. "Preset" .. pre .. "Item" .. i] ~= nil then
 						local w = tonumber(c["Player" .. p .. "Preset" .. pre .. "Item" .. i])
 						local wf = c["Player" .. p .. "Preset" .. pre .. "ItemFaction" .. i]
 
-						weapon = CF["MakeItem"](CF["ItmPresets"][wf][w], CF["ItmClasses"][wf][w], CF["ItmModules"][wf][w])
+						weapon = CF.MakeItem(CF.ItmPresets[wf][w], CF.ItmClasses[wf][w], CF.ItmModules[wf][w])
 
 						if weapon ~= nil then
 							actor:AddInventoryItem(weapon)
