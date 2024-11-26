@@ -1754,20 +1754,34 @@ function VoidWanderers:UpdateActivity()
 		end
 	end end
 
+	for particle in MovableMan.Particles do
+		if IsActor(particle) then
+			actor = ToActor(particle);
+			if actor:IsDead() and not actor:NumberValueExists("VW_Passable") then 
+				actor:SetNumberValue("VW_Passable", actor.IgnoresActorHits and 1 or 0);
+				actor.IgnoresActorHits = true;
+			end
+		end
+	end
+
 	for actor in MovableMan.AddedActors do
+		if actor:NumberValueExists("VW_Passable") then 
+			actor.IgnoresActorHits = actor:GetNumberValue("VW_Passable") == 1;
+			actor:RemoveNumberValue("VW_Passable");
+		end
 		-- Space out spawned-in craft
 		if actor.Pos.Y <= 0 then
-			local dir = 0
+			local dir = 0;
 			for i = 1, 10 do
-				local dist = Vector()
-				local otherActor = MovableMan:GetClosestActor(actor.Pos, actor.Diameter, dist, actor)
+				local dist = Vector();
+				local otherActor = MovableMan:GetClosestActor(actor.Pos, actor.Diameter, dist, actor);
 				if otherActor then
 					if dir == 0 then
-						dir = dist.X < 0 and 1 or -1
+						dir = dist.X < 0 and 1 or -1;
 					end
-					actor.Pos.X = actor.Pos.X + actor.Radius * dir
+					actor.Pos.X = actor.Pos.X + actor.Radius * dir;
 				else
-					break
+					break;
 				end
 			end
 		end

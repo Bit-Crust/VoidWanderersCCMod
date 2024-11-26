@@ -2,7 +2,7 @@
 -- Checks whether the mission can be started from a given scene.
 -----------------------------------------------------------------------------------------
 function VoidWanderers:IsCompatibleScene(scene)
-	return scene.ClassName == "Scene" and scene.PresetName == "Void Wanderers" and scene.ModuleName == "VoidWanderers.rte");
+	return (scene.ClassName == "Scene" and scene.PresetName == "Void Wanderers" and scene.ModuleName == "VoidWanderers.rte");
 end
 -----------------------------------------------------------------------------------------
 -- This starts the whole deal, but we do repeatedly change this property.
