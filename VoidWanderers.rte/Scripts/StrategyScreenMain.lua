@@ -38,13 +38,15 @@ function VoidWanderers:StartActivity(isNewGame)
 
 	self.Res = Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight);
 
-	self.Mouse = self.Mid * 1;
+	self.Mouse = Vector();
 	self.Scroll = self.Mid * 1;
+	self.Cursor = self.Mouse + self.Scroll; 
 
 	self.ScrollTriggerThickness = Vector(50, 50);
 	self.ScrollingScreen = { X = true, Y = true };
 
-	self.Bound = Box(self.Mid.X + -self.Res.X / 2, self.Mid.Y + -self.Res.Y / 2, self.Mid.X + self.Res.X / 2, self.Mid.Y + self.Res.Y / 2);
+	self.Screen = Box(-self.Res.X / 2, -self.Res.Y / 2, self.Res.X / 2, self.Res.Y / 2);
+	self.Bound = Box(-500 + self.Mid.X, -200 + self.Mid.Y, 100 + self.Mid.X, 300 + self.Mid.Y);
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		self:SetPlayerBrain(nil, player);
@@ -121,9 +123,9 @@ function VoidWanderers:DrawButton(el, state)
 		end
 		if state == 2 then
 			PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2 + Vector(2, 2), el.Pos + Vector(el.Width, el.Height) / 2 - Vector(4, 4), menuPanelInset[1])
-			PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2 + Vector(3, 3), el.Pos + Vector(el.Width, el.Height) / 2 - Vector(4, 4), menuPanelGround[state + 1])
+			PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2 + Vector(3, 3), el.Pos + Vector(el.Width, el.Height) / 2 - Vector(4, 4), menuPanelGround[state == 0 and 1 or 2])
 		else
-			PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2 + Vector(2, 2), el.Pos + Vector(el.Width, el.Height) / 2 - Vector(4, 4), menuPanelGround[state + 1])
+			PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2 + Vector(2, 2), el.Pos + Vector(el.Width, el.Height) / 2 - Vector(4, 4), menuPanelGround[state == 0 and 1 or 2])
 		end
 	end
 end
@@ -187,7 +189,7 @@ end
 function VoidWanderers:GetMouseOverKnownFormElements()
 	for i = 1, #self.UI do
 		if self.UI[i]["Type"] == self.ElementTypes.BUTTON then
-			if self:IsWithinButton(self.UI[i], self.Mouse) then
+			if self:IsWithinButton(self.UI[i], self.Cursor) then
 				return i
 			end
 		end
@@ -210,8 +212,13 @@ function VoidWanderers:UpdateActivity()
 	-- Set the screen of disabled 4-th player when we're playing in 3-player mode
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		local screen = self:ScreenOfPlayer(player);
-		CameraMan:SetOffset(self.Scroll - self.Res / 2, screen);
-		CameraMan:SetOffset(self.CamOffset[screen] - self.Res / 2, screen);
+		if screen ~= -1 then
+			if screen ~= 0 then
+				CameraMan:SetOffset(self.CamOffset[screen] - self.Res / 2, screen);
+			else
+				CameraMan:SetOffset(self.Scroll - self.Res / 2, screen);
+			end
+		end
 	end
 
 	-- Record previous mouse position to avoid scrolling artifacts.
@@ -242,31 +249,27 @@ function VoidWanderers:UpdateActivity()
 		if self.ScrollingScreen.Y and not UInputMan.FlagLShiftState then
 			local scrollOffset = Vector(0, -UInputMan:MouseWheelMoved() * 10);
 			self.Scroll = self.Scroll + scrollOffset;
-			self.Mouse = self.Mouse + scrollOffset;
 		elseif self.ScrollingScreen.X and UInputMan.FlagLShiftState then
 			local scrollOffset = Vector(-UInputMan:MouseWheelMoved() * 10, 0);
 			self.Scroll = self.Scroll + scrollOffset;
-			self.Mouse = self.Mouse + scrollOffset;
 		end
 	else
 		self.Mouse = self.Mouse + cont.AnalogMove * 5;
 	end
 
 	-- Don't let the cursor leave the screen
-	self.Mouse = self.Bound:GetWithinBox(self.Mouse);
 
 	local dim = { X = "Width", Y = "Height" };
 
 	for _, axis in ipairs{"X", "Y"} do
-		if self.ScrollingScreen[axis] then
-			if self.Mouse[axis] > self.Scroll[axis] + self.Res[axis] / 2 - self.ScrollTriggerThickness[axis] then
-				self.Scroll[axis] = self.Scroll[axis] - (self.Scroll[axis] + self.Res[axis] / 2 - self.ScrollTriggerThickness[axis] - self.Mouse[axis]) * 0.25;
-			elseif self.Mouse[axis] < self.Scroll[axis] - self.Res[axis] / 2 + self.ScrollTriggerThickness[axis] then
-				self.Scroll[axis] = self.Scroll[axis] - (self.Scroll[axis] - self.Res[axis] / 2 + self.ScrollTriggerThickness[axis] - self.Mouse[axis]) * 0.25;
-			end
-			self.Scroll[axis] = Clamp(self.Scroll[axis], self.Bound.Corner[axis] + self.Res[axis] / 2, self.Bound.Corner[axis] + self.Bound[dim[axis]] - self.Res[axis] / 2);
-		end
 	end
+
+	local diff = self.Mouse - self.Screen:GetWithinBox(self.Mouse);
+
+	self.Mouse = self.Mouse - diff;
+	self.Scroll = self.Bound:GetWithinBox(self.Scroll + diff);
+
+	self.Cursor = self.Mouse + self.Scroll;
 
 	-- Process mouse hovers and presses -- TODO: UInputMan doesn't seem to register the mouse press functions?
 	if self.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
@@ -358,7 +361,7 @@ function VoidWanderers:UpdateActivity()
 	self:RedrawKnownFormElements()
 	self:FormUpdate()
 	self:FormDraw()
-	PrimitiveMan:DrawBitmapPrimitive(self:ScreenOfPlayer(self.MenuNavigatingPlayer), prevMouse + Vector(5, 5), "Mods/VoidWanderers.rte/UI/Generic/Cursor.png", 0)
+	PrimitiveMan:DrawBitmapPrimitive(self:ScreenOfPlayer(self.MenuNavigatingPlayer), self.Cursor + Vector(5, 5), "Mods/VoidWanderers.rte/UI/Generic/Cursor.png", 0)
 end
 -----------------------------------------------------------------------------------------
 -- Thats all folks!!!

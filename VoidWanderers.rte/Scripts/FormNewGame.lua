@@ -352,7 +352,7 @@ local removeSoundContainer = CreateSoundContainer("Error")
 local selectedActors = {}
 local freeSpots = {}
 function VoidWanderers:FormClick()
-	local f = self:GetFactionButtonUnderMouse(self.Mouse)
+	local f = self:GetFactionButtonUnderMouse(self.Cursor)
 
 	if f ~= nil then
 		-- If a faction is already in the list, note where so we can remove it on click
@@ -454,7 +454,7 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:FormUpdate()
 	-- Redraw plates on hover or press
-	local f = self:GetFactionButtonUnderMouse(self.Mouse)
+	local f = self:GetFactionButtonUnderMouse(self.Cursor)
 
 	if self.LastMouseOver and self.LastMouseOver ~= f then
 		self:RedrawFactionButton(self.FactionButtons[self.LastMouseOver], self.ButtonStates.IDLE)

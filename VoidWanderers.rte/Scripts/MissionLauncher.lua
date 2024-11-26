@@ -88,10 +88,6 @@ function VoidWanderers:StartActivity(isNewGame)
 		self:DestroyConsoles()
 		self:StartActivity(false)
 	end
-
-	-- This makes certain the correct maps are considered
-	-- I wish it weren't so, but there's no other way
-	SceneMan.Scene:GetArea("VoidWanderersAntiBugZone")
 end
 -----------------------------------------------------------------------------------------
 -- Launches new mission script without leaving current activity. Scene is case sensitive!

@@ -49,15 +49,15 @@ function VoidWanderers:StartActivity(isNewGame)
 	-- Load generic level data
 	self.SceneConfig = CF.ReadSceneConfigFile(SceneMan.Scene.ModuleName, SceneMan.Scene.PresetName .. ".dat")
 
-	if SceneMan.Scene:GetOptionalArea("Vessel") then
+	if SceneMan.Scene:GetArea("Vessel") then
 		if not isNewGame then
 			self.vesselData = self.saveLoadHandler:ReadSavedStringAsTable("vesselData")
 		else
 			self.vesselData = {}
 			self.vesselData["initialized"] = true
 			self.vesselData["artificialGravity"] = Vector(0, rte.PxTravelledPerFrame / (1 + SceneMan.Scene.GlobalAcc.Y))
-			self.vesselData["ship"] = SceneMan.Scene:GetOptionalArea("Vessel")
-			self.vesselData["spaceDeck"] = SceneMan.Scene:GetOptionalArea("SpaceWalk") or self.vesselData["ship"]
+			self.vesselData["ship"] = SceneMan.Scene:GetArea("Vessel")
+			self.vesselData["spaceDeck"] = SceneMan.Scene:GetArea("SpaceWalk") or self.vesselData["ship"]
 			self.vesselData["flightDisabled"] = false
 			self.vesselData["flightAimless"] = false
 			self.vesselData["throttle"] = 1
@@ -110,7 +110,7 @@ function VoidWanderers:StartActivity(isNewGame)
 		self:SetTeamAISkill(CF.CPUTeam, tonumber(self.GS["AISkillCPU"]))
 	end
 
-	self.AssaultSpawn = SceneMan.Scene:GetOptionalArea("AssaultSpawn")
+	self.AssaultSpawn = SceneMan.Scene:GetArea("AssaultSpawn")
 
 	-- Read brain location data
 	if self.GS["Mode"] == "Vessel" then
@@ -1398,12 +1398,14 @@ function VoidWanderers:UpdateActivity()
 				self:InitItemShopControlPanelUI()
 				self:InitCloneShopControlPanelUI()
 				self.ShopsCreated = true
+				self:StartMusic(CF.MusicTypes.COMMERCE)
 			end
 		else
 			if self.ShopsCreated then
 				self:DestroyItemShopControlPanelUI()
 				self:DestroyCloneShopControlPanelUI()
 				self.ShopsCreated = false
+				self:StartMusic(CF.MusicTypes.SHIP_CALM)
 			end
 		end
 
@@ -1721,22 +1723,38 @@ function VoidWanderers:UpdateActivity()
 
 	self:YSortObjectivePoints()
 
-	for actor in MovableMan.AddedActors do
+	for _, set in pairs{ MovableMan.Actors, MovableMan.AddedActors } do for actor in set do
 		-- No dead unit settles immediately and all can carry others, though most can't use it
 		if IsAHuman(actor) or IsACrab(actor) then
-			actor.RestThreshold = -1
+			actor.RestThreshold = -1;
 			if actor:HasScript("VoidWanderers.rte/Scripts/Carry.lua") then
-				actor:EnableScript("VoidWanderers.rte/Scripts/Carry.lua")
+				actor:EnableScript("VoidWanderers.rte/Scripts/Carry.lua");
 			else
-				actor:AddScript("VoidWanderers.rte/Scripts/Carry.lua")
+				actor:AddScript("VoidWanderers.rte/Scripts/Carry.lua");
 			end
 		end
 		-- Activate any added brains
 		if actor:NumberValueExists("VW_PreassignedSkills") then
-			actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
-			actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
-			actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
+			if actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
+				actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua");
+				actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil);
+			else
+				actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua");
+			end
 		end
+		-- Active units of standing have the ability to fix their wounds, I think, forget how that script goes
+		if self:IsPlayerUnit(actor) then
+			if actor:GetNumberValue("VW_Prestige") ~= 0 then
+				if actor:HasScript("Base.rte/Actors/Shared/Scripts/SelfHeal.lua") then
+					actor:EnableScript("Base.rte/Actors/Shared/Scripts/SelfHeal.lua")
+				else
+					actor:AddScript("Base.rte/Actors/Shared/Scripts/SelfHeal.lua")
+				end
+			end
+		end
+	end end
+
+	for actor in MovableMan.AddedActors do
 		-- Space out spawned-in craft
 		if actor.Pos.Y <= 0 then
 			local dir = 0
@@ -1750,15 +1768,6 @@ function VoidWanderers:UpdateActivity()
 					actor.Pos.X = actor.Pos.X + actor.Radius * dir
 				else
 					break
-				end
-			end
-		end
-		if self:IsPlayerUnit(actor) then
-			if actor:GetNumberValue("VW_Prestige") ~= 0 then
-				if actor:HasScript("Base.rte/Actors/Shared/Scripts/SelfHeal.lua") then
-					actor:EnableScript("Base.rte/Actors/Shared/Scripts/SelfHeal.lua")
-				else
-					actor:AddScript("Base.rte/Actors/Shared/Scripts/SelfHeal.lua")
 				end
 			end
 		end
@@ -2919,106 +2928,12 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:StartMusic(musictype)
 	print("VoidWanderers:StartMusic")
-	local ok = false
-	local counter = 0
 	local track = -1
-	local queue = false
 
-	-- Queue defeat or victory loops
-	if musictype == CF.MusicTypes.VICTORY then
-		MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true, true, false)
-		queue = true
-		print("MUSIC: Play victory")
-	elseif musictype == CF.MusicTypes.DEFEAT then
-		MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true, true, false)
-		queue = true
-		print("MUSIC: Play defeat")
-	elseif musictype == -1 then
-		MusicMan:EndDynamicMusic(true)
-	end
-
-	-- Select calm music to queue after victory or defeat
-	if self.LastMusicType ~= -1 and queue then
-		if self.LastMusicType == CF.MusicTypes.SHIP_CALM or self.LastMusicType == CF.MusicTypes.SHIP_INTENSE then
-			musictype = CF.MusicTypes.SHIP_CALM
-		end
-
-		if self.LastMusicType == CF.MusicTypes.MISSION_CALM or self.LastMusicType == CF.MusicTypes.MISSION_INTENSE then
-			musictype = CF.MusicTypes.MISSION_CALM
-		end
-	end
-
-	while not ok do
-		ok = true
-		if CF.Music and CF.Music[musictype] then
-			track = math.random(1, #CF.Music[musictype])
-
-			if musictype ~= self.LastMusicType and #CF.Music[musictype] > 1 then
-				if track == self.LastMusicTrack then
-					ok = false
-				end
-			end
-			--print (track)
-			--print (CF.Music[musictype][track])
-		end
-
-		counter = counter + 1
-		if counter > 5 then
-			print("BREAK")
-			break
-		end
-	end
-
-	-- If we're playing intense music, then just queue it once and play ambient all the other times
-	if ok and CF.Music[musictype] then
-		if musictype == CF.MusicTypes.SHIP_INTENSE or musictype == CF.MusicTypes.MISSION_INTENSE then
-			MusicMan:PlayDynamicSong(CF.Music[musictype][track], "Default", false, true, true)
-			print("MUSIC: Queue intense")
-		else
-			MusicMan:PlayDynamicSong(CF.Music[musictype][track], "Default", not queue, true, true)
-			if queue then
-				print("MUSIC: Queue calm")
-			else
-				print("MUSIC: Play calm")
-			end
-		end
-	end
-
-	-- Then add a calm music after an intense
-	if musictype == CF.MusicTypes.SHIP_INTENSE or musictype == CF.MusicTypes.MISSION_INTENSE then
-		if musictype == CF.MusicTypes.SHIP_INTENSE then
-			musictype = CF.MusicTypes.SHIP_CALM
-		end
-
-		if musictype == CF.MusicTypes.MISSION_INTENSE then
-			musictype = CF.MusicTypes.MISSION_CALM
-		end
-
-		local ok = false
-		local counter = 0
-
-		while not ok do
-			ok = true
-
-			track = math.random(#CF.Music[musictype])
-
-			if musictype ~= self.LastMusicType and #CF.Music[musictype] > 1 then
-				if track == self.LastMusicTrack then
-					ok = false
-				end
-			end
-
-			counter = counter + 1
-			if counter > 5 then
-				print("BREAK")
-				break
-			end
-		end
-		if ok then
-			MusicMan:PlayDynamicSong(CF.Music[musictype][track], "Default", false, true, true)
-			print("MUSIC: Queue calm")
-		end
-	end
+	MusicMan:ResetMusicState()
+	MusicMan:EndDynamicMusic(false)
+	
+	MusicMan:PlayDynamicSong(CF.Music[musictype], "Default", true, false, false)
 
 	self.LastMusicType = musictype
 	self.LastMusicTrack = track
