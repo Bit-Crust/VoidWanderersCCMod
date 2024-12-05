@@ -2,7 +2,7 @@
 --	Returns sorted array of stored items from game state. If makefilters is true, then
 --	it will also return additional array with filtered items
 -----------------------------------------------------------------------------------------
-CF.GetStorageArray = function(gs, makefilters)
+function CF.GetStorageArray(gs, makefilters)
 	local arr = {}
 
 	-- Copy items
@@ -81,9 +81,34 @@ CF.GetStorageArray = function(gs, makefilters)
 	return arr, arr2
 end
 -----------------------------------------------------------------------------------------
+--	Saves array of stored items to game state
+-----------------------------------------------------------------------------------------
+function CF.SetStorageArray(gs, arr)
+	-- Clear stored array data
+	for i = 1, CF.MaxStorageItems do
+		gs["ItemStorage" .. i .. "Preset"] = nil
+		gs["ItemStorage" .. i .. "Module"] = nil
+		gs["ItemStorage" .. i .. "Class"] = nil
+		gs["ItemStorage" .. i .. "Count"] = nil
+	end
+
+	-- Copy items
+	local itm = 1
+
+	for i = 1, #arr do
+		if arr[i]["Count"] > 0 then
+			gs["ItemStorage" .. itm .. "Preset"] = arr[i]["Preset"]
+			gs["ItemStorage" .. itm .. "Module"] = arr[i]["Module"]
+			gs["ItemStorage" .. itm .. "Class"] = arr[i]["Class"]
+			gs["ItemStorage" .. itm .. "Count"] = arr[i]["Count"]
+			itm = itm + 1
+		end
+	end
+end
+-----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF.GetItemShopArray = function(gs, makefilters)
+function CF.GetItemShopArray(gs, makefilters)
 	local arr = {}
 
 	for i = 1, tonumber(gs["ActiveCPUs"]) do
@@ -101,7 +126,7 @@ CF.GetItemShopArray = function(gs, makefilters)
 			end
 
 			if not applicable then
-				if gs["UnlockedItmBlueprint_" .. CF.ItmPresets[f][itm]] then
+				if CF.IsEntityUnlocked(gs, "Blueprint", CF.ItmClasses[f][itm] or "HDFirearm", CF.ItmPresets[f][itm], CF.ItmModules[f][itm]) then
 					applicable = true
 				end
 			end
@@ -267,259 +292,7 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF.GetItemBlackMarketArray = function(gs, makefilters)
-	-- Find out if we need to create a list of available items for this black market
-	local loc = gs["Location"]
-	local tocreate = gs["BlackMarket" .. loc .. "ItemsLastRefresh"] == nil
-		or tonumber(gs["BlackMarket" .. loc .. "ItemsLastRefresh"]) + CF.BlackMarketRefreshInterval
-			< tonumber(gs["Time"])
-
-	local arr = {}
-
-	-- Create list of items available in blackmarket
-	if tocreate then
-		local count = 0
-
-		-- Add Black Market exclusives
-		if #CF.BlackMarketItmPresets > 0 then
-			for i = 1, math.random(math.floor(math.sqrt(#CF.BlackMarketItmPresets))) do
-				local itm = math.random(#CF.BlackMarketItmPresets)
-				local isduplicate = false
-				for j = 1, #arr do
-					if CF.BlackMarketItmPresets[itm] == arr[j]["Preset"] then
-						isduplicate = true
-						break
-					end
-				end
-				if CF.BlackMarketItmPresets[itm] and math.random() < (1 / i) and not isduplicate then
-					count = count + 1
-					gs["BlackMarket" .. loc .. "Item" .. count .. "Faction"] = "Black Market" --nil
-					gs["BlackMarket" .. loc .. "Item" .. count .. "Index"] = itm
-
-					-- Store descriptions to get rid of duplicates
-					arr[count] = {}
-					arr[count]["Description"] = CF.BlackMarketItmDescriptions[itm]
-					arr[count]["Preset"] = CF.BlackMarketItmPresets[itm]
-					arr[count]["Module"] = CF.BlackMarketItmModules[itm]
-				end
-			end
-		end
-		-- Add random artifact items into the listing
-		if #CF.ArtItmPresets > 0 then
-			for itm = 1, #CF.ArtItmPresets do
-				if gs["UnlockedItmBlackprint_" .. CF.ArtItmPresets[itm]] then
-					count = count + 1
-					gs["BlackMarket" .. loc .. "Item" .. count .. "Faction"] = nil
-					gs["BlackMarket" .. loc .. "Item" .. count .. "Index"] = itm
-
-					arr[count] = {}
-					arr[count]["Description"] = CF.ArtItmDescriptions[itm]
-					arr[count]["Preset"] = CF.ArtItmPresets[itm]
-					arr[count]["Module"] = CF.ArtItmModules[itm]
-				end
-			end
-			for i = 1, math.random(math.floor(math.sqrt(#CF.ArtItmPresets))) do
-				local itm = math.random(#CF.ArtItmPresets)
-				local isduplicate = false
-				for j = 1, #arr do
-					if CF.ArtItmPresets[itm] == arr[j]["Preset"] then
-						isduplicate = true
-						break
-					end
-				end
-				if CF.ArtItmPresets[itm] and math.random() < (1 / i) and not isduplicate then
-					count = count + 1
-					gs["BlackMarket" .. loc .. "Item" .. count .. "Faction"] = nil --PresetMan:GetDataModule(PresetMan:GetModuleID(CF.ArtItmModules[itm])).FriendlyName
-					gs["BlackMarket" .. loc .. "Item" .. count .. "Index"] = itm
-
-					-- Store descriptions to get rid of duplicates
-					arr[count] = {}
-					arr[count]["Description"] = CF.ArtItmDescriptions[itm]
-					arr[count]["Preset"] = CF.ArtItmPresets[itm]
-					arr[count]["Module"] = CF.ArtItmModules[itm]
-				end
-			end
-		end
-		for i = 1, tonumber(gs["ActiveCPUs"]) do
-			local f = CF.GetPlayerFaction(gs, i)
-
-			for itm = 1, #CF.ItmNames[f] do
-				local isduplicate = false
-
-				for j = 1, #arr do
-					if
-						CF.ItmDescriptions[f][itm] == arr[j]["Description"]
-						and CF.ItmPresets[f][itm] == arr[j]["Preset"]
-					then
-						isduplicate = true
-						break
-					end
-				end --]]--
-
-				if
-					CF.ItmPresets[f][itm]
-					and (CF.ItmPowers[f][itm] == 0 or CF.ItmPowers[f][itm] > math.random(4, 6))
-					and math.random() < (0.3 / (count + 1))
-					and not isduplicate
-				then
-					count = count + 1
-					gs["BlackMarket" .. loc .. "Item" .. count .. "Faction"] = f
-					gs["BlackMarket" .. loc .. "Item" .. count .. "Index"] = itm
-					-- Store descriptions to get rid of duplicates
-					arr[count] = {}
-					arr[count]["Description"] = CF.ItmDescriptions[f][itm]
-					arr[count]["Preset"] = CF.ItmPresets[f][itm]
-					arr[count]["Module"] = CF.ItmModules[f][itm]
-				end
-			end
-		end
-		gs["BlackMarket" .. loc .. "ItemCount"] = count
-		gs["BlackMarket" .. loc .. "ItemsLastRefresh"] = gs["Time"]
-	end
-
-	-- Fill array
-	local count = gs["BlackMarket" .. loc .. "ItemCount"] and tonumber(gs["BlackMarket" .. loc .. "ItemCount"]) or 0
-	arr = {}
-
-	for i = 1, count do
-		local ii = #arr + 1
-		arr[ii] = {}
-		local f = gs["BlackMarket" .. loc .. "Item" .. i .. "Faction"]
-		local itm = tonumber(gs["BlackMarket" .. loc .. "Item" .. i .. "Index"])
-		local funds = math.sqrt(CF.GetPlayerGold(gs, 0))
-
-		if f then
-			if f == "Black Market" then
-				arr[ii]["Faction"] = CF.BlackMarketItmModules[itm] == CF.ModuleName and "Black Market" or nil
-				arr[ii]["Index"] = itm
-
-				arr[ii]["Preset"] = CF.BlackMarketItmPresets[itm]
-				arr[ii]["Module"] = CF.BlackMarketItmModules[itm]
-				arr[ii]["Class"] = CF.BlackMarketItmClasses[itm] or "HDFirearm"
-				arr[ii]["Description"] = CF.BlackMarketItmDescriptions[itm] or "DESCRIPTION UNAVAILABLE"
-				local price = (funds * CF.BlackMarketPriceMultiplier * RangeRand(0.5, 0.75))
-					+ (CF.BlackMarketItmPrices[itm] * CF.BlackMarketPriceMultiplier)
-				if price >= 100 then
-					if price >= 1000 then
-						if price >= 10000 then
-							price = math.floor(price * 0.001) * 1000
-						else
-							price = math.floor(price * 0.01) * 100
-						end
-					else
-						price = math.floor(price * 0.1) * 10
-					end
-				end
-				arr[ii]["Price"] = math.max(math.floor(price), CF.UnknownItemPrice)
-				--arr[ii]["Type"] = CF.BlackMarketItmTypes[itm]
-			elseif CF.ItmPresets[f][itm] then
-				arr[ii]["Faction"] = f
-				arr[ii]["Index"] = itm
-
-				-- In case somebody will change number of items in faction file, check every item
-				arr[ii]["Preset"] = CF.ItmPresets[f][itm]
-				arr[ii]["Module"] = CF.ItmModules[f][itm]
-				if CF.ItmClasses[f][itm] ~= nil then
-					arr[ii]["Class"] = CF.ItmClasses[f][itm]
-				else
-					arr[ii]["Class"] = "HDFirearm"
-				end
-				arr[ii]["Description"] = CF.ItmDescriptions[f][itm]
-				local price = (funds * CF.BlackMarketPriceMultiplier * RangeRand(0.5, 0.75))
-					+ (CF.ItmPrices[f][itm] * CF.BlackMarketPriceMultiplier)
-				if price >= 100 then
-					if price >= 1000 then
-						if price >= 10000 then
-							price = math.floor(price * 0.001) * 1000
-						else
-							price = math.floor(price * 0.01) * 100
-						end
-					else
-						price = math.floor(price * 0.1) * 10
-					end
-				end
-				arr[ii]["Price"] = math.max(math.floor(price), CF.UnknownItemPrice)
-				arr[ii]["Type"] = CF.ItmTypes[f][itm]
-			end
-		else -- No faction = it's an Artifact
-			arr[ii]["Index"] = itm
-
-			arr[ii]["Preset"] = CF.ArtItmPresets[itm]
-			arr[ii]["Module"] = CF.ArtItmModules[itm]
-
-			arr[ii]["Class"] = CF.ArtItmClasses[itm] and CF.ArtItmClasses[itm] or "HDFirearm"
-
-			arr[ii]["Description"] = CF.ArtItmDescriptions[itm] or "DESCRIPTION UNAVAILABLE"
-			local multiplier = CF.BlackMarketPriceMultiplier
-			if gs["UnlockedItmBlackprint_" .. CF.ArtItmPresets[itm]] then
-				multiplier = multiplier * 0.5
-			end
-			local price = (funds * multiplier * RangeRand(0.5, 0.75))
-				+ (CF.ArtItmPrices[itm] and CF.ArtItmPrices[itm] * multiplier or 1000)
-			if price >= 100 then
-				if price >= 1000 then
-					if price >= 10000 then
-						price = math.floor(price * 0.001) * 1000
-					else
-						price = math.floor(price * 0.01) * 100
-					end
-				else
-					price = math.floor(price * 0.1) * 10
-				end
-			end
-			arr[ii]["Price"] = math.max(math.floor(price), CF.UnknownItemPrice)
-			--arr[ii]["Type"] = CF.ItmTypes[f][itm]
-		end
-	end
-
-	-- Sort items
-	for i = 1, #arr do
-		for j = 1, #arr - 1 do
-			if arr[j]["Preset"] and arr[j + 1]["Preset"] and arr[j]["Preset"] > arr[j + 1]["Preset"] then
-				local a = arr[j]
-				arr[j] = arr[j + 1]
-				arr[j + 1] = a
-			end
-		end
-	end
-
-	local arr2
-	if makefilters then
-		arr2 = {}
-
-		-- Array for all items
-		arr2[-1] = {}
-		-- Arrays for items by types
-		arr2[CF.WeaponTypes.PISTOL] = {}
-		arr2[CF.WeaponTypes.RIFLE] = {}
-		arr2[CF.WeaponTypes.SHOTGUN] = {}
-		arr2[CF.WeaponTypes.SNIPER] = {}
-		arr2[CF.WeaponTypes.HEAVY] = {}
-		arr2[CF.WeaponTypes.SHIELD] = {}
-		arr2[CF.WeaponTypes.DIGGER] = {}
-		arr2[CF.WeaponTypes.GRENADE] = {}
-		arr2[CF.WeaponTypes.TOOL] = {}
-
-		for itm = 1, #arr do
-			-- Add item to 'all' list
-			local indx = #arr2[-1] + 1
-			arr2[-1][indx] = itm
-
-			-- Add item to specific list
-			if arr[itm]["Type"] then
-				local tp = arr[itm]["Type"]
-				local indx = #arr2[tp] + 1
-				arr2[tp][indx] = itm
-			end
-		end
-	end
-
-	return arr, arr2
-end
------------------------------------------------------------------------------------------
---
------------------------------------------------------------------------------------------
-CF.GetCloneShopArray = function(gs, makefilters)
+function CF.GetCloneShopArray(gs, makefilters)
 	local arr = {}
 
 	for i = 1, tonumber(gs["ActiveCPUs"]) do
@@ -538,7 +311,7 @@ CF.GetCloneShopArray = function(gs, makefilters)
 			end
 
 			if not applicable then
-				if gs["UnlockedActBlueprint_" .. CF.ActPresets[f][itm]] then
+				if CF.IsEntityUnlocked(gs, "Blueprint", CF.ActClasses[f][itm] or "AHuman", CF.ActPresets[f][itm], CF.ActModules[f][itm]) then
 					applicable = true
 				end
 			end
@@ -624,235 +397,439 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF.GetCloneBlackMarketArray = function(gs, makefilters)
-	-- Find out if we need to create a list of available items for this black market
-	local loc = gs["Location"]
-	local tocreate = false
+function CF.RefreshBlackMarketItems(gs, location)
+	local registered = {};
+	local count = 1;
+	
+	for i = 1, 100 do
+		gs["BlackMarket" .. location .. "Item" .. i .. "Class"] = nil;
+		gs["BlackMarket" .. location .. "Item" .. i .. "Preset"] = nil;
+		gs["BlackMarket" .. location .. "Item" .. i .. "Module"] = nil;
+		gs["BlackMarket" .. location .. "Item" .. i .. "Faction"] = nil;
+		gs["BlackMarket" .. location .. "Item" .. i .. "Index"] = nil;
+	end
 
-	if gs["BlackMarket" .. loc .. "ActorsLastRefresh"] == nil then
-		tocreate = true
-	else
-		local last = tonumber(gs["BlackMarket" .. loc .. "ActorsLastRefresh"])
+	-- Add Black Market exclusives
+	-- Only store index of black market native items
+	if #CF.BlackMarketItmPresets > 0 then
+		for i = 1, math.random(math.floor(math.sqrt(#CF.BlackMarketItmPresets))) do
+			local index = math.random(#CF.BlackMarketItmPresets);
+			local class = CF.BlackMarketItmClasses[index];
+			local preset = CF.BlackMarketItmPresets[index];
+			local module = CF.BlackMarketItmModules[index];
+			local characteristic = class .. "_" .. preset .. "_" .. module;
 
-		if last + CF.BlackMarketRefreshInterval < tonumber(gs["Time"]) then
-			tocreate = true
+			local isduplicate = false;
+			for j = 1, #registered do
+				if characteristic == registered[j] then
+					isduplicate = true;
+					break;
+				end
+			end
+
+			if CF.BlackMarketItmPresets[index] and math.random() < (1 / i) and not isduplicate then
+				gs["BlackMarket" .. location .. "Item" .. count .. "Index"] = index;
+				registered[count] = characteristic;
+				count = count + 1;
+			end
 		end
 	end
 
-	--tocreate = true -- DEBUG
+	-- Add known artifact items
+	-- Store artifacts precisely, they are not stable between loads
+	if #CF.ArtItmPresets > 0 then
+		for index = 1, #CF.ArtItmPresets do
+			local class = CF.ArtItmClasses[index];
+			local preset = CF.ArtItmPresets[index];
+			local module = CF.ArtItmModules[index];
+			local characteristic = class .. "_" .. preset .. "_" .. module;
 
-	arr = {}
-
-	-- Create list of items available in blackmarket
-	if tocreate then
-		local count = 0
-
-		for i = 1, tonumber(gs["ActiveCPUs"]) do
-			local f = CF.GetPlayerFaction(gs, i)
-
-			for itm = 1, #CF.ActNames[f] do
-				local isduplicate = false
-
-				for j = 1, #arr do
-					if
-						CF.ActDescriptions[f][itm] == arr[j]["Description"]
-						and CF.ActPresets[f][itm] == arr[j]["Preset"]
-					then
-						isduplicate = true
-						break
-					end
-				end --]]--
-
-				if
-					CF.ActPowers[f][itm] > math.random(4, 6)
-					and CF.ActTypes[f][itm] ~= CF.ActorTypes.TURRET
-					and math.random() < (0.4 / (count + 1))
-					and not isduplicate
-				then
-					count = count + 1
-					gs["BlackMarket" .. loc .. "Actor" .. count .. "Faction"] = f
-					gs["BlackMarket" .. loc .. "Actor" .. count .. "Index"] = itm
-
-					-- Store descriptions to get rid of duplicates
-					arr[count] = {}
-					arr[count]["Description"] = CF.ActDescriptions[f][itm]
-					arr[count]["Preset"] = CF.ActPresets[f][itm]
-				end
+			if CF.IsEntityUnlocked(gs, "Blackprint", class, preset, module) then
+				gs["BlackMarket" .. location .. "Item" .. count .. "Class"] = class;
+				gs["BlackMarket" .. location .. "Item" .. count .. "Preset"] = preset;
+				gs["BlackMarket" .. location .. "Item" .. count .. "Module"] = module;
+				registered[count] = characteristic;
+				count = count + 1;
 			end
 		end
-		if #CF.ArtActPresets > 0 then
-			for itm = 1, #CF.ArtActPresets do
-				if gs["UnlockedActBlackprint_" .. CF.ArtActPresets[itm]] then
-					count = count + 1
-					gs["BlackMarket" .. loc .. "Actor" .. count .. "Faction"] = nil
-					gs["BlackMarket" .. loc .. "Actor" .. count .. "Index"] = itm
 
-					arr[count] = {}
-					arr[count]["Preset"] = CF.ArtActPresets[itm]
+		-- Add random artifact items
+		for i = 1, math.random(math.floor(math.sqrt(#CF.ArtItmPresets))) do
+			local index = math.random(#CF.ArtItmPresets);
+			local class = CF.ArtItmClasses[index];
+			local preset = CF.ArtItmPresets[index];
+			local module = CF.ArtItmModules[index];
+			local characteristic = class .. "_" .. preset .. "_" .. module;
+
+			local isduplicate = false;
+			for j = 1, #registered do
+				if characteristic == registered[j] then
+					isduplicate = true;
+					break;
 				end
 			end
-			-- Add random artifact actors into the listing
-			for i = 1, math.random(math.floor(math.sqrt(#CF.ArtActPresets))) do
-				local itm = math.random(#CF.ArtActPresets)
-				local isduplicate = false
-				for j = 1, #arr do
-					if CF.ArtActPresets[itm] == arr[j]["Preset"] then
-						isduplicate = true
-						break
-					end
-				end
-				if math.random() < (0.5 / (count + 1)) and not isduplicate then
-					count = count + 1
-					gs["BlackMarket" .. loc .. "Actor" .. count .. "Faction"] = nil --PresetMan:GetDataModule(PresetMan:GetModuleID(CF.ArtActModules[itm])).FriendlyName
-					gs["BlackMarket" .. loc .. "Actor" .. count .. "Index"] = itm
 
-					-- Store descriptions to get rid of duplicates
-					arr[count] = {}
-					arr[count]["Preset"] = CF.ArtActPresets[itm]
-				end
+			if preset and math.random() < (1 / i) and not isduplicate then
+				gs["BlackMarket" .. location .. "Item" .. count .. "Class"] = class;
+				gs["BlackMarket" .. location .. "Item" .. count .. "Preset"] = preset;
+				gs["BlackMarket" .. location .. "Item" .. count .. "Module"] = module;
+				registered[count] = characteristic;
+				count = count + 1;
 			end
 		end
-		gs["BlackMarket" .. loc .. "ActorsCount"] = count
-		gs["BlackMarket" .. loc .. "ActorsLastRefresh"] = gs["Time"]
+	end
+
+	-- Add completely random items
+	-- Store faction and index of generic participant faction items
+	for i = 1, tonumber(gs["ActiveCPUs"]) do
+		local faction = CF.GetPlayerFaction(gs, i);
+
+		for index = 1, #CF.ItmNames[faction] do
+			local class = CF.ItmClasses[faction][index] or (print(faction .. "'s item " .. CF.ItmPresets[faction][index] .. " class unspecified.") or "HDFirearm");
+			local preset = CF.ItmPresets[faction][index];
+			local module = CF.ItmModules[faction][index] or (ActivityMan:PauseActivity(true, false) or error(faction .. "'s item " .. CF.ItmPresets[faction][index] .. " module unspecified..."));
+			local characteristic = class .. "_" .. preset .. "_" .. module;
+
+			local isduplicate = false;
+			for j = 1, #registered do
+				if characteristic == registered[j] then
+					isduplicate = true;
+					break;
+				end
+			end
+
+			if not isduplicate and preset and math.random() < (1 / count) then
+				gs["BlackMarket" .. location .. "Item" .. count .. "Faction"] = faction;
+				gs["BlackMarket" .. location .. "Item" .. count .. "Index"] = index;
+				registered[count] = characteristic;
+				count = count + 1;
+			end
+		end
+	end
+
+	gs["BlackMarket" .. location .. "ItemCount"] = count;
+	gs["BlackMarket" .. location .. "ItemsLastRefresh"] = gs["Time"];
+end
+-----------------------------------------------------------------------------------------
+--
+-----------------------------------------------------------------------------------------
+function CF.RefreshBlackMarketActors(gs, location)
+	local registered = {};
+	local count = 1;
+	
+	for i = 1, 100 do
+		gs["BlackMarket" .. location .. "Actor" .. i .. "Class"] = nil;
+		gs["BlackMarket" .. location .. "Actor" .. i .. "Preset"] = nil;
+		gs["BlackMarket" .. location .. "Actor" .. i .. "Module"] = nil;
+		gs["BlackMarket" .. location .. "Actor" .. i .. "Faction"] = nil;
+		gs["BlackMarket" .. location .. "Actor" .. i .. "Index"] = nil;
+	end
+
+	-- Add known artifact actors
+	-- Store artifacts precisely, they are not stable between loads
+	if #CF.ArtActPresets > 0 then
+		for index = 1, #CF.ArtActPresets do
+			local class = CF.ArtActClasses[index];
+			local preset = CF.ArtActPresets[index];
+			local module = CF.ArtActModules[index];
+			local characteristic = class .. "_" .. preset .. "_" .. module;
+
+			if CF.IsEntityUnlocked(gs, "Blackprint", class, preset, module) then
+				gs["BlackMarket" .. location .. "Actor" .. count .. "Class"] = class;
+				gs["BlackMarket" .. location .. "Actor" .. count .. "Preset"] = preset;
+				gs["BlackMarket" .. location .. "Actor" .. count .. "Module"] = module;
+				registered[count] = characteristic;
+				count = count + 1;
+			end
+		end
+
+		-- Add random artifact actors
+		for i = 1, math.random(math.floor(math.sqrt(#CF.ArtActPresets))) do
+			local index = math.random(#CF.ArtActPresets);
+			local class = CF.ArtActClasses[index];
+			local preset = CF.ArtActPresets[index];
+			local module = CF.ArtActModules[index];
+			local characteristic = class .. "_" .. preset .. "_" .. module;
+
+			local isduplicate = false;
+			for j = 1, #registered do
+				if characteristic == registered[j] then
+					isduplicate = true;
+					break;
+				end
+			end
+
+			if preset and math.random() < (1 / i) and not isduplicate then
+				gs["BlackMarket" .. location .. "Actor" .. count .. "Class"] = class;
+				gs["BlackMarket" .. location .. "Actor" .. count .. "Preset"] = preset;
+				gs["BlackMarket" .. location .. "Actor" .. count .. "Module"] = module;
+				registered[count] = characteristic;
+				count = count + 1;
+			end
+		end
+	end
+
+	-- Add completely random actors
+	-- Store faction and index of generic participant faction actors
+	for i = 1, tonumber(gs["ActiveCPUs"]) do
+		local faction = CF.GetPlayerFaction(gs, i);
+
+		for index = 1, #CF.ActNames[faction] do
+			local class = CF.ActClasses[faction][index] or (print(faction .. "'s actor " .. CF.ActPresets[faction][index] .. " class unspecified.") or "AHuman");
+			local preset = CF.ActPresets[faction][index];
+			local module = CF.ActModules[faction][index] or (ActivityMan:PauseActivity(true, false) or error(faction .. "'s actor " .. CF.ActPresets[faction][index] .. " module unspecified..."));
+			local characteristic = class .. "_" .. preset .. "_" .. module;
+
+			local isduplicate = false;
+			for j = 1, #registered do
+				if characteristic == registered[j] then
+					isduplicate = true;
+					break;
+				end
+			end
+
+			if not isduplicate and CF.ActTypes[faction][index] ~= CF.ActorTypes.TURRET and preset and math.random() < (1 / count) then
+				gs["BlackMarket" .. location .. "Actor" .. count .. "Faction"] = faction;
+				gs["BlackMarket" .. location .. "Actor" .. count .. "Index"] = index;
+				registered[count] = characteristic;
+				count = count + 1;
+			end
+		end
+	end
+
+	gs["BlackMarket" .. location .. "ActorsCount"] = count;
+	gs["BlackMarket" .. location .. "ActorsLastRefresh"] = gs["Time"];
+end
+-----------------------------------------------------------------------------------------
+--
+-----------------------------------------------------------------------------------------
+function CF.GetItemBlackMarketArray(gs, makefilters)
+	-- Find out if we need to create a list of available items for this black market
+	local location = gs["Location"];
+	local time = tonumber(gs["Time"]);
+	local lastRefresh = tonumber(gs["BlackMarket" .. location .. "ItemsLastRefresh"]);
+	local refreshNeeded = lastRefresh == nil or lastRefresh + CF.BlackMarketRefreshInterval < time;
+
+	-- Refresh black market listings
+	if refreshNeeded then
+		CF.RefreshBlackMarketItems(gs, location);
 	end
 
 	-- Fill array
-	local count = tonumber(gs["BlackMarket" .. loc .. "ActorsCount"]) and tonumber(
-		gs["BlackMarket" .. loc .. "ActorsCount"]
-	) or 0
-	arr = nil
-	arr = {}
+	local count = tonumber(gs["BlackMarket" .. location .. "ItemCount"]) or 0;
+	local items = {};
 
 	for i = 1, count do
-		local ii = #arr + 1
-		arr[ii] = {}
-		local f = gs["BlackMarket" .. loc .. "Actor" .. i .. "Faction"]
-		local itm = tonumber(gs["BlackMarket" .. loc .. "Actor" .. i .. "Index"])
+		local item = {};
+		local faction = gs["BlackMarket" .. location .. "Item" .. i .. "Faction"];
+		local index = tonumber(gs["BlackMarket" .. location .. "Item" .. i .. "Index"]);
+		local fundFactor = math.sqrt(CF.GetPlayerGold(gs, 0)) * RangeRand(0.5, 0.75) * CF.BlackMarketPriceMultiplier;
 
-		if f and CF.ActPresets[f][itm] ~= nil then
-			arr[ii]["Faction"] = f
-			arr[ii]["Index"] = itm
+		-- Faction typical items have a faction, duh
+		if faction then
+			item["Faction"] = CF.FactionNames[faction];
 
-			-- In case somebody will change number of items in faction file check
-			-- every actor
-			arr[ii]["Preset"] = CF.ActPresets[f][itm]
-			arr[ii]["Module"] = CF.ActModules[f][itm]
-			arr[ii]["Class"] = CF.ActClasses[f][itm] or "AHuman"
+			item["Class"] = CF.ItmClasses[faction][index] or (print(faction .. "'s item " .. (CF.ItmPresets[faction][index] or "ERR") .. " class unspecified.") or "HDFirearm");
+			item["Preset"] = CF.ItmPresets[faction][index];
+			item["Module"] = CF.ItmModules[faction][index];
+			item["Description"] = CF.ItmDescriptions[faction][index] or "DESCRIPTION UNAVAILABLE";
+			local price = CF.ItmPrices[faction][index] + fundFactor;
+			local digitFactor = math.pow(10, math.max(0, math.floor(math.log10(price)) - 2));
+			price = math.floor(price / digitFactor) * digitFactor;
+			item["Price"] = math.max(math.floor(price), CF.UnknownItemPrice);
+			item["Type"] = CF.ItmTypes[faction][index];
 
-			arr[ii]["Description"] = CF.ActDescriptions[f][itm]
-			local price = (math.sqrt(CF.GetPlayerGold(gs, 0)) * CF.BlackMarketPriceMultiplier * RangeRand(0.75, 1.0))
-				+ (CF.ActPrices[f][itm] * CF.BlackMarketPriceMultiplier)
-			if price >= 100 then
-				if price >= 1000 then
-					if price >= 10000 then
-						price = math.floor(price * 0.001) * 1000
-					else
-						price = math.floor(price * 0.01) * 100
-					end
-				else
-					price = math.floor(price * 0.1) * 10
+			table.insert(items, item);
+		elseif index then
+			item["Faction"] = "[[Black Market]]";
+
+			item["Class"] = CF.BlackMarketItmClasses[index];
+			item["Preset"] = CF.BlackMarketItmPresets[index];
+			item["Module"] = CF.BlackMarketItmModules[index];
+			item["Description"] = CF.BlackMarketItmDescriptions[index] or "DESCRIPTION UNAVAILABLE";
+			local price = CF.BlackMarketItmPrices[index] + fundFactor;
+			local digitFactor = math.pow(10, math.max(0, math.floor(math.log10(price)) - 2));
+			price = math.floor(price / digitFactor) * digitFactor;
+			item["Price"] = math.max(math.floor(price), CF.UnknownItemPrice);
+			item["Type"] = CF.BlackMarketItmTypes[index];
+
+			table.insert(items, item);
+		else
+			local class = gs["BlackMarket" .. location .. "Item" .. i .. "Class"] or "";
+			local preset = gs["BlackMarket" .. location .. "Item" .. i .. "Preset"] or "";
+			local module = gs["BlackMarket" .. location .. "Item" .. i .. "Module"] or "";
+			local tempEntity = PresetMan:GetPreset(class, preset, module);
+
+			if tempEntity ~= nil and IsSceneObject(tempEntity) then
+				tempEntity = ToSceneObject(tempEntity);
+				item["Faction"] = "[[Ancient]]";
+
+				item["Class"] = class;
+				item["Preset"] = preset;
+				item["Module"] = module;
+				item["Description"] = tempEntity.Description or "DESCRIPTION UNAVAILABLE";
+				local multiplier = 1;
+				if CF.IsEntityUnlocked(gs, "Blackprint", class, preset, module) then
+					multiplier = 0.5;
 				end
-			end
-			arr[ii]["Price"] = math.max(math.floor(price), CF.UnknownActorPrice)
-			arr[ii]["Type"] = CF.ActTypes[f][itm]
-		else -- Artifact
-			arr[ii]["Index"] = itm
+				local price = tempEntity:GetGoldValue(0, 1, 1) + fundFactor;
+				local digitFactor = math.pow(10, math.max(0, math.floor(math.log10(price)) - 2));
+				price = math.floor(price / digitFactor) * digitFactor;
+				item["Price"] = math.max(math.floor(price), CF.UnknownItemPrice) * multiplier;
+				--item["Type"] = CF.WeaponTypes.TOOL;
 
-			arr[ii]["Preset"] = CF.ArtActPresets[itm]
-			arr[ii]["Module"] = CF.ArtActModules[itm]
-
-			arr[ii]["Class"] = CF.ArtActClasses[itm] and CF.ArtActClasses[itm] or "AHuman"
-
-			arr[ii]["Description"] = "DESCRIPTION UNAVAILABLE"
-			local multiplier = CF.BlackMarketPriceMultiplier
-			if gs["UnlockedActBlackprint_" .. CF.ArtActPresets[itm]] then
-				multiplier = multiplier * 0.5
+				table.insert(items, item);
 			end
-			local price = (math.sqrt(CF.GetPlayerGold(gs, 0)) * multiplier * RangeRand(0.75, 1.0))
-				+ (CF.ArtActPrices[itm] and CF.ArtActPrices[itm] * multiplier or 2000)
-			if price >= 100 then
-				if price >= 1000 then
-					if price >= 10000 then
-						price = math.floor(price * 0.001) * 1000
-					else
-						price = math.floor(price * 0.01) * 100
-					end
-				else
-					price = math.floor(price * 0.1) * 10
-				end
-			end
-			arr[ii]["Price"] = math.max(math.floor(price), CF.UnknownActorPrice)
 		end
 	end
 
 	-- Sort items
-	for i = 1, #arr do
-		for j = 1, #arr - 1 do
-			if arr[j]["Preset"] > arr[j + 1]["Preset"] then
-				local a = arr[j]
-				arr[j] = arr[j + 1]
-				arr[j + 1] = a
+	for i = 1, #items do
+		for j = 1, #items - 1 do
+			if items[j]["Preset"] > items[j + 1]["Preset"] then
+				local a = items[j];
+				items[j] = items[j + 1];
+				items[j + 1] = a;
 			end
 		end
 	end
 
-	local arr2
+	local filterSets = nil;
 	if makefilters then
-		arr2 = {}
+		filterSets = {};
 
 		-- Array for all items
-		arr2[-1] = {}
-		-- Arrays for items by types
-		arr2[CF.ActorTypes.LIGHT] = {}
-		arr2[CF.ActorTypes.HEAVY] = {}
-		arr2[CF.ActorTypes.ARMOR] = {}
-		arr2[CF.ActorTypes.TURRET] = {}
+		filterSets[CF.WeaponTypes.ANY] = {};
+		filterSets[CF.WeaponTypes.PISTOL] = {};
+		filterSets[CF.WeaponTypes.RIFLE] = {};
+		filterSets[CF.WeaponTypes.SHOTGUN] = {};
+		filterSets[CF.WeaponTypes.SNIPER] = {};
+		filterSets[CF.WeaponTypes.HEAVY] = {};
+		filterSets[CF.WeaponTypes.SHIELD] = {};
+		filterSets[CF.WeaponTypes.DIGGER] = {};
+		filterSets[CF.WeaponTypes.GRENADE] = {};
+		filterSets[CF.WeaponTypes.TOOL] = {};
 
-		for itm = 1, #arr do
-			-- Add item to 'all' list
-			local indx = #arr2[-1] + 1
-			arr2[-1][indx] = itm
+		for index = 1, #items do
+			table.insert(filterSets[CF.WeaponTypes.ANY], index);
 
 			-- Add item to specific list
-			if arr[itm]["Type"] then
-				local tp = arr[itm]["Type"]
-				local indx = #arr2[tp] + 1
-				arr2[tp][indx] = itm
+			local type = items[index]["Type"];
+			if type ~= nil and type ~= CF.WeaponTypes.ANY then
+				table.insert(filterSets[type], index);
 			end
 		end
 	end
 
-	return arr, arr2
+	return items, filterSets;
 end
 -----------------------------------------------------------------------------------------
---	Saves array of stored items to game state
+--
 -----------------------------------------------------------------------------------------
-CF.SetStorageArray = function(gs, arr)
-	-- Clear stored array data
-	for i = 1, CF.MaxStorageItems do
-		gs["ItemStorage" .. i .. "Preset"] = nil
-		gs["ItemStorage" .. i .. "Module"] = nil
-		gs["ItemStorage" .. i .. "Class"] = nil
-		gs["ItemStorage" .. i .. "Count"] = nil
+function CF.GetCloneBlackMarketArray(gs, makefilters)
+	-- Find out if we need to create a list of available actors for this black market
+	local location = gs["Location"];
+	local time = tonumber(gs["Time"]);
+	local lastRefresh = tonumber(gs["BlackMarket" .. location .. "ActorsLastRefresh"]);
+	local refreshNeeded = lastRefresh == nil or lastRefresh + CF.BlackMarketRefreshInterval < time;
+
+	-- Refresh black market listings
+	if refreshNeeded then
+		CF.RefreshBlackMarketActors(gs, location);
 	end
 
-	-- Copy items
-	local itm = 1
+	local count = tonumber(gs["BlackMarket" .. location .. "ActorsCount"]) or 0;
+	actors = {};
 
-	for i = 1, #arr do
-		if arr[i]["Count"] > 0 then
-			gs["ItemStorage" .. itm .. "Preset"] = arr[i]["Preset"]
-			gs["ItemStorage" .. itm .. "Module"] = arr[i]["Module"]
-			gs["ItemStorage" .. itm .. "Class"] = arr[i]["Class"]
-			gs["ItemStorage" .. itm .. "Count"] = arr[i]["Count"]
-			itm = itm + 1
+	for i = 1, count do
+		local actor = {};
+		local faction = gs["BlackMarket" .. location .. "Actor" .. i .. "Faction"];
+		local index = tonumber(gs["BlackMarket" .. location .. "Actor" .. i .. "Index"]);
+		local fundFactor = math.sqrt(CF.GetPlayerGold(gs, 0)) * RangeRand(0.75, 1.0) * CF.BlackMarketPriceMultiplier;
+
+		if faction then
+			actor["Faction"] = CF.FactionNames[faction];
+
+			actor["Class"] = CF.ActClasses[faction][index] or "AHuman";
+			actor["Preset"] = CF.ActPresets[faction][index];
+			actor["Module"] = CF.ActModules[faction][index];
+			actor["Description"] = CF.ActDescriptions[faction][index] or "DESCRIPTION UNAVAILABLE";
+			local price = CF.ActPrices[faction][index] + fundFactor;
+			local digitFactor = math.pow(10, math.max(0, math.floor(math.log10(price)) - 2));
+			price = math.floor(price / digitFactor) * digitFactor;
+			actor["Price"] = math.max(math.floor(price), CF.UnknownActorPrice);
+			actor["Type"] = CF.ActTypes[faction][index];
+
+			table.insert(actors, actor);
+		elseif index then
+		else
+			local class = gs["BlackMarket" .. location .. "Actor" .. i .. "Class"] or "";
+			local preset = gs["BlackMarket" .. location .. "Actor" .. i .. "Preset"] or "";
+			local module = gs["BlackMarket" .. location .. "Actor" .. i .. "Module"] or "";
+			local tempEntity = PresetMan:GetPreset(class, preset, module);
+
+			if tempEntity ~= nil and IsSceneObject(tempEntity) then
+				tempEntity = ToSceneObject(tempEntity);
+				actor["Faction"] = "[[Ancient]]";
+
+				actor["Class"] = class;
+				actor["Preset"] = preset;
+				actor["Module"] = module;
+				actor["Description"] = tempEntity.Description or "DESCRIPTION UNAVAILABLE";
+				local multiplier = 1;
+				if CF.IsEntityUnlocked(gs, "Blackprint", class, preset, module) then
+					multiplier = 0.5;
+				end
+				local price = tempEntity:GetGoldValue(0, 1, 1) + fundFactor;
+				local digitFactor = math.pow(10, math.max(0, math.floor(math.log10(price)) - 2));
+				price = math.floor(price / digitFactor) * digitFactor;
+				actor["Price"] = math.max(math.floor(price), CF.UnknownItemPrice) * multiplier;
+				--actor["Type"] = CF.ActorTypes.ANY;
+
+				table.insert(actors, actor);
+			end
 		end
 	end
+
+	-- Sort actors
+	for i = 1, #actors do
+		for j = 1, #actors - 1 do
+			if actors[j]["Preset"] > actors[j + 1]["Preset"] then
+				local a = actors[j];
+				actors[j] = actors[j + 1];
+				actors[j + 1] = a;
+			end
+		end
+	end
+	
+	local filterSets = nil;
+	if makefilters then
+		filterSets = {};
+
+		-- Array for all items
+		filterSets[CF.ActorTypes.ANY] = {};
+		filterSets[CF.ActorTypes.LIGHT] = {};
+		filterSets[CF.ActorTypes.HEAVY] = {};
+		filterSets[CF.ActorTypes.ARMOR] = {};
+		filterSets[CF.ActorTypes.TURRET] = {};
+
+		for index = 1, #actors do
+			table.insert(filterSets[CF.ActorTypes.ANY], index);
+
+			-- Add item to specific list
+			local type = actors[index]["Type"];
+			if type ~= nil and type ~= CF.ActorTypes.ANY then
+				table.insert(filterSets[type], index);
+			end
+		end
+	end
+
+	return actors, filterSets;
 end
 -----------------------------------------------------------------------------------------
 --	Counts used storage units in storage array
 -----------------------------------------------------------------------------------------
-CF.CountUsedStorageInArray = function(arr)
+function CF.CountUsedStorageInArray(arr)
 	local count = 0
 
 	for i = 1, #arr do
@@ -868,7 +845,7 @@ end
 -----------------------------------------------------------------------------------------
 --	Searches for given item in all faction files and returns it's factions and index if found
 -----------------------------------------------------------------------------------------
-CF.FindItemInFactions = function(preset, class, module)
+function CF.FindItemInFactions(preset, class, module)
 	for fact = 1, #CF.Factions do
 		local f = CF.Factions[fact]
 
@@ -893,7 +870,7 @@ end
 --	Put item to storage array. You still need to update filters array if this is a new item.
 --	Returns true if added item is new item and you need to sort and update filters
 -----------------------------------------------------------------------------------------
-CF.PutItemToStorageArray = function(arr, preset, class, module)
+function CF.PutItemToStorageArray(arr, preset, class, module)
 	-- Find item in storage array
 	local found = 0
 	local isnew = false
@@ -925,7 +902,7 @@ end
 -----------------------------------------------------------------------------------------
 --	Searches for given actor in all faction files and returns it's factions and index if found
 -----------------------------------------------------------------------------------------
-CF.FindActorInFactions = function(preset, class, module)
+function CF.FindActorInFactions(preset, class, module)
 	for fact = 1, #CF.Factions do
 		local f = CF.Factions[fact]
 
@@ -950,7 +927,7 @@ end
 --	Returns sorted array of stored items from game state. If makefilters is true, then
 --	it will also return additional array with filtered items
 -----------------------------------------------------------------------------------------
-CF.GetClonesArray = function(gs)
+function CF.GetClonesArray(gs)
 	local arr = {}
 
 	-- Copy clones
@@ -1003,13 +980,13 @@ end
 -----------------------------------------------------------------------------------------
 --	Counts used clones in clone array
 -----------------------------------------------------------------------------------------
-CF.CountUsedClonesInArray = function(arr)
+function CF.CountUsedClonesInArray(arr)
 	return #arr
 end
 -----------------------------------------------------------------------------------------
 --	Saves array of stored items to game state
 -----------------------------------------------------------------------------------------
-CF.SetClonesArray = function(gs, arr)
+function CF.SetClonesArray(gs, arr)
 	-- Clean clones
 	for i = 1, CF.MaxClones do
 		gs["ClonesStorage" .. i .. "Preset"] = nil
@@ -1066,7 +1043,7 @@ end
 --
 --
 -----------------------------------------------------------------------------------------
-CF.PutTurretToStorageArray = function(arr, preset, class, module)
+function CF.PutTurretToStorageArray(arr, preset, class, module)
 	-- Find item in storage array
 	local found = 0
 	local isnew = false
@@ -1098,7 +1075,7 @@ end
 --
 --
 -----------------------------------------------------------------------------------------
-CF.GetTurretsArray = function(gs)
+function CF.GetTurretsArray(gs)
 	local arr = {}
 
 	-- Copy
@@ -1131,7 +1108,7 @@ end
 -----------------------------------------------------------------------------------------
 --	Counts used clones in clone array
 -----------------------------------------------------------------------------------------
-CF.CountUsedTurretsInArray = function(arr)
+function CF.CountUsedTurretsInArray(arr)
 	local count = 0
 
 	for i = 1, #arr do
@@ -1143,7 +1120,7 @@ end
 -----------------------------------------------------------------------------------------
 --	Saves array of stored items to game state
 -----------------------------------------------------------------------------------------
-CF.SetTurretsArray = function(gs, arr)
+function CF.SetTurretsArray(gs, arr)
 	-- Clean clones
 	for i = 1, CF.MaxTurrets do
 		gs["TurretsStorage" .. i .. "Preset"] = nil
@@ -1174,7 +1151,7 @@ end
 --
 --
 -----------------------------------------------------------------------------------------
-CF.PutBombToStorageArray = function(arr, preset, class, module)
+function CF.PutBombToStorageArray(arr, preset, class, module)
 	-- Find item in storage array
 	local found = 0
 	local isnew = false
@@ -1207,7 +1184,7 @@ end
 --
 --
 -----------------------------------------------------------------------------------------
-CF.GetBombsArray = function(gs)
+function CF.GetBombsArray(gs)
 	local arr = {}
 
 	-- Copy
@@ -1240,7 +1217,7 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF.CountUsedBombsInArray = function(arr)
+function CF.CountUsedBombsInArray(arr)
 	local count = 0
 
 	for i = 1, #arr do
@@ -1252,7 +1229,7 @@ end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
-CF.SetBombsArray = function(gs, arr)
+function CF.SetBombsArray(gs, arr)
 	-- Clean clones
 	for i = 1, CF.MaxBombs do
 		gs["BombsStorage" .. i .. "Preset"] = nil

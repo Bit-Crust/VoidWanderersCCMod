@@ -1,223 +1,198 @@
-local tempvar = nil
+do
+	local tempvar = nil;
 
-function CF_Read(self, keys) 
-	tempvar = nil
-	ActivityMan:GetActivity():SendMessage("read_from_CF", {self, keys})
-	return tempvar
-end
-
-function CF_Write(keys, value) 
-	ActivityMan:GetActivity():SendMessage("write_to_CF", {keys, value})
-end
-
-function CF_Call(self, keys, arguments) 
-	tempvar = nil
-	ActivityMan:GetActivity():SendMessage("call_in_CF", {self, keys, arguments})
-	return tempvar
-end
-
-function OnMessage(self, message, context)
-	if message == "return_from_activity" then
-		tempvar = context
+	function CF_Read(self, keys) 
+		tempvar = nil;
+		ActivityMan:GetActivity():SendMessage("read_from_CF", {self, keys});
+		return tempvar;
 	end
-end
 
-function PackBrainForConfig(self)
-	return {BrainNumber = self.BrainNumber, RepairCount = self.RepairCount, HealCount = self.HealCount, SelfHealCount = self.SelfHealCount, QuantumStorage = self.QuantumStorage}
-end
+	function CF_Write(keys, value) 
+		ActivityMan:GetActivity():SendMessage("write_to_CF", {keys, value});
+	end
 
-function UnpackBrainForConfig(self, info)
-	self.BrainNumber = info.BrainNumber
-	self.RepairCount = info.RepairCount
-	self.HealCount = info.HealCount
-	self.SelfHealCount = info.SelfHealCount
-	self.QuantumStorage = info.QuantumStorage
+	function CF_Call(self, keys, arguments) 
+		tempvar = nil;
+		ActivityMan:GetActivity():SendMessage("call_in_CF", {self, keys, arguments});
+		return tempvar;
+	end
+
+	function OnMessage(self, message, context)
+		if message == "return_from_activity" then
+			tempvar = context;
+		end
+	end
 end
 
 function Create(self)
 	-- Set up constants and temps
-	local quantumCapacityPerLevel = CF_Read(self, {"QuantumCapacityPerLevel"})
-	local reference = _G["To" .. self.ClassName](PresetMan:GetPreset(self.ClassName, self.PresetName, self.ModuleName))
+	local quantumCapacityPerLevel = CF_Read(self, {"QuantumCapacityPerLevel"});
+	local reference = _G["To" .. self.ClassName](PresetMan:GetPreset(self.ClassName, self.PresetName, self.ModuleName));
 	
-	self.DistPerPower = 75
-	self.CoolDownInterval = 3000
-	self.PrintSkills = false
-	self.WeaponTeleportCost = 15
-	self.DamageCost = 65
-	self.PushCost = 15
-	self.StealCost = 30
-	self.DistortCost = 25
-	self.HealRange = 75
+	self.DistPerPower = 75;
+	self.CoolDownInterval = 3000;
+	self.PrintSkills = false;
+	self.WeaponTeleportCost = 15;
+	self.DamageCost = 65;
+	self.PushCost = 15;
+	self.StealCost = 30;
+	self.DistortCost = 25;
+	self.HealRange = 75;
 
 	-- Set timers
-	self.HoldTimer = Timer()
-	self.HoldTimer:Reset()
-	self.EnergyTickTimer = Timer()
-	self.EnergyTickTimer:Reset()
-	self.CoolDownTimer = Timer()
-	self.CoolDownTimer:Reset()
-	self.RegenTimer = Timer()
-	self.RegenTimer:Reset()
-	self.BlinkTimer = Timer()
-	self.BlinkTimer:Reset()
-	self.HealSkillTimer = Timer()
-	self.HealSkillTimer:Reset()
+	self.HoldTimer = Timer();
+	self.HoldTimer:Reset();
+	self.EnergyTickTimer = Timer();
+	self.EnergyTickTimer:Reset();
+	self.CoolDownTimer = Timer();
+	self.CoolDownTimer:Reset();
+	self.RegenTimer = Timer();
+	self.RegenTimer:Reset();
+	self.BlinkTimer = Timer();
+	self.BlinkTimer:Reset();
+	self.HealSkillTimer = Timer();
+	self.HealSkillTimer:Reset();
 
-	self.Energy = 100
+	self.Energy = 100;
 	
-	self.BrainNumber = self:GetNumberValue("VW_BrainOfPlayer") - 1
+	self.BrainNumber = self:GetNumberValue("VW_BrainOfPlayer") - 1;
 
-	-- Defaults are basically nothing but slight regen
-	local val = 0
-	local healthProportion = self.Health / self.MaxHealth
-	self.MaxHealth = reference.MaxHealth * (100 + val) / 100
-	self.Health = self.MaxHealth * healthProportion
-	self.RegenInterval = 2000 - val * 10
-
-	self.ToughnessLevel = 0
-	self.ShieldLevel = 0
-	self.TelekinesisLevel = 0
-	self.ScannerLevel = 0
-	self.HealLevel = 0
-	self.SelfHealLevel = 0
-	self.RepairLevel = 0
-	self.SplitterLevel = 0
-	self.QuantumStorageLevel = 0
+	self.Level = 0;
+	self.ToughnessLevel = 0;
+	self.ShieldLevel = 0;
+	self.TelekinesisLevel = 0;
+	self.ScannerLevel = 0;
+	self.HealLevel = 0;
+	self.SelfHealLevel = 0;
+	self.RepairLevel = 0;
+	self.SplitterLevel = 0;
+	self.QuantumStorageLevel = 0;
 
 	-- Obtain brain capabilities depending on type
 	if self.BrainNumber ~= Activity.PLAYER_NONE then -- If player controlled
-		local player = self.BrainNumber
-
-		local val = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Level"}))
-		local healthProportion = self.Health / self.MaxHealth
-		self.MaxHealth = reference.MaxHealth * (100 + val) / 100
-		self.Health = self.MaxHealth * healthProportion
-		self.RegenInterval = 2000 - val * 10
+		local player = self.BrainNumber;
 			
-		self.ToughnessLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Toughness"}))
-		self.ShieldLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Field"}))
-		self.TelekinesisLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Telekinesis"}))
-		self.ScannerLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Scanner"}))
-		self.HealLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Heal"}))
-		self.SelfHealLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "SelfHeal"}))
-		self.RepairLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Fix"}))
-		self.SplitterLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Splitter"}))
-		self.QuantumStorageLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "QuantumCapacity"}))
+		self.Level = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Level"}));
+		self.ToughnessLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Toughness"}));
+		self.ShieldLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Field"}));
+		self.TelekinesisLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Telekinesis"}));
+		self.ScannerLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Scanner"}));
+		self.HealLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Heal"}));
+		self.SelfHealLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "SelfHeal"}));
+		self.RepairLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Fix"}));
+		self.SplitterLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Splitter"}));
+		self.QuantumStorageLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "QuantumCapacity"}));
 	elseif self:GetNumberValue("VW_PreassignedSkills") ~= 0 then -- If preset with values
-		local val = self:GetNumberValue("VW_HealthSkill")
-		local healthProportion = self.Health / self.MaxHealth
-		self.MaxHealth = reference.MaxHealth * (100 + val) / 100
-		self.Health = self.MaxHealth * healthProportion
-		self.RegenInterval = 2000 - val * 10
-
-		self.ToughnessLevel = self:GetNumberValue("VW_ToughSkill")
-		self.ShieldLevel = self:GetNumberValue("VW_ShieldSkill")
-		self.TelekinesisLevel = self:GetNumberValue("VW_TelekenesisSkill")
-		self.ScannerLevel = self:GetNumberValue("VW_ScannerSkill")
-		self.HealLevel = self:GetNumberValue("VW_HealSkill")
-		self.SelfHealLevel = self:GetNumberValue("VW_SelfHealSkill")
-		self.RepairLevel = self:GetNumberValue("VW_RepairSkill")
-		self.SplitterLevel = self:GetNumberValue("VW_SplitterSkill")
-		self.QuantumStorageLevel = self:GetNumberValue("VW_QuantumSkill")
+		self.Level = self:GetNumberValue("VW_HealthSkill");
+		self.ToughnessLevel = self:GetNumberValue("VW_ToughSkill");
+		self.ShieldLevel = self:GetNumberValue("VW_ShieldSkill");
+		self.TelekinesisLevel = self:GetNumberValue("VW_TelekenesisSkill");
+		self.ScannerLevel = self:GetNumberValue("VW_ScannerSkill");
+		self.HealLevel = self:GetNumberValue("VW_HealSkill");
+		self.SelfHealLevel = self:GetNumberValue("VW_SelfHealSkill");
+		self.RepairLevel = self:GetNumberValue("VW_RepairSkill");
+		self.SplitterLevel = self:GetNumberValue("VW_SplitterSkill");
+		self.QuantumStorageLevel = self:GetNumberValue("VW_QuantumSkill");
 	end
 
+	-- Defaults are basically nothing but slight regen
+	local healthProportion = self.Health / self.MaxHealth;
+	self.MaxHealth = reference.MaxHealth * (100 + self.Level) / 100;
+	self.Health = self.MaxHealth * healthProportion;
+	self.RegenInterval = 2000 - self.Level * 10;
+
 	-- Default power uses
-	self.HealCount = self.HealLevel
-	self.SelfHealCount = self.SelfHealLevel
-	self.RepairCount = self.RepairLevel * 3
-	self.QuantumCapacity = (1 + self.QuantumStorageLevel) * quantumCapacityPerLevel
-	self.QuantumStorage = 0
+	self.QuantumCapacity = (1 + self.QuantumStorageLevel) * quantumCapacityPerLevel;
+	self.QuantumStorage = 0;
 
 	-- If player, get existing power uses
 	if self.BrainNumber ~= Activity.PLAYER_NONE then
 		-- Record potentially unknown identity
 		if CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "Identity"}) == nil then
-			CF_Write({"GS", "Brain" .. self.BrainNumber .. "Identity"}, self:GetNumberValue("Identity"))
+			CF_Write({"GS", "Brain" .. self.BrainNumber .. "Identity"}, tostring(self:GetNumberValue("Identity")));
 		end
-		self.RepairCount = tonumber(CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "Fix_Count"})) or self.RepairCount
-		self.HealCount = tonumber(CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "Heal_Count"})) or self.HealCount
-		self.SelfHealCount = tonumber(CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "SelfHeal_Count"})) or self.SelfHealCount
-		self.QuantumStorage = tonumber(CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"})) or self.QuantumStorage
+
+		self.QuantumStorage = tonumber(CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}));
 	end
 
 	-- Determine enabled abilities
-	self.DistortEnabled = self.TelekinesisLevel > 0
-	self.PushEnabled = self.TelekinesisLevel > 1
-	self.WeaponTeleportEnabled = self.TelekinesisLevel > 2
-	self.StealEnabled = self.TelekinesisLevel > 3
-	self.DamageEnabled = self.TelekinesisLevel > 4
+	self.DistortEnabled = self.TelekinesisLevel > 0;
+	self.PushEnabled = self.TelekinesisLevel > 1;
+	self.WeaponTeleportEnabled = self.TelekinesisLevel > 2;
+	self.StealEnabled = self.TelekinesisLevel > 3;
+	self.DamageEnabled = self.TelekinesisLevel > 4;
 
 	-- Set up scanner
-	self.ScannerEnabled = false
-	self.ScannerRange = 200 + self.ScannerLevel * 160
+	self.ScannerEnabled = false;
+	self.ScannerRange = 200 + self.ScannerLevel * 160;
 
 	-- Set up shield
-	self.ShieldEnabled = self.ShieldLevel > 0
-	self.ShieldRadius = 75
-	self.ShieldRadiusPerPower = 25
-	self.ShieldIneffectiveRadius = 25
-	self.ShieldMinVelocity = 25
-	self.ShieldPressure = 0
-	self.ShieldPressureAmp = 10
-	self.ShieldDepressureDelay = 1000
+	self.ShieldEnabled = self.ShieldLevel > 0;
+	self.ShieldRadius = 75;
+	self.ShieldRadiusPerPower = 25;
+	self.ShieldIneffectiveRadius = 25;
+	self.ShieldMinVelocity = 25;
+	self.ShieldPressure = 0;
+	self.ShieldPressureAmp = 10;
+	self.ShieldDepressureDelay = 1000;
 
-	self.DepressureTimer = Timer()
-	self.DepressureTimer:SetSimTimeLimitMS(self.ShieldDepressureDelay)
+	self.DepressureTimer = Timer();
+	self.DepressureTimer:SetSimTimeLimitMS(self.ShieldDepressureDelay);
 	
 	-- Set up healing capabilities
-	local healSkillFactor = 1 - self.HealCount / 5
-	self.baseHealDelay = 40 + 200 * healSkillFactor
-	self.healIncrementPerTarget = 30 + 150 * healSkillFactor
-	self.healIncrementPerWound = 10 + 50 * healSkillFactor
-	self.healTimer = Timer()
-	self.healTimer:SetSimTimeLimitMS(self.baseHealDelay)
+	local healSkillFactor = 1 - self.HealLevel / 5;
+	self.baseHealDelay = 40 + 200 * healSkillFactor;
+	self.healIncrementPerTarget = 30 + 150 * healSkillFactor;
+	self.healIncrementPerWound = 10 + 50 * healSkillFactor;
+	self.healTimer = Timer();
+	self.healTimer:SetSimTimeLimitMS(self.baseHealDelay);
 
-	self.crossTimer = Timer()
-	self.crossTimer:SetSimTimeLimitMS(800)
+	self.crossTimer = Timer();
+	self.crossTimer:SetSimTimeLimitMS(800);
 
-	self.visual = {}
-	self.visual.Colors = { 135, 133, 149, 148, 145, 148, 149, 133 }
-	self.visual.CurrentColor = 0
-	self.visual.Rotation = 0
-	self.visual.RPM = 60
-	self.visual.ArcCount = 3
+	self.visual = {};
+	self.visual.Colors = { 135, 133, 149, 148, 145, 148, 149, 133 };
+	self.visual.CurrentColor = 0;
+	self.visual.Rotation = 0;
+	self.visual.RPM = 60;
+	self.visual.ArcCount = 3;
 
-	self.maxHealRange = 50 + self.HealCount * 5
-	self.healTargets = {}
+	self.maxHealRange = 50 + self.HealLevel * 5;
+	self.healTargets = {};
 
 	-- Apply toughness buffs
-	local toughnessFactor = (1 + 2 * self.ToughnessLevel / 5)
-	self.AimDistance = reference.AimDistance * toughnessFactor
-	self.ImpulseDamageThreshold = reference.ImpulseDamageThreshold * toughnessFactor
-	self.GibWoundLimit = reference.GibWoundLimit * toughnessFactor
-	self.GibImpulseLimit = reference.GibImpulseLimit * toughnessFactor
+	local toughnessFactor = (1 + 2 * self.ToughnessLevel / 5);
+	self.AimDistance = reference.AimDistance * toughnessFactor;
+	self.ImpulseDamageThreshold = reference.ImpulseDamageThreshold * toughnessFactor;
+	self.GibWoundLimit = reference.GibWoundLimit * toughnessFactor;
+	self.GibImpulseLimit = reference.GibImpulseLimit * toughnessFactor;
 	if self.BGArm and reference.BGArm then
-		self.BGArm.GibWoundLimit = reference.BGArm.GibWoundLimit * toughnessFactor
-		self.BGArm.GibImpulseLimit = reference.BGArm.GibImpulseLimit * toughnessFactor
-		self.BGArm.GripStrength = 400000
+		self.BGArm.GibWoundLimit = reference.BGArm.GibWoundLimit * toughnessFactor;
+		self.BGArm.GibImpulseLimit = reference.BGArm.GibImpulseLimit * toughnessFactor;
+		self.BGArm.GripStrength = 400000;
 	end
 	if self.FGArm and reference.FGArm then
-		self.FGArm.GibWoundLimit = reference.FGArm.GibWoundLimit * toughnessFactor
-		self.FGArm.GibImpulseLimit = reference.FGArm.GibImpulseLimit * toughnessFactor
-		self.FGArm.GripStrength = 400000
+		self.FGArm.GibWoundLimit = reference.FGArm.GibWoundLimit * toughnessFactor;
+		self.FGArm.GibImpulseLimit = reference.FGArm.GibImpulseLimit * toughnessFactor;
+		self.FGArm.GripStrength = 400000;
 	end
 	if self.BGLeg and reference.BGLeg then
-		self.BGLeg.GibWoundLimit = reference.BGLeg.GibWoundLimit * toughnessFactor
-		self.BGLeg.GibImpulseLimit = reference.BGLeg.GibImpulseLimit * toughnessFactor
+		self.BGLeg.GibWoundLimit = reference.BGLeg.GibWoundLimit * toughnessFactor;
+		self.BGLeg.GibImpulseLimit = reference.BGLeg.GibImpulseLimit * toughnessFactor;
 	end
 	if self.FGLeg and reference.FGLeg then
-		self.FGLeg.GibWoundLimit = reference.FGLeg.GibWoundLimit * toughnessFactor
-		self.FGLeg.GibImpulseLimit = reference.FGLeg.GibImpulseLimit * toughnessFactor
+		self.FGLeg.GibWoundLimit = reference.FGLeg.GibWoundLimit * toughnessFactor;
+		self.FGLeg.GibImpulseLimit = reference.FGLeg.GibImpulseLimit * toughnessFactor;
 	end
 	if self.Head and reference.Head then
-		self.Head.GibWoundLimit = reference.Head.GibWoundLimit * toughnessFactor
-		self.Head.GibImpulseLimit = reference.Head.GibImpulseLimit * toughnessFactor
+		self.Head.GibWoundLimit = reference.Head.GibWoundLimit * toughnessFactor;
+		self.Head.GibImpulseLimit = reference.Head.GibImpulseLimit * toughnessFactor;
 	end
 	if self.Jetpack and reference.Jetpack then
 		local softnessFactor = math.sqrt(toughnessFactor)
-		self.Jetpack.JetTimeTotal = reference.Jetpack.JetTimeTotal * softnessFactor
-		self.Jetpack.JetTimeLeft = reference.Jetpack.JetTimeLeft * softnessFactor
-		self.Jetpack.JetReplenishRate = reference.Jetpack.JetReplenishRate * softnessFactor
+		self.Jetpack.JetTimeTotal = reference.Jetpack.JetTimeTotal * softnessFactor;
+		self.Jetpack.JetTimeLeft = reference.Jetpack.JetTimeLeft * softnessFactor;
+		self.Jetpack.JetReplenishRate = reference.Jetpack.JetReplenishRate * softnessFactor;
 		for em in self.Jetpack.Emissions do
 			em.ParticlesPerMinute = em.ParticlesPerMinute * softnessFactor;
 			em.BurstSize = em.BurstSize * softnessFactor;
@@ -225,92 +200,93 @@ function Create(self)
 	end
 
 	-- Create skills menu
-	self.ActiveMenu = {}
-	self.ActiveMenu[1] = {}
-	self.SelectedMenuItem = 1
+	self.ActiveMenu = {};
+	self.ActiveMenu[1] = {};
+	self.SelectedMenuItem = 1;
 
-	self.Skills = {}
-	local count = 0
+	self.skillMenu = {};
+	local count = 0;
 
 	if self.ScannerLevel > 0 then
-		count = count + 1
-		self.Skills[count] = {}
-
-		self.Skills[count]["Text"] = "Toggle scanner"
-		self.Skills[count]["Count"] = -1
-		self.Skills[count]["Function"] = rpgbrain_skill_scanner
+		count = count + 1;
+		local skill = {};
+		skill["Text"] = "Toggle scanner"
+		skill["Count"] = -1
+		skill["Function"] = rpgbrain_skill_scanner
+		table.insert(self.skillMenu, skill);
 
 		self.ScannerSkillIndex = count
 
 		if CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "ScannerEnabled"}) == "true" then
-			self.Skills[self.ScannerSkillIndex]["State"] = "On"
+			self.skillMenu[self.ScannerSkillIndex]["State"] = "On"
 			self.ScannerEnabled = true
 		else
-			self.Skills[self.ScannerSkillIndex]["State"] = "Off"
+			self.skillMenu[self.ScannerSkillIndex]["State"] = "Off"
 			self.ScannerEnabled = false
 		end
 	end
 
-	if self.RepairCount > 0 then
-		count = count + 1
-		self.Skills[count] = {}
-
-		self.Skills[count]["Text"] = "Repair weapon"
-		self.Skills[count]["Count"] = self.RepairCount
-		self.Skills[count]["Function"] = rpgbrain_skill_repair
+	if self.RepairLevel > 0 then
+		count = count + 1;
+		skill = {};
+		skill["Text"] = "Repair weapon"
+		skill["Count"] = self.RepairLevel
+		skill["Function"] = rpgbrain_skill_repair
+		table.insert(self.skillMenu, skill);
 	end
 		
-	if self.HealCount > 0 then
+	if self.HealLevel > 0 then
 		count = count + 1
-		self.Skills[count] = {}
+		skill = {}
 			
-		self.Skills[count]["Text"] = "Heal unit"
-		self.Skills[count]["Count"] = self.HealCount
-		self.Skills[count]["Function"] = rpgbrain_skill_healstart
-		self.Skills[count]["ActorDetectRange"] = self.HealRange
-		self.Skills[count]["AffectsBrains"] = false
+		skill["Text"] = "Heal unit"
+		skill["Count"] = self.HealLevel
+		skill["Function"] = rpgbrain_skill_healstart
+		skill["ActorDetectRange"] = self.HealRange
+		skill["AffectsBrains"] = false
+		table.insert(self.skillMenu, skill);
 	end
 
-	if self.SelfHealCount > 0 then
-		count = count + 1
-		self.Skills[count] = {}
-
-		self.Skills[count]["Text"] = "Heal brain"
-		self.Skills[count]["Count"] = self.SelfHealCount
-		self.Skills[count]["Function"] = rpgbrain_skill_selfhealstart
-		self.Skills[count]["ActorDetectRange"] = 0.1
-		self.Skills[count]["AffectsBrains"] = true
+	if self.SelfHealLevel > 0 then
+		local skill = {};
+		skill["Text"] = "Heal brain"
+		skill["Count"] = self.SelfHealLevel
+		skill["Function"] = rpgbrain_skill_selfhealstart
+		skill["ActorDetectRange"] = 0.1
+		skill["AffectsBrains"] = true
+		table.insert(self.skillMenu, skill);
 	end
 
 	if self.SplitterLevel > 0 then
 		count = count + 1
-		self.Skills[count] = {}
+		local skill = {};
 
-		self.Skills[count]["Text"] = "Nanolyze item"
-		self.Skills[count]["Count"] = -1
-		self.Skills[count]["Function"] = rpgbrain_skill_split
+		skill["Text"] = "Nanolyze item"
+		skill["Count"] = -1
+		skill["Function"] = rpgbrain_skill_split
 
 		self.NanolyzeItem = count
 
 		-- Make quantum sub-menu
 		local items = {}
 
-		local quantumItems = CF_Read(self, {"QuantumItems"})
-		local quantumItemPresets = CF_Read(self, {"QuantumItmPresets"})
-		local quantumItemClasses = CF_Read(self, {"QuantumItmClasses"})
-		local quantumItemModules = CF_Read(self, {"QuantumItmModules"})
-		local quantumItemPrices = CF_Read(self, {"QuantumItmPrices"})
-		for i = 1, #quantumItems do
-			local id = quantumItems[i]
+		local quantumItems = CF_Read(self, {"QuantumItems"});
+		local quantumItemPresets = CF_Read(self, {"QuantumItmPresets"});
+		local quantumItemClasses = CF_Read(self, {"QuantumItmClasses"});
+		local quantumItemModules = CF_Read(self, {"QuantumItmModules"});
+		local quantumItemPrices = CF_Read(self, {"QuantumItmPrices"});
 
-			if CF_Read(self, {"GS", "QuantumItemUnlocked_" .. id}) == "True" then
-				local n = #items + 1
-				items[n] = {}
-				items[n]["ID"] = id
-				items[n]["Preset"] = quantumItemPresets[id]
-				items[n]["Class"] = quantumItemClasses[id]
-				items[n]["Module"] = quantumItemModules[id]
-				items[n]["Price"] = math.ceil(quantumItemPrices[id] / 2)
+		for i = 1, #quantumItems do
+			local id = quantumItems[i];
+			
+			if CF_Read(self, {"GS", "UnlockedQuantum_" .. quantumItemClasses[id] .. "_" .. quantumItemPresets[id] .. "_" .. quantumItemModules[id]}) then
+				local item = {};
+				item["ID"] = id;
+				item["Class"] = quantumItemClasses[id];
+				item["Preset"] = quantumItemPresets[id];
+				item["Module"] = quantumItemModules[id];
+				item["Price"] = quantumItemPrices[id];
+				table.insert(items, item);
 			end
 		end
 
@@ -334,15 +310,17 @@ function Create(self)
 		self.Quantum[n] = {}
 		self.Quantum[n]["Text"] = "BACK"
 		self.Quantum[n]["Count"] = -1
-		self.Quantum[n]["SubMenu"] = self.Skills
+		self.Quantum[n]["SubMenu"] = self.skillMenu
+
+		table.insert(self.skillMenu, skill);
 
 		-- Add synthesizer menu item
 		count = count + 1
-		self.Skills[count] = {}
+		skill = {}
 
-		self.Skills[count]["Text"] = "Synthesize item"
-		self.Skills[count]["Count"] = self.QuantumStorage
-		self.Skills[count]["SubMenu"] = self.Quantum
+		skill["Text"] = "Synthesize item"
+		skill["Count"] = self.QuantumStorage
+		skill["SubMenu"] = self.Quantum
 
 		self.QuantumStorageItem = count
 	end
@@ -714,7 +692,7 @@ function Update(self)
 					self.PDAEnabled = true
 				end
 				self.SelectedMenuItem = 1
-				self.ActiveMenu = self.Skills
+				self.ActiveMenu = self.skillMenu
 			end
 			self:RemoveNumberValue("VW_EnablePDA")
 		end
@@ -1084,21 +1062,24 @@ function do_rpgbrain_pda(self)
 
 	-- Show price if item will be nanolyzed
 	if self.NanolyzeItem ~= nil then
-		self.Skills[self.NanolyzeItem]["Count"] = "EMPTY"
+		self.skillMenu[self.NanolyzeItem]["Count"] = "EMPTY";
 
 		if self.EquippedItem ~= nil then
-			local mass = self.EquippedItem.Mass
-			local convert = self.SplitterLevel * CF_Read(self, {"QuantumSplitterEffectiveness"})
-			local matter = math.floor(mass * convert)
+			local mass = self.EquippedItem.Mass;
+			local convert = self.SplitterLevel * CF_Read(self, {"QuantumSplitterEffectiveness"});
+			local matter = math.floor(mass * convert);
 
 			if self.QuantumStorage + matter > self.QuantumCapacity then
-				matter = self.QuantumCapacity - self.QuantumStorage
+				matter = self.QuantumCapacity - self.QuantumStorage;
 			end
-			self.Skills[self.NanolyzeItem]["Count"] = "+" .. matter
+
+			self.skillMenu[self.NanolyzeItem]["Count"] = "+" .. matter;
 
 			if self.QuantumStorage == self.QuantumCapacity then
-				self.Skills[self.NanolyzeItem]["Count"] = "MAX"
+				self.skillMenu[self.NanolyzeItem]["Count"] = "MAX";
 			end
+
+			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.QuantumStorage);
 		end
 	end
 
@@ -1155,41 +1136,31 @@ function do_rpgbrain_pda(self)
 end
 
 function rpgbrain_skill_healstart(self)
-	if self.HealCount > 0 and self.HealTarget == nil then
-		if
-			self.SkillTargetActor ~= nil
-			and MovableMan:IsActor(self.SkillTargetActor)
-		then
-			self.HealTarget = self.SkillTargetActor
-			self.HealSkillTimer:Reset()
-			swarm_create(self, self.HealTarget)
-			
-			self.HealCount = self.HealCount - 1
-			self.ActiveMenu[self.SelectedMenuItem]["Count"] = self.HealCount
-			CF_Call(self, {"SaveThisBrainSupplies"}, {CF_Read(self, {"GS"}), PackBrainForConfig(self)})
+	if self.HealLevel > 0 and self.HealTarget == nil then
+		if self.SkillTargetActor and IsActor(self.SkillTargetActor) then
+			self.HealTarget = self.SkillTargetActor;
+			self.HealSkillTimer:Reset();
+			swarm_create(self, self.HealTarget);
+			self.QuantumStorage = self.QuantumStorage - 20;
+			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.QuantumStorage);
 		end
 	end
 end
 
 function rpgbrain_skill_selfhealstart(self)
-	if self.SelfHealCount > 0 and self.HealTarget == nil then
-		if
-			self.SkillTargetActor ~= nil
-			and MovableMan:IsActor(self.SkillTargetActor)
-		then
-			self.HealTarget = self.SkillTargetActor
-			self.HealSkillTimer:Reset()
-			swarm_create(self, self.HealTarget)
-
-			self.SelfHealCount = self.SelfHealCount - 1
-			self.ActiveMenu[self.SelectedMenuItem]["Count"] = self.SelfHealCount
-			CF_Call(self, {"SaveThisBrainSupplies"}, {CF_Read(self, {"GS"}), PackBrainForConfig(self)})
+	if self.SelfHealLevel > 0 and self.HealTarget == nil then
+		if self.SkillTargetActor and IsActor(self.SkillTargetActor) then
+			self.HealTarget = self.SkillTargetActor;
+			self.HealSkillTimer:Reset();
+			swarm_create(self, self.HealTarget);
+			self.QuantumStorage = self.QuantumStorage - 30;
+			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.QuantumStorage);
 		end
 	end
 end
 
 function rpgbrain_skill_healend(self)
-	if self.HealTarget ~= nil and MovableMan:IsActor(self.HealTarget) then
+	if self.HealTarget and IsActor(self.HealTarget) then
 		local missingLimbs = {}
 		local replacedLimbs = {}
 
@@ -1238,22 +1209,11 @@ end
 
 function rpgbrain_skill_repair(self)
 	if self.RepairCount > 0 then
-		if self.EquippedItem ~= nil then
-			local preset = self.EquippedItem.PresetName
-			local class = self.EquippedItem.ClassName
-			local module = self.EquippedItem.ModuleName
-
-			local newgun = VoidWanderersRPG_VW_MakeItem(preset, class, module)
-			if newgun ~= nil then
-				self.EquippedItem.ToDelete = true
-
-				self:AddInventoryItem(newgun)
-				self:GetController():SetState(Controller.WEAPON_CHANGE_PREV, true)
-
-				self.RepairCount = self.RepairCount - 1
-				self.ActiveMenu[self.SelectedMenuItem]["Count"] = self.RepairCount
-				CF_Call(self, {"SaveThisBrainSupplies"}, {CF_Read(self, {"GS"}), PackBrainForConfig(self)})
-			end
+		local gun = self.EquippedItem;
+		if gun ~= nil then
+			gun:RemoveWounds(gun:GetWoundCount());
+			self.QuantumStorage = self.QuantumStorage - 5;
+			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.QuantumStorage);
 		end
 	end
 end
@@ -1270,8 +1230,8 @@ function rpgbrain_skill_split(self)
 				self.QuantumStorage = self.QuantumCapacity
 			end
 
-			self.Skills[self.QuantumStorageItem]["Count"] = self.QuantumStorage
-			CF_Call(self, {"SaveThisBrainSupplies"}, {CF_Read(self, {"GS"}), PackBrainForConfig(self)})
+			self.skillMenu[self.QuantumStorageItem]["Count"] = self.QuantumStorage
+			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.QuantumStorage);
 
 			self.EquippedItem.ToDelete = true
 			self:GetController():SetState(Controller.WEAPON_CHANGE_PREV, true)
@@ -1291,8 +1251,8 @@ function rpgbrain_skill_synthesize(self)
 			self:GetController():SetState(Controller.WEAPON_CHANGE_PREV, true)
 
 			self.QuantumStorage = self.QuantumStorage - self.ActiveMenu[self.SelectedMenuItem]["Price"]
-			self.Skills[self.QuantumStorageItem]["Count"] = self.QuantumStorage
-			CF_Call(self, {"SaveThisBrainSupplies"}, {CF_Read(self, {"GS"}), PackBrainForConfig(self)})
+			self.skillMenu[self.QuantumStorageItem]["Count"] = self.QuantumStorage
+			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.QuantumStorage);
 		end
 	end
 end
@@ -1303,7 +1263,7 @@ function rpgbrain_skill_scanner(self)
 	local enabled = CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "ScannerEnabled"}) == "true";
 
 	CF_Write({"GS", "Brain" .. self.BrainNumber .. "ScannerEnabled"}, tostring(not enabled))
-	self.Skills[self.ScannerSkillIndex]["State"] = enabled and "Off" or "On"
+	self.skillMenu[self.ScannerSkillIndex]["State"] = enabled and "Off" or "On"
 end
 
 function swarm_swarmto(object, target, speed)

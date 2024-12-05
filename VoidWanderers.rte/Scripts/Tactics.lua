@@ -947,115 +947,40 @@ function VoidWanderers:UpdateActivity()
 		elseif
 			actor:IsPlayerControlled()
 			and self:IsCommander(actor)
-			and (actor:GetController():IsState(Controller.WEAPON_FIRE) or actor
-				:GetController()
-				:IsState(Controller.WEAPON_RELOAD))
+			and actor:GetController():IsState(Controller.PRESS_PRIMARY)
 			and IsAHuman(actor)
 			and ToAHuman(actor).EquippedItem
 			and not ToAHuman(actor).EquippedItem.ToDelete
 			and ToAHuman(actor).EquippedItem.ModuleName == CF.ModuleName
 		then
-			actor = ToAHuman(actor)
-			if actor.EquippedItem.PresetName == "Blueprint" then
-				local itm
-				local player = self.missionData["missionTarget"] or math.random(tonumber(self.GS["ActiveCPUs"]))
-				local faction = self.GS["Player" .. player .. "Faction"]
-				if faction then
-					if math.random() < 0.25 then
-						local actorList = CF.MakeListOfMostPowerfulActors(
-							self.GS,
-							player,
-							CF.ActorTypes.ANY,
-							math.abs(tonumber(self.GS["Player" .. player .. "Reputation"]))
-						)
-						if actorList then
-							for _, potentialActor in pairs(actorList) do
-								local actorName = CF.ActPresets[faction][potentialActor["Actor"]]
-								if
-									actorName
-									and CF.ActModules[faction][potentialActor["Actor"]] ~= "Base.rte"
-									and not self.GS["UnlockedActBlueprint_" .. actorName]
-								then
-									itm = actorName
-									break
-								end
-							end
-						end
-						if itm == nil then
-							itm = CF.ActPresets[faction][math.random(#CF.ActPresets[faction])]
-							if itm and self.GS["UnlockedActBlueprint_" .. itm] then
-								itm = nil
-							end
-						end
-						if itm then
-							self.GS["UnlockedActBlueprint_" .. itm] = 1
-						end
-					end
-					if itm == nil then
-						local weaponList = CF.MakeListOfMostPowerfulWeapons(
-							self.GS,
-							player,
-							CF.WeaponTypes.ANY,
-							math.abs(tonumber(self.GS["Player" .. player .. "Reputation"]))
-						)
-						if weaponList then
-							for _, potentialWeapon in pairs(weaponList) do
-								local weaponName = CF.ItmPresets[faction][potentialWeapon["Item"]]
-								if
-									weaponName
-									and CF.ItmModules[faction][potentialWeapon["Item"]] ~= "Base.rte"
-									and not self.GS["UnlockedItmBlueprint_" .. weaponName]
-								then
-									itm = weaponName
-									break
-								end
-							end
-						end
-						if itm == nil then
-							itm = CF.ItmPresets[faction][math.random(#CF.ItmPresets[faction])]
-							if itm and self.GS["UnlockedItmBlueprint_" .. itm] then
-								itm = nil
-							end
-						end
-						if itm then
-							self.GS["UnlockedItmBlueprint_" .. itm] = 1
-						end
-					end
-				end
-				local effect = CreateMOPixel("Text Effect", self.ModuleName)
-				effect:SetStringValue("Text", itm == nil and "Nothing of value was found."
-					or itm .. " blueprint unlocked!\nThe Trade Star will update their catalog shortly.")
-				effect.Pos = actor.AboveHUDPos + Vector(0, -8)
-				MovableMan:AddParticle(effect)
+			human = ToAHuman(actor);
+			
+			local object = human.EquippedItem;
+			local kind = object.PresetName;
+			local delete = false;
 
-				actor.EquippedItem.ToDelete = true
-				actor:FlashWhite(50)
-			elseif actor.EquippedItem.PresetName == "Blackprint" then
-				local itm
-				if math.random() < 0.25 then
-					itm = CF.ArtActPresets[math.random(#CF.ArtActPresets)]
-					if itm and not self.GS["UnlockedActBlackprint_" .. itm] then
-						self.GS["UnlockedActBlackprint_" .. itm] = 1
-					else
-						itm = nil
-					end
-				end
-				if itm == nil then
-					itm = CF.ArtItmPresets[math.random(#CF.ArtItmPresets)]
-					if itm and not self.GS["UnlockedItmBlackprint_" .. itm] then
-						self.GS["UnlockedItmBlackprint_" .. itm] = 1
-					else
-						itm = nil
-					end
-				end
-				local effect = CreateMOPixel("Text Effect", self.ModuleName)
-				effect:SetStringValue("Text", itm == nil and "Nothing of value was found."
-					or itm .. " blackprint unlocked!\nThe Black Market will update their catalog shortly.")
-				effect.Pos = actor.AboveHUDPos + Vector(0, -8)
-				MovableMan:AddParticle(effect)
+			if kind == "Blueprint" or kind == "Blackprint" then
+				local print = object;
+				local text = print:GetStringValue("VW_Text");
+				local class = print:GetStringValue("VW_ClassUnlock");
+				local preset = print:GetStringValue("VW_PresetUnlock");
+				local module = print:GetStringValue("VW_ModuleUnlock");
+				local alreadyUnlocked = CF.IsEntityUnlocked(self.GS, kind, class, preset, module);
 
-				actor.EquippedItem.ToDelete = true
-				actor:FlashWhite(50)
+				if text == "" or alreadyUnlocked then
+					text = "Nothing of value was found." .. (alreadyUnlocked and ("\\n" .. preset .. " already unlocked.") or "");
+				else
+					self.GS["Unlocked" .. kind .. "_" .. class .. "_" .. preset .. "_" .. module] = 1;
+					human:FlashWhite(50);
+				end
+
+				local effect = CF.CreateTextEffect(text);
+				effect.Pos = actor.AboveHUDPos + Vector(0, -8);
+				MovableMan:AddParticle(effect);
+			end
+
+			if delete then
+				object.ToDelete = true;
 			end
 		end
 		-- Display icons
@@ -1460,7 +1385,7 @@ function VoidWanderers:UpdateActivity()
 				if mo.PinStrength == 0 then
 					local inShip = self.vesselData["ship"]:IsInside(mo.Pos);
 					local onDeck = self.vesselData["spaceDeck"]:IsInside(mo.Pos);
-					local artGrav = self.vesselData["artificialGravity"];
+					local artGrav = self.vesselData["artificialGravity"] * mo.GlobalAccScalar;
 					if artGrav then
 						if inShip then
 							mo.Vel = mo.Vel + artGrav
@@ -1889,22 +1814,23 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:GiveXP(actor, xp)
 	if actor then
-		xp = math.floor(xp / math.sqrt(1 + actor:GetNumberValue("VW_Prestige")) + 0.5)
-		local levelUp, nextRank
-		if xp > 0 then
-			self.xpSound:Play(actor.Pos)
-			local newXP = actor:GetNumberValue("VW_XP") + xp
-			actor:SetNumberValue("VW_XP", newXP)
+		xp = math.floor(xp / math.sqrt(1 + actor:GetNumberValue("VW_Prestige")) + 0.5);
 
-			nextRank = CF.Ranks[actor:GetNumberValue("VW_Rank") + 1]
-			levelUp = nextRank and newXP >= nextRank
+		if xp > 0 then
+			self.xpSound:Play(actor.Pos);
+			local newXP = actor:GetNumberValue("VW_XP") + xp;
+			actor:SetNumberValue("VW_XP", newXP);
+
+			local nextRank = CF.Ranks[actor:GetNumberValue("VW_Rank") + 1];
+			local levelUp = nextRank and newXP >= nextRank;
 
 			if not SceneMan:IsUnseen(actor.Pos.X, actor.Pos.Y, CF.PlayerTeam) then
-				local effect = CreateMOPixel("Text Effect", self.ModuleName)
+				local effect = CF.CreateTextEffect("+" .. xp .. " xp" .. (levelUp and "\nLEVEL UP!" or ""));
+				
 				if
 					actor:IsPlayerControlled()
 					and SceneMan
-						:ShortestDistance(actor.EyePos, actor.ViewPoint, SceneMan.SceneWrapsX)
+						:ShortestDistance(actor.EyePos, actor.ViewPoint, true)
 						:MagnitudeIsGreaterThan(
 							math.min(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight) * 0.5 - 25
 						)
@@ -1913,23 +1839,21 @@ function VoidWanderers:GiveXP(actor, xp)
 				else
 					effect.Pos = actor.AboveHUDPos + Vector(math.random(-5, 5), -math.random(5))
 				end
-				effect:SetNumberValue("XPGained", xp)
-				if levelUp then
-					effect:SetNumberValue("IsLevelUp", nextRank + 1)
-				end
-				MovableMan:AddParticle(effect)
+
+				MovableMan:AddParticle(effect);
 			end
 
 			if levelUp then
-				actor:SetNumberValue("VW_Rank", actor:GetNumberValue("VW_Rank") + 1)
-				actor:FlashWhite(50)
+				actor:SetNumberValue("VW_Rank", actor:GetNumberValue("VW_Rank") + 1);
+				actor:FlashWhite(50);
+
 				if not self.levelUpSound:IsBeingPlayed() then
-					self.levelUpSound:Play(actor.Pos)
+					self.levelUpSound:Play(actor.Pos);
 				end
-				actor.Health = math.min(actor.Health + actor.Health * 0.5, actor.MaxHealth)
+
+				actor.Health = math.min(actor.Health + actor.Health * 0.5, actor.MaxHealth);
 			end
 		end
-		--print(actor.PresetName .. (xp < 0 and " lost " or " gained ") .. xp .. " XP!")
 	end
 end
 -----------------------------------------------------------------------------------------
@@ -2600,7 +2524,7 @@ function VoidWanderers:GiveMissionRewards(disablepenalties)
 	self:SetTeamFunds(CF.ChangeGold(self.GS, self.missionData["goldReward"]), CF.PlayerTeam)
 
 	-- Refresh Black Market listing after every completed mission
-	self.GS["BlackMarket" .. "Station Ypsilon-2" .. "ItemsLastRefresh"] = nil
+	self.GS["BlackMarket" .. "Station Ypsilon-2" .. "LastRefresh"] = nil
 
 	if self.GS["BlackMarket" .. "Station Ypsilon-2" .. "ActorsLastRefresh"] ~= nil then
 		local last = tonumber(self.GS["BlackMarket" .. "Station Ypsilon-2" .. "ActorsLastRefresh"])

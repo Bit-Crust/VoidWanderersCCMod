@@ -112,7 +112,7 @@ function VoidWanderers:MissionCreate()
 					not self.missionData["artifactSpawned"]
 					and math.random() < self.missionData["difficulty"] / 100
 				then
-					a:AddInventoryItem(CreateHeldDevice("Blackprint", CF.ModuleName))
+					a:AddInventoryItem(CF.CreateBlackPrint(self.GS))
 					self.missionData["artifactSpawned"] = true
 				end
 				MovableMan:AddActor(a)
@@ -160,7 +160,7 @@ function VoidWanderers:MissionUpdate()
 					not self.missionData["artifactSpawned"]
 					and math.random() < self.missionData["difficulty"] / 200
 				then
-					a:AddInventoryItem(CreateHeldDevice("Blackprint", CF.ModuleName))
+					a:AddInventoryItem(CF.CreateBlackPrint(self.GS))
 					self.missionData["artifactSpawned"] = true
 				end
 				MovableMan:AddActor(a)

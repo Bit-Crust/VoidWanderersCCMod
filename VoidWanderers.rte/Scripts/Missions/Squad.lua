@@ -42,7 +42,7 @@ function VoidWanderers:MissionCreate()
 	self.missionData["brain"] = CF.MakeRPGBrain(self.GS, self.missionData["missionTarget"], CF.CPUTeam, brain[1], self.missionData["difficulty"])
 	if self.missionData["brain"] then
 		MovableMan:AddActor(self.missionData["brain"])
-		self.missionData["brain"]:AddInventoryItem(CreateHeldDevice("Blueprint", CF.ModuleName))
+		self.missionData["brain"]:AddInventoryItem(CF.CreateBluePrint(self.GS, self.missionData["missionContractor"]))
 	end
 	self.missionData["sentryRadius"] = 100 + math.sqrt(FrameMan.PlayerScreenHeight ^ 2 + FrameMan.PlayerScreenWidth ^ 2) * 0.5
 

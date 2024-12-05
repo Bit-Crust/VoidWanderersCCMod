@@ -66,7 +66,7 @@ function VoidWanderers:MissionCreate()
 	if self.missionData["brain"] then
 		MovableMan:AddActor(self.missionData["brain"])
 		if math.random(CF.MaxDifficulty) <= self.missionData["difficulty"] then
-			self.missionData["brain"]:AddInventoryItem(CreateHeldDevice("Blueprint", CF.ModuleName))
+			self.missionData["brain"]:AddInventoryItem(CF.CreateBluePrint(self.GS, self.missionData["missionContractor"]));
 		end
 	else
 		error("Can't create CPU brain")

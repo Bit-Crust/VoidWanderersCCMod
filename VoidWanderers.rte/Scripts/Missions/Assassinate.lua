@@ -79,7 +79,9 @@ function VoidWanderers:MissionCreate()
 		self.missionData["brain"]:AddToGroup("MissionBrain")
 		MovableMan:AddActor(self.missionData["brain"])
 		if math.random(CF.MaxDifficulty) <= diff then
-			self.missionData["brain"]:AddInventoryItem(CreateHeldDevice("Blueprint", CF.ModuleName))
+			local ours = math.random(0,1) == 0;
+			self.missionData["brain"]:AddInventoryItem(CF.CreateBluePrint(self.GS, ours and self.missionData["missionContractor"] or self.missionData["missionTarget"]));
+			print("The enemy has some of " .. (ours and "our" or "their") .. " classified information, see if you can't retrieve it.");
 		end
 	end
 

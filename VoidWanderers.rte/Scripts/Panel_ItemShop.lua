@@ -221,7 +221,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 				if itm ~= nil then
 					-- Get item description
 					self.ItemShopSelectedItemDescription = self.ItemShopItems[itm]["Description"]
-					self.ItemShopSelectedItemManufacturer = CF.FactionNames[self.ItemShopItems[itm]["Faction"]]
+					self.ItemShopSelectedItemManufacturer = self.ItemShopItems[itm]["Faction"]
 					self.ItemShopSelectedItemPrice = self.ItemShopItems[itm]["Price"]
 					self.ItemShopSelectedItemType = self.ItemShopItems[itm]["Type"]
 

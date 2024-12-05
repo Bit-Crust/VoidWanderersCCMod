@@ -557,6 +557,142 @@ CF.CreateAIUnitPresets = function(c, p, tech)
 	end -- If preequipped
 end
 -----------------------------------------------------------------------------------------
+-- Create a generic text effect
+-----------------------------------------------------------------------------------------
+CF.CreateTextEffect = function(text)
+	local effect = CreateMOPixel("Text Effect", "VoidWanderers.rte");
+	
+	effect:SetStringValue("VW_Text", text);
+
+	significance = math.max(0.001, math.sqrt(FrameMan:CalculateTextWidth(text, false)));
+
+	effect.Lifetime = effect.Lifetime * significance;
+	effect.Vel = Vector(0, -2) / significance;
+
+	return effect;
+end
+-----------------------------------------------------------------------------------------
+-- Checks if a <preset> from <module> of type <class> has already been unlocked with a <kind>.
+-----------------------------------------------------------------------------------------
+CF.IsEntityUnlocked = function(c, kind, class, preset, module)
+	return (not not c["Unlocked" .. kind .. "_" .. class .. "_" .. preset .. "_" .. module]);
+end
+-----------------------------------------------------------------------------------------
+-- Sets if a <preset> from <module> of type <class> has already been unlocked with a <kind>.
+-----------------------------------------------------------------------------------------
+CF.SetEntityUnlocked = function(c, kind, class, preset, module, unlocked)
+	c["Unlocked" .. kind .. "_" .. class .. "_" .. preset .. "_" .. module] = unlocked;
+end
+-----------------------------------------------------------------------------------------
+-- Creates a blueprint for given <faction>.
+-- Returns the blueprint, and whether an unlock could be found.
+-----------------------------------------------------------------------------------------
+CF.CreateBluePrint = function(c, faction)
+	local blueprint = CreateHeldDevice("Blueprint", CF.ModuleName);
+
+	-- Spec ops carries their own data, or your data, or someone's data, anyhow
+	local participant = faction or math.random(tonumber(c["ActiveCPUs"]));
+	local factionName = c["Player" .. participant .. "Faction"];
+	local unlock = nil;
+
+	-- If we've got a faction, look for items or actors.
+	-- If the data owner has a strong enough opinion of us we can have anything.
+	-- In the other case, pick something, doesn't have to be valid.
+	if factionName ~= nil then
+		-- What we're pulling from, and what we're pulling from it.
+		local itemList;
+		local contentIndex;
+
+		local classes, presets, modules;
+
+		-- Look for actors sometimes, but usually just items.
+		if math.random() < 0.25 then
+			itemList = CF.MakeListOfMostPowerfulActors(c, participant, CF.ActorTypes.ANY, math.abs(tonumber(c["Player" .. participant .. "Reputation"])));
+			contentIndex = "Actor";
+
+			classes = CF.ActClasses[factionName];
+			presets = CF.ActPresets[factionName];
+			modules = CF.ActModules[factionName];
+		else
+			itemList = CF.MakeListOfMostPowerfulWeapons(c, participant, CF.WeaponTypes.ANY, math.abs(tonumber(c["Player" .. participant .. "Reputation"])));
+			contentIndex = "Item";
+
+			classes = CF.ItmClasses[factionName];
+			presets = CF.ItmPresets[factionName];
+			modules = CF.ItmModules[factionName];
+		end
+					
+		-- Check the item list.
+		-- TODO: Do not excuse leaving out class information in public release.
+		if itemList ~= nil then
+			for _, potentialUnlock in pairs(itemList) do
+				local objectClass = classes[potentialUnlock[contentIndex]] or (contentIndex == "Item" and "HDFirearm" or "AHuman");
+				local objectPreset = presets[potentialUnlock[contentIndex]];
+				local objectModule = modules[potentialUnlock[contentIndex]];
+				
+				if objectPreset and objectModule ~= "Base.rte" and not CF.IsEntityUnlocked(c, "Blueprint", objectClass, objectPreset, objectModule) then
+					unlock = { objectClass, objectPreset, objectModule };
+					break;
+				end
+			end
+		end
+
+		-- Do a random pull as backup.
+		if unlock == nil then
+			local index = math.random(#presets);
+			local objectClass = classes[index];
+			local objectPreset = presets[index];
+			local objectModule = modules[index];
+			unlock = { objectClass, objectPreset, objectModule };
+		end
+	end
+				
+	if unlock ~= nil then
+		blueprint:SetStringValue("VW_Text", unlock[2] .. " blueprint unlocked!\\nThe Trade Star will update their catalog shortly.");
+		blueprint:SetStringValue("VW_ClassUnlock", unlock[1]);
+		blueprint:SetStringValue("VW_PresetUnlock", unlock[2]);
+		blueprint:SetStringValue("VW_ModuleUnlock", unlock[3]);
+	end
+	
+	return blueprint;
+end
+-----------------------------------------------------------------------------------------
+-- Creates a blackprint.
+-- Returns the blackprint, and whether an unlock was found.
+-----------------------------------------------------------------------------------------
+CF.CreateBlackPrint = function(c)
+	local blackprint = CreateHeldDevice("Blueprint", CF.ModuleName);
+	
+	local unlock = nil;
+	local classes, presets, modules;
+
+	if math.random() < 0.25 then
+		classes = CF.ArtActClasses;
+		presets = CF.ArtActPresets;
+		modules = CF.ArtActModules;
+	else
+		classes = CF.ArtItmClasses;
+		presets = CF.ArtItmPresets;
+		modules = CF.ArtItmModules;
+	end
+
+	local index = math.random(#presets);
+	local objectClass = classes[index];
+	local objectPreset = presets[index];
+	local objectModule = modules[index];
+
+	unlock = { objectClass, objectPreset, objectModule };
+				
+	if unlock ~= nil then
+		blackprint:SetStringValue("VW_Text", unlock[2] .. " blackprint unlocked!\nThe Black Market will update their catalog shortly.");
+		blackprint:SetStringValue("VW_ClassUnlock", unlock[1]);
+		blackprint:SetStringValue("VW_PresetUnlock", unlock[2]);
+		blackprint:SetStringValue("VW_ModuleUnlock", unlock[3]);
+	end
+	
+	return blackprint;
+end
+-----------------------------------------------------------------------------------------
 --	Create actor from preset pre, where c - gameState, p - player, t - territory, pay gold is pay == true
 -- 	returns actor or nil, also returns actor offset, value wich you must add to default actor position to
 -- 	avoid actor hang in the air, used mainly for turrets

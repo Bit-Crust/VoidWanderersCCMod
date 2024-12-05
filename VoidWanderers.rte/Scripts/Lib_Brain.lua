@@ -5,77 +5,73 @@
 -----------------------------------------------------------------------------------------
 -- 
 -----------------------------------------------------------------------------------------
-CF.GetAvailableQuantumItems = function(c)
-	local arr = {}
+function CF.GetAvailableQuantumItems(gs)
+	local items = {};
+	local qItems = CF.QuantumItems;
+	local classes = CF.QuantumItmClasses;
+	local presets = CF.QuantumItmPresets;
+	local modules = CF.QuantumItmModules;
 
-	for i = 1, #CF.QuantumItems do
-		local id = CF.QuantumItems[i]
+	for i = 1, #qItems do
+		local id = qItems[i];
 
-		if c["QuantumItemUnlocked_" .. id] == "True" then
-			local n = #arr + 1
-			arr[n] = {}
-			arr[n]["ID"] = id
-			arr[n]["Preset"] = CF.QuantumItmPresets[id]
-			arr[n]["Class"] = CF.QuantumItmClasses[id]
-			arr[n]["Module"] = CF.QuantumItmModules[id]
-			arr[n]["Price"] = math.ceil(CF.QuantumItmPrices[id] / 2)
+		if CF.IsEntityUnlocked(gs, "Quantum", classes[id], presets[id], modules[id]) then
+			local item = {};
+			item["ID"] = id;
+			item["Class"] = classes[id];
+			item["Preset"] = presets[id];
+			item["Module"] = modules[id];
+			item["Price"] = CF.QuantumItmPrices[id];
+			table.insert(items, item);
 		end
 	end
 
-	return arr
+	return items;
 end
 -----------------------------------------------------------------------------------------
 -- 
 -----------------------------------------------------------------------------------------
-CF.UnlockRandomQuantumItem = function(c)
-	local id = CF.QuantumItems[math.random(#CF.QuantumItems)]
+function CF.RandomLockedQuantumItem(gs)
+	local lockedItems = {};
+	local qItems = CF.QuantumItems;
+	local classes = CF.QuantumItmClasses;
+	local presets = CF.QuantumItmPresets;
+	local modules = CF.QuantumItmModules;
 
-	c["QuantumItemUnlocked_" .. id] = "True"
+	for i = 1, #qItems do
+		local id = qItems[i];
 
-	return id
-end
------------------------------------------------------------------------------------------
--- 
------------------------------------------------------------------------------------------
-CF.SaveThisBrainSupplies = function(c, self)
-	if self.BrainNumber > -1 then
-		c["Brain" .. self.BrainNumber .. "Fix_Count"] = self.RepairCount
-		c["Brain" .. self.BrainNumber .. "Heal_Count"] = self.HealCount
-		c["Brain" .. self.BrainNumber .. "SelfHeal_Count"] = self.SelfHealCount
-		c["Brain" .. self.BrainNumber .. "QuantumStorage"] = self.QuantumStorage
+		if not CF.IsEntityUnlocked(gs, "Quantum", classes[id], presets[id], modules[id]) then
+			table.insert(lockedItems, id);
+		end
 	end
+
+	return lockedItems[math.random(#lockedItems)];
 end
 -----------------------------------------------------------------------------------------
 -- 
 -----------------------------------------------------------------------------------------
-CF.LoadThisBrainSupplies = function(c, self)
-	if self.BrainNumber > -1 then
-		local val = tonumber(c["Brain" .. self.BrainNumber .. "Fix_Count"])
-		if val ~= nil then
-			self.RepairCount = val
-		end
-
-		local val = tonumber(c["Brain" .. self.BrainNumber .. "Heal_Count"])
-		if val ~= nil then
-			self.HealCount = val
-		end
-
-		local val = tonumber(c["Brain" .. self.BrainNumber .. "SelfHeal_Count"])
-		if val ~= nil then
-			self.SelfHealCount = val
-		end
-
-		local val = tonumber(c["Brain" .. self.BrainNumber .. "QuantumStorage"])
-		if val ~= nil then
-			self.QuantumStorage = val
-		end
+function CF.UnlockRandomQuantumItem(gs)
+	local qItem = CF.RandomLockedQuantumItem(gs);
+	local classes = CF.QuantumItmClasses;
+	local presets = CF.QuantumItmPresets;
+	local modules = CF.QuantumItmModules;
+	CF.SetEntityUnlocked(gs, "Quantum", classes[qItem], presets[qItem], modules[qItem], true);
+end
+-----------------------------------------------------------------------------------------
+-- 
+-----------------------------------------------------------------------------------------
+function CF.SetPlayerQuantumSubstance(gs, player, substance)
+	if player > Activity.PLAYER_NONE and player < Activity.MAXPLAYERCOUNT then
+		gs["Brain" .. player .. "QuantumStorage"] = tostring(substance);
 	end
 end
 -----------------------------------------------------------------------------------------
 -- 
 -----------------------------------------------------------------------------------------
-CF.ClearAllBrainsSupplies = function(c, b)
-	c["Brain" .. b .. "Fix_Count"] = nil
-	c["Brain" .. b .. "Heal_Count"] = nil
-	c["Brain" .. b .. "SelfHeal_Count"] = nil
+function CF.GetPlayerQuantumSubstance(gs, player)
+	if player > Activity.PLAYER_NONE and player < Activity.MAXPLAYERCOUNT then
+		return tonumber(gs["Brain" .. player .. "QuantumStorage"]);
+	end
+	return nil;
 end

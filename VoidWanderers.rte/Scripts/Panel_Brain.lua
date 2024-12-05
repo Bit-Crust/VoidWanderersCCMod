@@ -65,7 +65,6 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 
 						-- Then record
 						self.GS["Brain" .. player .. "Detached"] = "True"
-						CF.ClearAllBrainsSupplies(self.GS, player)
 						self.createdBrainCases[player] = nil
 						act.ToDelete = true
 
