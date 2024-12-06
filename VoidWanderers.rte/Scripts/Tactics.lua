@@ -154,35 +154,34 @@ function VoidWanderers:StartActivity(isNewGame)
 			self.GS["DeserializeOnboard"] = "False"
 
 			for i = 1, CF.MaxSavedActors do
-				if false and self.onboardActors and self.onboardActors[i] then
-					local actor = self.onboardActors[i]
+				if self.onboardActors and self.onboardActors[i] then
+					local actor = self.onboardActors[i]:Clone();
+					self.onboardActors[i] = nil;
 
-					local x = self.GS["Actor" .. i .. "X"]
-					local y = self.GS["Actor" .. i .. "Y"]
+					local x = self.GS["Actor" .. i .. "X"];
+					local y = self.GS["Actor" .. i .. "Y"];
 
 					if x and y then
 						actor.Pos = Vector(tonumber(x), tonumber(y))
 					else
-						actor.Pos = self.AwayTeamPos[dest]
-						dest = dest + 1
+						actor.Pos = self.AwayTeamPos[dest];
+						dest = dest + 1;
 
 						if dest > #self.AwayTeamPos then
-							dest = 1
+							dest = 1;
 						end
 					end
 
 					if IsAHuman(actor) and ToAHuman(actor).Head == nil then
-						actor.DeathSound = nil
-						actor.Status = Actor.DEAD
+						actor.DeathSound = nil;
+						actor.Status = Actor.DEAD;
 					end
 
-					actor.AIMode = Actor.AIMODE_SENTRY
-					actor:ClearMovePath()
-					actor.Vel = actor.Vel * 0
-					actor.AngularVel = actor.AngularVel * 0
-					MovableMan:AddActor(actor:Clone())
-					actor = nil
-					self.onboardActors[i] = nil
+					actor.AIMode = Actor.AIMODE_SENTRY;
+					actor:ClearMovePath();
+					actor.Vel = actor.Vel * 0;
+					actor.AngularVel = actor.AngularVel * 0;
+					MovableMan:AddActor(actor);
 				elseif self.GS["Actor" .. i .. "Preset"] then
 					local limbData = {}
 					for j = 1, #CF.LimbID do
@@ -252,8 +251,9 @@ function VoidWanderers:StartActivity(isNewGame)
 			self.GS["DeserializeDeployedTeam"] = "False"
 		
 			for i = 1, CF.MaxSavedActors do
-				if false and self.deployedActors and self.deployedActors[i] then
-					local actor = self.deployedActors[i]
+				if self.deployedActors and self.deployedActors[i] then
+					local actor = self.deployedActors[i]:Clone();
+					self.deployedActors[i] = nil;
 
 					local x = self.GS["Deployed" .. i .. "X"]
 					local y = self.GS["Deployed" .. i .. "Y"]
@@ -278,7 +278,7 @@ function VoidWanderers:StartActivity(isNewGame)
 					actor:ClearMovePath()
 					actor.Vel = actor.Vel * 0
 					actor.AngularVel = actor.AngularVel * 0
-					MovableMan:AddActor(actor:Clone())
+					MovableMan:AddActor(actor)
 				elseif self.GS["Deployed" .. i .. "Preset"] then
 					local limbData = {}
 					for j = 1, #CF.LimbID do
@@ -391,36 +391,35 @@ function VoidWanderers:StartActivity(isNewGame)
 			self.GS["DeserializeDeployedTeam"] = "False"
 			self.GS["MissionDeployedTroops"] = 1
 			for i = 1, CF.MaxSavedActors do
-				if false and self.deployedActors and self.deployedActors[i] then
-					local actor = self.deployedActors[i]
+				if self.deployedActors and self.deployedActors[i] then
+					local actor = self.deployedActors[i]:Clone();
+					self.deployedActors[i] = nil;
 
-					local x = self.GS["Deployed" .. i .. "X"]
-					local y = self.GS["Deployed" .. i .. "Y"]
+					local x = self.GS["Deployed" .. i .. "X"];
+					local y = self.GS["Deployed" .. i .. "Y"];
 
 					if x and y then
-						actor.Pos = Vector(tonumber(x), tonumber(y))
+						actor.Pos = Vector(tonumber(x), tonumber(y));
 					else
-						actor.Pos = dsts[dest]
-						dest = dest + 1
+						actor.Pos = dsts[dest];
+						dest = dest + 1;
 
 						if dest > #dsts then
-							dest = 1
+							dest = 1;
 						end
 					end
 
 					if IsAHuman(actor) and ToAHuman(actor).Head == nil then
-						actor.DeathSound = nil
-						actor.Status = Actor.DEAD
+						actor.DeathSound = nil;
+						actor.Status = Actor.DEAD;
 					end
 
-					actor.AIMode = Actor.AIMODE_SENTRY
-					actor:ClearMovePath()
-					actor.Vel = actor.Vel * 0
-					actor.AngularVel = actor.AngularVel * 0
-					MovableMan:AddActor(actor:Clone())
-					actor = nil
-					self.onboardActors[i] = nil
-					self.GS["MissionDeployedTroops"] = tonumber(self.GS["MissionDeployedTroops"]) + 1
+					actor.AIMode = Actor.AIMODE_SENTRY;
+					actor:ClearMovePath();
+					actor.Vel = actor.Vel * 0;
+					actor.AngularVel = actor.AngularVel * 0;
+					MovableMan:AddActor(actor);
+					self.GS["MissionDeployedTroops"] = tonumber(self.GS["MissionDeployedTroops"]) + 1;
 				elseif self.GS["Deployed" .. i .. "Preset"] then
 					local limbData = {}
 					for j = 1, #CF.LimbID do

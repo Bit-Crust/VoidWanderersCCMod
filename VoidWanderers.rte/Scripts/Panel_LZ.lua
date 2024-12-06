@@ -478,7 +478,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 						end
 						
 						for _, actor in pairs(self.deployedActors) do
-							MovableMan:RemoveActor(actor)
+							self.deployedActors[_] = MovableMan:RemoveActor(actor)
 						end
 
 						self.GS["DeserializeDeployedTeam"] = "True"
