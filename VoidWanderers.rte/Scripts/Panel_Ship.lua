@@ -1925,7 +1925,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							self.GS["Scene"] = CF.VesselScene[self.GS["PlayerVessel"]]
 
 							-- Save everything and restart script
-							self:SaveActors(true)
+							self:SaveActors(true);
+							self.GS["DeserializeOnboard"] = "True";
 
 							self:SaveCurrentGameState()
 							self.EnableBrainSelection = false

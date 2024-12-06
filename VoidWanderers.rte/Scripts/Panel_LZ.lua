@@ -471,7 +471,8 @@ function VoidWanderers:ProcessLZControlPanelUI()
 								end
 
 								if actor.GoldCarried then
-									totalGoldCarried = totalGoldCarried + actor.GoldCarried
+									totalGoldCarried = totalGoldCarried + actor.GoldCarried;
+									actor.GoldCarried = 0;
 								end
 								--print (#pre)
 							end

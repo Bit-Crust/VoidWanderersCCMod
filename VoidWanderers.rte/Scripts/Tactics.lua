@@ -41,6 +41,9 @@ function VoidWanderers:StartActivity(isNewGame)
 	self.HoldTimer = Timer()
 	self.HoldTimer:Reset()
 
+	self.SceneTimer = Timer()
+	self.SceneTimer:Reset();
+
 	-- All items in this queue will be removed
 	self.ItemRemoveQueue = {}
 
@@ -995,16 +998,10 @@ function VoidWanderers:UpdateActivity()
 				local rank = actor:GetNumberValue("VW_Rank")
 				local name = actor:GetStringValue("VW_Name")
 				local velOffset = actor.Vel * rte.PxTravelledPerFrame
-
 				local offsetY = (actor:IsPlayerControlled() and actor.ItemInReach) and -8 or -1
-				if (name and name ~= "") or (CF.TypingActor and CF.TypingActor.ID == actor.ID) then
-					PrimitiveMan:DrawTextPrimitive(
-						actor.AboveHUDPos + velOffset + Vector(1, offsetY - 7),
-						name,
-						false,
-						1
-					)
-				elseif isFriendly then
+				local nameToDisplay = (name and name ~= "") or (CF.TypingActor and CF.TypingActor.ID == actor.ID);
+
+				if (not nameToDisplay) and isFriendly then
 					local icons = {}
 					if self:IsAlly(actor) then
 						if not pieMenuOpen then
@@ -1088,55 +1085,115 @@ function VoidWanderers:UpdateActivity()
 						end
 					end
 				end
-				if rank > 0 or prestige > 0 then
-					local pos = actor.Pos + velOffset + Vector(-20, 8 - actor.Height * 0.5)
 
-					self:DrawRankIcon(rank, pos, prestige)
-					if pieMenuOpen then
-						local progress = CF.Ranks[rank + 1]
-								and actor:GetNumberValue("VW_XP") .. "/" .. CF.Ranks[rank + 1]
-							or CF.Ranks[rank] .. "/" .. CF.Ranks[rank]
+				-- If not a brain, and if enemy, then at least one rank,
+				if not actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") and (rank > 0 or actor.Team == CF.PlayerTeam) then
+					-- Get a reasonable position for the overhead, and the whose player it is,
+					local aboveHeadPos = actor.Pos + velOffset + Vector(-20, 8 - actor.Height * 0.5);
+					local actorPlayer = actor:GetController().Player;
+
+					-- Then if we're not user controlled, all players have the same regular view,
+					if actorPlayer == Activity.PLAYER_NONE then
+						self:DrawRankIcon(actorPlayer, aboveHeadPos, rank, prestige);
 						PrimitiveMan:DrawTextPrimitive(
-							self:ScreenOfPlayer(cont.Player),
-							pos + Vector(0, 5),
-							progress,
-							true,
+							actorPlayer,
+							actor.AboveHUDPos + velOffset + Vector(1, offsetY - 7),
+							name,
+							false,
 							1
-						)
-					end
-					if prestige > 7 then
-						PrimitiveMan:DrawTextPrimitive(Activity.PLAYER_NONE, pos, "+" .. (prestige - 7), true, 0)
+						);
+					else
+						-- Otherwise, display in the top left for the controlling player, and regularly otherwise.
+						for player = Activity.PLAYER_NONE + 1, Activity.MAXPLAYERCOUNT - 1 do
+							if actorPlayer == player then
+								camOff = CameraMan:GetOffset(player);
+
+								local progress = prestige > 0 and ("+" .. prestige) or "";
+								local pos = camOff + Vector(27, 12) + Vector(56, 0);
+								PrimitiveMan:DrawTextPrimitive(player, pos, progress, false, 0);
+								pos = camOff + Vector(27, 24);
+								PrimitiveMan:DrawTextPrimitive(player, pos, name, false, 0);
+
+								local start, stop = camOff + Vector(28, 17), camOff + Vector(28, 17) + Vector(50, 6);
+								PrimitiveMan:DrawBoxFillPrimitive(player, start, stop, 80);
+								start, stop = camOff + Vector(27, 16), camOff + Vector(27, 16) + Vector(50, 6);
+								PrimitiveMan:DrawBoxFillPrimitive(player, start, stop, 118);
+								start, stop = camOff + Vector(28, 17), camOff + Vector(28, 17) + Vector(48, 4);
+								PrimitiveMan:DrawBoxFillPrimitive(player, start, stop, 80);
+
+								local capped = CF.Ranks[rank + 1] == nil;
+								local progress = capped and 1 or (actor:GetNumberValue("VW_XP") - (CF.Ranks[rank] or 0)) / (CF.Ranks[rank + 1] - (CF.Ranks[rank] or 0));
+								
+								for i = 1, math.floor(progress * 24) do
+									local display = (not capped) or ((self.SceneTimer.ElapsedSimTimeMS + i / 24 * 1500) % 1500 < 750);
+									if display then
+										PrimitiveMan:DrawBoxFillPrimitive(
+											player,
+											camOff + Vector(27 + 2*i, 18),
+											camOff + Vector(27 + 2*i, 18) + Vector(0, 2),
+											71
+										);
+										PrimitiveMan:DrawBoxFillPrimitive(
+											player,
+											camOff + Vector(27 + 2*i, 19),
+											camOff + Vector(27 + 2*i, 19),
+											118
+										);
+									end
+								end
+								self:DrawRankIcon(
+									player,
+									camOff + Vector(19, 20),
+									rank,
+									prestige
+								);
+							else
+								self:DrawRankIcon(player, aboveHeadPos, rank, prestige);
+								PrimitiveMan:DrawTextPrimitive(
+									player,
+									actor.AboveHUDPos + velOffset + Vector(1, offsetY - 7),
+									name,
+									false,
+									1
+								);
+							end
+						end
 					end
 				end
 			end
 		end
 
 		-- Enable prestige where needed
-		local actorMaxxed = actor:GetNumberValue("VW_XP") >= CF.Ranks[#CF.Ranks]
+		local actorMaxxed = actor:GetNumberValue("VW_XP") >= CF.Ranks[#CF.Ranks];
 		if actorMaxxed or actor:GetNumberValue("VW_Prestige") >= 1 then
-			actor.PieMenu:AddPieSliceIfPresetNameIsUnique(CF.PrestigeSlice:Clone(), self)
-			local pie = actor.PieMenu:GetFirstPieSliceByPresetName(CF.PrestigeSlice.PresetName)
+			local pie = actor.PieMenu:GetFirstPieSliceByPresetName(CF.PrestigeSlice.PresetName);
+			if not pie then
+				actor.PieMenu:AddPieSliceIfPresetNameIsUnique(CF.PrestigeSlice:Clone(), self);
+				pie = actor.PieMenu:GetFirstPieSliceByPresetName(CF.PrestigeSlice.PresetName);
+			end
 			if pie then
-				pie.Enabled = actorMaxxed
+				pie.Enabled = actorMaxxed;
 			end
 		end
 
 		-- Process prestige request
 		if actorMaxxed and actor:NumberValueExists("VW_AttemptPrestige") then
-			actor:RemoveNumberValue("VW_AttemptPrestige")
-			actor:RemoveWounds(actor.WoundCount)
-			actor.Health = actor.MaxHealth
+			actor:RemoveNumberValue("VW_AttemptPrestige");
+			actor:RemoveWounds(actor.WoundCount);
+			actor.Health = actor.MaxHealth;
 
-			CF.UnBuffActor(actor, actor:GetNumberValue("VW_Rank"), actor:GetNumberValue("VW_Prestige"))
-			actor:SetNumberValue("VW_XP", math.floor((actor:GetNumberValue("VW_XP") - CF.Ranks[#CF.Ranks]) / 2))
-			actor:SetNumberValue("VW_Rank", 0)
-			actor:SetNumberValue("VW_Prestige", actor:GetNumberValue("VW_Prestige") + 1)
-			CF.BuffActor(actor, actor:GetNumberValue("VW_Rank"), actor:GetNumberValue("VW_Prestige"))
-			local cont = actor:GetController()
+			CF.UnBuffActor(actor, actor:GetNumberValue("VW_Rank"), actor:GetNumberValue("VW_Prestige"));
+			actor:SetNumberValue("VW_XP", 0);
+			actor:SetNumberValue("VW_Rank", 0);
+			actor:SetNumberValue("VW_Prestige", actor:GetNumberValue("VW_Prestige") + 1);
+			CF.BuffActor(actor, actor:GetNumberValue("VW_Rank"), actor:GetNumberValue("VW_Prestige"));
+			local cont = actor:GetController();
 			if cont:IsMouseControlled() or cont:IsKeyboardOnlyControlled() then
-				CF.SetNamingActor(actor, cont.Player)
+				CF.SetNamingActor(actor, cont.Player);
 			end
 		end
+
+		self:LevelUp(actor);
 	end
 
 	if self.encounterData["initialized"] then
@@ -1180,9 +1237,9 @@ function VoidWanderers:UpdateActivity()
 				count = count + 1
 
 				if
-					self.Time % 4 == 0
+					self.GS["BrainsOnMission"] ~= "True"
+					and self.Time % 4 == 0
 					and count > tonumber(self.GS["PlayerVesselCommunication"])
-					and self.GS["BrainsOnMission"] ~= "True"
 					and actor:GetNumberValue("VW_Prestige") == 0
 				then
 					local cont = actor:GetController()
@@ -1750,62 +1807,65 @@ end
 -- Draw rank icon via blending primitives with palettes.
 -- Palettes are introduced as common RGB byte values that are processed by the loop below.
 -----------------------------------------------------------------------------------------
-local rankBaseColor = {
-	{72,40,8},
-	{56,8,8},
-	{24,44,8},
-	{8,8,40},
-	{56,40,56},
-	{8,24,40},
-	{80,20,40},
-	{56,8,8}
-}
-local rankRaisedColor = {
-	{250,234,121},
-	{230,24,8},
-	{121,178,68},
-	{125,190,246},
-	{218,218,226},
-	{76,238,255},
-	{218,218,226},
-	{234,153,28}
-}
-local rankEmbossColor = {
-	{198,133,64},
-	{170,24,8},
-	{109,121,20},
-	{52,113,198},
-	{165,170,170},
-	{52,113,198},
-	{170,93,101},
-	{170,24,8}
-}
+do
+	local rankBaseColor = {
+		{72,40,8},
+		{56,8,8},
+		{24,44,8},
+		{8,8,40},
+		{56,40,56},
+		{8,24,40},
+		{80,20,40},
+		{56,8,8}
+	}
+	local rankRaisedColor = {
+		{250,234,121},
+		{230,24,8},
+		{121,178,68},
+		{125,190,246},
+		{218,218,226},
+		{76,238,255},
+		{218,218,226},
+		{234,153,28}
+	}
+	local rankEmbossColor = {
+		{198,133,64},
+		{170,24,8},
+		{109,121,20},
+		{52,113,198},
+		{165,170,170},
+		{52,113,198},
+		{170,93,101},
+		{170,24,8}
+	}
 
-for _, part in pairs({ rankBaseColor, rankRaisedColor, rankEmbossColor }) do
-	for _, palette in pairs(part) do
-		for channel = 1, #palette do
-			palette[channel] = (1 - palette[channel] / 255) * 100
+	for _, part in pairs{ rankBaseColor, rankRaisedColor, rankEmbossColor } do
+		for _, palette in pairs(part) do
+			for channel = 1, #palette do
+				palette[channel] = (1 - palette[channel] / 255) * 100
+			end
 		end
 	end
-end
 
-function VoidWanderers:DrawRankIcon(preset, pos, prestige)
-	if preset then
-		local p = math.min(prestige + 1, 8)
-		local primitive = BitmapPrimitive(Activity.PLAYER_NONE, pos, self.RankShadeIcon, 0, preset, false, false)
-		PrimitiveMan:DrawPrimitives(DrawBlendMode.NoBlend, 000, 000, 000, 0, { primitive })
+	function VoidWanderers:DrawRankIcon(player, pos, rank, prestige)
+		player = player or Activity.PLAYER_NONE;
+		if rank then
+			local p = math.min(prestige + 1, 8)
+			local primitive = BitmapPrimitive(player, pos, self.RankShadeIcon, 0, rank, false, false)
+			PrimitiveMan:DrawPrimitives(DrawBlendMode.NoBlend, 000, 000, 000, 0, { primitive })
 
-		local pal = rankBaseColor
-		primitive = BitmapPrimitive(Activity.PLAYER_NONE, pos, self.RankBaseIcon, 0, preset, false, false)
-		PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive })
+			local pal = rankBaseColor
+			primitive = BitmapPrimitive(player, pos, self.RankBaseIcon, 0, rank, false, false)
+			PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive })
 		
-		pal = rankRaisedColor
-		primitive = BitmapPrimitive(Activity.PLAYER_NONE, pos, self.RankRaisedIcon, 0, preset, false, false)
-		PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive })
+			pal = rankRaisedColor
+			primitive = BitmapPrimitive(player, pos, self.RankRaisedIcon, 0, rank, false, false)
+			PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive })
 		
-		pal = rankEmbossColor
-		primitive = BitmapPrimitive(Activity.PLAYER_NONE, pos, self.RankEmbossedIcon, 0, preset, false, false)
-		PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive })
+			pal = rankEmbossColor
+			primitive = BitmapPrimitive(player, pos, self.RankEmbossedIcon, 0, rank, false, false)
+			PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive })
+		end
 	end
 end
 -----------------------------------------------------------------------------------------
@@ -1820,8 +1880,7 @@ function VoidWanderers:GiveXP(actor, xp)
 			local newXP = actor:GetNumberValue("VW_XP") + xp;
 			actor:SetNumberValue("VW_XP", newXP);
 
-			local nextRank = CF.Ranks[actor:GetNumberValue("VW_Rank") + 1];
-			local levelUp = nextRank and newXP >= nextRank;
+			local levelup = self:LevelUp(actor);
 
 			if not SceneMan:IsUnseen(actor.Pos.X, actor.Pos.Y, CF.PlayerTeam) then
 				local effect = CF.CreateTextEffect("+" .. xp .. " xp" .. (levelUp and "\nLEVEL UP!" or ""));
@@ -1841,19 +1900,38 @@ function VoidWanderers:GiveXP(actor, xp)
 
 				MovableMan:AddParticle(effect);
 			end
-
-			if levelUp then
-				actor:SetNumberValue("VW_Rank", actor:GetNumberValue("VW_Rank") + 1);
-				actor:FlashWhite(50);
-
-				if not self.levelUpSound:IsBeingPlayed() then
-					self.levelUpSound:Play(actor.Pos);
-				end
-
-				actor.Health = math.min(actor.Health + actor.Health * 0.5, actor.MaxHealth);
-			end
 		end
 	end
+end
+-----------------------------------------------------------------------------------------
+--
+-----------------------------------------------------------------------------------------
+function VoidWanderers:LevelUp(actor)
+	if actor then
+		local experience = actor:GetNumberValue("VW_XP");
+		local rank = actor:GetNumberValue("VW_Rank");
+		local levelup = false;
+		local nextRank = CF.Ranks[rank + 1];
+
+		while nextRank and experience >= nextRank do
+			levelup = true;
+			rank = rank + 1;
+			nextRank = CF.Ranks[rank + 1];
+		end
+
+		if levelup then
+			if not self.levelUpSound:IsBeingPlayed() then
+				self.levelUpSound:Play(actor.Pos);
+			end
+
+			actor:SetNumberValue("VW_Rank", rank);
+			actor:FlashWhite(50);
+			actor.Health = math.min(actor.Health * 1.5, actor.MaxHealth);
+			return true;
+		end
+	end
+
+	return false;
 end
 -----------------------------------------------------------------------------------------
 --
@@ -2068,24 +2146,28 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:ClearActors()
+	self.onboardActors = {};
+
 	for i = 1, CF.MaxSavedActors do
-		self.GS["Actor" .. i .. "Preset"] = nil
-		self.GS["Actor" .. i .. "Class"] = nil
-		self.GS["Actor" .. i .. "Module"] = nil
-		self.GS["Actor" .. i .. "X"] = nil
-		self.GS["Actor" .. i .. "Y"] = nil
-		self.GS["Actor" .. i .. "XP"] = nil
-		self.GS["Actor" .. i .. "Identity"] = nil
-		self.GS["Actor" .. i .. "Player"] = nil
-		self.GS["Actor" .. i .. "Prestige"] = nil
-		self.GS["Actor" .. i .. "Name"] = nil
+		self.GS["Actor" .. i .. "Preset"] = nil;
+		self.GS["Actor" .. i .. "Class"] = nil;
+		self.GS["Actor" .. i .. "Module"] = nil;
+		self.GS["Actor" .. i .. "X"] = nil;
+		self.GS["Actor" .. i .. "Y"] = nil;
+		self.GS["Actor" .. i .. "XP"] = nil;
+		self.GS["Actor" .. i .. "Identity"] = nil;
+		self.GS["Actor" .. i .. "Player"] = nil;
+		self.GS["Actor" .. i .. "Prestige"] = nil;
+		self.GS["Actor" .. i .. "Name"] = nil;
+
 		for j = 1, #CF.LimbID do
-			self.GS["Actor" .. i .. CF.LimbID[j]] = nil
+			self.GS["Actor" .. i .. CF.LimbID[j]] = nil;
 		end
+
 		for j = 1, CF.MaxSavedItemsPerActor do
-			self.GS["Actor" .. i .. "Item" .. j .. "Preset"] = nil
-			self.GS["Actor" .. i .. "Item" .. j .. "Class"] = nil
-			self.GS["Actor" .. i .. "Item" .. j .. "Module"] = nil
+			self.GS["Actor" .. i .. "Item" .. j .. "Preset"] = nil;
+			self.GS["Actor" .. i .. "Item" .. j .. "Class"] = nil;
+			self.GS["Actor" .. i .. "Item" .. j .. "Module"] = nil;
 		end
 	end
 end
@@ -2093,49 +2175,52 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:SaveActors(clearpos)
-	self:ClearActors()
+	self:ClearActors();
 
-	local savedactor = 0
+	local savedactor = 1;
 
 	for actor in MovableMan.Actors do
 		if actor.PresetName ~= "Brain Case" and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
-			local pre, cls, mdl = CF.GetInventory(actor)
-
-			savedactor = savedactor + 1
+			local pre, cls, mdl = CF.GetInventory(actor);
 
 			-- Save actors to config
-			self.GS["Actor" .. savedactor .. "Preset"] = actor.PresetName
-			self.GS["Actor" .. savedactor .. "Class"] = actor.ClassName
-			self.GS["Actor" .. savedactor .. "Module"] = actor.ModuleName
-			self.GS["Actor" .. savedactor .. "XP"] = actor:GetNumberValue("VW_XP")
-			self.GS["Actor" .. savedactor .. "Identity"] = actor:GetNumberValue("Identity")
-			self.GS["Actor" .. savedactor .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
-			self.GS["Actor" .. savedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
-			self.GS["Actor" .. savedactor .. "Name"] = actor:GetStringValue("VW_Name")
+			self.GS["Actor" .. savedactor .. "Preset"] = actor.PresetName;
+			self.GS["Actor" .. savedactor .. "Class"] = actor.ClassName;
+			self.GS["Actor" .. savedactor .. "Module"] = actor.ModuleName;
+			self.GS["Actor" .. savedactor .. "XP"] = actor:GetNumberValue("VW_XP");
+			self.GS["Actor" .. savedactor .. "Identity"] = actor:GetNumberValue("Identity");
+			self.GS["Actor" .. savedactor .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer");
+			self.GS["Actor" .. savedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige");
+			self.GS["Actor" .. savedactor .. "Name"] = actor:GetStringValue("VW_Name");
 			for j = 1, #CF.LimbID do
-				self.GS["Actor" .. savedactor .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
+				self.GS["Actor" .. savedactor .. CF.LimbID[j]] = CF.GetLimbData(actor, j);
 			end
 
-			if clearpos then
-				self.GS["Actor" .. savedactor .. "X"] = nil
-				self.GS["Actor" .. savedactor .. "Y"] = nil
-			else
-				self.GS["Actor" .. savedactor .. "X"] = math.floor(actor.Pos.X)
-				self.GS["Actor" .. savedactor .. "Y"] = math.floor(actor.Pos.Y)
+			if not clearpos then
+				self.GS["Actor" .. savedactor .. "X"] = math.floor(actor.Pos.X);
+				self.GS["Actor" .. savedactor .. "Y"] = math.floor(actor.Pos.Y);
 			end
 
 			for j = 1, #pre do
-				self.GS["Actor" .. savedactor .. "Item" .. j .. "Preset"] = pre[j]
-				self.GS["Actor" .. savedactor .. "Item" .. j .. "Class"] = cls[j]
-				self.GS["Actor" .. savedactor .. "Item" .. j .. "Module"] = mdl[j]
+				self.GS["Actor" .. savedactor .. "Item" .. j .. "Preset"] = pre[j];
+				self.GS["Actor" .. savedactor .. "Item" .. j .. "Class"] = cls[j];
+				self.GS["Actor" .. savedactor .. "Item" .. j .. "Module"] = mdl[j];
 			end
+
+			self.onboardActors[savedactor] = actor;
+			savedactor = savedactor + 1;
 		end
+	end
+
+	for _, actor in pairs(self.onboardActors) do
+		self.onboardActors[_] = MovableMan:RemoveActor(actor);
 	end
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:ClearDeployed()
+	self.deployedActors = {};
 	for i = 1, CF.MaxSavedActors do
 		self.GS["Deployed" .. i .. "Preset"] = nil
 		self.GS["Deployed" .. i .. "Class"] = nil
