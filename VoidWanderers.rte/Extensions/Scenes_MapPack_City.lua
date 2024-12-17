@@ -10,9 +10,8 @@ if PresetMan:GetModuleID("Mappack.rte") ~= -1 then
 	local id = "MapPack-City"
 	CF.Planet[#CF.Planet + 1] = id
 	CF.PlanetName[id] = "MapPack-City"
-	CF.PlanetGlow[id] = "MapPack-City"
+	CF.PlanetGlow[id] = "Mods/VoidWanderers.rte/UI/Planets/MP3-GTC-CTY.png"
 	CF.PlanetPos[id] = Vector(-15, 15)
-	CF.PlanetGlowModule[id] = "VoidWanderers.rte"
 
 	-- Planet locations
 	local id = "Suburbs"

@@ -1,4 +1,4 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionCreate()
 	print("EVACUATE CREATE")
 	
@@ -72,7 +72,7 @@ function VoidWanderers:MissionCreate()
 
 	if self.missionData["brain"] then
 		MovableMan:AddActor(self.missionData["brain"])
-		self:SetAlly(self.missionData["brain"], true)
+		CF.SetAlly(self.missionData["brain"], true)
 		self.missionData["brain"]:AddToGroup("MissionBrain")
 		self.missionData["brain"]:RemoveFromGroup("Brains")
 
@@ -108,9 +108,9 @@ function VoidWanderers:MissionCreate()
 	self.missionData["reinforcementsNext"] = self.Time
 	self.missionData["craft"] = nil
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	if self.missionData["stage"] == CF.MissionStages.ACTIVE then
 		local count = 0
@@ -140,7 +140,7 @@ function VoidWanderers:MissionUpdate()
 						CF.PlayerTeam,
 						GameActivity.ARROWUP
 					)
-					if self:IsAlly(self.missionData["brain"]) and self.missionData["brain"].AIMode ~= Actor.AIMODE_GOTO then
+					if CF.IsAlly(self.missionData["brain"]) and self.missionData["brain"].AIMode ~= Actor.AIMODE_GOTO then
 						self.missionData["brain"].AIMode = Actor.AIMODE_GOTO
 						self.missionData["brain"]:ClearMovePath()
 						self.missionData["brain"]:AddAIMOWaypoint(self.missionData["craft"])
@@ -187,14 +187,14 @@ function VoidWanderers:MissionUpdate()
 						self.missionData["craft"].Team = self.missionData["brain"].Team
 						self.missionData["craft"].AIMode = Actor.AIMODE_STAY
 						MovableMan:AddActor(self.missionData["craft"])
-						self:SetAlly(self.missionData["craft"], true)
+						CF.SetAlly(self.missionData["craft"], true)
 
 						self.missionData["brain"].AIMode = Actor.AIMODE_SENTRY
 						-- Stop following the brain, let it board the ship in peace
-						if self:IsAlly(self.missionData["brain"]) then
+						if CF.IsAlly(self.missionData["brain"]) then
 							for actor in MovableMan.Actors do
 								if
-									self:IsAlly(actor)
+									CF.IsAlly(actor)
 									and actor.MOMoveTarget
 									and actor.MOMoveTarget.ID == self.missionData["brain"].ID
 								then
@@ -205,7 +205,7 @@ function VoidWanderers:MissionUpdate()
 					end
 				end
 			end
-			if self:IsAlly(self.missionData["brain"]) then
+			if CF.IsAlly(self.missionData["brain"]) then
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 					if self:PlayerActive(player) and self:PlayerHuman(player) then
 						local savior = self:GetControlledActor(player) -- or MovableMan:GetClosestTeamActor(self.missionData["brain"].Team, player, self.missionData["brain"].Pos, 20 + self.missionData["brain"].IndividualRadius, Vector(), self.missionData["brain"])
@@ -216,14 +216,14 @@ function VoidWanderers:MissionUpdate()
 								self.missionData["brain"].Pos,
 								1 + self.missionData["brain"].IndividualRadius + savior.IndividualRadius
 							)
-							and self:IsCommander(savior)
+							and CF.IsCommander(savior)
 						then
 							print("Sir, we must hurry! The enemy are increasing their reinforcements...")
 							self.missionData["interval"] = math.ceil(self.missionData["interval"] * 0.66)
 							self.missionData["reinforcementsNext"] = self.missionData["reinforcementsNext"]
 								- self.missionData["interval"]
 							self.missionData["brain"].AIMode = Actor.AIMODE_SENTRY
-							self:SetAlly(self.missionData["brain"], false)
+							CF.SetAlly(self.missionData["brain"], false)
 							self:SwitchToActor(self.missionData["brain"], player, savior.Team)
 							break
 						end
@@ -244,7 +244,7 @@ function VoidWanderers:MissionUpdate()
 				self.missionData["stage"] = CF.MissionStages.COMPLETED
 			else
 				for actor in MovableMan.Actors do
-					if self:IsAlly(actor) then
+					if CF.IsAlly(actor) then
 						if actor.ClassName == "ACDropShip" then
 							actor.Health = 0
 						elseif math.random() * actor.MaxHealth * 1.5 > actor.Health then
@@ -286,7 +286,7 @@ function VoidWanderers:MissionUpdate()
 								actorCount[CF.PlayerTeam] = actorCount[CF.PlayerTeam] + 1
 								if
 									self.missionData["craft"] == nil
-									and self:IsAlly(actor)
+									and CF.IsAlly(actor)
 									and actor.AIMode ~= Actor.AIMODE_GOTO
 									and SceneMan
 										:ShortestDistance(actor.Pos, self.missionData["brain"].Pos, SceneMan.SceneWrapsX)
@@ -374,9 +374,9 @@ function VoidWanderers:MissionUpdate()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 	if self.missionData and orbitedCraft:HasObjectInGroup("MissionBrain") then
 		self.missionData["evacuated"] = true

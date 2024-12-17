@@ -1,350 +1,319 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:InitCloneShopControlPanelUI()
 	-- CloneShop Control Panel
-	local x, y
+	local x, y;
 
-	x = tonumber(self.SceneConfig["CloneShopControlPanelX"])
-	y = tonumber(self.SceneConfig["CloneShopControlPanelY"])
+	x = tonumber(self.SceneConfig["CloneShopControlPanelX"]);
+	y = tonumber(self.SceneConfig["CloneShopControlPanelY"]);
+
 	if x ~= nil and y ~= nil then
-		self.CloneShopControlPanelPos = Vector(x, y)
+		self.CloneShopControlPanelPos = Vector(x, y);
 	else
-		self.CloneShopControlPanelPos = nil
+		self.CloneShopControlPanelPos = nil;
 	end
 
 	if self.CloneShopControlPanelPos ~= nil then
-		self:LocateCloneShopControlPanelActor()
-		if not MovableMan:IsActor(self.CloneShopControlPanelActor) then
-			self.CloneShopControlPanelActor = CreateActor("Clone Shop Control Panel")
+		self:LocateCloneShopControlPanelActor();
+
+		if not MovableMan:ValidMO(self.CloneShopControlPanelActor) then
+			self.CloneShopControlPanelActor = CreateActor("Clone Shop Control Panel");
+
 			if self.CloneShopControlPanelActor ~= nil then
-				self.CloneShopControlPanelActor.Pos = self.CloneShopControlPanelPos
-				self.CloneShopControlPanelActor.Team = CF.PlayerTeam
-				MovableMan:AddActor(self.CloneShopControlPanelActor)
+				self.CloneShopControlPanelActor.Pos = self.CloneShopControlPanelPos;
+				self.CloneShopControlPanelActor.Team = CF.PlayerTeam;
+				MovableMan:AddActor(self.CloneShopControlPanelActor);
 			end
+		else
+		
+	print(self.CloneShopControlPanelActor)
 		end
 	end
 
 	-- Init variables
-	self.CloneShopControlPanelItemsPerPage = 8
-	self.CloneShopControlPanelModes = { EVERYTHING = -1, LIGHT = 0, HEAVY = 1, ARMOR = 2, TURRET = 3 }
-	self.CloneShopControlPanelModesTexts = {}
+	self.CloneShopControlPanelItemsPerPage = 10;
+	self.CloneShopControlPanelModes = { EVERYTHING = -1, LIGHT = 0, HEAVY = 1, ARMOR = 2, TURRET = 3 };
 
-	self.CloneShopControlPanelModesTexts[self.CloneShopControlPanelModes.EVERYTHING] = "All bodies"
-	self.CloneShopControlPanelModesTexts[self.CloneShopControlPanelModes.LIGHT] = "Light bodies"
-	self.CloneShopControlPanelModesTexts[self.CloneShopControlPanelModes.HEAVY] = "Heavy bodies"
-	self.CloneShopControlPanelModesTexts[self.CloneShopControlPanelModes.ARMOR] = "Armored bodies"
-	self.CloneShopControlPanelModesTexts[self.CloneShopControlPanelModes.TURRET] = "Turrets"
+	texts = {};
+	texts[self.CloneShopControlPanelModes.EVERYTHING] = "All bodies";
+	texts[self.CloneShopControlPanelModes.LIGHT] = "Light bodies";
+	texts[self.CloneShopControlPanelModes.HEAVY] = "Heavy bodies";
+	texts[self.CloneShopControlPanelModes.ARMOR] = "Armored bodies";
+	texts[self.CloneShopControlPanelModes.TURRET] = "Turrets";
+	self.CloneShopControlPanelModesTexts = texts;
 
-	self.CloneShopControlMode = self.CloneShopControlPanelModes.EVERYTHING
+	self.ClonesShopControlMessageTime = -1;
+	self.ClonesShopControlMessagePeriod = 3;
+	self.ClonesShopControlMessageText = "";
 
-	self.CloneShopTradeStar = false
-	self.CloneShopBlackMarket = false
+	self.CloneShopControlMode = self.CloneShopControlPanelModes.EVERYTHING;
+	self.CloneShopSelectedClone = 1;
 
-	if CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TRADESTAR) then
-		self.CloneShopItems, self.CloneShopFilters = CF.GetCloneShopArray(self.GS, true)
-		self.CloneShopTradeStar = true
+	self.CloneShopTradeStar = CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TRADESTAR);
+	self.CloneShopBlackMarket = CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.BLACKMARKET);
+
+	if self.CloneShopTradeStar then
+		self.CloneShopItems, self.CloneShopFilters = CF.GetCloneShopArray(self.GS, true);
 	end
 
-	if CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.BLACKMARKET) then
-		self.CloneShopItems, self.CloneShopFilters = CF.GetCloneBlackMarketArray(self.GS, true)
-		self.CloneShopBlackMarket = true
+	if self.CloneShopBlackMarket then
+		self.CloneShopItems, self.CloneShopFilters = CF.GetCloneBlackMarketArray(self.GS, true);
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Find and assign appropriate actors
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:LocateCloneShopControlPanelActor()
-	for actor in MovableMan.Actors do
+	for _, set in ipairs{ MovableMan.Actors, MovableMan.AddedActors } do for actor in set do
 		if actor.PresetName == "Clone Shop Control Panel" then
-			self.CloneShopControlPanelActor = actor
-			break
+			self.CloneShopControlPanelActor = actor;
+			break;
 		end
-	end
+	end end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:DestroyCloneShopControlPanelUI()
-	if self.CloneShopControlPanelActor ~= nil then
-		self.CloneShopControlPanelActor.ToDelete = true
-		self.CloneShopControlPanelActor = nil
-	end
+	for _, set in ipairs{ MovableMan.Actors, MovableMan.AddedActors } do for actor in set do
+		if actor.PresetName == "Clone Shop Control Panel" then
+			local actor = MovableMan:RemoveActor(actor);
+			DeleteEntity(actor);
+			actor = nil;
+			self.CloneShopControlPanelActor = nil;
+		end
+	end end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:ProcessCloneShopControlPanelUI()
-	local showidle = true
+	local showidle = true;
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		local act = self:GetControlledActor(player)
+		local act = self:GetControlledActor(player);
 
 		if act and MovableMan:IsActor(act) and act.PresetName == "Clone Shop Control Panel" then
-			showidle = false
+			showidle = false;
+			local pos = act.Pos;
 
-			self.LastCloneShopSelectedClone = self.CloneShopSelectedClone
-
-			-- Init control panel
-			if not self.CloneShopControlPanelInitialized then
-				self.CloneShopSelectedClone = 1
-				self.LastCloneShopSelectedClone = 0
-				self.CloneShopControlPanelInitialized = true
-			end
-
-			-- Draw generic UI
-			local pos = act.Pos
-			self:PutGlow("ControlPanel_Storage_List", pos + Vector(-71, 0))
-			if self.CloneShopTradeStar then
-				self:PutGlow("ControlPanel_CloneShop_Description", pos + Vector(90, 0))
-			end
-			if self.CloneShopBlackMarket then
-				self:PutGlow("ControlPanel_CloneBlackMarket_Description", pos + Vector(90, 0))
-			end
-			self:PutGlow("ControlPanel_Storage_HorizontalPanel", pos + Vector(20, -77))
-			self:PutGlow("ControlPanel_Storage_HorizontalPanel", pos + Vector(20, 78))
-
-			-- Print help text
-			CF.DrawString("L/R - Change filter, U/D - Select, FIRE - Buy", pos + Vector(-130, 78), 300, 10)
-
-			-- Process controls
-			local cont = act:GetController()
-			local up = false
-			local down = false
+			local cont = act:GetController();
+			local up = false;
+			local down = false;
 
 			if cont:IsState(Controller.PRESS_UP) then
-				self.HoldTimer:Reset()
-				up = true
+				self.HoldTimer[player + 1]:Reset();
+				up = true;
 			end
 
 			if cont:IsState(Controller.PRESS_DOWN) then
-				self.HoldTimer:Reset()
-				down = true
+				self.HoldTimer[player + 1]:Reset();
+				down = true;
 			end
 
-			if self.HoldTimer:IsPastSimMS(CF.KeyRepeatDelay) then
-				self.HoldTimer:Reset()
+			if self.HoldTimer[player + 1]:IsPastSimMS(CF.KeyRepeatDelay) then
+				self.HoldTimer[player + 1]:Reset();
 
 				if cont:IsState(Controller.HOLD_UP) then
-					up = true
+					up = true;
 				end
 
 				if cont:IsState(Controller.HOLD_DOWN) then
-					down = true
+					down = true;
 				end
 			end
 
-			if up then
-				if #self.CloneShopFilters[self.CloneShopControlMode] > 0 then
-					self.CloneShopSelectedClone = self.CloneShopSelectedClone - 1
-
-					if self.CloneShopSelectedClone < 1 then
-						self.CloneShopSelectedClone = #self.CloneShopFilters[self.CloneShopControlMode]
-					end
-				end
-			end
-
-			if down then
-				if #self.CloneShopFilters[self.CloneShopControlMode] > 0 then
-					self.CloneShopSelectedClone = self.CloneShopSelectedClone + 1
-
-					if self.CloneShopSelectedClone > #self.CloneShopFilters[self.CloneShopControlMode] then
-						self.CloneShopSelectedClone = 1
-					end
-				end
-			end
+			local itemSelected = self.CloneShopSelectedClone;
+			local mode = self.CloneShopControlMode;
 
 			if cont:IsState(Controller.PRESS_LEFT) then
-				self.CloneShopControlMode = self.CloneShopControlMode - 1
-				self.CloneShopSelectedClone = 1
-				self.LastCloneShopSelectedClone = 0
-
-				if self.CloneShopControlMode == -2 then
-					self.CloneShopControlMode = self.CloneShopControlPanelModes.TURRET
-				end
+				mode = mode - 1;
+				itemSelected = 1;
 			end
 
 			if cont:IsState(Controller.PRESS_RIGHT) then
-				self.CloneShopControlMode = self.CloneShopControlMode + 1
-				self.CloneShopSelectedClone = 1
-				self.LastCloneShopSelectedClone = 0
-
-				if self.CloneShopControlMode == 4 then
-					self.CloneShopControlMode = self.CloneShopControlPanelModes.EVERYTHING
-				end
+				mode = mode + 1;
+				itemSelected = 1;
 			end
 
-			self.CloneShopControlItemsListStart = self.CloneShopSelectedClone
-				- (self.CloneShopSelectedClone - 1) % self.CloneShopControlPanelItemsPerPage
-
-			-- Get selected item info
-			if self.CloneShopSelectedClone ~= self.LastCloneShopSelectedClone then
-				local cln = self.CloneShopFilters[self.CloneShopControlMode][self.CloneShopSelectedClone]
-
-				if cln ~= nil then
-					-- Get item description
-					self.CloneShopSelectedCloneDescription = self.CloneShopItems[cln]["Description"]
-					self.CloneShopSelectedCloneManufacturer = CF.FactionNames[self.CloneShopItems[cln]["Faction"]]
-					self.CloneShopSelectedClonePrice = self.CloneShopItems[cln]["Price"]
-				else
-					self.CloneShopSelectedCloneDescription = ""
-					self.CloneShopSelectedCloneManufacturer = ""
-					self.CloneShopSelectedClonePrice = nil
-				end
+			if mode > self.CloneShopControlPanelModes.TURRET then
+				mode = self.CloneShopControlPanelModes.EVERYTHING;
 			end
 
-			-- Dispense/sell/dump items
+			if mode < self.CloneShopControlPanelModes.EVERYTHING then
+				mode = self.CloneShopControlPanelModes.TURRET;
+			end
+
+			self.CloneShopControlMode = mode;
+
+			if up then
+				itemSelected = itemSelected - 1;
+			end
+
+			if down then
+				itemSelected = itemSelected + 1;
+			end
+
+			if itemSelected < 1 then
+				itemSelected = #self.CloneShopFilters[mode];
+			end
+
+			if itemSelected > #self.CloneShopFilters[mode] then
+				itemSelected = 1;
+			end
+
+			self.CloneShopSelectedClone = itemSelected;
+
+			local menuPalette = CF.MenuNormalIdle;
+				
+			local highBarLeftText = "";
+			local highBarCenterText = self.CloneShopControlPanelModesTexts[mode];
+			local highBarRightText = "";
+			local highBarPalette = CF.MenuNormalIdle;
+
+			local lowBarCenterText = "L/R - Change filter, U/D - Select, FIRE - Buy";
+			local lowBarPalette = CF.MenuNormalIdle;
+				
+			local linesPerPage = 12;
+			local topOfPage = -68;
+
+			CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 70, pos.X, pos.Y + 70, menuPalette);
+
+			if self.CloneShopTradeStar then
+				local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_CloneShop_Description.png";
+				PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(91, 0), path, 0, false, false);
+			elseif self.CloneShopBlackMarket then
+				local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_CloneBlackMarket_Description.png";
+				PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(91, 0), path, 0, false, false);
+			end
+
+			local index = self.CloneShopFilters[mode][itemSelected];
+			local clone = self.CloneShopItems[index];
+			local isTurret = clone and clone.Type == CF.ActorTypes.TURRET;
+			local category, usage, capacity;
+
+			if isTurret or mode == self.CloneShopControlPanelModes.TURRET then
+				category = "Turrets: ";
+				usage = CF.CountUsedTurretsInArray(self.Turrets);
+				capacity = tonumber(self.GS["PlayerVesselTurretStorage"]);
+			else
+				category = "Capacity: ";
+				usage = CF.CountUsedClonesInArray(self.Clones);
+				capacity = tonumber(self.GS["PlayerVesselClonesCapacity"]);
+			end
+
 			if cont:IsState(Controller.WEAPON_FIRE) then
 				if not self.FirePressed[player] then
-					self.FirePressed[player] = true
+					self.FirePressed[player] = true;
 
-					if self.CloneShopSelectedClone > 0 then
-						local cln = self.CloneShopFilters[self.CloneShopControlMode][self.CloneShopSelectedClone]
+					if clone then
+						if clone.Price <= CF.GetPlayerGold(self.GS, 0) then
+							if usage < capacity then
+								if isTurret then
+									CF.PutTurretToStorageArray(self.Turrets, clone.Preset, clone.Class, clone.Module);
+									CF.SetTurretsArray(self.GS, self.Turrets);
+								else
+									local unit = {};
+									unit.Preset = clone.Preset;
+									unit.Class = clone.Class;
+									unit.Module = clone.Module;
+									unit.Items = {};
+									table.insert(self.Clones, unit);
 
-						if cln ~= nil then
-							if self.CloneShopItems[cln]["Type"] == CF.ActorTypes.TURRET then
-								if
-									CF.CountUsedTurretsInArray(self.Turrets)
-										< tonumber(self.GS["PlayerVesselTurretStorage"])
-									and self.CloneShopSelectedClonePrice <= CF.GetPlayerGold(self.GS, 0)
-								then
-									--[[local c = #self.Turrets + 1
-									
-									self.Turrets[c] = {}
-									self.Turrets[c]["Preset"] = self.CloneShopItems[cln]["Preset"]
-									self.Turrets[c]["Class"] = self.CloneShopItems[cln]["Class"]--]]
-									--
-
-									CF.PutTurretToStorageArray(
-										self.Turrets,
-										self.CloneShopItems[cln]["Preset"],
-										self.CloneShopItems[cln]["Class"],
-										self.CloneShopItems[cln]["Module"]
-									)
-
-									CF.SetTurretsArray(self.GS, self.Turrets)
-									self:SetTeamFunds(CF.ChangeGold(self.GS, -self.CloneShopSelectedClonePrice), CF.PlayerTeam)
+									CF.SetClonesArray(self.GS, self.Clones);
 								end
+
+								self:SetTeamFunds(CF.ChangeGold(self.GS, -clone.Price), CF.PlayerTeam);
 							else
-								if
-									CF.CountUsedClonesInArray(self.Clones)
-										< tonumber(self.GS["PlayerVesselClonesCapacity"])
-									and self.CloneShopSelectedClonePrice <= CF.GetPlayerGold(self.GS, 0)
-								then
-									local c = #self.Clones + 1
-									
-									self.Clones[c] = {}
-									self.Clones[c]["Preset"] = self.CloneShopItems[cln]["Preset"]
-									self.Clones[c]["Class"] = self.CloneShopItems[cln]["Class"]
-									self.Clones[c]["Module"] = self.CloneShopItems[cln]["Module"]
-									self.Clones[c]["Items"] = {}
-
-									CF.SetClonesArray(self.GS, self.Clones)
-									self:SetTeamFunds(CF.ChangeGold(self.GS, -self.CloneShopSelectedClonePrice), CF.PlayerTeam)
-								end
+								self.ClonesShopControlMessageTime = self.Time;
+								self.ClonesShopControlMessageText = "No space within clone storage.";
 							end
 						else
-							print("Error in Panel_CloneShop.lua - cln is nil")
+							self.ClonesShopControlMessageTime = self.Time;
+							self.ClonesShopControlMessageText = "Can not afford.";
 						end
+					else
+						self.ClonesShopControlMessageTime = self.Time;
+						self.ClonesShopControlMessageText = "No clones for purchase.";
 					end
 				end
 			else
-				self.FirePressed[player] = false
+				self.FirePressed[player] = false;
 			end
+
+			local lineOffset = topOfPage;
+
+			-- Print capacity
+			CF.DrawString(category, pos + Vector(-138, lineOffset), 135, 11, nil, nil, 0);
+			CF.DrawString(usage .. " / " .. capacity, pos + Vector(-2, lineOffset), 135, 11, nil, nil, 2);
+			lineOffset = lineOffset + 22;
+
+			local itemsPerPage = self.CloneShopControlPanelItemsPerPage;
+			local listStart = itemSelected - (itemSelected - 1) % itemsPerPage;
 
 			-- Draw items list
-			for i = self.CloneShopControlItemsListStart, self.CloneShopControlItemsListStart + self.CloneShopControlPanelItemsPerPage - 1 do
-				if i <= #self.CloneShopFilters[self.CloneShopControlMode] then
-					local cln = self.CloneShopFilters[self.CloneShopControlMode][i]
-					local loc = i - self.CloneShopControlItemsListStart
+			for i = listStart, listStart + itemsPerPage - 1 do
+				local clone = self.CloneShopItems[self.CloneShopFilters[mode][i]];
+				
+				if clone then
+					local prefix = i == itemSelected and "> " or "";
+					CF.DrawString(prefix .. clone.Preset, pos + Vector(-138, lineOffset), 90, 11, nil, nil, 0);
 
-					if i == self.CloneShopSelectedClone then
-						CF.DrawString(
-							"> " .. self.CloneShopItems[cln]["Preset"],
-							pos + Vector(-130, -26) + Vector(0, loc * 12),
-							90,
-							10
-						)
-					else
-						CF.DrawString(
-							self.CloneShopItems[cln]["Preset"],
-							pos + Vector(-130, -26) + Vector(0, loc * 12),
-							90,
-							10
-						)
-					end
-					local priceString = tostring(self.CloneShopItems[cln]["Price"])
-					if self.CloneShopItems[cln]["Price"] >= 1000 then
-						if self.CloneShopItems[cln]["Price"] >= 10000 then
-							priceString = tostring(math.floor(self.CloneShopItems[cln]["Price"] * 0.001)) .. "k"
-						else
-							priceString = tostring(math.floor(self.CloneShopItems[cln]["Price"] * 0.01) * 0.1) .. "k"
-						end
-					end
-					CF.DrawString(priceString, pos + Vector(-130, -26) + Vector(110, loc * 12), 90, 10)
+					local price = clone.Price;
+					local digits = math.ceil(math.log10(price)) - 3;
+					price = math.floor(price / math.pow(10, digits)) * math.pow(10, digits);
+					price = math.ceil(price) .. (price >= 1000 and "k" or "");
+					CF.DrawString("\198 " .. price .. " oz", pos + Vector(-2, lineOffset), 135, 11, nil, nil, 2);
+					lineOffset = lineOffset + 11;
 				end
 			end
 
-			-- Print description
-			if self.CloneShopSelectedCloneDescription ~= nil then
-				CF.DrawString(self.CloneShopSelectedCloneDescription, pos + Vector(10, -40), 170, 140)
-			end
+			local lineOffset = topOfPage;
+
+			-- Print item name
+			local text = clone.Preset;
+			CF.DrawString(text, pos + Vector(90, lineOffset), 175, 11, false, nil, 1);
+			lineOffset = lineOffset + 14;
 
 			-- Print manufacturer
-			CF.DrawString(
-				"Manufacturer: " .. (self.CloneShopSelectedCloneManufacturer or "Unknown"),
-				pos + Vector(10, -58),
-				170,
-				120
-			)
+			local text = "Manufacturer: " .. (CF.FactionNames[clone.Faction] or "Unknown");
+			CF.DrawString(text, pos + Vector(90, lineOffset), 175, 11, true, nil, 1);
+			lineOffset = lineOffset + 8;
 
-			-- Print Selected mode text
-			CF.DrawString(
-				self.CloneShopControlPanelModesTexts[self.CloneShopControlMode],
-				pos + Vector(-130, -77),
-				170,
-				10
-			)
+			-- Print description
+			local text = CF.SplitStringToFitWidth(clone.Description, 155, false);
+			CF.DrawString(text, pos + Vector(12, lineOffset), 155, 110, nil, nil, 0, 0);
 
-			-- Print CloneShop capacity
-			local cln = self.CloneShopFilters[self.CloneShopControlMode][self.CloneShopSelectedClone]
-
-			if cln ~= nil and self.CloneShopItems[cln]["Type"] == CF.ActorTypes.TURRET then
-				CF.DrawString(
-					"Turrets: "
-						.. CF.CountUsedTurretsInArray(self.Turrets)
-						.. "/"
-						.. self.GS["PlayerVesselTurretStorage"],
-					pos + Vector(-130, -60),
-					300,
-					10
-				)
-			else
-				CF.DrawString(
-					"Capacity: "
-						.. CF.CountUsedClonesInArray(self.Clones)
-						.. "/"
-						.. self.GS["PlayerVesselClonesCapacity"],
-					pos + Vector(-130, -60),
-					300,
-					10
-				)
+			if self.ClonesShopControlMessageText then
+				if self.Time <= self.ClonesShopControlMessageTime + self.ClonesShopControlMessagePeriod then
+					lowBarPalette = CF.MenuDeniedIdle;
+					lowBarCenterText = self.ClonesShopControlMessageText;
+				end
 			end
-			CF.DrawString("Gold: " .. CF.GetPlayerGold(self.GS, 0) .. " oz", pos + Vector(-130, -44), 300, 10)
+
+			CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 77 - 7, pos.X + 180, pos.Y - 77 + 6, highBarPalette);
+			CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y + 78 - 7, pos.X + 180, pos.Y + 78 + 6, lowBarPalette);
+
+			CF.DrawString(highBarLeftText, pos + Vector(-138, -77), 316, 11, nil, nil, 0, 1);
+			CF.DrawString(highBarCenterText, pos + Vector(20, -77), 316, 11, nil, nil, 1, 1);
+			CF.DrawString(highBarRightText, pos + Vector(178, -77), 316, 11, nil, nil, 2, 1);
+
+			CF.DrawString(lowBarCenterText, pos + Vector(20, 78), 316, 11, nil, nil, 1, 1);
 		end
 	end
 
-	if showidle and self.CloneShopControlPanelPos ~= nil and self.CloneShopControlPanelActor ~= nil then
-		self:PutGlow("ControlPanel_CloneShop", self.CloneShopControlPanelPos)
-		--CF.DrawString("Body\nStore ",self.CloneShopControlPanelPos + Vector(-16,0), 120, 20)
-
-		self.CloneShopControlPanelInitialized = false
+	if showidle and MovableMan:ValidMO(self.CloneShopControlPanelActor) then
+		local player = Activity.PLAYER_NONE;
+		local pos = self.CloneShopControlPanelActor.Pos;
+		local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_CloneShop.png";
+		PrimitiveMan:DrawBitmapPrimitive(player, pos, path, 0, false, false);
 	end
 
 	if MovableMan:IsActor(self.CloneShopControlPanelActor) then
-		self.CloneShopControlPanelActor.Health = 100
+		self.CloneShopControlPanelActor.Health = 100;
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

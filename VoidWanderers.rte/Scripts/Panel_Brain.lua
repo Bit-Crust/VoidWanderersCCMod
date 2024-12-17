@@ -1,27 +1,20 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:InitBrainControlPanelUI() end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:DestroyBrainControlPanelUI() end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:ProcessBrainControlPanelUI()
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		local act = self:GetControlledActor(player)
+		local act = self:GetControlledActor(player);
 
 		if act and MovableMan:IsActor(act) then
 			if act.PresetName == "Brain Case" then
-				self:AddObjectivePoint(
-					"Press DOWN to detach",
-					act.Pos + Vector(0, -56 + (player + 1) * 8),
-					CF.PlayerTeam,
-					GameActivity.ARROWDOWN
-				)
-
 				local cont = act:GetController()
 				local pos = act.Pos
 
@@ -76,38 +69,19 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 				end
 				-- Process brain attachment
 			elseif act:GetNumberValue("VW_BrainOfPlayer") - 1 ~= Activity.PLAYER_NONE then
-				local readytoattach = false
-
-				if
-					act.Pos.X > self.BrainPos[player + 1].X - 10
+				local readytoattach = act.Pos.X > self.BrainPos[player + 1].X - 10
 					and act.Pos.X < self.BrainPos[player + 1].X + 10
 					and act.Pos.Y > self.BrainPos[player + 1].Y
-					and CF.DistUnder(act.Pos, self.BrainPos[player + 1], 100)
-				then
-					readytoattach = true
-					self:AddObjectivePoint(
-						"Press UP to attach",
-						self.BrainPos[player + 1] + Vector(0, 6 + (player + 1) * 8),
-						CF.PlayerTeam,
-						GameActivity.ARROWUP
-					)
-				else
-					self:AddObjectivePoint(
-						"Attach brain",
-						self.BrainPos[player + 1] + Vector(0, 6 + (player + 1) * 8),
-						CF.PlayerTeam,
-						GameActivity.ARROWUP
-					)
-				end
-
-				local cont = act:GetController()
+					and CF.DistUnder(act.Pos, self.BrainPos[player + 1], 100);
+					
+				local cont = self:GetPlayerController(player);
 
 				if cont:IsState(Controller.PRESS_UP) and readytoattach then
 					local rb = CreateActor("Brain Case", "Base.rte")
 
 					if rb then
 						rb.Team = CF.PlayerTeam
-						rb.Pos = self.BrainPos[player + 1]
+						rb.Pos = self.BrainPos[player + 1] + Vector(0, 8)
 						rb.Health = act.Health/act.MaxHealth * rb.MaxHealth
 						rb:SetNumberValue("VW_BrainOfPlayer", player + 1)
 						-- Clear inventory

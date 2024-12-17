@@ -1,7 +1,7 @@
------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Start Activity
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:StartActivity()
 	print("VoidWanderers:StrategyScreen:StartActivity")
 
@@ -81,8 +81,8 @@ function VoidWanderers:StartActivity()
 	-- How many times to redraw button glows to make it less transparent
 	self.BUTTON_REDRAW_COUNT = 1
 
-	self.ElementTypes = { BUTTON = 0, LABEL = 1, PLANET = 2 }
-	self.ButtonStates = { IDLE = 0, MOUSE_OVER = 1, PRESSED = 2 }
+	CF.ElementTypes = { BUTTON = 0, LABEL = 1, PLANET = 2 }
+	CF.ElementStates = { IDLE = 0, MOUSE_OVER = 1, PRESSED = 2 }
 
 	self.UI = {}
 
@@ -99,13 +99,13 @@ function VoidWanderers:StartActivity()
 
 	self.IsInitialized = true
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Pause Activity
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:PauseActivity(pause) end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Create actors used by scene editor
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:CreateActors()
 	--Make an invisible brain.
 	if MovableMan:IsActor(self.brain) then
@@ -150,29 +150,29 @@ function VoidWanderers:CreateActors()
 		ActivityMan:GetActivity():SwitchToActor(G_CursorActor, Activity.PLAYER_1, Activity.TEAM_1)
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:ClearMessages()
 	self.Messages = {}
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:LoadCurrentGameState()
 	if CF.IsFileExists(self.ModuleName, STATE_CONFIG_FILE) then
 		self.GS = CF.ReadConfigFile(self.ModuleName, STATE_CONFIG_FILE)
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:SaveCurrentGameState()
 	CF.WriteConfigFile(self.GS, self.ModuleName, STATE_CONFIG_FILE)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:DrawMouseCursor()
 	--for i = 1, self.CURSOR_REDRAW_COUNT do
 	local pix = CreateMOPixel("Cursor")
@@ -180,9 +180,9 @@ function VoidWanderers:DrawMouseCursor()
 	MovableMan:AddParticle(pix)
 	--end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Draw label element
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:DrawLabel(el, state)
 	-- Labels can ommit presets or texts
 	if el["Preset"] then
@@ -210,10 +210,10 @@ function VoidWanderers:DrawLabel(el, state)
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Draw button element
------------------------------------------------------------------------------------------
-function VoidWanderers:DrawButton(el, state, drawthistime)
+-----------------------------------------------------------------------
+function VoidWanderers:DrawButton(el, state)
 	local isvisible = true
 
 	if el["Visible"] ~= nil then
@@ -223,11 +223,9 @@ function VoidWanderers:DrawButton(el, state, drawthistime)
 	end
 
 	if isvisible then
-		if drawthistime then
-			local pix = CreateMOPixel(el["Presets"][state])
-			pix.Pos = el.Pos
-			MovableMan:AddParticle(pix)
-		end
+		local pix = CreateMOPixel(el["Presets"][state])
+		pix.Pos = el.Pos
+		MovableMan:AddParticle(pix)
 
 		if el["Text"] then
 			CF.DrawString(
@@ -239,9 +237,9 @@ function VoidWanderers:DrawButton(el, state, drawthistime)
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Check if pos is within button area
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:IsWithinButton(el, pos)
 	local isvisible = true
 
@@ -268,37 +266,37 @@ function VoidWanderers:IsWithinButton(el, pos)
 
 	return false
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Redraw non-custom elements
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:RedrawKnownFormElements()
 	for i = 1, #self.UI do
 		-- Redraw button
-		if self.UI[i]["Type"] == self.ElementTypes.BUTTON then
-			local state = self.ButtonStates.IDLE
+		if self.UI[i]["Type"] == CF.ElementTypes.BUTTON then
+			local state = CF.ElementStates.IDLE
 
 			if i == self.MouseOverElement then
-				state = self.ButtonStates.MOUSE_OVER
+				state = CF.ElementStates.MOUSE_OVER
 			end
 
 			if i == self.MousePressedElement then
-				state = self.ButtonStates.PRESSED
+				state = CF.ElementStates.PRESSED
 			end
 
-			self:DrawButton(self.UI[i], state, true)
+			CF.DrawButton(self.UI[i], state, true)
 		end
 
-		if self.UI[i]["Type"] == self.ElementTypes.LABEL then
-			self:DrawLabel(self.UI[i], nil)
+		if self.UI[i]["Type"] == CF.ElementTypes.LABEL then
+			CF.DrawLabel(self.UI[i], nil)
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Get element id above whicj mouse currently is
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:GetMouseOverKnownFormElements()
 	for i = 1, #self.UI do
-		if self.UI[i]["Type"] == self.ElementTypes.BUTTON then
+		if self.UI[i]["Type"] == CF.ElementTypes.BUTTON then
 			if self:IsWithinButton(self.UI[i], self.Mouse) then
 				return i
 			end
@@ -307,9 +305,9 @@ function VoidWanderers:GetMouseOverKnownFormElements()
 
 	return nil
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Update Activity
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:UpdateActivity()
 	-- Just check for intialization flags in update loop to avoid unnecessary function calls during all the mission
 	if self.IsInitialized == nil then
@@ -488,6 +486,6 @@ function VoidWanderers:UpdateActivity()
 	self:FormUpdate()
 	self:FormDraw()
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Thats all folks!!!
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

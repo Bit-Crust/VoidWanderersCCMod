@@ -1,77 +1,93 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:InitClonesControlPanelUI()
-	--self:DestroyClonesControlPanelUI()
-	-- Clone Control Panel
-	local x, y
+	local x, y;
 
-	x = tonumber(self.SceneConfig["ClonesControlPanelX"])
-	y = tonumber(self.SceneConfig["ClonesControlPanelY"])
+	x = tonumber(self.SceneConfig["ClonesControlPanelX"]);
+	y = tonumber(self.SceneConfig["ClonesControlPanelY"]);
+
 	if x ~= nil and y ~= nil then
-		self.ClonesControlPanelPos = Vector(x, y)
+		self.ClonesControlPanelPos = Vector(x, y);
 	else
-		self.ClonesControlPanelPos = nil
+		self.ClonesControlPanelPos = nil;
 	end
 
 	x = tonumber(self.SceneConfig["ClonesDeployX"])
-	y = tonumber(self.SceneConfig["ClonesDeployY"])
+	y = tonumber(self.SceneConfig["ClonesDeployY"]);
+
 	if x ~= nil and y ~= nil then
-		self.ClonesDeployPos = Vector(x, y)
+		self.ClonesDeployPos = Vector(x, y);
 	else
-		self.ClonesDeployPos = nil
+		self.ClonesDeployPos = nil;
 	end
 
-	x = tonumber(self.SceneConfig["ClonesInputX"])
-	y = tonumber(self.SceneConfig["ClonesInputY"])
+	x = tonumber(self.SceneConfig["ClonesInputX"]);
+	y = tonumber(self.SceneConfig["ClonesInputY"]);
+
 	if x ~= nil and y ~= nil then
-		self.ClonesInputPos = Vector(x, y)
+		self.ClonesInputPos = Vector(x, y);
 	else
-		self.ClonesInputPos = nil
+		self.ClonesInputPos = nil;
 	end
 
 	if self.ClonesControlPanelPos ~= nil then
-		self:LocateClonesControlPanelActor()
+		self:LocateClonesControlPanelActor();
+
 		if not MovableMan:IsActor(self.ClonesControlPanelActor) then
-			self.ClonesControlPanelActor = CreateActor("Clones Control Panel")
+			self.ClonesControlPanelActor = CreateActor("Clones Control Panel");
+
 			if self.ClonesControlPanelActor ~= nil then
-				self.ClonesControlPanelActor.Pos = self.ClonesControlPanelPos
-				self.ClonesControlPanelActor.Team = CF.PlayerTeam
-				MovableMan:AddActor(self.ClonesControlPanelActor)
+				self.ClonesControlPanelActor.Pos = self.ClonesControlPanelPos;
+				self.ClonesControlPanelActor.Team = CF.PlayerTeam;
+				MovableMan:AddActor(self.ClonesControlPanelActor);
 			end
 		end
 	end
 
 	-- Init variables
-	self.ClonesInputDelay = 3
-	self.ClonesInputRange = 35
-	self.ClonesControlLastMessageTime = -1000
-	self.ClonesControlMessageIntrval = 3
-	self.ClonesControlMessageText = ""
+	self.ClonesControlPanelModes = {
+		SELL = 0,
+		CLONES = 1,
+		INVENTORY = 2,
+		STORAGE = 3
+	};
+	self.ClonesControlMode = self.ClonesControlPanelModes.CLONES;
 
-	self.ClonesControlPanelLinesPerPage = 9
+	self.ClonesInputDelay = 3;
+	self.ClonesInputRange = 35;
 
-	self.ClonesControlPanelModes = { SELL = 0, CLONES = 1, INVENTORY = 2, ITEMS = 3 }
-	self.ClonesControlPanelModesTexts = {}
-	self.ClonesControlPanelModesHelpTexts = {}
+	self.ClonesControlMessageTime = -1;
+	self.ClonesControlMessagePeriod = 3;
+	self.ClonesControlMessageText = "";
 
-	self.ClonesControlPanelModesTexts[self.ClonesControlPanelModes.SELL] = "SELL BODIES"
-	self.ClonesControlPanelModesTexts[self.ClonesControlPanelModes.CLONES] = "Bodies"
-	self.ClonesControlPanelModesTexts[self.ClonesControlPanelModes.INVENTORY] = "Inventory"
-	self.ClonesControlPanelModesTexts[self.ClonesControlPanelModes.ITEMS] = "Items"
+	self.ClonesSelectedClone = 1;
+	self.ClonesInventorySelectedItem = 1;
+	self.ClonesStorageSelectedItem = 1;
 
-	self.ClonesControlPanelModesHelpTexts[self.ClonesControlPanelModes.SELL] = "L/R/U/D - Select, FIRE - Sell"
-	self.ClonesControlPanelModesHelpTexts[self.ClonesControlPanelModes.CLONES] = "L/R/U/D - Select, FIRE - Deploy"
-	self.ClonesControlPanelModesHelpTexts[self.ClonesControlPanelModes.INVENTORY] =
-		"L/R/U/D - Select, FIRE - Remove from inventory"
-	self.ClonesControlPanelModesHelpTexts[self.ClonesControlPanelModes.ITEMS] =
-		"L/R/U/D - Select, FIRE - Add to inventory"
+	self.ClonesControlPanelLinesPerPage = 10;
+	self.ClonesControlPanelModesTexts = {};
+	self.ClonesControlPanelModesHelpTexts = {};
+
+	local texts = {};
+	texts[self.ClonesControlPanelModes.SELL] = "DISCARD";
+	texts[self.ClonesControlPanelModes.CLONES] = "CLONES";
+	texts[self.ClonesControlPanelModes.INVENTORY] = "INVENTORY";
+	texts[self.ClonesControlPanelModes.STORAGE] = "STORAGE";
+	self.ClonesControlPanelModesTexts = texts;
+
+	local texts = {};
+	texts[self.ClonesControlPanelModes.SELL] = "L/R/U/D - Select, FIRE - Discard, P/N - Inventory";
+	texts[self.ClonesControlPanelModes.CLONES] = "L/R/U/D - Select, FIRE - Deploy, P/N - Inventory";
+	texts[self.ClonesControlPanelModes.INVENTORY] = "L/R/U/D - Select, FIRE - Deposit";
+	texts[self.ClonesControlPanelModes.STORAGE] = "L/R/U/D - Select, FIRE - Withdraw";
+	self.ClonesControlPanelModesHelpTexts = texts;
 
 	self.Clones = CF.GetClonesArray(self.GS)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Find and assign appropriate actors
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:LocateClonesControlPanelActor()
 	for actor in MovableMan.AddedActors do
 		if actor.PresetName == "Clones Control Panel" then
@@ -80,779 +96,842 @@ function VoidWanderers:LocateClonesControlPanelActor()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:DestroyClonesControlPanelUI()
 	if self.ClonesControlPanelActor ~= nil then
 		self.ClonesControlPanelActor.ToDelete = true
 		self.ClonesControlPanelActor = nil
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:ProcessClonesControlPanelUI()
-	local showidle = true
+	local showidle = true;
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		local act = self:GetControlledActor(player)
+		local act = self:GetControlledActor(player);
 
 		if act and MovableMan:IsActor(act) and act.PresetName == "Clones Control Panel" then
-			showidle = false
+			showidle = false;
 
-			local pos = Vector(act.Pos.X, act.Pos.Y)
+			local pos = Vector(act.Pos.X, act.Pos.Y);
+			local mode = self.ClonesControlMode;
 
-			-- Process controls
-			local cont = act:GetController()
+			-- Process direct input
+			local cont = act:GetController();
+			
+			local up = false;
+			local down = false;
+			local left = false;
+			local right = false;
 
-			-- Clone selection screen
-			-- Init control panel
-			if not self.ClonesControlPanelInitialized then
-				if #self.Clones > 0 then
-					self.SelectedClone = 1
-				else
-					self.SelectedClone = 0
-				end
+			local prev = false;
+			local next = false;
 
-				self.ClonesStorageSelectedItem = 1
-				self.ClonesInventorySelectedItem = 1
-
-				self.ClonesControlPanelInitialized = true
-
-				self.ClonesControlMode = self.ClonesControlPanelModes.CLONES
+			if cont:IsState(Controller.PRESS_UP) then
+				self.HoldTimer[player + 1]:Reset();
+				up = true;
 			end
 
-			if self.SelectedClone ~= 0 then
-				if cont:IsState(Controller.PRESS_LEFT) then
-					self.ClonesControlMode = self.ClonesControlMode - 1
+			if cont:IsState(Controller.PRESS_DOWN) then
+				self.HoldTimer[player + 1]:Reset();
+				down = true;
+			end
+
+			if cont:IsState(Controller.PRESS_LEFT) then
+				left = true;
+			end
+
+			if cont:IsState(Controller.PRESS_RIGHT) then
+				right = true;
+			end
+
+			if cont:IsState(Controller.WEAPON_CHANGE_PREV) then
+				prev = true;
+			end
+
+			if cont:IsState(Controller.WEAPON_CHANGE_NEXT) then
+				next = true;
+			end
+
+			if self.HoldTimer[player + 1]:IsPastSimMS(CF.KeyRepeatDelay) then
+				self.HoldTimer[player + 1]:Reset();
+
+				if cont:IsState(Controller.HOLD_UP) then
+					up = true;
 				end
 
-				if cont:IsState(Controller.PRESS_RIGHT) then
-					self.ClonesControlMode = self.ClonesControlMode + 1
-				end
-
-				if self.ClonesControlMode <= self.ClonesControlPanelModes.SELL - 1 then
-					self.ClonesControlMode = self.ClonesControlPanelModes.SELL
-				end
-
-				-- Don't let players dump bodies during assaults, that would not be good
-				if self.GS["Mode"] == "Assault" and self.ClonesControlMode <= self.ClonesControlPanelModes.CLONES - 1 then
-					self.ClonesControlMode = self.ClonesControlPanelModes.CLONES
-				end
-
-				if self.ClonesControlMode >= self.ClonesControlPanelModes.ITEMS + 1 then
-					self.ClonesControlMode = self.ClonesControlPanelModes.ITEMS
-				end
-
-				if self.SelectedClone > 0 then
-					if #self.Clones[self.SelectedClone]["Items"] < self.ClonesInventorySelectedItem then
-						self.ClonesInventorySelectedItem = #self.Clones[self.SelectedClone]["Items"]
-					end
-
-					if self.ClonesInventorySelectedItem < 1 and #self.Clones[self.SelectedClone]["Items"] > 0 then
-						self.ClonesInventorySelectedItem = 1
-					end
+				if cont:IsState(Controller.HOLD_DOWN) then
+					down = true;
 				end
 			end
 
-			-- Clones list screen
-			if
-				self.ClonesControlMode == self.ClonesControlPanelModes.CLONES
-				or self.ClonesControlMode == self.ClonesControlPanelModes.SELL
-			then
-				if self.ClonesControlMode == self.ClonesControlPanelModes.SELL then
-					if
-						CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TRADESTAR)
-						or CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.BLACKMARKET)
-					then
-						self.ClonesControlPanelModesTexts[self.ClonesControlPanelModes.SELL] = "SELL BODIES "
-							.. CF.GetPlayerGold(self.GS, 0)
-							.. " oz"
-						self.ClonesControlPanelModesHelpTexts[self.ClonesControlPanelModes.SELL] =
-							"L/R/U/D - Select, FIRE - Sell"
-					else
-						self.ClonesControlPanelModesTexts[self.ClonesControlPanelModes.SELL] = "DUMP BODIES"
-						self.ClonesControlPanelModesHelpTexts[self.ClonesControlPanelModes.SELL] =
-							"L/R/U/D - Select, FIRE - Dump"
-					end
-				end
+			-- Find bounds for panel modes useable
+			local leftBound = self.ClonesControlPanelModes.SELL;
+			local rightBound = self.ClonesControlPanelModes.STORAGE;
 
-				local up = false
-				local down = false
+			if self.GS["Mode"] == "Assault" then
+				leftBound = self.ClonesControlPanelModes.CLONES;
+			end
 
-				if cont:IsState(Controller.PRESS_UP) then
-					self.HoldTimer:Reset()
-					up = true
-				end
+			if #self.Clones <= 0 then
+				rightBound = self.ClonesControlPanelModes.CLONES;
+			end
 
-				if cont:IsState(Controller.PRESS_DOWN) then
-					self.HoldTimer:Reset()
-					down = true
-				end
+			-- Process mode switching
+			if left then
+				mode = mode - 1;
+			end
 
-				if self.HoldTimer:IsPastSimMS(CF.KeyRepeatDelay) then
-					self.HoldTimer:Reset()
+			if right then
+				mode = mode + 1;
+			end
 
-					if cont:IsState(Controller.HOLD_UP) then
-						up = true
-					end
+			if mode <= leftBound - 1 then
+				mode = leftBound;
+			end
 
-					if cont:IsState(Controller.HOLD_DOWN) then
-						down = true
-					end
-				end
+			if mode >= rightBound + 1 then
+				mode = rightBound;
+			end
+
+			-- Set up default panel displays and UI info
+			local menuPalette = CF.MenuNormalIdle;
+				
+			local highBarLeftText = self.ClonesControlPanelModesTexts[mode];
+			local highBarCenterText = "";
+			local highBarRightText = "";
+			local highBarPalette = CF.MenuNormalIdle;
+
+			local lowBarCenterText = self.ClonesControlPanelModesHelpTexts[mode];
+			local lowBarPalette = CF.MenuNormalIdle;
+				
+			local linesPerPage = 12;
+			local topOfPage = -68;
+
+			local isDiscarding = mode == self.ClonesControlPanelModes.SELL;
+			local isBrowsingClones = mode == self.ClonesControlPanelModes.CLONES;
+			local isBrowsingInventory = mode == self.ClonesControlPanelModes.INVENTORY;
+			local isBrowsingStorage = mode == self.ClonesControlPanelModes.STORAGE;
+
+			local isBlackMarket = CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.BLACKMARKET);
+			local isTradeStar = CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TRADESTAR);
+			local isSelling = isTradeStar or isBlackMarket;
+
+			-- Sell mode ui effects
+			if isDiscarding then
+				menuPalette = CF.MenuDeniedIdle;
+				highBarPalette = CF.MenuDeniedIdle;
+				lowBarPalette = CF.MenuDeniedIdle;
+			end
+
+			CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 70, pos.X + 0, pos.Y + 70, menuPalette);
+			CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X + 1, pos.Y - 70, pos.X + 140, pos.Y + 70, menuPalette);
+
+			if isDiscarding then
+				local itemsPerPage = self.ClonesControlPanelLinesPerPage;
+				local cloneSelected = self.ClonesSelectedClone;
 
 				if up then
-					if #self.Clones > 0 then
-						self.SelectedClone = self.SelectedClone - 1
-
-						if self.SelectedClone < 1 then
-							self.SelectedClone = #self.Clones
-						end
-					end
+					cloneSelected = cloneSelected - 1;
 				end
 
 				if down then
-					if #self.Clones > 0 then
-						self.SelectedClone = self.SelectedClone + 1
+					cloneSelected = cloneSelected + 1;
+				end
 
-						if self.SelectedClone > #self.Clones then
-							self.SelectedClone = 1
+				if cloneSelected < 1 then
+					cloneSelected = #self.Clones;
+				end
+
+				if cloneSelected > #self.Clones then
+					cloneSelected = 1;
+				end
+
+				local cloneValues = {};
+				local cloneInventoryValues = {};
+				local cloneIndividualValues = {};
+				local sellCoeff = isBlackMarket and math.sqrt(CF.SellPriceCoeff) or CF.SellPriceCoeff;
+
+				if isSelling then
+					for i = 1, #self.Clones do
+						local clone = self.Clones[i];
+						local faction, index = CF.FindActorInFactions(clone.Preset, clone.Class or "AHuman");
+						local factionValues = CF.ActPrices[faction] or {};
+						local value = factionValues[index] or CF.UnknownActorPrice;
+						value = value * (1 + (clone.Prestige or 0) + (clone.XP or 0) / 1000);
+						table.insert(cloneIndividualValues, math.floor(value * sellCoeff));
+						local itemValues = {};
+
+						for i = 1, #clone.Items do
+							local item = clone.Items[i];
+							local faction, index = CF.FindItemInFactions(item.Preset, item.Class or "HDFirearm");
+							local factionValues = CF.ItmPrices[faction] or {};
+							local price = factionValues[index] or CF.UnknownItemPrice;
+							value = value + price;
+							table.insert(itemValues, math.floor(price * sellCoeff));
 						end
+
+						table.insert(cloneInventoryValues, itemValues);
+						table.insert(cloneValues, math.floor(value * sellCoeff));
 					end
 				end
 
-				self.ClonesControlCloneListStart = self.SelectedClone
-					- (self.SelectedClone - 1) % self.ClonesControlPanelLinesPerPage
+				if cont:IsState(Controller.WEAPON_FIRE) then
+					if not self.FirePressed[player] then
+						self.FirePressed[player] = true;
 
-				self.SelectedClonePrice = 0
-				local sellCoeff = CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.BLACKMARKET)
-						and math.sqrt(CF.SellPriceCoeff)
-					or CF.SellPriceCoeff
+						if cloneSelected ~= 0 then
+							if isSelling then
+								self:SetTeamFunds(CF.ChangeGold(self.GS, cloneValues[cloneSelected]), CF.PlayerTeam);
+							end
 
-				-- Draw clones list
-				for i = self.ClonesControlCloneListStart, self.ClonesControlCloneListStart + self.ClonesControlPanelLinesPerPage - 1 do
-					if i <= #self.Clones and i > 0 then
-						local loc = i - self.ClonesControlCloneListStart
+							table.remove(self.Clones, cloneSelected);
+							table.remove(cloneValues, cloneSelected);
+							table.remove(cloneInventoryValues, cloneSelected);
 
-						local name = (
-									self.Clones[i]["Prestige"]
-									and self.Clones[i]["Name"]
-									and self.Clones[i]["Name"] ~= ""
-								)
-								and self.Clones[i]["Name"]
-							or self.Clones[i]["Preset"]
-						if i == self.SelectedClone then
-							CF.DrawString("> " .. name, pos + Vector(-130, -40) + Vector(0, loc * 12), 120, 10)
-							-- Calculate actor price
-							local fact, indx = CF.FindActorInFactions(self.Clones[i]["Preset"], self.Clones[i]["Class"])
-							self.SelectedClonePrice = math.floor(
-								(
-										(fact and indx) and self.SelectedClonePrice + CF.ActPrices[fact][indx]
-										or CF.UnknownActorPrice
-									) * sellCoeff
-							)
+							-- Update game state data
+							CF.SetClonesArray(self.GS, self.Clones);
 
-							--if self.ClonesControlMode == self.ClonesControlPanelModes.SELL and self.GS["Planet"] == "TradeStar" and self.GS["Location"] ~= nil then
-							--	CF.DrawString(tostring(self.SelectedClonePrice).."oz", pos + Vector(-20,-40) + Vector(0, (loc) * 12), 120, 10)
-							--end
-						else
-							CF.DrawString(name, pos + Vector(-130, -40) + Vector(0, loc * 12), 120, 10)
-						end
-					end
-				end
-
-				-- Draw selected clone items
-				if self.SelectedClone ~= nil and self.SelectedClone > 0 then
-					local drawPos = Vector(pos.X, pos.Y)
-					local headless = self.Clones[self.SelectedClone]["HEAD"] == "Null"
-					local armless = self.Clones[self.SelectedClone]["FG1"] == "Null"
-						and self.Clones[self.SelectedClone]["BG1"] == "Null"
-					local legless = self.Clones[self.SelectedClone]["FG2"] == "Null"
-						and self.Clones[self.SelectedClone]["BG2"] == "Null"
-					-- Include rank if any
-					local info = ""
-					local xp = self.Clones[self.SelectedClone]["XP"]
-					if xp then
-						xp = tonumber(xp)
-						local showRank = 0
-						for rank = 1, #CF.Ranks do
-							if xp >= CF.Ranks[rank] then
-								showRank = rank
-							else
-								break
+							if cloneSelected > #self.Clones then
+								cloneSelected = #self.Clones;
 							end
 						end
-						local prestige = tonumber(self.Clones[self.SelectedClone]["Prestige"])
-						if showRank ~= 0 or prestige ~= 0 then
-							if prestige ~= 0 then
-								showRank = showRank .. "x" .. prestige
-							end
-							info = "Rank: " .. showRank .. " "
-						end
 					end
-					-- Print inventory
-					CF.DrawString(
-						info .. "Inventory: " .. #self.Clones[self.SelectedClone]["Items"] .. "/" .. CF.MaxItems,
-						drawPos + Vector(12, -60),
-						300,
-						20
-					)
-					if headless or armless or legless then
-						info = ""
-						drawPos.Y = drawPos.Y + 12
-						if headless then
-							info = "HEADLESS"
-						end
-						if armless or legless then
-							info = (info == "" and "" or info .. ", ")
-								.. ((armless and legless) and "LIMBLESS" or (armless and "ARMLESS" or "LEGLESS"))
-						end
-						CF.DrawString(info, drawPos + Vector(12, -60), 300, 20)
-					end
-
-					for i = 1, #self.Clones[self.SelectedClone]["Items"] do
-						-- Calculate inventory price
-						local fact, indx = CF.FindItemInFactions(
-							self.Clones[self.SelectedClone]["Items"][i]["Preset"],
-							self.Clones[self.SelectedClone]["Items"][i]["Class"]
-						)
-
-						local price = math.floor(
-							((fact and indx) and CF.ItmPrices[fact][indx] or CF.UnknownItemPrice) * sellCoeff
-						)
-						self.SelectedClonePrice = self.SelectedClonePrice + price
-
-						local prefix = ""
-						if self.ClonesControlMode == self.ClonesControlPanelModes.SELL then
-							if
-								CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TRADESTAR)
-								or CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.BLACKMARKET)
-							then
-								prefix = tostring(price) .. "oz "
-							end
-						end
-
-						CF.DrawString(
-							prefix .. self.Clones[self.SelectedClone]["Items"][i]["Preset"],
-							drawPos + Vector(12, -40) + Vector(0, (i - 1) * 12),
-							120,
-							10
-						)
-					end
-				end
-
-				if self.ClonesControlMode == self.ClonesControlPanelModes.SELL then
-					if
-						CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TRADESTAR)
-						or CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.BLACKMARKET)
-					then
-						CF.DrawString("Sell price: " .. self.SelectedClonePrice, pos + Vector(12, 60), 300, 10)
-					end
+				else
+					self.FirePressed[player] = false;
 				end
 
 				-- Print clone storage capacity
-				CF.DrawString(
-					"Capacity: "
-						.. CF.CountUsedClonesInArray(self.Clones)
-						.. "/"
-						.. self.GS["PlayerVesselClonesCapacity"],
-					pos + Vector(-130, -60),
-					300,
-					10
-				)
+				highBarRightText = "Life support usage: " .. CF.CountActors(CF.PlayerTeam) .. "/" .. self.GS["PlayerVesselLifeSupport"];
 
-				-- Change panel text to show life support capacity
-				self.ClonesControlPanelModesTexts[self.ClonesControlPanelModes.CLONES] = "Bodies - Life support usage: "
-					.. CF.CountActors(CF.PlayerTeam)
-					.. "/"
-					.. self.GS["PlayerVesselLifeSupport"]
+				local clone = self.Clones[cloneSelected];
+
+				local lineOffset = topOfPage;
+				local text = "Capacity: ";
+				CF.DrawString(text, pos + Vector(-138, lineOffset), 135, 11, nil, nil, 0);
+				local text = CF.CountUsedClonesInArray(self.Clones) .. "/" .. self.GS["PlayerVesselClonesCapacity"];
+				CF.DrawString(text, pos + Vector(-2, lineOffset), 135, 11, nil, nil, 2);
+				lineOffset = lineOffset + 22;
+
+				-- Draw clones list
+				local listStart = cloneSelected - (cloneSelected - 1) % itemsPerPage;
+
+				for i = listStart, listStart + itemsPerPage - 1 do
+					local clone = self.Clones[i];
+
+					if clone then
+						local name = self.Clones[i].Name ~= "" and self.Clones[i].Name or self.Clones[i].Preset;
+						local prefix = i == cloneSelected and "> " or "";
+						CF.DrawString(prefix .. name, pos + Vector(-138, lineOffset), 135, 11);
+						
+						if isSelling then
+							local prefix = "\198 " .. tostring(cloneValues[i]) .. " oz";
+							CF.DrawString(prefix, pos + Vector(-2, lineOffset), 135, 11, false, nil, 2);
+						end
+
+						lineOffset = lineOffset + 11;
+					end
+				end
+
+				local lineOffset = topOfPage;
+
+				if clone then
+					local itemSelected = self.ClonesInventorySelectedItem;
+
+					if prev then
+						itemSelected = itemSelected - 10;
+					end
+
+					if next then
+						itemSelected = itemSelected + 10;
+					end
+
+					if itemSelected < 1 then
+						itemSelected = #clone.Items;
+					end
+
+					if itemSelected > #clone.Items then
+						itemSelected = 1;
+					end
+
+					local head = clone.HEAD ~= "Null";
+					local fgArm = clone.FG1 ~= "Null";
+					local bgArm = clone.BG1 ~= "Null";
+					local fgLeg = clone.FG2 ~= "Null";
+					local bgLeg = clone.BG2 ~= "Null";
+					local xp = tonumber(clone.XP) or 0;
+					local prestige = tonumber(clone.Prestige) or 0;
+					local name = clone.Name ~= "" and clone.Name or clone.Preset;
+					local rank = 0;
+
+					if xp > 0 then
+						local showRank = #CF.Ranks;
+
+						for rank = 1, #CF.Ranks do
+							if xp < CF.Ranks[rank] then
+								showRank = rank - 1;
+								break;
+							end
+						end
+
+						rank = showRank;
+					end
+
+					if rank ~= 0 or prestige ~= 0 then
+						self:DrawRankIcon(Activity.PLAYER_NONE, pos + Vector(9, lineOffset + 9), rank, prestige);
+					end
+
+					local text;
+					text = name;
+					CF.DrawString(text, pos + Vector(94, lineOffset), 135, 11, nil, nil, 1);
+					lineOffset = lineOffset + 16;
+					text = "Inventory: ";
+					CF.DrawString(text, pos + Vector(50, lineOffset), 135, 11, nil, nil, 0);
+					text = #clone.Items .. "/" .. CF.MaxStoredActorInventory;
+					CF.DrawString(text, pos + Vector(138, lineOffset), 135, 11, nil, nil, 2);
+					lineOffset = lineOffset + 11;
+					text = "Rank: ";
+					CF.DrawString(text, pos + Vector(50, lineOffset), 135, 11, nil, nil, 0);
+					text = tostring(rank);
+					CF.DrawString(text, pos + Vector(138, lineOffset), 135, 11, nil, nil, 2);
+					lineOffset = lineOffset + 11;
+					text = "Prestige: ";
+					CF.DrawString(text, pos + Vector(50, lineOffset), 135, 11, nil, nil, 0);
+					text = tostring(prestige);
+					CF.DrawString(text, pos + Vector(138, lineOffset), 135, 11, nil, nil, 2);
+					lineOffset = lineOffset + 16;
+
+					local bodyCenter = pos + Vector(26, -40);
+					local path = "Mods/VoidWanderers.rte/UI/Generic/HumanTorsoSymbol.png";
+					PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, bodyCenter, path, 0, false, false);
+
+					if head then
+						local path = "Mods/VoidWanderers.rte/UI/Generic/HumanHeadSymbol.png";
+						PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, bodyCenter + Vector(0, -18), path, 0, false, false);
+					end
+
+					if fgArm then
+						local path = "Mods/VoidWanderers.rte/UI/Generic/HumanFGArmSymbol.png";
+						PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, bodyCenter + Vector(-12, -5), path, 0, false, false);
+					end
+
+					if bgArm then
+						local path = "Mods/VoidWanderers.rte/UI/Generic/HumanBGArmSymbol.png";
+						PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, bodyCenter + Vector(12, -5), path, 0, false, false);
+					end
+
+					if fgLeg then
+						local path = "Mods/VoidWanderers.rte/UI/Generic/HumanFGLegSymbol.png";
+						PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, bodyCenter + Vector(-5, 14), path, 0, false, false);
+					end
+
+					if bgLeg then
+						local path = "Mods/VoidWanderers.rte/UI/Generic/HumanBGLegSymbol.png";
+						PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, bodyCenter + Vector(5, 14), path, 0, false, false);
+					end
+
+					local listings = cloneInventoryValues[cloneSelected];
+					if #clone.Items > 0 then
+						local listStart = itemSelected - (itemSelected - 1) % itemsPerPage;
+
+						for i = listStart, listStart + itemsPerPage - 1 do
+							local item = clone.Items[i];
+
+							if item then
+								CF.DrawString(item.Preset, pos + Vector(4, lineOffset), 135, 11, true, nil, 0);
+							
+								if isSelling then
+									CF.DrawString("\213 " .. listings[i] .. " oz", pos + Vector(138, lineOffset), 135, 11, true, nil, 2);
+								end
+
+								lineOffset = lineOffset + 8;
+							end
+						end
+					else
+						CF.DrawString("-- NO ITEMS --", pos + Vector(70, (lineOffset - topOfPage) / 2), 135, 11, true, nil, 1, 1);
+					end
+
+					self.ClonesInventorySelectedItem = itemSelected;
+				else
+					CF.DrawString("-- NO CLONES --", pos + Vector(70, 0), 135, 11, nil, nil, 1, 1);
+				end
+
+				self.ClonesSelectedClone = cloneSelected;
+			elseif isBrowsingClones then
+				local itemsPerPage = self.ClonesControlPanelLinesPerPage;
+				local cloneSelected = self.ClonesSelectedClone;
+
+				if up then
+					cloneSelected = cloneSelected - 1;
+				end
+
+				if down then
+					cloneSelected = cloneSelected + 1;
+				end
+
+				if cloneSelected < 1 then
+					cloneSelected = #self.Clones;
+				end
+
+				if cloneSelected > #self.Clones then
+					cloneSelected = 1;
+				end
 
 				if cont:IsState(Controller.WEAPON_FIRE) then
 					if not self.FirePressed[player] then
-						self.FirePressed[player] = true
+						self.FirePressed[player] = true;
 
-						if self.ClonesControlMode == self.ClonesControlPanelModes.SELL then
-							if self.SelectedClone ~= 0 then
-								if
-									CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TRADESTAR)
-									or CF.IsLocationHasAttribute(
-										self.GS["Location"],
-										CF.LocationAttributeTypes.BLACKMARKET
-									)
-								then
-									self:SetTeamFunds(CF.ChangeGold(self.GS, self.SelectedClonePrice), CF.PlayerTeam)
-								end
-
-								-- Remove actor from array
-								local newarr = {}
-								local ii = 1
-
-								for i = 1, #self.Clones do
-									if i ~= self.SelectedClone then
-										newarr[ii] = self.Clones[i]
-										ii = ii + 1
-									end
-								end
-
-								self.Clones = newarr
-
-								-- Update game state data
-								CF.SetClonesArray(self.GS, self.Clones)
-
-								if self.SelectedClone > #self.Clones then
-									self.SelectedClone = #self.Clones
-								end
-							else
-								self.ClonesControlLastMessageTime = self.Time
-								self.ClonesControlMessageText = "Clone storage is empty"
-							end
-						else
+						if #self.Clones ~= 0 then
 							if CF.CountActors(CF.PlayerTeam) < tonumber(self.GS["PlayerVesselLifeSupport"]) then
-								-- Create new unit
-								if self.SelectedClone ~= 0 then
-									if MovableMan:GetMOIDCount() < CF.MOIDLimit then
-										-- Spawn actor
-										local limbData = {}
-										for j = 1, #CF.LimbID do
-											limbData[j] = self.Clones[self.SelectedClone][CF.LimbID[j]]
-											if not CF.PermanentLimbLoss and limbData[j] == "Null" then
-												limbData[j] = nil
-											end
-										end
-										local a = CF.MakeActor(
-											self.Clones[self.SelectedClone]["Preset"],
-											self.Clones[self.SelectedClone]["Class"],
-											self.Clones[self.SelectedClone]["Module"],
-											self.Clones[self.SelectedClone]["XP"],
-											self.Clones[self.SelectedClone]["Identity"],
-											self.Clones[self.SelectedClone]["Player"],
-											self.Clones[self.SelectedClone]["Prestige"],
-											self.Clones[self.SelectedClone]["Name"],
-											limbData
-										)
-										if a ~= nil then
-											a.Team = CF.PlayerTeam
-											a.AIMode = Actor.AIMODE_SENTRY
+								local clone = self.Clones[cloneSelected];
 
-											for i = 1, #self.Clones[self.SelectedClone]["Items"] do
-												local itm = CF.MakeItem(
-													self.Clones[self.SelectedClone]["Items"][i]["Preset"],
-													self.Clones[self.SelectedClone]["Items"][i]["Class"],
-													self.Clones[self.SelectedClone]["Items"][i]["Module"]
-												)
-												if itm ~= nil then
-													if
-														itm:HasScript(CF.ModuleName .. "/Items/Limb.lua")
-														and CF.AttemptReplaceLimb(a, itm)
-													then
-														DeleteEntity(itm)
-													else
-														a:AddInventoryItem(itm)
-													end
-												else
-													self.ClonesControlLastMessageTime = self.Time
-													self.ClonesControlMessageText = "ERROR!!! Can't create item!!!"
-												end
-											end
-											if IsAHuman(a) and ToAHuman(a).Head == nil then
-												a.DeathSound = nil
-												a.Status = Actor.DEAD
-											end
-											a.Pos = self.ClonesDeployPos or self.ClonesControlPanelPos
+								local limbData = {};
 
-											a.RestThreshold = -1
-											MovableMan:AddActor(a)
+								for j = 1, #CF.LimbID do
+									limbData[j] = clone[CF.LimbID[j]];
+								end
 
-											self:AddPreEquippedItemsToRemovalQueue(a)
+								local actor = CF.MakeActor(
+									clone.Preset,
+									clone.Class,
+									clone.Module,
+									clone.XP,
+									clone.Identity,
+									clone.Player,
+									clone.Prestige,
+									clone.Name,
+									limbData
+								);
 
-											-- Remove actor from array
-											local newarr = {}
-											local ii = 1
+								if actor ~= nil then
+									actor.Team = CF.PlayerTeam;
+									actor.AIMode = Actor.AIMODE_SENTRY;
 
-											for i = 1, #self.Clones do
-												if i ~= self.SelectedClone then
-													newarr[ii] = self.Clones[i]
-													ii = ii + 1
-												end
-											end
+									for i = 1, #clone.Items do
+										local item = clone.Items[i];
+										local item = CF.MakeItem(item.Preset, item.Class, item.Module);
 
-											self.Clones = newarr
-
-											-- Update game state data
-											CF.SetClonesArray(self.GS, self.Clones)
-
-											if self.SelectedClone > #self.Clones then
-												self.SelectedClone = #self.Clones
+										if item ~= nil then
+											if item:HasScript(CF.ModuleName .. "/Items/Limb.lua") and CF.AttemptReplaceLimb(actor, item) then
+												DeleteEntity(item);
+											else
+												actor:AddInventoryItem(item);
 											end
 										else
-											self.ClonesControlLastMessageTime = self.Time
-											self.ClonesControlMessageText = "ERROR!!! Can't create actor!!!"
+											self.ClonesControlMessageTime = self.Time;
+											self.ClonesControlMessageText = "Can't create item. Very bad.";
 										end
-									else
-										self.ClonesControlLastMessageTime = self.Time
-										self.ClonesControlMessageText = "Too many objects in simulation"
+									end
+
+									if IsAHuman(actor) and ToAHuman(actor).Head == nil then
+										actor.DeathSound = nil;
+										actor.Status = Actor.DEAD;
+									end
+
+									actor.Pos = self.ClonesDeployPos or self.ClonesControlPanelPos;
+									actor.RestThreshold = -1;
+									MovableMan:AddActor(actor);
+									self:AddPreEquippedItemsToRemovalQueue(actor);
+									table.remove(self.Clones, cloneSelected);
+									CF.SetClonesArray(self.GS, self.Clones);
+
+									if cloneSelected < 1 then
+										cloneSelected = #self.Clones;
+									end
+
+									if cloneSelected > #self.Clones then
+										cloneSelected = 1;
 									end
 								else
-									self.ClonesControlLastMessageTime = self.Time
-									self.ClonesControlMessageText = "Clone storage is empty"
+									self.ClonesControlMessageTime = self.Time;
+									self.ClonesControlMessageText = "Actor could not be created. Very bad.";
 								end
 							else
-								if self.SelectedClone == 0 then
-									self.ClonesControlLastMessageTime = self.Time
-									self.ClonesControlMessageText = "Clone storage is empty"
-								else
-									self.ClonesControlLastMessageTime = self.Time
-									self.ClonesControlMessageText = "Too many units. Upgrade life support."
-								end
+								self.ClonesControlMessageTime = self.Time;
+								self.ClonesControlMessageText = "Too many units. Upgrade life support.";
 							end
-						end -- If not sell mode
-					end
-				else
-					self.FirePressed[player] = false
-				end
-			end
-
-			-- Inventory list screen
-			if self.ClonesControlMode == self.ClonesControlPanelModes.INVENTORY then
-				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed[player] then
-						self.FirePressed[player] = true
-
-						if
-							self.SelectedClone > 0
-							and CF.CountUsedStorageInArray(self.StorageItems) < tonumber(
-								self.GS["PlayerVesselStorageCapacity"]
-							)
-							and #self.Clones[self.SelectedClone]["Items"] > 0
-						then
-							-- Put item to storage array
-							CF.PutItemToStorageArray(
-								self.StorageItems,
-								self.Clones[self.SelectedClone]["Items"][self.ClonesInventorySelectedItem]["Preset"],
-								self.Clones[self.SelectedClone]["Items"][self.ClonesInventorySelectedItem]["Class"],
-								self.Clones[self.SelectedClone]["Items"][self.ClonesInventorySelectedItem]["Module"]
-							)
-							CF.SetStorageArray(self.GS, self.StorageItems)
-
-							-- Refresh storage items array and filters
-							self.StorageItems, self.StorageFilters = CF.GetStorageArray(self.GS, true)
-
-							-- Remove item from inventory via temp array
-							local inv = {}
-							local ii = 1
-
-							for i = 1, #self.Clones[self.SelectedClone]["Items"] do
-								if i ~= self.ClonesInventorySelectedItem then
-									inv[ii] = {}
-
-									inv[ii]["Preset"] = self.Clones[self.SelectedClone]["Items"][i]["Preset"]
-									inv[ii]["Class"] = self.Clones[self.SelectedClone]["Items"][i]["Class"]
-									inv[ii]["Module"] = self.Clones[self.SelectedClone]["Items"][i]["Module"]
-
-									ii = ii + 1
-								end
-							end
-
-							self.Clones[self.SelectedClone]["Items"] = inv
-
-							CF.SetClonesArray(self.GS, self.Clones)
-
-							self.ClonesInventorySelectedItem = math.max(self.ClonesInventorySelectedItem - 1, 1)
+						else
+							self.ClonesControlMessageTime = self.Time;
+							self.ClonesControlMessageText = "Clone storage is empty.";
 						end
 					end
 				else
-					self.FirePressed[player] = false
+					self.FirePressed[player] = false;
 				end
 
-				local up = false
-				local down = false
+				-- Change panel text to show life support capacity
+				highBarRightText = "Life support usage: " .. CF.CountActors(CF.PlayerTeam) .. "/" .. self.GS["PlayerVesselLifeSupport"];
 
-				if cont:IsState(Controller.PRESS_UP) then
-					self.HoldTimer:Reset()
-					up = true
+				local clone = self.Clones[cloneSelected];
+
+				local clonesPerPage = self.ClonesControlPanelLinesPerPage;
+				local listStart = cloneSelected - (cloneSelected - 1) % clonesPerPage;
+				
+				local lineOffset = topOfPage;
+				local text = "Capacity: ";
+				CF.DrawString(text, pos + Vector(-138, lineOffset), 135, 11, nil, nil, 0);
+				local text = CF.CountUsedClonesInArray(self.Clones) .. "/" .. self.GS["PlayerVesselClonesCapacity"];
+				CF.DrawString(text, pos + Vector(-2, lineOffset), 135, 11, nil, nil, 2);
+				lineOffset = lineOffset + 22;
+
+				-- Draw clones list
+				for i = listStart, listStart + clonesPerPage - 1 do
+					local clone = self.Clones[i];
+
+					if clone then
+						local name = self.Clones[i].Name ~= "" and self.Clones[i].Name or self.Clones[i].Preset;
+						local prefix = i == cloneSelected and "> " or "";
+						CF.DrawString(prefix .. name, pos + Vector(-138, lineOffset), 135, 11);
+						lineOffset = lineOffset + 11;
+					end
 				end
+				
+				local lineOffset = topOfPage;
 
-				if cont:IsState(Controller.PRESS_DOWN) then
-					self.HoldTimer:Reset()
-					down = true
-				end
+				if clone then
+					local itemSelected = self.ClonesInventorySelectedItem;
 
-				if self.HoldTimer:IsPastSimMS(CF.KeyRepeatDelay) then
-					self.HoldTimer:Reset()
-
-					if cont:IsState(Controller.HOLD_UP) then
-						up = true
+					if prev then
+						itemSelected = itemSelected - 10;
 					end
 
-					if cont:IsState(Controller.HOLD_DOWN) then
-						down = true
+					if next then
+						itemSelected = itemSelected + 10;
 					end
+
+					if itemSelected < 1 then
+						itemSelected = #clone.Items;
+					end
+
+					if itemSelected > #clone.Items then
+						itemSelected = 1;
+					end
+
+					local head = clone.HEAD ~= "Null";
+					local fgArm = clone.FG1 ~= "Null";
+					local bgArm = clone.BG1 ~= "Null";
+					local fgLeg = clone.FG2 ~= "Null";
+					local bgLeg = clone.BG2 ~= "Null";
+					local xp = tonumber(clone.XP) or 0;
+					local prestige = tonumber(clone.Prestige) or 0;
+					local name = clone.Name ~= "" and clone.Name or clone.Preset;
+					local rank = 0;
+
+					if xp > 0 then
+						local showRank = #CF.Ranks;
+
+						for rank = 1, #CF.Ranks do
+							if xp < CF.Ranks[rank] then
+								showRank = rank - 1;
+								break;
+							end
+						end
+
+						rank = showRank;
+					end
+
+					if rank ~= 0 or prestige ~= 0 then
+						self:DrawRankIcon(Activity.PLAYER_NONE, pos + Vector(9, lineOffset + 9), rank, prestige);
+					end
+
+					local text;
+					text = name;
+					CF.DrawString(text, pos + Vector(94, lineOffset), 135, 11, nil, nil, 1);
+					lineOffset = lineOffset + 16;
+					text = "Inventory: ";
+					CF.DrawString(text, pos + Vector(50, lineOffset), 135, 11, nil, nil, 0);
+					text = #clone.Items .. "/" .. CF.MaxStoredActorInventory;
+					CF.DrawString(text, pos + Vector(138, lineOffset), 135, 11, nil, nil, 2);
+					lineOffset = lineOffset + 11;
+					text = "Rank: ";
+					CF.DrawString(text, pos + Vector(50, lineOffset), 135, 11, nil, nil, 0);
+					text = tostring(rank);
+					CF.DrawString(text, pos + Vector(138, lineOffset), 135, 11, nil, nil, 2);
+					lineOffset = lineOffset + 11;
+					text = "Prestige: ";
+					CF.DrawString(text, pos + Vector(50, lineOffset), 135, 11, nil, nil, 0);
+					text = tostring(prestige);
+					CF.DrawString(text, pos + Vector(138, lineOffset), 135, 11, nil, nil, 2);
+					lineOffset = lineOffset + 16;
+
+					local bodyCenter = pos + Vector(26, -40);
+					local path = "Mods/VoidWanderers.rte/UI/Generic/HumanTorsoSymbol.png";
+					PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, bodyCenter, path, 0, false, false);
+
+					if head then
+						local path = "Mods/VoidWanderers.rte/UI/Generic/HumanHeadSymbol.png";
+						PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, bodyCenter + Vector(0, -18), path, 0, false, false);
+					end
+
+					if fgArm then
+						local path = "Mods/VoidWanderers.rte/UI/Generic/HumanFGArmSymbol.png";
+						PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, bodyCenter + Vector(-12, -5), path, 0, false, false);
+					end
+
+					if bgArm then
+						local path = "Mods/VoidWanderers.rte/UI/Generic/HumanBGArmSymbol.png";
+						PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, bodyCenter + Vector(12, -5), path, 0, false, false);
+					end
+
+					if fgLeg then
+						local path = "Mods/VoidWanderers.rte/UI/Generic/HumanFGLegSymbol.png";
+						PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, bodyCenter + Vector(-5, 14), path, 0, false, false);
+					end
+
+					if bgLeg then
+						local path = "Mods/VoidWanderers.rte/UI/Generic/HumanBGLegSymbol.png";
+						PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, bodyCenter + Vector(5, 14), path, 0, false, false);
+					end
+
+					if #clone.Items > 0 then
+						local listStart = itemSelected - (itemSelected - 1) % itemsPerPage;
+
+						for i = listStart, listStart + itemsPerPage - 1 do
+							local item = clone.Items[i];
+
+							if item then
+								CF.DrawString(clone.Items[i].Preset, pos + Vector(4, lineOffset), 135, 11, true, nil, 0);
+								lineOffset = lineOffset + 8;
+							end
+						end
+					else
+						CF.DrawString("-- NO ITEMS --", pos + Vector(70, (lineOffset - topOfPage) / 2), 135, 11, true, nil, 1, 1);
+					end
+
+					self.ClonesInventorySelectedItem = itemSelected;
+				else
+					CF.DrawString("-- NO CLONES --", pos + Vector(70, 0), 135, 11, nil, nil, 1, 1);
 				end
+
+				self.ClonesSelectedClone = cloneSelected;
+			elseif isBrowsingInventory then
+				local itemSelected = self.ClonesInventorySelectedItem;
+				local clone = self.Clones[self.ClonesSelectedClone];
 
 				if up then
-					self.ClonesInventorySelectedItem = self.ClonesInventorySelectedItem - 1
-
-					if self.ClonesInventorySelectedItem < 1 then
-						self.ClonesInventorySelectedItem = #self.Clones[self.SelectedClone]["Items"]
-					end
+					itemSelected = itemSelected - 1;
 				end
 
 				if down then
-					self.ClonesInventorySelectedItem = self.ClonesInventorySelectedItem + 1
-
-					if self.ClonesInventorySelectedItem > #self.Clones[self.SelectedClone]["Items"] then
-						self.ClonesInventorySelectedItem = 1
-					end
+					itemSelected = itemSelected + 1;
 				end
-			end
 
-			if self.ClonesControlMode == self.ClonesControlPanelModes.ITEMS then
+				if itemSelected < 1 then
+					itemSelected = #clone.Items;
+				end
+
+				if itemSelected > #clone.Items then
+					itemSelected = 1;
+				end
+
+				local item = clone.Items[itemSelected];
+				
 				if cont:IsState(Controller.WEAPON_FIRE) then
 					if not self.FirePressed[player] then
-						self.FirePressed[player] = true
+						self.FirePressed[player] = true;
+						local storageFull = CF.CountUsedStorageInArray(self.StorageItems) >= tonumber(self.GS.PlayerVesselStorageCapacity);
 
-						if
-							self.SelectedClone > 0
-							and #self.StorageFilters[self.StorageControlPanelModes.EVERYTHING] > 0
-						then
-							local itm =
-								self.StorageFilters[self.StorageControlPanelModes.EVERYTHING][self.ClonesStorageSelectedItem]
+						if not storageFull then
+							if #clone.Items > 0 then
+								CF.PutItemToStorageArray(self.StorageItems, item.Preset, item.Class, item.Module);
+								CF.SetStorageArray(self.GS, self.StorageItems);
 
-							--Add item to unit's inventory
-							if #self.Clones[self.SelectedClone]["Items"] < CF.MaxItems then
-								if self.StorageItems[itm]["Count"] > 0 then
-									local newitm = #self.Clones[self.SelectedClone]["Items"] + 1
-									self.StorageItems[itm]["Count"] = self.StorageItems[itm]["Count"] - 1
-									self.Clones[self.SelectedClone]["Items"][newitm] = {}
-									self.Clones[self.SelectedClone]["Items"][newitm]["Preset"] =
-										self.StorageItems[itm]["Preset"]
-									self.Clones[self.SelectedClone]["Items"][newitm]["Class"] =
-										self.StorageItems[itm]["Class"]
-									self.Clones[self.SelectedClone]["Items"][newitm]["Module"] =
-										self.StorageItems[itm]["Module"]
+								self.StorageItems, self.StorageFilters = CF.GetStorageArray(self.GS, true);
+								table.remove(clone.Items, itemSelected);
+								CF.SetClonesArray(self.GS, self.Clones);
 
-									-- Update game state
-									CF.SetClonesArray(self.GS, self.Clones)
-									CF.SetStorageArray(self.GS, self.StorageItems)
-
-									-- Refresh storage array and filters
-									if self.StorageItems[itm]["Count"] == 0 then
-										self.StorageItems, self.StorageFilters = CF.GetStorageArray(self.GS, true)
-									end
-								else
-									self.ClonesControlLastMessageTime = self.Time
-									self.ClonesControlMessageText = "No more items in storage"
-								end
+								itemSelected = math.min(#clone.Items, itemSelected);
 							else
-								self.ClonesControlLastMessageTime = self.Time
-								self.ClonesControlMessageText = "Unit inventory full"
+								self.ClonesControlMessageText = "Clone has no items!";
+								self.ClonesControlMessageTime = self.Time;
 							end
 						else
-							self.ClonesControlLastMessageTime = self.Time
-							self.ClonesControlMessageText = "Clone storage empty"
+							self.ClonesControlMessageText = "Item storage full!";
+							self.ClonesControlMessageTime = self.Time;
 						end
 					end
 				else
-					self.FirePressed[player] = false
+					self.FirePressed[player] = false;
 				end
 
-				-- Bacause StorageFilters may change outside of this panel by other players always check for out-of-bounds
-				if
-					self.ClonesStorageSelectedItem > #self.StorageFilters[self.StorageControlPanelModes.EVERYTHING]
-					and #self.StorageFilters[self.StorageControlPanelModes.EVERYTHING] > 0
-				then
-					self.ClonesStorageSelectedItem = #self.StorageFilters[self.StorageControlPanelModes.EVERYTHING]
-				end
+				local lineOffset = topOfPage;
 
-				local up = false
-				local down = false
+				local name = clone.Name ~= "" and clone.Name or clone.Preset;
+				local text = name .. ": " .. #clone.Items .. "/" .. CF.MaxStoredActorInventory;
+				CF.DrawString(text, pos + Vector(-138, lineOffset), 135, 11);
+				lineOffset = lineOffset + 22;
 
-				if cont:IsState(Controller.PRESS_UP) then
-					self.HoldTimer:Reset()
-					up = true
-				end
+				local itemsPerPage = self.ClonesControlPanelLinesPerPage;
+				local listStart = itemSelected - (itemSelected - 1) % itemsPerPage;
+				
+				for i = listStart, listStart + itemsPerPage - 1 do
+					local item = clone.Items[i];
 
-				if cont:IsState(Controller.PRESS_DOWN) then
-					self.HoldTimer:Reset()
-					down = true
-				end
-
-				if self.HoldTimer:IsPastSimMS(CF.KeyRepeatDelay) then
-					self.HoldTimer:Reset()
-
-					if cont:IsState(Controller.HOLD_UP) then
-						up = true
-					end
-
-					if cont:IsState(Controller.HOLD_DOWN) then
-						down = true
+					if item then
+						local prefix = self.ClonesInventorySelectedItem == i and "> " or "";
+						local text = prefix .. item.Preset;
+						CF.DrawString(text, pos + Vector(-138, lineOffset), 135, 11);
+						lineOffset = lineOffset + 11;
 					end
 				end
+
+				local lineOffset = topOfPage;
+
+				local text = "Storage: " .. CF.CountUsedStorageInArray(self.StorageItems) .. "/" .. tonumber(self.GS.PlayerVesselStorageCapacity);
+				CF.DrawString(text, pos + Vector(4, lineOffset), 135, 11);
+				lineOffset = lineOffset + 22;
+				
+				local itemsPerPage = self.ClonesControlPanelLinesPerPage;
+				local liststart = self.ClonesStorageSelectedItem - (self.ClonesStorageSelectedItem - 1) % itemsPerPage;
+
+				for i = liststart, liststart + itemsPerPage - 1 do
+					local item = self.StorageItems[i];
+
+					if item then
+						CF.DrawString(item.Preset, pos + Vector(4, lineOffset), 135, 11, nil, nil, 0)
+						CF.DrawString(tostring(item.Count), pos + Vector(138, lineOffset), 135, 11, nil, nil, 2);
+						lineOffset = lineOffset + 11;
+					end
+				end
+
+				self.ClonesInventorySelectedItem = itemSelected;
+			elseif isBrowsingStorage then
+				local itemSelected = self.ClonesStorageSelectedItem;
+				local clone = self.Clones[self.ClonesSelectedClone];
 
 				if up then
-					if #self.StorageFilters[self.StorageControlPanelModes.EVERYTHING] > 0 then
-						self.ClonesStorageSelectedItem = self.ClonesStorageSelectedItem - 1
-
-						if self.ClonesStorageSelectedItem < 1 then
-							self.ClonesStorageSelectedItem =
-								#self.StorageFilters[self.StorageControlPanelModes.EVERYTHING]
-						end
-					end
+					itemSelected = itemSelected - 1;
 				end
 
 				if down then
-					if #self.StorageFilters[self.StorageControlPanelModes.EVERYTHING] > 0 then
-						self.ClonesStorageSelectedItem = self.ClonesStorageSelectedItem + 1
-
-						if
-							self.ClonesStorageSelectedItem
-							> #self.StorageFilters[self.StorageControlPanelModes.EVERYTHING]
-						then
-							self.ClonesStorageSelectedItem = 1
-						end
-					end
+					itemSelected = itemSelected + 1;
 				end
-			end
 
-			-- Draw clones inventory and stored items lists
-			if
-				self.ClonesControlMode == self.ClonesControlPanelModes.INVENTORY
-				or self.ClonesControlMode == self.ClonesControlPanelModes.ITEMS
-			then
-				-- Draw selected clone items
-				if self.SelectedClone ~= nil and self.SelectedClone > 0 then
-					-- Print inventory
-					local name = (
-								self.Clones[self.SelectedClone]["Prestige"]
-								and self.Clones[self.SelectedClone]["Name"]
-								and self.Clones[self.SelectedClone]["Name"] ~= ""
-							)
-							and self.Clones[self.SelectedClone]["Name"]
-						or self.Clones[self.SelectedClone]["Preset"]
-					CF.DrawString(
-						name .. ": " .. #self.Clones[self.SelectedClone]["Items"] .. "/" .. CF.MaxItems,
-						pos + Vector(-141 + 12, -60),
-						300,
-						10
-					)
+				if itemSelected > #self.StorageItems then
+					itemSelected = 1;
+				end
 
-					for i = 1, #self.Clones[self.SelectedClone]["Items"] do
-						if
-							self.ClonesControlMode == self.ClonesControlPanelModes.INVENTORY
-							and self.ClonesInventorySelectedItem == i
-						then
-							CF.DrawString(
-								"> " .. self.Clones[self.SelectedClone]["Items"][i]["Preset"],
-								pos + Vector(-141 + 12, -40) + Vector(0, (i - 1) * 12),
-								120,
-								10
-							)
-							self.ClonesControlPanelModesTexts[self.ClonesControlPanelModes.INVENTORY] = self.Clones[self.SelectedClone]["Items"][i]["Preset"]
-								.. " - Inventory"
+				if itemSelected < 1 then
+					itemSelected = #self.StorageItems;
+				end
+
+				if cont:IsState(Controller.WEAPON_FIRE) then
+					if not self.FirePressed[player] then
+						self.FirePressed[player] = true;
+
+						local fullInventory = #clone.Items >= CF.MaxStoredActorInventory;
+
+						if #self.StorageItems > 0 then
+							if not fullInventory then
+								local item = self.StorageItems[itemSelected];
+								item.Count = item.Count - 1;
+
+								local newItem = {};
+								newItem.Preset = item.Preset;
+								newItem.Class = item.Class;
+								newItem.Module = item.Module;
+								table.insert(clone.Items, newItem);
+
+								CF.SetClonesArray(self.GS, self.Clones);
+								CF.SetStorageArray(self.GS, self.StorageItems);
+
+								if item.Count == 0 then
+									self.StorageItems, self.StorageFilters = CF.GetStorageArray(self.GS, true);
+								end
+
+								itemSelected = math.min(#self.StorageItems, itemSelected);
+							else
+								self.ClonesControlMessageText = "Clone has no inventory space left.";
+								self.ClonesControlMessageTime = self.Time;
+							end
 						else
-							CF.DrawString(
-								self.Clones[self.SelectedClone]["Items"][i]["Preset"],
-								pos + Vector(-141 + 12, -40) + Vector(0, (i - 1) * 12),
-								120,
-								10
-							)
+							self.ClonesControlMessageText = "No items in storage.";
+							self.ClonesControlMessageTime = self.Time;
 						end
+					end
+				else
+					self.FirePressed[player] = false;
+				end
+
+				local lineOffset = topOfPage;
+
+				local name = clone.Name ~= "" and clone.Name or clone.Preset;
+
+				local text = name .. ": " .. #clone.Items .. "/" .. CF.MaxStoredActorInventory;
+				CF.DrawString(text, pos + Vector(-138, lineOffset), 135, 11);
+				lineOffset = lineOffset + 22;
+
+				local itemsPerPage = self.ClonesControlPanelLinesPerPage;
+				local listStart = self.ClonesInventorySelectedItem - (self.ClonesInventorySelectedItem - 1) % itemsPerPage;
+				
+				for i = listStart, listStart + itemsPerPage - 1 do
+					local item = clone.Items[i];
+
+					if item then
+						local prefix = "";
+						local text = prefix .. item.Preset;
+						CF.DrawString(text, pos + Vector(-138, lineOffset), 135, 11);
+						lineOffset = lineOffset + 11;
 					end
 				end
 
-				local liststart = self.ClonesStorageSelectedItem
-					- (self.ClonesStorageSelectedItem - 1) % self.ClonesControlPanelLinesPerPage
+				local lineOffset = topOfPage;
+
+				local text = "Storage: " .. CF.CountUsedStorageInArray(self.StorageItems) .. "/" .. tonumber(self.GS.PlayerVesselStorageCapacity);
+				CF.DrawString(text, pos + Vector(4, lineOffset), 135, 11);
+				lineOffset = lineOffset + 22;
+				
+				local itemsPerPage = self.ClonesControlPanelLinesPerPage;
+				local liststart = self.ClonesStorageSelectedItem - (self.ClonesStorageSelectedItem - 1) % itemsPerPage;
 
 				-- Draw items list
-				for i = liststart, liststart + self.ClonesControlPanelLinesPerPage - 1 do
-					if i <= #self.StorageFilters[self.StorageControlPanelModes.EVERYTHING] then
-						local itm = self.StorageFilters[self.StorageControlPanelModes.EVERYTHING][i]
-						local loc = i - liststart
+				for i = liststart, liststart + itemsPerPage - 1 do
+					local item = self.StorageItems[i];
 
-						if
-							self.ClonesControlMode == self.ClonesControlPanelModes.ITEMS
-							and self.ClonesStorageSelectedItem == i
-						then
-							CF.DrawString(
-								"> " .. self.StorageItems[itm]["Preset"],
-								pos + Vector(12, -40) + Vector(0, loc * 12),
-								110,
-								10
-							)
-							self.ClonesControlPanelModesTexts[self.ClonesControlPanelModes.ITEMS] = self.StorageItems[itm]["Preset"]
-								.. " - Items"
-						else
-							CF.DrawString(
-								self.StorageItems[itm]["Preset"],
-								pos + Vector(12, -40) + Vector(0, loc * 12),
-								110,
-								10
-							)
-						end
-
-						CF.DrawString(
-							tostring(self.StorageItems[itm]["Count"]),
-							pos + Vector(12, -40) + Vector(110, loc * 12),
-							110,
-							10
-						)
+					if item then
+						local prefix = self.ClonesStorageSelectedItem == i and "> " or "";
+						local text = prefix .. item.Preset;
+						CF.DrawString(text, pos + Vector(4, lineOffset), 135, 11, nil, nil, 0)
+						CF.DrawString(tostring(item.Count), pos + Vector(138, lineOffset), 135, 11, nil, nil, 2);
+						lineOffset = lineOffset + 11;
 					end
 				end
 
-				-- Print storage capacity
-				CF.DrawString(
-					"Capacity: "
-						.. CF.CountUsedStorageInArray(self.StorageItems)
-						.. "/"
-						.. self.GS["PlayerVesselStorageCapacity"],
-					pos + Vector(12, -60),
-					300,
-					10
-				)
+				self.ClonesStorageSelectedItem = itemSelected;
 			end
 
-			-- Draw generic UI
-			if self.ClonesControlMode ~= self.ClonesControlPanelModes.SELL then
-				self:PutGlow("ControlPanel_Clones_Left", pos + Vector(-71, 0))
-				self:PutGlow("ControlPanel_Clones_Right", pos + Vector(70, 0))
-				self:PutGlow("ControlPanel_Clones_HorizontalPanel", pos + Vector(0, -77))
-			else
-				self:PutGlow("ControlPanel_Clones_Left_Red", pos + Vector(-71, 0))
-				self:PutGlow("ControlPanel_Clones_Right_Red", pos + Vector(70, 0))
-				self:PutGlow("ControlPanel_Clones_HorizontalPanel_Red", pos + Vector(0, -77))
-			end
-
-			-- Print help text or error message text
-			if self.Time < self.ClonesControlLastMessageTime + self.ClonesControlMessageIntrval then
-				self:PutGlow("ControlPanel_Clones_HorizontalPanel_Red", pos + Vector(0, 78))
-				CF.DrawString(self.ClonesControlMessageText, pos + Vector(-130, 78), 300, 10)
-			else
-				if self.ClonesControlMode ~= self.ClonesControlPanelModes.SELL then
-					self:PutGlow("ControlPanel_Clones_HorizontalPanel", pos + Vector(0, 78))
-				else
-					self:PutGlow("ControlPanel_Clones_HorizontalPanel_Red", pos + Vector(0, 78))
+			if self.ClonesControlMessageText then
+				if self.Time <= self.ClonesControlMessageTime + self.ClonesControlMessagePeriod then
+					lowBarPalette = CF.MenuDeniedIdle;
+					lowBarCenterText = self.ClonesControlMessageText;
 				end
-
-				CF.DrawString(
-					self.ClonesControlPanelModesHelpTexts[self.ClonesControlMode],
-					pos + Vector(-130, 78),
-					300,
-					10
-				)
 			end
+			
+			CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 84, pos.X + 140, pos.Y - 71, highBarPalette);
+			CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y + 71, pos.X + 140, pos.Y + 84, lowBarPalette);
 
-			-- Print Selected mode text
-			CF.DrawString(self.ClonesControlPanelModesTexts[self.ClonesControlMode], pos + Vector(-130, -77), 250, 10)
+			CF.DrawString(highBarLeftText, pos + Vector(-138, -77), 276, 11, nil, nil, 0, 1);
+			CF.DrawString(highBarCenterText, pos + Vector(0, -77), 276, 11, nil, nil, 1, 1);
+			CF.DrawString(highBarRightText, pos + Vector(138, -77), 276, 11, nil, nil, 2, 1);
+
+			CF.DrawString(lowBarCenterText, pos + Vector(0, 78), 276, 11, nil, nil, 1, 1);
+
+			self.ClonesControlMode = mode;
 		end
 	end
 
 	if showidle and self.ClonesControlPanelPos ~= nil and self.ClonesControlPanelActor ~= nil then
-		self.ClonesControlPanelInitialized = false
-		self:PutGlow("ControlPanel_Clones", self.ClonesControlPanelPos)
-		--CF.DrawString("CLONES",self.ClonesControlPanelPos + Vector(-16,0),120,20 )
-		--print (self.ClonesControlPanelActor)
+		local player = Activity.PLAYER_NONE;
+		local pos = self.ClonesControlPanelPos;
+		local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Clones.png";
+		PrimitiveMan:DrawBitmapPrimitive(player, pos, path, 0, false, false);
+
+		local text = "Capacity: " .. CF.CountUsedClonesInArray(self.Clones) .. "/" .. self.GS["PlayerVesselClonesCapacity"];
+		CF.DrawString(text, pos + Vector(0, -40), 100, 11, nil, nil, 1);
 	end
 
 	-- Process clones input
@@ -863,10 +942,10 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 		and not self.RandomEncounterAttackLaunched
 	then
 		local count = CF.CountUsedClonesInArray(self.Clones)
-		local toresettimer = true
+		local toResetTimer = true
 		
 		if count < tonumber(self.GS["PlayerVesselClonesCapacity"]) then
-			local hasactor = false
+			local foundActor = false
 
 			-- Search for body and put it in storage
 			for actor in MovableMan:GetMOsInRadius(self.ClonesInputPos, self.ClonesInputRange, Activity.NOTEAM, true) do
@@ -894,8 +973,8 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 						moving = false
 					end
 
-					if not moving and actor.PresetName ~= "Clones Control Panel" and not actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
-						toresettimer = false
+					if not moving and actor.PresetName ~= "Clones Control Panel" and not CF.IsBrain(actor) then
+						toResetTimer = false
 
 						if actorDead then
 							actor.Vel = actor.Vel * 0.95 + Vector(0, -0.01) - (actor.Pos - self.ClonesInputPos) / 200
@@ -911,14 +990,14 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 								local c = #self.Clones + 1
 
 								self.Clones[c] = {}
-								self.Clones[c]["Preset"] = actor.PresetName
-								self.Clones[c]["Class"] = actor.ClassName
-								self.Clones[c]["Module"] = actor.ModuleName
-								self.Clones[c]["XP"] = actor:GetNumberValue("VW_XP")
-								self.Clones[c]["Identity"] = actor:GetNumberValue("Identity")
-								self.Clones[c]["Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
-								self.Clones[c]["Prestige"] = actor:GetNumberValue("VW_Prestige")
-								self.Clones[c]["Name"] = actor:GetStringValue("VW_Name")
+								self.Clones[c].Preset = actor.PresetName
+								self.Clones[c].Class = actor.ClassName
+								self.Clones[c].Module = actor.ModuleName
+								self.Clones[c].XP = actor:GetNumberValue("VW_XP")
+								self.Clones[c].Identity = actor:GetNumberValue("Identity")
+								self.Clones[c].Player = actor:GetNumberValue("VW_BrainOfPlayer")
+								self.Clones[c].Prestige = actor:GetNumberValue("VW_Prestige")
+								self.Clones[c].Name = actor:GetStringValue("VW_Name")
 								for j = 1, #CF.LimbID do
 									self.Clones[c][CF.LimbID[j]] = CF.GetLimbData(actor, j)
 								end
@@ -926,15 +1005,15 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 								-- Store inventory
 								local inv, cls, mdl = CF.GetInventory(actor)
 
-								self.Clones[c]["Items"] = {}
+								self.Clones[c].Items = {}
 
 								for i = 1, #inv do
 									-- First store items in clone storage
-									if i <= CF.MaxItems then
-										self.Clones[c]["Items"][i] = {}
-										self.Clones[c]["Items"][i]["Preset"] = inv[i]
-										self.Clones[c]["Items"][i]["Class"] = cls[i]
-										self.Clones[c]["Items"][i]["Module"] = mdl[i]
+									if i <= CF.MaxStoredActorInventory then
+										self.Clones[c].Items[i] = {}
+										self.Clones[c].Items[i].Preset = inv[i]
+										self.Clones[c].Items[i].Class = cls[i]
+										self.Clones[c].Items[i].Module = mdl[i]
 									else
 										-- Try to store other items in items storage
 										-- If we have free space add items to storage, spawn nearby otherwise
@@ -973,12 +1052,12 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 								CF.SetClonesArray(self.GS, self.Clones)
 
 								-- Refresh storage items array and filters
-								self.Clones = CF.GetClonesArray(self.GS, true)
+								self.Clones = CF.GetClonesArray(self.GS)
 
 								self.ClonesLastDetectedBodyTime = nil
 							end
 
-							hasactor = true
+							foundActor = actor
 						else
 							self.ClonesLastDetectedBodyTime = self.Time
 						end
@@ -987,41 +1066,24 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 			end
 
 			if showidle then
-				if hasactor and self.ClonesLastDetectedBodyTime ~= nil then
-					self:AddObjectivePoint(
-						"Store in " .. self.ClonesLastDetectedBodyTime + self.ClonesInputDelay - self.Time,
-						self.ClonesInputPos,
-						CF.PlayerTeam,
-						GameActivity.ARROWDOWN
-					)
-				else
-					self:AddObjectivePoint(
-						"Stand here to store body\n" .. count .. " / " .. self.GS["PlayerVesselClonesCapacity"],
-						self.ClonesInputPos,
-						CF.PlayerTeam,
-						GameActivity.ARROWDOWN
-					)
+				if foundActor and self.ClonesLastDetectedBodyTime ~= nil then
+					text = "Store in " .. self.ClonesLastDetectedBodyTime + self.ClonesInputDelay - self.Time;
+					self:AddObjectivePoint(text, foundActor.EyePos + Vector(0, -10), CF.PlayerTeam, GameActivity.ARROWDOWN);
 				end
 			end
 		else
-			self:AddObjectivePoint(
-				"Clone storage is full",
-				self.ClonesInputPos + Vector(0, -40),
-				CF.PlayerTeam,
-				GameActivity.ARROWUP
-			)
-			self.ClonesLastDetectedBodyTime = nil
+			toResetTimer = true;
 		end
 
-		if toresettimer then
-			self.ClonesLastDetectedBodyTime = nil
+		if toResetTimer then
+			self.ClonesLastDetectedBodyTime = nil;
 		end
 	end
 
 	if MovableMan:IsActor(self.CloneControlPanelActor) then
-		self.CloneControlPanelActor.Health = 100
+		self.CloneControlPanelActor.Health = 100;
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

@@ -1,6 +1,6 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:InitBombsControlPanelUI()
 	self.BombsControlPanelActor = CreateActor("Bomb Control Panel")
 	if self.BombsControlPanelActor ~= nil then
@@ -9,18 +9,18 @@ function VoidWanderers:InitBombsControlPanelUI()
 		MovableMan:AddActor(self.BombsControlPanelActor)
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:DestroyBombsControlPanelUI()
 	if self.BombsControlPanelActor ~= nil and MovableMan:IsActor(self.BombsControlPanelActor) then
 		self.BombsControlPanelActor.ToDelete = true
 		self.BombsControlPanelActor = nil
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:ProcessBombsControlPanelUI()
 	if MovableMan:IsActor(self.BombsControlPanelActor) then
 		local isactive = false
@@ -46,8 +46,8 @@ function VoidWanderers:ProcessBombsControlPanelUI()
 						right = true
 					end
 
-					if self.HoldTimer:IsPastSimMS(CF.KeyRepeatDelay) then
-						self.HoldTimer:Reset()
+					if self.HoldTimer[player + 1]:IsPastSimMS(CF.KeyRepeatDelay) then
+						self.HoldTimer[player + 1]:Reset()
 
 						if cont:IsState(Controller.HOLD_LEFT) then
 							left = true
@@ -171,6 +171,6 @@ function VoidWanderers:ProcessBombsControlPanelUI()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

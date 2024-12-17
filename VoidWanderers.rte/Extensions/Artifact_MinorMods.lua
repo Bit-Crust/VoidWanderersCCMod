@@ -12,7 +12,7 @@ if PresetMan:GetModuleID("Deployable Turret.rte") ~= -1 then
 	CF.ArtItmClasses[id] = "TDExplosive"
 end
 
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 --[[
 	High Impulse Weapon System by p3lb0x
@@ -28,7 +28,7 @@ if PresetMan:GetModuleID("HIWS.rte") ~= -1 then
 	CF.ArtItmClasses[id] = "HDFirearm"
 end
 
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 --[[
 	The High Energy Pulse Projector by p3lb0x
@@ -44,7 +44,7 @@ if PresetMan:GetModuleID("HEPP.rte") ~= -1 then
 	CF.ArtItmClasses[id] = "HDFirearm"
 end
 
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 --[[
 	Dummy Rocket Launchers by p3lb0x
@@ -67,7 +67,7 @@ if PresetMan:GetModuleID("DummyMRlauncher.rte") ~= -1 then
 	CF.ArtItmModules[id] = "DummyMRlauncher.rte"
 	CF.ArtItmClasses[id] = "HDFirearm"
 end
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 --[[
 	Aeon Tech by Arcalane
@@ -92,7 +92,7 @@ if PresetMan:GetModuleID("ATech.rte") ~= -1 then
 	CF.ArtItmModules[id] = "ATech.rte"
 	CF.ArtItmClasses[id] = "HDFirearm"
 end
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 --[[
 	Khandari by Major
@@ -160,7 +160,7 @@ if PresetMan:GetModuleID("Khandari.rte") ~= -1 then
 	end
 end
 
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 --[[
 	The Flagship by Nonsequitorian
@@ -231,7 +231,7 @@ end
 end--]]
 --
 
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 --[[
 	Dummy Particle Accelerator by CaveCricket48

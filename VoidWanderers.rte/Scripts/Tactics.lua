@@ -1,7 +1,7 @@
------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Start Activity
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:StartActivity(isNewGame)
 	print("VoidWanderers:Tactics:StartActivity");
 	
@@ -16,9 +16,13 @@ function VoidWanderers:StartActivity(isNewGame)
 		return
 	end
 
-	self.PlayersWithBrains = {}
+	self.PlayersWithBrains = {};
+	self.HoldTimer = {};
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		self.PlayersWithBrains[player + 1] = false
+		self.PlayersWithBrains[player + 1] = false;
+		
+		self.HoldTimer[player + 1] = Timer();
+		self.HoldTimer[player + 1]:Reset();
 	end
 	
 	self.AllowsUserSaving = true
@@ -37,9 +41,6 @@ function VoidWanderers:StartActivity(isNewGame)
 
 	self.TeleportEffectTimer = Timer()
 	self.TeleportEffectTimer:Reset()
-
-	self.HoldTimer = Timer()
-	self.HoldTimer:Reset()
 
 	self.SceneTimer = Timer()
 	self.SceneTimer:Reset();
@@ -104,13 +105,28 @@ function VoidWanderers:StartActivity(isNewGame)
 	
 	-- Display gold like normal since the buy menu is disabled
 	self:SetTeamFunds(CF.GetPlayerGold(self.GS), CF.PlayerTeam)
-
-	if self.GS["AISkillPlayer"] then
-		self:SetTeamAISkill(CF.PlayerTeam, tonumber(self.GS["AISkillPlayer"]))
+	
+	do
+		local playerSkill = tonumber(self.GS["AISkillPlayer"]);
+		if playerSkill then
+			self:SetTeamAISkill(CF.PlayerTeam, playerSkill);
+		end
 	end
 
-	if self.GS["AISkillCPU"] then
-		self:SetTeamAISkill(CF.CPUTeam, tonumber(self.GS["AISkillCPU"]))
+	do
+		local cpuSkill = tonumber(self.GS["AISkillCPU"]);
+		if cpuSkill then
+			for team = Activity.TEAM_1 + 1, Activity.MAXTEAMCOUNT - 1 do
+				self:SetTeamAISkill(team, cpuSkill);
+			end
+		end
+	end
+	
+	do
+		local difficulty = tonumber(self.GS["Difficulty"]);
+		if difficulty then
+			self.Difficulty = difficulty;
+		end
 	end
 
 	self.AssaultSpawn = SceneMan.Scene:GetArea("AssaultSpawn")
@@ -600,7 +616,6 @@ function VoidWanderers:StartActivity(isNewGame)
 			self:AmbientCreate()
 		end
 
-		-- isNewGame can only ever be undefined or false with how it currently is, so. . . this is how it is
 		if isNewGame then
 			-- Spawn crates
 			local hiddenRate = fowEnabled and 0.25 or 0.5
@@ -689,13 +704,36 @@ function VoidWanderers:StartActivity(isNewGame)
 					if altitude.Y > 1 then
 						SceneMan:RevealUnseenBox(x - 10, 0, CF.FogOfWarResolution + 20, altitude.Y + 10, CF.CPUTeam)
 						SceneMan:RevealUnseenBox(x - 10, 0, CF.FogOfWarResolution + 20, altitude.Y + 10, CF.PlayerTeam)
+
+						-- ambient crabs
+						if false and math.random(1, 1000) <= 4 then
+							local onScreen = false;
+							local platonicCrab = ToACrab(PresetMan:GetPreset("ACrab", "Crab", "Base.rte"));
+							local platonicMegaCrab = ToACrab(PresetMan:GetPreset("ACrab", "Mega Crab", "Base.rte"));
+							platonicCrab = math.random(1, 100) >= 100 and platonicMegaCrab or platonicCrab;
+
+							for player = Activity.PLAYER_NONE + 1, Activity.MAXPLAYERCOUNT - 1 do
+								onScreen = FrameMan.PlayerScreenWidth / 2 >= platonicCrab.Radius + SceneMan:ShortestDistance(Vector(x, 0), Vector(CameraMan:GetOffset(player).X + FrameMan.PlayerScreenWidth / 2, 0), true).Magnitude;
+								if onScreen then
+									break;
+								end
+							end
+							
+							if not onScreen then
+								local crab = platonicCrab:Clone();
+								if crab then
+									crab.Pos = altitude + Vector(0, -128);
+									MovableMan:AddActor(crab);
+								end
+							end
+						end
 					end
 				end
 
 				for Act in MovableMan.AddedActors do
 					if not IsADoor(Act) then
 						for angle = 0, math.pi * 2, 0.05 do
-							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, CF.FogOfWarResolution)
+							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150 + FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, CF.FogOfWarResolution)
 						end
 					end
 				end
@@ -754,10 +792,6 @@ function VoidWanderers:StartActivity(isNewGame)
 	self.IconFrame[10] = { findByName = { "Medikit", "Medical Dart Gun", "First Aid Kit", "Medical Healer Mk3" } } --findByGroup = {"Tools - Healing"}
 	--self.IconFrame[11] = {findByName = {"Grapple Gun", "Warp Grenade", "Dov Translocator", "Feather"}}
 
-	self.RankShadeIcon = CreateMOSRotating("Icon_Rank_Shade", self.ModuleName)
-	self.RankBaseIcon = CreateMOSRotating("Icon_Rank_Base", self.ModuleName)
-	self.RankRaisedIcon = CreateMOSRotating("Icon_Rank_Raised", self.ModuleName)
-	self.RankEmbossedIcon = CreateMOSRotating("Icon_Rank_Embossed", self.ModuleName)
 	self.xpSound = CreateSoundContainer("Geiger Click", "Base.rte")
 	self.levelUpSound = CreateSoundContainer("Confirm", "Base.rte")
 	-- Typing
@@ -838,9 +872,9 @@ function VoidWanderers:StartActivity(isNewGame)
 	self.IsInitialized = true
 	self.BrainsAtStake = true
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Update Activity
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:UpdateActivity()
 	if not self.IsInitialized then
 		--Init mission
@@ -864,7 +898,7 @@ function VoidWanderers:UpdateActivity()
 			local gain = victim.Team == -1 and 0 or 1
 			-- Give automatic reward to the first actor up-close to the enemy
 			local killer = MovableMan:GetClosestEnemyActor(victim.Team, victim.ViewPoint, 50, dist)
-			if killer and self:IsPlayerUnit(killer) then
+			if killer and CF.IsPlayerUnit(killer) then
 				gain = gain
 					+ victim.Value
 						/ (10 + math.abs(killer:GetGoldValue(0, 0.2, 0.2)))
@@ -877,7 +911,7 @@ function VoidWanderers:UpdateActivity()
 				-- Share XP between nearby actors
 				local killerCandidates = {}
 				for actor in MovableMan.Actors do
-					if self:IsPlayerUnit(actor) then
+					if CF.IsPlayerUnit(actor) then
 						dist = SceneMan:ShortestDistance(actor.ViewPoint, victim.ViewPoint, SceneMan.SceneWrapsX)
 						if dist:MagnitudeIsLessThan(self.killClaimRange) then
 							-- Check for some possible terrain obstructances that will diminish the probability of claiming a kill
@@ -948,7 +982,7 @@ function VoidWanderers:UpdateActivity()
 			end
 		elseif
 			actor:IsPlayerControlled()
-			and self:IsCommander(actor)
+			and CF.IsCommander(actor)
 			and actor:GetController():IsState(Controller.PRESS_PRIMARY)
 			and IsAHuman(actor)
 			and ToAHuman(actor).EquippedItem
@@ -1003,7 +1037,7 @@ function VoidWanderers:UpdateActivity()
 
 				if (not nameToDisplay) and isFriendly then
 					local icons = {}
-					if self:IsAlly(actor) then
+					if CF.IsAlly(actor) then
 						if not pieMenuOpen then
 							self:DrawIcon(0, actor.Pos + velOffset + Vector(-8, -math.ceil(actor.Height * 0.5) + 8))
 						end
@@ -1087,7 +1121,7 @@ function VoidWanderers:UpdateActivity()
 				end
 
 				-- If not a brain, and if enemy, then at least one rank,
-				if not actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") and (rank > 0 or actor.Team == CF.PlayerTeam) then
+				if not CF.IsBrain(actor) and (rank > 0 or actor.Team == CF.PlayerTeam) then
 					-- Get a reasonable position for the overhead, and the whose player it is,
 					local aboveHeadPos = actor.Pos + velOffset + Vector(-20, 8 - actor.Height * 0.5);
 					local actorPlayer = actor:GetController().Player;
@@ -1114,33 +1148,16 @@ function VoidWanderers:UpdateActivity()
 								pos = camOff + Vector(27, 24);
 								PrimitiveMan:DrawTextPrimitive(player, pos, name, false, 0);
 
-								local start, stop = camOff + Vector(28, 17), camOff + Vector(28, 17) + Vector(50, 6);
-								PrimitiveMan:DrawBoxFillPrimitive(player, start, stop, 80);
-								start, stop = camOff + Vector(27, 16), camOff + Vector(27, 16) + Vector(50, 6);
-								PrimitiveMan:DrawBoxFillPrimitive(player, start, stop, 118);
-								start, stop = camOff + Vector(28, 17), camOff + Vector(28, 17) + Vector(48, 4);
-								PrimitiveMan:DrawBoxFillPrimitive(player, start, stop, 80);
-
 								local capped = CF.Ranks[rank + 1] == nil;
+
+								local player = player;
+								local topLeft = camOff + Vector(27, 16);
+								local bottomRight = camOff + Vector(28, 17) + Vector(50, 6);
 								local progress = capped and 1 or (actor:GetNumberValue("VW_XP") - (CF.Ranks[rank] or 0)) / (CF.Ranks[rank + 1] - (CF.Ranks[rank] or 0));
-								
-								for i = 1, math.floor(progress * 24) do
-									local display = (not capped) or ((self.SceneTimer.ElapsedSimTimeMS + i / 24 * 1500) % 1500 < 750);
-									if display then
-										PrimitiveMan:DrawBoxFillPrimitive(
-											player,
-											camOff + Vector(27 + 2*i, 18),
-											camOff + Vector(27 + 2*i, 18) + Vector(0, 2),
-											71
-										);
-										PrimitiveMan:DrawBoxFillPrimitive(
-											player,
-											camOff + Vector(27 + 2*i, 19),
-											camOff + Vector(27 + 2*i, 19),
-											118
-										);
-									end
-								end
+								local palette = { 118, 71, 80 };
+
+								CF.DrawProgressBar(player, topLeft.X, topLeft.Y, bottomRight.X, bottomRight.Y, progress, palette);
+
 								self:DrawRankIcon(
 									player,
 									camOff + Vector(19, 20),
@@ -1232,7 +1249,7 @@ function VoidWanderers:UpdateActivity()
 				actor.Team == CF.PlayerTeam
 				and actor.ClassName ~= "Actor"
 				and actor.ClassName ~= "ADoor"
-				and not self:IsAlly(actor)
+				and not CF.IsAlly(actor)
 			then
 				count = count + 1
 
@@ -1435,7 +1452,7 @@ function VoidWanderers:UpdateActivity()
 			end
 		end
 
-		local coll = { MovableMan.Actors, MovableMan.Items, MovableMan.Particles }
+		local coll = { MovableMan.Actors, MovableMan.Items }
 		for i = 1, #coll do
 			for mo in coll[i] do
 				if mo.PinStrength == 0 then
@@ -1629,7 +1646,7 @@ function VoidWanderers:UpdateActivity()
 
 		-- Give passive experience points for non-brain actors
 		for actor in MovableMan.Actors do
-			if self:IsPlayerUnit(actor) then
+			if CF.IsPlayerUnit(actor) then
 				local damage = (actor.PrevHealth - actor.Health) / actor.MaxHealth
 
 				local gains = damage * math.sqrt(25 + (actor.Vel + actor.PrevVel).Magnitude)
@@ -1723,8 +1740,8 @@ function VoidWanderers:UpdateActivity()
 				actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua");
 			end
 		end
-		-- Active units of standing have the ability to fix their wounds, I think, forget how that script goes
-		if self:IsPlayerUnit(actor) then
+		-- Active units of standing have the ability to fix their wounds
+		if CF.IsPlayerUnit(actor) then
 			if actor:GetNumberValue("VW_Prestige") ~= 0 then
 				if actor:HasScript("Base.rte/Actors/Shared/Scripts/SelfHeal.lua") then
 					actor:EnableScript("Base.rte/Actors/Shared/Scripts/SelfHeal.lua")
@@ -1736,9 +1753,9 @@ function VoidWanderers:UpdateActivity()
 	end end
 
 	for particle in MovableMan.Particles do
-		if IsActor(particle) then
+		if IsActor(particle) and not particle:NumberValueExists("VW_Passable") then
 			actor = ToActor(particle);
-			if actor:IsDead() and not actor:NumberValueExists("VW_Passable") then 
+			if actor:IsDead() then 
 				actor:SetNumberValue("VW_Passable", actor.IgnoresActorHits and 1 or 0);
 				actor.IgnoresActorHits = true;
 			end
@@ -1768,9 +1785,9 @@ function VoidWanderers:UpdateActivity()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:InitConsoles()
 	self:InitShipControlPanelUI()
 	self:InitStorageControlPanelUI()
@@ -1779,9 +1796,9 @@ function VoidWanderers:InitConsoles()
 
 	self:InitTurretsControlPanelUI()
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:DestroyConsoles()
 	self:DestroyShipControlPanelUI()
 	self:DestroyStorageControlPanelUI()
@@ -1793,9 +1810,9 @@ function VoidWanderers:DestroyConsoles()
 
 	self:DestroyTurretsControlPanelUI()
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:DrawIcon(preset, pos)
 	if preset then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -1803,10 +1820,10 @@ function VoidWanderers:DrawIcon(preset, pos)
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Draw rank icon via blending primitives with palettes.
 -- Palettes are introduced as common RGB byte values that are processed by the loop below.
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 do
 	local rankBaseColor = {
 		{72,40,8},
@@ -1817,7 +1834,7 @@ do
 		{8,24,40},
 		{80,20,40},
 		{56,8,8}
-	}
+	};
 	local rankRaisedColor = {
 		{250,234,121},
 		{230,24,8},
@@ -1827,7 +1844,7 @@ do
 		{76,238,255},
 		{218,218,226},
 		{234,153,28}
-	}
+	};
 	local rankEmbossColor = {
 		{198,133,64},
 		{170,24,8},
@@ -1837,40 +1854,54 @@ do
 		{52,113,198},
 		{170,93,101},
 		{170,24,8}
-	}
+	};
 
 	for _, part in pairs{ rankBaseColor, rankRaisedColor, rankEmbossColor } do
 		for _, palette in pairs(part) do
 			for channel = 1, #palette do
-				palette[channel] = (1 - palette[channel] / 255) * 100
+				palette[channel] = (1 - palette[channel] / 255) * 100;
 			end
 		end
+	end
+
+	local rankShadePath = {};
+	local rankBasePath = {};
+	local rankRaisedPath = {};
+	local rankEmbossedPath = {};
+	
+	for i = 0, 5 do
+		rankShadePath[i] = "Mods/VoidWanderers.rte/Actors/PieMenu/Prestige/RankShade00" .. i .. ".png";
+		rankBasePath[i] = "Mods/VoidWanderers.rte/Actors/PieMenu/Prestige/RankBase00" .. i .. ".png";
+		rankRaisedPath[i] = "Mods/VoidWanderers.rte/Actors/PieMenu/Prestige/RankRaised00" .. i .. ".png";
+		rankEmbossedPath[i] = "Mods/VoidWanderers.rte/Actors/PieMenu/Prestige/RankHigh00" .. i .. ".png";
 	end
 
 	function VoidWanderers:DrawRankIcon(player, pos, rank, prestige)
 		player = player or Activity.PLAYER_NONE;
 		if rank then
-			local p = math.min(prestige + 1, 8)
-			local primitive = BitmapPrimitive(player, pos, self.RankShadeIcon, 0, rank, false, false)
-			PrimitiveMan:DrawPrimitives(DrawBlendMode.NoBlend, 000, 000, 000, 0, { primitive })
+			local p = math.min(prestige + 1, 8);
+			local primitive, pal;
 
-			local pal = rankBaseColor
-			primitive = BitmapPrimitive(player, pos, self.RankBaseIcon, 0, rank, false, false)
-			PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive })
+			primitive = BitmapPrimitive(player, pos, rankShadePath[rank], 0, false, false);
+			PrimitiveMan:DrawPrimitives(DrawBlendMode.NoBlend, 000, 000, 000, 0, { primitive });
+
+			pal = rankBaseColor;
+			primitive = BitmapPrimitive(player, pos, rankBasePath[rank], 0, false, false);
+			PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive });
 		
-			pal = rankRaisedColor
-			primitive = BitmapPrimitive(player, pos, self.RankRaisedIcon, 0, rank, false, false)
-			PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive })
+			pal = rankRaisedColor;
+			primitive = BitmapPrimitive(player, pos, rankRaisedPath[rank], 0, false, false);
+			PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive });
 		
-			pal = rankEmbossColor
-			primitive = BitmapPrimitive(player, pos, self.RankEmbossedIcon, 0, rank, false, false)
-			PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive })
+			pal = rankEmbossColor;
+			primitive = BitmapPrimitive(player, pos, rankEmbossedPath[rank], 0, false, false);
+			PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive });
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:GiveXP(actor, xp)
 	if actor then
 		xp = math.floor(xp / math.sqrt(1 + actor:GetNumberValue("VW_Prestige")) + 0.5);
@@ -1903,9 +1934,9 @@ function VoidWanderers:GiveXP(actor, xp)
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:LevelUp(actor)
 	if actor then
 		local experience = actor:GetNumberValue("VW_XP");
@@ -1933,9 +1964,9 @@ function VoidWanderers:LevelUp(actor)
 
 	return false;
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:PutGlow(preset, pos)
 	local glow = CreateMOPixel(preset, self.ModuleName)
 	if glow then
@@ -1943,9 +1974,9 @@ function VoidWanderers:PutGlow(preset, pos)
 		MovableMan:AddParticle(glow)
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:PutGlowWithModule(preset, pos, module)
 	local glow = CreateMOPixel(preset, module)
 	if glow then
@@ -1953,9 +1984,9 @@ function VoidWanderers:PutGlowWithModule(preset, pos, module)
 		MovableMan:AddParticle(glow)
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Removes specified item from actor's inventory, returns number of removed items
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:RemoveInventoryItem(actor, itempreset, maxcount)
 	local count = 0
 	local toabort = 0
@@ -2011,9 +2042,9 @@ function VoidWanderers:RemoveInventoryItem(actor, itempreset, maxcount)
 	-- print (tostring(count).." items removed")
 	return count
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:AttemptRandomEncounter()
 	if not CF.RandomEncountersEnabled then
 		return
@@ -2051,9 +2082,9 @@ function VoidWanderers:AttemptRandomEncounter()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:GiveFocusToBridge()
 	local bridgeempty = true
 	local plrtoswitch = Activity.PLAYER_NONE
@@ -2077,9 +2108,9 @@ function VoidWanderers:GiveFocusToBridge()
 	end
 	self.ShipControlMode = self.ShipControlPanelModes.REPORT
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:SendTransmission(message, options)
 	self.vesselData["dialog"] = { message=message, options=options }
 	self.vesselData["dialogDefaultTimer"]:Reset()
@@ -2088,9 +2119,9 @@ function VoidWanderers:SendTransmission(message, options)
 	
 	self:GiveFocusToBridge()
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:SpawnViaTable(nm)
 	local actor = CF.SpawnAIUnitWithPreset(
 		self.GS,
@@ -2133,7 +2164,7 @@ function VoidWanderers:SpawnViaTable(nm)
 		end
 
 		if nm["Ally"] then
-			self:SetAlly(actor, true)
+			CF.SetAlly(actor, true)
 		end
 
 		actor.HFlipped = math.random() < 0.5
@@ -2142,9 +2173,9 @@ function VoidWanderers:SpawnViaTable(nm)
 
 	return actor
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:ClearActors()
 	self.onboardActors = {};
 
@@ -2171,9 +2202,9 @@ function VoidWanderers:ClearActors()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:SaveActors(clearpos)
 	self:ClearActors();
 
@@ -2216,9 +2247,9 @@ function VoidWanderers:SaveActors(clearpos)
 		self.onboardActors[_] = MovableMan:RemoveActor(actor);
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:ClearDeployed()
 	self.deployedActors = {};
 	for i = 1, CF.MaxSavedActors do
@@ -2244,9 +2275,9 @@ function VoidWanderers:ClearDeployed()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --[[function VoidWanderers:SaveDeployed(clearpos)
 	self:ClearDeployed()
 
@@ -2287,11 +2318,11 @@ end
 		end
 	end
 end]]--
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
-	if orbitedCraft.Team == CF.PlayerTeam and orbitedCraft:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
+	if orbitedCraft.Team == CF.PlayerTeam then
 		-- Bring back actors
 		for actor in orbitedCraft.Inventory do
 			if actor.Team == CF.PlayerTeam and IsActor(actor) then
@@ -2310,7 +2341,7 @@ function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 				end
 
 				-- Don't bring back allied units
-				if self:IsAlly(actor) then
+				if CF.IsAlly(actor) then
 					assignable = false
 				end
 
@@ -2346,9 +2377,9 @@ function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 		FrameMan:ClearScreenText(0)
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Find and assign player brains, for loaded games.
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:LocatePlayerBrains(swapToBrains, initPieMenu)
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -2373,9 +2404,9 @@ function VoidWanderers:LocatePlayerBrains(swapToBrains, initPieMenu)
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:GetItemPrice(itmpreset, itmclass)
 	local price = 0
 
@@ -2395,10 +2426,10 @@ function VoidWanderers:GetItemPrice(itmpreset, itmclass)
 
 	return price
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
-function VoidWanderers:DrawDottedLine(x1, y1, x2, y2, dot, interval)
+-----------------------------------------------------------------------
+function VoidWanderers:DrawDottedLine(x1, y1, x2, y2, player, interval)
 	local d = CF.Dist(Vector(x1, y1), Vector(x2, y2))
 
 	local ax = (x2 - x1) / d * interval
@@ -2410,16 +2441,17 @@ function VoidWanderers:DrawDottedLine(x1, y1, x2, y2, dot, interval)
 	d = math.floor(d)
 
 	for i = 1, d, interval do
-		self:PutGlowWithModule(dot, Vector(x, y), self.ModuleName)
+		path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Ship_RouteDot.png";
+		PrimitiveMan:DrawBitmapPrimitive(player, Vector(x, y), path, 0, false, false);
 
 		x = x + ax
 		y = y + ay
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
-function VoidWanderers:DrawWanderingDottedLine(x1, y1, x2, y2, dot, interval, w, p, scale)
+-----------------------------------------------------------------------
+function VoidWanderers:DrawWanderingDottedLine(x1, y1, x2, y2, player, interval, w, p, scale)
 	local d = CF.Dist(Vector(x1, y1), Vector(x2, y2))
 	local t = 0
 
@@ -2431,8 +2463,9 @@ function VoidWanderers:DrawWanderingDottedLine(x1, y1, x2, y2, dot, interval, w,
 			x1 + (x2 - x1) * t + startOffsetX + (endOffsetX - startOffsetX) * t + math.cos(p + w * t) * scale,
 			y1 + (y2 - y1) * t + startOffsetY + (endOffsetY - startOffsetY) * t + math.sin(p + w * t) * scale
 		)
-
-		self:PutGlowWithModule(dot, pos, self.ModuleName)
+		
+		path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Ship_RouteDot.png";
+		PrimitiveMan:DrawBitmapPrimitive(player, pos, path, 0, false, false);
 
 		t = t + interval / math.min(math.abs(math.sqrt(
 			((x2 - x1) + (endOffsetX - startOffsetX) - math.sin(p + w * t) * w * scale) ^ 2 +
@@ -2440,9 +2473,9 @@ function VoidWanderers:DrawWanderingDottedLine(x1, y1, x2, y2, dot, interval, w,
 		)), d)
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:DeployGenericMissionEnemies(setnumber, setname, plr, team, spawnrate)
 	-- Define spawn queue
 	local dq = {}
@@ -2534,9 +2567,9 @@ function VoidWanderers:DeployGenericMissionEnemies(setnumber, setname, plr, team
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:ObtainBaseBoxes(setname, setnumber)
 	-- Get base box
 	if self.missionData["initialized"] then
@@ -2563,9 +2596,9 @@ function VoidWanderers:ObtainBaseBoxes(setname, setnumber)
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:DeployInfantryMines(team, rate)
 	local points = {}
 	for actor in MovableMan.AddedActors do
@@ -2592,9 +2625,9 @@ function VoidWanderers:DeployInfantryMines(team, rate)
 		MovableMan:AddParticle(mine)
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:GiveMissionRewards(disablepenalties)
 	print("MISSION COMPLETED")
 	self.GS["Player" .. self.missionData["missionContractor"] .. "Reputation"] = tonumber(
@@ -2642,7 +2675,7 @@ function VoidWanderers:GiveMissionRewards(disablepenalties)
 
 	local actors = {}
 	for actor in MovableMan.Actors do
-		if self:IsPlayerUnit(actor) then
+		if CF.IsPlayerUnit(actor) then
 			table.insert(actors, actor)
 		end
 	end
@@ -2676,9 +2709,9 @@ function VoidWanderers:GiveMissionRewards(disablepenalties)
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:GiveMissionPenalties()
 	print("MISSION FAILED")
 	if self.missionData["missionContractor"] then
@@ -2697,7 +2730,7 @@ function VoidWanderers:GiveMissionPenalties()
 	CF.MissionCombo = 0
 	local loss = math.floor((self.missionData["reputationReward"] + self.missionData["goldReward"]) * 0.005)
 	for actor in MovableMan.Actors do
-		if self:IsPlayerUnit(actor) then
+		if CF.IsPlayerUnit(actor) then
 			self:GiveXP(actor, -(loss + actor:GetNumberValue("VW_XP") * 0.1))
 		end
 	end
@@ -2714,42 +2747,9 @@ function VoidWanderers:GiveMissionPenalties()
 			.. " reputation"
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
-function VoidWanderers:SetAlly(actor, yes)
-	if yes then
-		actor:SetNumberValue("VW_Ally", 1)
-		actor.PlayerControllable = false
-	else
-		actor:RemoveNumberValue("VW_Ally")
-		actor.PlayerControllable = true
-		actor:FlashWhite(50)
-	end
-end
------------------------------------------------------------------------------------------
--- Whether an actor is an NPC on the player's team
------------------------------------------------------------------------------------------
-function VoidWanderers:IsAlly(actor)
-	return (actor.Team == CF.PlayerTeam and actor:NumberValueExists("VW_Ally"))
-end
------------------------------------------------------------------------------------------
--- Whether an actor is the brain or otherwise prestigious
------------------------------------------------------------------------------------------
-function VoidWanderers:IsCommander(actor)
-	return (actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") or actor:GetNumberValue("VW_Prestige") ~= 0)
-end
------------------------------------------------------------------------------------------
--- Whether an actor is a player-controllable, non-brain unit
------------------------------------------------------------------------------------------
-function VoidWanderers:IsPlayerUnit(actor)
-	return (IsAHuman(actor) or IsACrab(actor))
-		and actor.Team == CF.PlayerTeam
-		and not (actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") or self:IsAlly(actor))
-end
------------------------------------------------------------------------------------------
---
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:AddPreEquippedItemsToRemovalQueue(a)
 	-- Mark actors' pre-equipped items for deletion
 	if CF.ItemsToRemove[a.PresetName] then
@@ -2761,9 +2761,9 @@ function VoidWanderers:AddPreEquippedItemsToRemovalQueue(a)
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:InitExplorationPoints()
 	local set = CF.GetRandomMissionPointsSet(self.Pts, "Exploration")
 
@@ -2778,9 +2778,9 @@ function VoidWanderers:InitExplorationPoints()
 
 	--print (self.missionData["explorationPoint"])
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:ProcessExplorationPoints()
 	if self.missionData["explorationPoint"] ~= nil then
 		if not self.missionData["explorationRecovered"] then
@@ -2791,7 +2791,7 @@ function VoidWanderers:ProcessExplorationPoints()
 			-- Send all units to brainhunt
 			for actor in MovableMan.Actors do
 				if actor.Team == CF.PlayerTeam and CF.DistUnder(actor.Pos, self.missionData["explorationPoint"], 25) then
-					if self:IsCommander(actor) then
+					if CF.IsCommander(actor) then
 						self.missionData["explorationText"] = self:GiveRandomExplorationReward()
 						self.missionData["explorationRecovered"] = true
 
@@ -2831,9 +2831,9 @@ function VoidWanderers:ProcessExplorationPoints()
 		)
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:GiveRandomExplorationReward()
 	local rewards = { gold = 1, experience = 2, reputation = 3, blueprints = 4, nothing = 5 }
 	local text = { "Nothing of value was found." }
@@ -2886,9 +2886,9 @@ function VoidWanderers:GiveRandomExplorationReward()
 
 	return text
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:GiveRandomExperienceReward(diff)
 	local exppts = 150 + math.random(350)
 
@@ -2918,9 +2918,9 @@ function VoidWanderers:GiveRandomExperienceReward(diff)
 	end
 	CF.SaveMissionReport(self.GS, self.MissionReport)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MakeAlertSound(volume)
 	if self.AlarmTimer:IsPastRealMS(2000) then
 		self.AlarmTimer:Reset();
@@ -2945,9 +2945,9 @@ function VoidWanderers:MakeAlertSound(volume)
 		MovableMan:AddParticle(alarm)
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:StartMusic(musictype)
 	print("VoidWanderers:StartMusic")
 	local track = -1
@@ -2960,12 +2960,12 @@ function VoidWanderers:StartMusic(musictype)
 	self.LastMusicType = musictype
 	self.LastMusicTrack = track
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Message handling.
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:OnMessage(message, context)
 	VWHandleMessage(message, context)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- That's all folks!!!
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

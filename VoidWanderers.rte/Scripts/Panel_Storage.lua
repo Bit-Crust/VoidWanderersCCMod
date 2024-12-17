@@ -1,57 +1,61 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:InitStorageControlPanelUI()
-	local x, y
+	local x, y;
+	x = tonumber(self.SceneConfig["StorageControlPanelX"]);
+	y = tonumber(self.SceneConfig["StorageControlPanelY"]);
 
-	x = tonumber(self.SceneConfig["StorageControlPanelX"])
-	y = tonumber(self.SceneConfig["StorageControlPanelY"])
-	if x ~= nil and y ~= nil then
-		self.StorageControlPanelPos = Vector(x, y)
+	if x and y then
+		self.StorageControlPanelPos = Vector(x, y);
 	else
-		self.StorageControlPanelPos = nil
+		self.StorageControlPanelPos = nil;
 	end
 
-	x = tonumber(self.SceneConfig["StorageInputX"])
-	y = tonumber(self.SceneConfig["StorageInputY"])
-	if x ~= nil and y ~= nil then
-		self.StorageInputPos = Vector(x, y)
+	local left, top, right, bottom;
+	left = tonumber(self.SceneConfig["StorageInputLeft"]);
+	top = tonumber(self.SceneConfig["StorageInputTop"])
+	right = tonumber(self.SceneConfig["StorageInputRight"]);
+	bottom = tonumber(self.SceneConfig["StorageInputBottom"]);
+
+	if left and top and right and bottom then
+		self.StorageInputBox = Box(left, top, right, bottom);
 	else
-		self.StorageInputPos = nil
+		self.StorageInputBox = nil;
 	end
 
 	if self.StorageControlPanelPos ~= nil then
-		self:LocateStorageControlPanelActor()
+		self:LocateStorageControlPanelActor();
+
 		if not MovableMan:IsActor(self.StorageControlPanelActor) then
-			self.StorageControlPanelActor = CreateActor("Storage Control Panel")
+			self.StorageControlPanelActor = CreateActor("Storage Control Panel");
+
 			if self.StorageControlPanelActor ~= nil then
-				self.StorageControlPanelActor.Pos = self.StorageControlPanelPos
-				self.StorageControlPanelActor.Team = CF.PlayerTeam
-				MovableMan:AddActor(self.StorageControlPanelActor)
+				self.StorageControlPanelActor.Pos = self.StorageControlPanelPos;
+				self.StorageControlPanelActor.Team = CF.PlayerTeam;
+				MovableMan:AddActor(self.StorageControlPanelActor);
 			end
 		end
 	end
 
-		--[[Crate debug
-		local crt = CreateMOSRotating("Case", self.ModuleName)
-		if crt then
-			crt.Pos = self.StorageControlPanelPos
-			MovableMan:AddParticle(crt)
-		end
+	--[[Crate debug
+	local crt = CreateMOSRotating("Case", self.ModuleName)
+	if crt then
+		crt.Pos = self.StorageControlPanelPos
+		MovableMan:AddParticle(crt)
+	end
 
-		local crt = CreateMOSRotating("Crate", self.ModuleName)
-		if crt then
-			crt.Pos = self.StorageControlPanelPos + Vector(30,0)
-			MovableMan:AddParticle(crt)
-		end
-		--]]
+	local crt = CreateMOSRotating("Crate", self.ModuleName)
+	if crt then
+		crt.Pos = self.StorageControlPanelPos + Vector(30,0)
+		MovableMan:AddParticle(crt)
+	end
+	--]]
 
 	-- Init variables
-	self.StorageControlPanelItemsPerPage = 9
-	self.StorageInputRange = 50
-	self.StorageInputDelay = 10
-	self.StorageInputModifier = 3
-	self.StorageInputRapidity = 1
+	self.StorageControlPanelItemsPerPage = 10
+	self.StorageInputRange = 150
+	self.StorageInputDelay = 3
 	self.StorageControlPanelModes = {
 		SELL = -3,
 		UNKNOWN = -2,
@@ -80,15 +84,20 @@ function VoidWanderers:InitStorageControlPanelUI()
 	self.StorageControlPanelModesTexts[self.StorageControlPanelModes.DIGGER] = "Tools - Diggers"
 	self.StorageControlPanelModesTexts[self.StorageControlPanelModes.GRENADE] = "Explosives"
 	self.StorageControlPanelModesTexts[self.StorageControlPanelModes.TOOL] = "Tools"
+	
+	self.StorageControlMessageTime = -1;
+	self.StorageControlMessagePeriod = 3;
+	self.StorageControlMessageText = "";
 
-	self.StorageControlMode = self.StorageControlPanelModes.EVERYTHING
+	self.StorageControlMode = self.StorageControlPanelModes.EVERYTHING;
+	self.StorageSelectedItem = 1;
 
 	self.StorageItems, self.StorageFilters = CF.GetStorageArray(self.GS, true)
 	self.Bombs = CF.GetBombsArray(self.GS)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Find and assign appropriate actors
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:LocateStorageControlPanelActor()
 	for actor in MovableMan.AddedActors do
 		if actor.PresetName == "Storage Control Panel" then
@@ -97,504 +106,369 @@ function VoidWanderers:LocateStorageControlPanelActor()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:DestroyStorageControlPanelUI()
 	if self.StorageControlPanelActor ~= nil then
 		self.StorageControlPanelActor.ToDelete = true
 		self.StorageControlPanelActor = nil
 	end
-
-	if self.StorageControlPanelObject then
-		self.StorageControlPanelObject = nil
-	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:ProcessStorageControlPanelUI()
-	local showidle = true
+	local showidle = true;
 
-	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		local act = self:GetControlledActor(player)
+	if self.StorageControlPanelActor then
+		local pos = self.StorageControlPanelPos;
 
-		if act and MovableMan:IsActor(act) and act.PresetName == "Storage Control Panel" then
-			showidle = false
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			local act = self:GetControlledActor(player);
 
-			self.LastStorageSelectedItem = self.StorageSelectedItem
+			if act and act.PresetName == "Storage Control Panel" then
+				showidle = false;
 
-			-- Init control panel
-			if not self.StorageControlPanelInitialized then
-				self.StorageSelectedItem = 1
-				self.LastStorageSelectedItem = 0
-				self.StorageControlPanelInitialized = true
-			end
+				local cont = act:GetController();
+				local up = false;
+				local down = false;
 
-			-- Draw generic UI
-			local pos = act.Pos
-			if self.StorageControlMode ~= self.StorageControlPanelModes.SELL then
-				self:PutGlow("ControlPanel_Storage_List", pos + Vector(-71, 0))
-				self:PutGlow("ControlPanel_Storage_Description", pos + Vector(90, 0))
-				self:PutGlow("ControlPanel_Storage_HorizontalPanel", pos + Vector(19, -77))
-				self:PutGlow("ControlPanel_Storage_HorizontalPanel", pos + Vector(19, 78))
-
-				-- Print help text
-				CF.DrawString("L/R - Change filter, U/D - Select, FIRE - Dispense", pos + Vector(-130, 78), 300, 10)
-			else
-				self:PutGlow("ControlPanel_Storage_ListRed", pos + Vector(-71, 0))
-				self:PutGlow("ControlPanel_Storage_DescriptionRed", pos + Vector(90, 0))
-				self:PutGlow("ControlPanel_Storage_HorizontalPanelRed", pos + Vector(19, -77))
-				self:PutGlow("ControlPanel_Storage_HorizontalPanelRed", pos + Vector(19, 78))
-
-				self.StorageControlPanelModesTexts[self.StorageControlPanelModes.SELL] = "DUMP ITEMS"
-
-				if
-					CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TRADESTAR)
-					or CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.BLACKMARKET)
-				then
-					self.StorageControlPanelModesTexts[self.StorageControlPanelModes.SELL] = "SELL ITEMS Gold: "
-						.. CF.GetPlayerGold(self.GS, 0)
-						.. "oz"
-					CF.DrawString("L/R - Change filter, U/D - Select, FIRE - Sell", pos + Vector(-130, 78), 300, 10)
-				else
-					CF.DrawString("L/R - Change filter, U/D - Select, FIRE - Dump", pos + Vector(-130, 78), 300, 10)
-				end
-			end
-
-			-- Because StorageFilters may change outside of this panel by other players always check for out-of-bounds
-			if
-				self.StorageSelectedItem > #self.StorageFilters[self.StorageControlMode]
-				and #self.StorageFilters[self.StorageControlMode] > 0
-			then
-				self.StorageSelectedItem = #self.StorageFilters[self.StorageControlMode]
-			end
-
-			-- Process controls
-			local cont = act:GetController()
-			local up = false
-			local down = false
-
-			if cont:IsState(Controller.PRESS_UP) then
-				self.HoldTimer:Reset()
-				up = true
-			end
-
-			if cont:IsState(Controller.PRESS_DOWN) then
-				self.HoldTimer:Reset()
-				down = true
-			end
-
-			if self.HoldTimer:IsPastSimMS(CF.KeyRepeatDelay) then
-				self.HoldTimer:Reset()
-
-				if cont:IsState(Controller.HOLD_UP) then
-					up = true
+				if cont:IsState(Controller.PRESS_UP) then
+					self.HoldTimer[player + 1]:Reset();
+					up = true;
 				end
 
-				if cont:IsState(Controller.HOLD_DOWN) then
-					down = true
-				end
-			end
-
-			if up then
-				if #self.StorageFilters[self.StorageControlMode] > 0 then
-					self.StorageSelectedItem = self.StorageSelectedItem - 1
-
-					if self.StorageSelectedItem < 1 then
-						self.StorageSelectedItem = #self.StorageFilters[self.StorageControlMode]
-					end
-				end
-			end
-
-			if down then
-				if #self.StorageFilters[self.StorageControlMode] > 0 then
-					self.StorageSelectedItem = self.StorageSelectedItem + 1
-
-					if self.StorageSelectedItem > #self.StorageFilters[self.StorageControlMode] then
-						self.StorageSelectedItem = 1
-					end
-				end
-			end
-
-			if cont:IsState(Controller.PRESS_LEFT) then
-				self.StorageControlMode = self.StorageControlMode - 1
-				self.StorageSelectedItem = 1
-				self.LastStorageSelectedItem = 0
-
-				if self.StorageControlMode == -4 then
-					self.StorageControlMode = self.StorageControlPanelModes.TOOL
-				end
-			end
-
-			if cont:IsState(Controller.PRESS_RIGHT) then
-				self.StorageControlMode = self.StorageControlMode + 1
-				self.StorageSelectedItem = 1
-				self.LastStorageSelectedItem = 0
-
-				if self.StorageControlMode == 9 then
-					self.StorageControlMode = self.StorageControlPanelModes.SELL
-				end
-			end
-
-			self.StorageControlItemsListStart = self.StorageSelectedItem
-				- (self.StorageSelectedItem - 1) % self.StorageControlPanelItemsPerPage
-
-			local refreshsample = false
-
-			-- Check if sample object is the one we're currently selecting
-			if self.StorageControlPanelObject then
-				local itm = self.StorageFilters[self.StorageControlMode][self.StorageSelectedItem]
-
-				if
-					itm ~= nil
-					and (
-						self.StorageControlPanelObject.PresetName ~= self.StorageItems[itm]["Preset"]
-						or self.StorageControlPanelObject.ClassName ~= self.StorageItems[itm]["Class"]
-					)
-				then
-					refreshsample = true
-				end
-			end
-
-			-- Get selected item info
-			if self.StorageSelectedItem ~= self.LastStorageSelectedItem or refreshsample then
-				local itm = self.StorageFilters[self.StorageControlMode][self.StorageSelectedItem]
-
-				-- Delete old item object
-				if self.StorageControlPanelObject then
-					self.StorageControlPanelObject = nil
+				if cont:IsState(Controller.PRESS_DOWN) then
+					self.HoldTimer[player + 1]:Reset();
+					down = true;
 				end
 
-				if itm ~= nil then
-					-- Get item description
-					local f, i = CF.FindItemInFactions(
-						self.StorageItems[itm]["Preset"],
-						self.StorageItems[itm]["Class"]
-					)
+				if self.HoldTimer[player + 1]:IsPastSimMS(CF.KeyRepeatDelay) then
+					self.HoldTimer[player + 1]:Reset();
 
-					local sellCoeff = CF.IsLocationHasAttribute(
-						self.GS["Location"],
-						CF.LocationAttributeTypes.BLACKMARKET
-					) and math.sqrt(CF.SellPriceCoeff) or CF.SellPriceCoeff
-
-					if f and i then
-						self.StorageSelectedItemDescription = CF.ItmDescriptions[f][i]
-						self.StorageSelectedItemManufacturer = CF.FactionNames[f]
-						self.StorageSelectedItemPrice = math.floor(CF.ItmPrices[f][i] * sellCoeff)
-					else
-						self.StorageSelectedItemDescription = "Unknown item"
-						self.StorageSelectedItemManufacturer = "Unknown"
-						self.StorageSelectedItemPrice = math.floor(CF.UnknownItemPrice * sellCoeff)
+					if cont:IsState(Controller.HOLD_UP) then
+						up = true;
 					end
 
-					-- Create new item object
-					self.StorageControlPanelObject = CF.MakeItem(
-						self.StorageItems[itm]["Preset"],
-						self.StorageItems[itm]["Class"],
-						self.StorageItems[itm]["Module"]
-					)
-					if self.StorageControlPanelObject then
-						self.StorageControlPanelObject.HitsMOs = false
-						self.StorageControlPanelObject.GetsHitByMOs = false
+					if cont:IsState(Controller.HOLD_DOWN) then
+						down = true;
 					end
-				else
-					self.StorageSelectedItemDescription = ""
-					self.StorageSelectedItemManufacturer = ""
-					self.StorageSelectedItemPrice = nil
 				end
-			end
 
-			-- Dispense/sell/dump items
-			if cont:IsState(Controller.WEAPON_FIRE) then
-				if not self.FirePressed[player] then
-					self.FirePressed[player] = true
+				local itemSelected = self.StorageSelectedItem;
+				local mode = self.StorageControlMode;
 
-					if self.StorageSelectedItem > 0 then
-						local itm = self.StorageFilters[self.StorageControlMode][self.StorageSelectedItem]
+				if cont:IsState(Controller.PRESS_LEFT) then
+					mode = mode - 1
+					itemSelected = 1
 
-						if self.StorageItems[itm]["Count"] > 0 then
-							-- Remove item from storage and spawn it
-							self.StorageItems[itm]["Count"] = self.StorageItems[itm]["Count"] - 1
+					if mode == self.StorageControlPanelModes.SELL - 1 then
+						mode = self.StorageControlPanelModes.TOOL
+					end
+				end
 
-							if self.StorageControlMode ~= self.StorageControlPanelModes.SELL then
-								local foundActor = nil
+				if cont:IsState(Controller.PRESS_RIGHT) then
+					mode = mode + 1
+					itemSelected = 1
 
-								-- Try to find actor or put item as is otherwise
-								for actor in MovableMan.Actors do
-									if
-										CF.DistUnder(actor.Pos, self.StorageInputPos, self.StorageInputRange)
-										and actor.ClassName == "AHuman"
-									then
-										foundActor = actor
-										break
-									end
-								end
+					if mode == self.StorageControlPanelModes.TOOL + 1 then
+						mode = self.StorageControlPanelModes.SELL
+					end
+				end
 
-								local item = CF.MakeItem(
-									self.StorageItems[itm]["Preset"],
-									self.StorageItems[itm]["Class"],
-									self.StorageItems[itm]["Module"]
-								)
-								if item ~= nil then
-									if foundActor then
-										foundActor:AddInventoryItem(item)
-										foundActor:FlashWhite(100)
-									else
-										item.Pos = self.StorageInputPos
-										MovableMan:AddItem(item)
-									end
-								end
-							else
-								if
-									CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TRADESTAR)
-									or CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.BLACKMARKET)
-								then
-									if self.StorageSelectedItemPrice ~= nil then
-										self:SetTeamFunds(CF.ChangeGold(self.GS, self.StorageSelectedItemPrice), CF.PlayerTeam)
-									end
-								end
-							end
-							-- Update game state
-							CF.SetStorageArray(self.GS, self.StorageItems)
+				if up then
+					if #self.StorageFilters[mode] > 0 then
+						itemSelected = itemSelected - 1;
 
-							-- Refresh storage array and filters
-							if self.StorageItems[itm]["Count"] == 0 then
-								self.StorageItems, self.StorageFilters = CF.GetStorageArray(self.GS, true)
-							end
+						if itemSelected < 1 then
+							itemSelected = #self.StorageFilters[mode];
 						end
 					end
 				end
-			else
-				self.FirePressed[player] = false
-			end
 
-			-- Draw items list
-			for i = self.StorageControlItemsListStart, self.StorageControlItemsListStart + self.StorageControlPanelItemsPerPage - 1 do
-				if i <= #self.StorageFilters[self.StorageControlMode] then
-					local itm = self.StorageFilters[self.StorageControlMode][i]
-					local loc = i - self.StorageControlItemsListStart
+				if down then
+					if #self.StorageFilters[mode] > 0 then
+						itemSelected = itemSelected + 1
 
-					if i == self.StorageSelectedItem then
-						CF.DrawString(
-							"> " .. self.StorageItems[itm]["Preset"],
-							pos + Vector(-130, -40) + Vector(0, loc * 12),
-							90,
-							10
-						)
+						if itemSelected > #self.StorageFilters[mode] then
+							itemSelected = 1
+						end
+					end
+				end
+
+				local menuPalette = CF.MenuNormalIdle;
+				
+				local highBarLeftText = "";
+				local highBarCenterText = "";
+				local highBarRightText = "";
+				local highBarPalette = CF.MenuNormalIdle;
+
+				local lowBarCenterText = "";
+				local lowBarPalette = CF.MenuNormalIdle;
+				
+				local linesPerPage = 12;
+				local topOfPage = -68;
+				
+				lowBarCenterText = "L/R - Change filter, U/D - Select, FIRE - Dispense";
+
+				-- Sell mode UI shift
+				local discarding = mode == self.StorageControlPanelModes.SELL;
+				local blackMarket = CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.BLACKMARKET);
+				local tradeStar = CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TRADESTAR);
+				local selling = tradeStar or blackMarket;
+				if discarding then
+					menuPalette = CF.MenuDeniedIdle;
+					highBarPalette = CF.MenuDeniedIdle;
+					lowBarPalette = CF.MenuDeniedIdle;
+
+					if selling then
+						lowBarCenterText = "L/R - Change filter, U/D - Select, FIRE - Sell";
+						highBarLeftText = "SELL ITEMS";
+						highBarRightText = CF.GetPlayerGold(self.GS, 0) .. " oz";
 					else
-						CF.DrawString(
-							self.StorageItems[itm]["Preset"],
-							pos + Vector(-130, -40) + Vector(0, loc * 12),
-							90,
-							10
-						)
+						lowBarCenterText = "L/R - Change filter, U/D - Select, FIRE - Dump";
+						highBarLeftText = "DUMP ITEMS";
 					end
-					CF.DrawString(
-						tostring(self.StorageItems[itm]["Count"]),
-						pos + Vector(-130, -40) + Vector(110, loc * 12),
-						90,
-						10
-					)
+				else
+					highBarLeftText = self.StorageControlPanelModesTexts[mode];
 				end
-			end
 
-			-- Draw item object
-			if self.StorageControlPanelObject then
-				local drawPos = pos + Vector(85, -45)
-				--[[ Draw attachables? Not useful for most existing items
-				local drawnBefore, drawnAfter = {}, {}
-				for att in self.StorageControlPanelObject.Attachables do
-					if att.DrawnAfterParent then
-						table.insert(drawnAfter, att)
+				CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 70, pos.X + 0, pos.Y + 70, menuPalette);
+				CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X + 1, pos.Y - 70, pos.X + 180, pos.Y + 70, menuPalette);
+
+				-- Because StorageFilters may change outside of this panel by other players always check for out-of-bounds
+				if itemSelected > #self.StorageFilters[mode] and #self.StorageFilters[mode] > 0 then
+					itemSelected = #self.StorageFilters[mode]
+				end
+
+				-- Dispense/sell/dump items
+				if cont:IsState(Controller.WEAPON_FIRE) then
+					if not self.FirePressed[player] then
+						self.FirePressed[player] = true;
+
+						local index = self.StorageFilters[mode][itemSelected];
+						local item = self.StorageItems[index];
+
+						if item then
+							if not discarding then
+								local foundActor = nil;
+
+								for actor in MovableMan.Actors do
+									local closeEnough = CF.DistUnder(actor.Pos, self.StorageInputBox.Center, self.StorageInputRange);
+
+									if closeEnough and actor.ClassName == "AHuman" then
+										foundActor = actor;
+										break;
+									end
+								end
+
+								local item = CF.MakeItem(item.Preset, item.Class, item.Module);
+
+								if item ~= nil then
+									if foundActor then
+										foundActor:AddInventoryItem(item);
+										foundActor:FlashWhite(100);
+									else
+										item.Pos = self.StorageInputBox.Center;
+										MovableMan:AddItem(item);
+									end
+								end
+							else
+								if selling then
+									local sellCoeff = blackMarket and math.sqrt(CF.SellPriceCoeff) or CF.SellPriceCoeff;
+									local price;
+									local f, i = CF.FindItemInFactions(item.Preset, item.Class or "HDFirearm");
+
+									if f and i then
+										price = math.floor(CF.ItmPrices[f][i] * sellCoeff);
+									else
+										price = math.floor(CF.UnknownItemPrice * sellCoeff);
+									end
+									
+									self:SetTeamFunds(CF.ChangeGold(self.GS, price), CF.PlayerTeam);
+								end
+							end
+
+							item.Count = item.Count - 1;
+							CF.SetStorageArray(self.GS, self.StorageItems);
+							if item.Count == 0 then
+								self.StorageItems, self.StorageFilters = CF.GetStorageArray(self.GS, true);
+							end
+						else
+							self.StorageControlMessageText = "No item to dispense.";
+							self.StorageControlMessageTime = self.Time;
+						end
+					end
+				else
+					self.FirePressed[player] = false
+				end
+				
+				local lineOffset = topOfPage;
+
+				local text = "Capacity: " .. CF.CountUsedStorageInArray(self.StorageItems) .. "/" .. self.GS["PlayerVesselStorageCapacity"];
+				CF.DrawString(text, pos + Vector(-138, topOfPage), 135, 11)
+				lineOffset = lineOffset + 22;
+
+				local itemsPerPage = self.StorageControlPanelItemsPerPage
+				local listStart = itemSelected - (itemSelected - 1) % itemsPerPage
+
+				for i = listStart, listStart + itemsPerPage - 1 do
+					if i <= #self.StorageFilters[mode] then
+						local index = self.StorageFilters[mode][i]
+						local loc = i - listStart
+						local preset = self.StorageItems[index].Preset;
+						local count = tostring(self.StorageItems[index].Count);
+						local prefix = i == itemSelected and "> " or "";
+
+						CF.DrawString(count, pos + Vector(-2, lineOffset), 135, 11, nil, nil, 2)
+						CF.DrawString(prefix .. preset, pos + Vector(-138, lineOffset), 120, 11)
+						lineOffset = lineOffset + 11;
+					end
+				end
+
+				-- Get selected item info
+				local index = self.StorageFilters[mode][itemSelected];
+				local item = self.StorageItems[index];
+
+				if item then
+					-- Get item description
+					local displayPreset = ToMOSprite(PresetMan:GetPreset(item.Class or "HDFirearm", item.Preset, item.Module));
+					local sellCoeff = blackMarket and math.sqrt(CF.SellPriceCoeff) or CF.SellPriceCoeff;
+					local description, manufacturer, price;
+					local f, i = CF.FindItemInFactions(item.Preset, item.Class or "HDFirearm");
+
+					if f and i then
+						description = CF.ItmDescriptions[f][i];
+						manufacturer = CF.FactionNames[f];
+						price = math.floor(CF.ItmPrices[f][i] * sellCoeff);
 					else
-						table.insert(drawnBefore, att)
+						description = displayPreset and displayPreset.Description ~= "" and displayPreset.Description or nil;
+						manufacturer = "Unknown";
+						price = math.floor(CF.UnknownItemPrice * sellCoeff);
+					end
+
+					local lineOffset = topOfPage;
+
+					if displayPreset then
+						lineOffset = lineOffset + 22;
+						local drawPos = pos + Vector(90, lineOffset);
+						local palette = discarding and CF.MenuDeniedMouseOver or CF.MenuSelectIdle;
+						CF.DrawMenuBox(Activity.PLAYER_NONE, drawPos.X - 87, drawPos.Y - 22, drawPos.X + 88, drawPos.Y + 23, palette);
+						PrimitiveMan:DrawBitmapPrimitive(drawPos, displayPreset, 0, 0);
+
+						if manufacturer ~= nil then
+							local text = "Manufacturer: " .. manufacturer;
+							CF.DrawString(text, pos + Vector(6, topOfPage + 1), 175, 11, true, nil);
+						end
+
+						lineOffset = lineOffset + 22;
+					end
+
+					if discarding then
+						if selling then
+							if price ~= nil then
+								local text = "Market Value: \213 " .. price .. " oz";
+								CF.DrawString(text, pos + Vector(92, lineOffset + 3), 175, 11, true, nil, 1);
+								lineOffset = lineOffset + 11;
+							end
+						end
+					end
+
+					-- Print description
+					local text = description or "--Description Unavailable--";
+					text = CF.SplitStringToFitWidth(text, 165, false)
+					CF.DrawString(text, pos + Vector(92, (lineOffset - topOfPage) / 2), 175, 88, nil, nil, 1, 1);
+				end
+
+				if self.StorageControlMessageText then
+					if self.Time <= self.StorageControlMessageTime + self.StorageControlMessagePeriod then
+						lowBarPalette = CF.MenuDeniedIdle;
+						lowBarCenterText = self.StorageControlMessageText;
 					end
 				end
-				for i = 1, #drawnBefore do
-					PrimitiveMan:DrawBitmapPrimitive(drawPos + drawnBefore[i].ParentOffset - drawnBefore[i].JointOffset, drawnBefore[i], 0, 0)
-				end]]
-				--
-				PrimitiveMan:DrawBitmapPrimitive(drawPos, self.StorageControlPanelObject, 0, 0)
-				--[[
-				for i = 1, #drawnAfter do
-					PrimitiveMan:DrawBitmapPrimitive(drawPos + drawnAfter[i].ParentOffset - drawnAfter[i].JointOffset, drawnAfter[i], 0, 0)
-				end]]
-				--
+
+				CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 77 - 7, pos.X + 180, pos.Y - 77 + 6, highBarPalette);
+				CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y + 78 - 7, pos.X + 180, pos.Y + 78 + 6, lowBarPalette);
+
+				CF.DrawString(highBarLeftText, pos + Vector(-138, -77), 316, 11, nil, nil, 0, 1);
+				CF.DrawString(highBarCenterText, pos + Vector(20, -77), 316, 11, nil, nil, 1, 1);
+				CF.DrawString(highBarRightText, pos + Vector(178, -77), 316, 11, nil, nil, 2, 1);
+
+				CF.DrawString(lowBarCenterText, pos + Vector(20, 78), 316, 11, nil, nil, 1, 1);
+
+				self.StorageSelectedItem = itemSelected;
+				self.StorageControlMode = mode;
 			end
-
-			-- Print description
-			if self.StorageSelectedItemDescription ~= nil then
-				CF.DrawString(self.StorageSelectedItemDescription, pos + Vector(10, -10), 170, 70)
-			end
-
-			-- Print manufacturer or price
-			if self.StorageControlMode ~= self.StorageControlPanelModes.SELL then
-				if self.StorageSelectedItemManufacturer ~= nil and self.StorageSelectedItemManufacturer ~= "" then
-					CF.DrawString(
-						"Manufacturer: " .. self.StorageSelectedItemManufacturer,
-						pos + Vector(10, -25),
-						170,
-						120
-					)
-				end
-			else
-				if
-					CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TRADESTAR)
-					or CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.BLACKMARKET)
-				then
-					if self.StorageSelectedItemPrice ~= nil then
-						CF.DrawString(
-							"Sell price: " .. self.StorageSelectedItemPrice .. " oz",
-							pos + Vector(10, -25),
-							170,
-							120
-						)
-					end
-				end
-			end
-
-			-- Print Selected mode text
-			CF.DrawString(self.StorageControlPanelModesTexts[self.StorageControlMode], pos + Vector(-130, -77), 170, 10)
-
-			-- Print storage capacity
-			CF.DrawString(
-				"Capacity: "
-					.. CF.CountUsedStorageInArray(self.StorageItems)
-					.. "/"
-					.. self.GS["PlayerVesselStorageCapacity"],
-				pos + Vector(-130, -60),
-				300,
-				10
-			)
 		end
 	end
 
 	if showidle and self.StorageControlPanelPos ~= nil and self.StorageControlPanelActor ~= nil then
-		self:PutGlow("ControlPanel_Storage", self.StorageControlPanelPos)
-		--CF.DrawString("STORAGE",self.StorageControlPanelPos + Vector(-16,0), 120, 20)
+		local player = Activity.PLAYER_NONE;
+		local pos = self.StorageControlPanelPos;
+		local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Storage.png";
+		PrimitiveMan:DrawBitmapPrimitive(player, pos, path, 0, false, false);
 
-		self.StorageControlPanelInitialized = false
-
-		-- Delete sample weapon
-		if self.StorageControlPanelObject then
-			self.StorageControlPanelObject = nil
-		end
+		local text = "Capacity: " .. CF.CountUsedStorageInArray(self.StorageItems) .. " / " .. self.GS["PlayerVesselStorageCapacity"];
+		CF.DrawString(text, self.StorageControlPanelPos + Vector(0, -40), 100, 11, nil, nil, 1);
 	end
 
 	-- Process weapons input
-	if self.StorageInputPos ~= nil and self.StorageControlPanelActor ~= nil then
-		local count = CF.CountUsedStorageInArray(self.StorageItems)
+	if self.StorageInputBox ~= nil and self.StorageControlPanelActor ~= nil then
+		--PrimitiveMan:DrawBoxPrimitive(Activity.PLAYER_NONE, self.StorageInputBox.Corner, self.StorageInputBox.Corner + (self.StorageInputBox.Center - self.StorageInputBox.Corner) * 2, 5)
+		local count = CF.CountUsedStorageInArray(self.StorageItems);
 
 		if count < tonumber(self.GS["PlayerVesselStorageCapacity"]) then
-			local hasitem = false
-			local toreset = true
+			local foundItem = nil;
 
-			-- Search for item and put it in storage
 			for item in MovableMan.Items do
-				if IsHeldDevice(item) and not ToHeldDevice(item).UnPickupable then
-					item = ToHeldDevice(item)
-					local activated = false
+				if IsHeldDevice(item) and self.StorageInputBox:IsWithinBox(item.Pos) and self.vesselData["ship"]:IsInside(item.Pos) then
+					item = ToHeldDevice(item);
+
 					if IsHDFirearm(item) then
-						activated = ToHDFirearm(item):IsActivated()
+						item = ToHDFirearm(item);
 					elseif IsTDExplosive(item) then
-						activated = ToTDExplosive(item):IsActivated()
+						item = ToTDExplosive(item);
 					end
 
-					-- Increase delay dramatically outside of storage bay, but allow faster acceleration
-					local adjustedDelay = self.StorageInputDelay
-					local adjustedRapidity = math.log(self.StorageInputRapidity)
-					if CF.Dist(item.Pos, self.StorageInputPos) < self.StorageInputRange * 3 then
-						adjustedDelay = adjustedDelay / self.StorageInputModifier
-						adjustedRapidity = adjustedRapidity / self.StorageInputModifier
-					end
-					adjustedDelay = math.floor(adjustedDelay / (1 + adjustedRapidity))
+					local activated = item:IsActivated();
 
-					if self.vesselData["ship"]:IsInside(item.Pos) and not activated then
-						toreset = false
-
-						-- Debug
-						--self:AddObjectivePoint("X", item.Pos , CF.PlayerTeam, GameActivity.ARROWDOWN)
-
-						if self.StorageLastDetectedItemTime ~= nil then
-							self:AddObjectivePoint(
-								"Store in " .. self.StorageLastDetectedItemTime + adjustedDelay - self.Time,
-								item.Pos + Vector(0, -40),
-								CF.PlayerTeam,
-								GameActivity.ARROWDOWN
-							)
-
-							-- Put item to storage
-							if
-								self.Time >= self.StorageLastDetectedItemTime + adjustedDelay
-								and CF.CountUsedStorageInArray(self.StorageItems)
-									< tonumber(self.GS["PlayerVesselStorageCapacity"])
-							then
-								local needrefresh = CF.PutItemToStorageArray(
-									self.StorageItems,
-									item.PresetName,
-									item.ClassName,
-									item.ModuleName
-								)
-									
-								item.ToDelete = true
-
-									-- Store everything
-								CF.SetStorageArray(self.GS, self.StorageItems)
-
-									-- Refresh storage items array and filters
-								if needrefresh then
-									self.StorageItems, self.StorageFilters = CF.GetStorageArray(self.GS, true)
-								end
-
-								self.StorageLastDetectedItemTime = nil
-							end
-
-							hasitem = true
-							break
-						else
-							self.StorageLastDetectedItemTime = self.Time
-						end
+					if not item.UnPickupable and not activated then
+						foundItem = item;
 					end
 				end
 			end
 
-			if toreset then
-				self.StorageInputRapidity = 1
-			elseif self.StorageLastDetectedItemTime == nil and hasitem then
-				self.StorageInputRapidity = self.StorageInputRapidity + 1
-			end
-
-			if toreset then
-				self.StorageLastDetectedItemTime = nil
-			end
-
-			if showidle then
-				if hasitem and self.StorageLastDetectedItemTime ~= nil then
-				else
-					self:AddObjectivePoint(
-						"Stand here to receive items\n" .. count .. " / " .. self.GS["PlayerVesselStorageCapacity"],
-						self.StorageInputPos,
-						CF.PlayerTeam,
-						GameActivity.ARROWDOWN
-					)
+			if foundItem then
+				if not self.StorageLastDetectedItemTime then
+					self.StorageLastDetectedItemTime = self.Time;
 				end
+				
+				local timeLeft = (self.StorageLastDetectedItemTime + self.StorageInputDelay - self.Time);
+
+				if showidle then
+					local text = "Store in " .. timeLeft;
+					self:AddObjectivePoint(text, foundItem.Pos + Vector(0, -40), CF.PlayerTeam, GameActivity.ARROWDOWN);
+				end
+				
+				if timeLeft <= 0 then
+					local needrefresh = CF.PutItemToStorageArray(self.StorageItems, foundItem.PresetName, foundItem.ClassName, foundItem.ModuleName);
+					CF.SetStorageArray(self.GS, self.StorageItems);
+					self.StorageItems, self.StorageFilters = CF.GetStorageArray(self.GS, true);
+
+					foundItem.ToDelete = true;
+					self.StorageLastDetectedItemTime = nil;
+				end
+			else
+				self.StorageLastDetectedItemTime = nil;
 			end
-		else
-			self:AddObjectivePoint(
-				"Storage is full",
-				self.StorageInputPos + Vector(0, -40),
-				CF.PlayerTeam,
-				GameActivity.ARROWUP
-			)
-			self.StorageLastDetectedItemTime = nil
 		end
 	end
 
 	if MovableMan:IsActor(self.StorageControlPanelActor) then
-		self.StorageControlPanelActor.Health = 100
+		self.StorageControlPanelActor.Health = 100;
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

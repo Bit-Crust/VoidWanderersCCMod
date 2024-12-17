@@ -1,4 +1,4 @@
---------------------------------------- Instructions ---------------------------------------
+----------------------------------------------------------------------- Instructions -----------------------------------------------------------------------
 
 ------- Require this in your script like so: 
 
@@ -25,7 +25,7 @@
 -- If you just want a table serialized and deserialized you can directly use SaveLoadHandler:SerializeTable(table) and SaveLoadHandler:DeserializeTable(string serializedTable).
 
 
---------------------------------------- Misc. Information ---------------------------------------
+----------------------------------------------------------------------- Misc. Information -----------------------------------------------------------------------
 
 -- Please note that if you're using UniqueIDs you MUST convert these to real MOs before attempting to save. As far as lua is concerned,
 -- a UniqueID is just a number, so SaveLoadHandler will save it as such instead of using its special MO method. UniqueIDs reset on game load too,

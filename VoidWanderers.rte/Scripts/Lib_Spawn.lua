@@ -1,6 +1,6 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.MakeBrainWithPreset = function(c, team, pos, preset, class, module, p)
 	--print ("CF.MakeBrainWithPreset")
 
@@ -77,17 +77,17 @@ CF.MakeBrainWithPreset = function(c, team, pos, preset, class, module, p)
 
 	return actor
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.MakeBrain = function(c, p, team, pos, giveWeapons)
 	--print ("CF.MakeBrain")
 	local f = c["Player" .. p .. "Faction"]
 	return CF.MakeBrainWithPreset(c, team, pos, CF.Brains[f], CF.BrainClasses[f], CF.BrainModules[f], giveWeapons and p or nil)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.MakeRPGBrain = function(c, p, team, pos, level, giveweapons)
 	if giveweapons == nil then
 		giveweapons = true
@@ -144,9 +144,9 @@ CF.MakeRPGBrain = function(c, p, team, pos, level, giveweapons)
 
 	return brain
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Spawns some random infantry of specified faction, tries to spawn AHuman
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.SpawnRandomInfantry = function(team, pos, faction, aimode)
 	local actor = nil
 	local weapon = nil
@@ -230,9 +230,9 @@ CF.SpawnRandomInfantry = function(team, pos, faction, aimode)
 
 	return nil
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Create list of weapons of a type sorted by their power.
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.MakeListOfMostPowerfulWeapons = function(gameState, player, weaponType, maxTech)
 	local weaps = {}
 	local f = CF.GetPlayerFaction(gameState, player)
@@ -265,9 +265,9 @@ CF.MakeListOfMostPowerfulWeapons = function(gameState, player, weaponType, maxTe
 	end
 	return weaps
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Create list of actors of a type sorted by their power.
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.MakeListOfMostPowerfulActors = function(gameState, player, actorType, maxTech)
 	local acts = {}
 	local f = CF.GetPlayerFaction(gameState, player)
@@ -300,9 +300,9 @@ CF.MakeListOfMostPowerfulActors = function(gameState, player, actorType, maxTech
 	end
 	return acts
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Create list of actors in faction of a type and class.
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.MakeListOfMostPowerfulActorsOfClass = function(gameState, player, actorType, actorClass, maxTech)
 	local acts = CF.MakeListOfMostPowerfulActors(gameState, player, actorType, maxTech)
 	local f = CF.GetPlayerFaction(gameState, player)
@@ -328,9 +328,9 @@ CF.MakeListOfMostPowerfulActorsOfClass = function(gameState, player, actorType, 
 
 	return acts
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Creates units presets for specified AI where c - gameState, p - player, tech - max unlock data
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.CreateAIUnitPresets = function(c, p, tech)
 	--[[ Each ideal list refers to the ideal type of given item for the corresponding preset.
 	IE idealActors[5] is the first heavy unit variant's ideal unit type
@@ -556,9 +556,9 @@ CF.CreateAIUnitPresets = function(c, p, tech)
 		end
 	end -- If preequipped
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Create a generic text effect
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.CreateTextEffect = function(text)
 	local effect = CreateMOPixel("Text Effect", "VoidWanderers.rte");
 	
@@ -571,22 +571,22 @@ CF.CreateTextEffect = function(text)
 
 	return effect;
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Checks if a <preset> from <module> of type <class> has already been unlocked with a <kind>.
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.IsEntityUnlocked = function(c, kind, class, preset, module)
 	return (not not c["Unlocked" .. kind .. "_" .. class .. "_" .. preset .. "_" .. module]);
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Sets if a <preset> from <module> of type <class> has already been unlocked with a <kind>.
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.SetEntityUnlocked = function(c, kind, class, preset, module, unlocked)
 	c["Unlocked" .. kind .. "_" .. class .. "_" .. preset .. "_" .. module] = unlocked;
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Creates a blueprint for given <faction>.
 -- Returns the blueprint, and whether an unlock could be found.
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.CreateBluePrint = function(c, faction)
 	local blueprint = CreateHeldDevice("Blueprint", CF.ModuleName);
 
@@ -656,10 +656,10 @@ CF.CreateBluePrint = function(c, faction)
 	
 	return blueprint;
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Creates a blackprint.
 -- Returns the blackprint, and whether an unlock was found.
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.CreateBlackPrint = function(c)
 	local blackprint = CreateHeldDevice("Blueprint", CF.ModuleName);
 	
@@ -692,11 +692,11 @@ CF.CreateBlackPrint = function(c)
 	
 	return blackprint;
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Create actor from preset pre, where c - gameState, p - player, t - territory, pay gold is pay == true
 -- 	returns actor or nil, also returns actor offset, value wich you must add to default actor position to
 -- 	avoid actor hang in the air, used mainly for turrets
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.MakeUnitFromPreset = function(c, p, pre)
 	local actor = nil
 	local offset = Vector()
@@ -752,9 +752,9 @@ CF.MakeUnitFromPreset = function(c, p, pre)
 
 	return actor, offset
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.SpawnAIUnitWithPreset = function(c, p, team, pos, aimode, pre)
 	local act = CF.MakeUnitFromPreset(c, p, pre)
 
@@ -771,9 +771,9 @@ CF.SpawnAIUnitWithPreset = function(c, p, team, pos, aimode, pre)
 
 	return act
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.SpawnAIUnit = function(c, p, team, pos, aimode)
 	local pre = math.random(CF.PresetTypes.ENGINEER) --The last two presets are ENGINEER and DEFENDER
 	local act = CF.MakeUnitFromPreset(c, p, pre)
@@ -793,9 +793,9 @@ CF.SpawnAIUnit = function(c, p, team, pos, aimode)
 
 	return act
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.ReadPtsData = function(sceneName, sceneConfig)
 	-- 
 	local points = {}
@@ -855,9 +855,9 @@ CF.ReadPtsData = function(sceneName, sceneConfig)
 
 	return points
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Returns available points set for specified mission from points array
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.GetRandomMissionPointsSet = function(points, missionType)
 	local sets = {}
 
@@ -869,10 +869,10 @@ CF.GetRandomMissionPointsSet = function(points, missionType)
 
 	return set
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Returns int indexed array of vectors with available points of specified
 --	mission type, points set and points type
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.GetPointsArray = function(points, missionType, setIndex, pointsType)
 	local vectors = {}
 
@@ -894,9 +894,9 @@ CF.GetPointsArray = function(points, missionType, setIndex, pointsType)
 
 	return vectors
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Returns array of n random elements from array list
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.RandomSampleOfList = function(list, n)
 	local selection = {}
 
@@ -927,9 +927,9 @@ CF.RandomSampleOfList = function(list, n)
 
 	return selection
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Returns a weighted selection out of a list of options
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.WeightedSelection = function(list)
 	-- Build list of cumulative weights
 	local candidates = {}
@@ -946,9 +946,9 @@ CF.WeightedSelection = function(list)
 	end
 	return nil
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.GetAngriestPlayer = function(gamestate)
 	local angriest
 	local reputation = 0
@@ -964,43 +964,45 @@ CF.GetAngriestPlayer = function(gamestate)
 
 	return angriest, reputation
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.GetLocationSecurity = function(gamestate, location)
-	local securityLevel
+	local securityLevel = 0;
 
-	if gamestate["Security_" .. location] ~= nil then
-		securityLevel = tonumber(gamestate["Security_" .. location])
-	else
-		securityLevel = CF.LocationSecurity[location]
+	if location then
+		if gamestate["Security_" .. location] ~= nil then
+			securityLevel = tonumber(gamestate["Security_" .. location]);
+		else
+			securityLevel = CF.LocationSecurity[location];
+		end
 	end
 
-	return securityLevel
+	return securityLevel;
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.GetLocationDifficulty = function(gamestate, location)
 	return math.min(CF.MaxDifficulty, math.max(1, math.floor(CF.GetLocationSecurity(gamestate, location) / 10)))
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.GetFullMissionDifficulty = function(gamestate, location, missionID)
 	local locationDifficulty = CF.GetLocationDifficulty(gamestate, location)
 	local missionDifficulty = tonumber(gamestate["Mission" .. missionID .. "Difficulty"])
 	return math.min(CF.MaxDifficulty, math.max(1, locationDifficulty + missionDifficulty - 1))
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.SetLocationSecurity = function(gamestate, location, securityLevel)
 	gamestate["Security_" .. location] = securityLevel
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Generate a random mission with ally/enemy/location overrides
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.GenerateRandomMission = function(gamestate, ally, enemy, prohibitedLocations)
 	local cpus = tonumber(gamestate["ActiveCPUs"])
 
@@ -1091,21 +1093,25 @@ CF.GenerateRandomMission = function(gamestate, ally, enemy, prohibitedLocations)
 	end
 
 	-- Pick some random mission type
-	local randomMissionType = validMissionTypes[math.random(#validMissionTypes)]
+	local randomMissionType = validMissionTypes[math.random(#validMissionTypes)];
+
+	-- Pick scene
+	local typeScenes = randomMissionType["Scenes"];
+	local randomMissionScene = typeScenes[math.random(#typeScenes)];
 
 	-- Return mission
-	local mission = {}
-	mission["SourcePlayer"] = contractor
-	mission["TargetPlayer"] = target
-	mission["Type"] = randomMissionType["MissionID"]
-	mission["Location"] = randomMissionType["Scenes"][math.random(#randomMissionType["Scenes"])]
-	mission["Difficulty"] = math.min(CF.MaxDifficulty, math.max(1, tonumber(gamestate["MissionDifficultyBonus"]) + math.random(3)))
+	local mission = {};
+	mission["SourcePlayer"] = contractor;
+	mission["TargetPlayer"] = target;
+	mission["Type"] = randomMissionType["MissionID"];
+	mission["Location"] = randomMissionScene;
+	mission["Difficulty"] = math.min(CF.MaxDifficulty, math.max(1, tonumber(gamestate["MissionDifficultyBonus"]) + math.random(3)));
 
-	return mission
+	return mission;
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Generate a new set of missions
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.GenerateRandomMissions = function(gamestate)
 	local missions = {}
 	local maxMissions = math.max(CF.MaxMissions, math.floor(tonumber(gamestate["ActiveCPUs"]) / 4))
@@ -1125,6 +1131,45 @@ CF.GenerateRandomMissions = function(gamestate)
 		gamestate["Mission" .. i .. "Difficulty"] = missions[i]["Difficulty"]
 	end
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
+function CF.SetAlly(actor, yes)
+	if yes then
+		actor:SetNumberValue("VW_Ally", 1)
+		actor.PlayerControllable = false
+	else
+		actor:RemoveNumberValue("VW_Ally")
+		actor.PlayerControllable = true
+		actor:FlashWhite(50)
+	end
+end
+-----------------------------------------------------------------------
+-- Whether an actor is an NPC on the player's team
+-----------------------------------------------------------------------
+function CF.IsAlly(actor)
+	return (actor.Team == CF.PlayerTeam and actor:NumberValueExists("VW_Ally"))
+end
+-----------------------------------------------------------------------
+-- Whether an actor is a brain for anyone, counts cases and those with the script
+-----------------------------------------------------------------------
+function CF.IsBrain(actor)
+	return (actor.PresetName == "Brain Case" or actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua"))
+end
+-----------------------------------------------------------------------
+-- Whether an actor is the brain or otherwise prestigious
+-----------------------------------------------------------------------
+function CF.IsCommander(actor)
+	return (CF.IsBrain(actor) or actor:GetNumberValue("VW_Prestige") ~= 0)
+end
+-----------------------------------------------------------------------
+-- Whether an actor is a player-controllable, non-brain unit
+-----------------------------------------------------------------------
+function CF.IsPlayerUnit(actor)
+	return (IsAHuman(actor) or IsACrab(actor))
+		and actor.Team == CF.PlayerTeam
+		and not (CF.IsBrain(actor) or CF.IsAlly(actor))
+end
+-----------------------------------------------------------------------
+--
+-----------------------------------------------------------------------

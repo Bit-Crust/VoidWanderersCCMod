@@ -1,6 +1,6 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:InitTurretsControlPanelUI()
 	local count = tonumber(self.GS["PlayerVesselTurrets"])
 
@@ -20,7 +20,7 @@ function VoidWanderers:InitTurretsControlPanelUI()
 	self.TurretsControlPanelActor = {}
 	self:LocateTurretControlPanelActors()
 	for i = 1, count do
-		if not MovableMan:IsActor(self.TurretsControlPanelActor[i]) then
+		--[[if not MovableMan:IsActor(self.TurretsControlPanelActor[i]) then
 			self.TurretsControlPanelActor[i] = CreateActor("Turret Control Panel")
 			if self.TurretsControlPanelActor[i] ~= nil then
 				self.TurretsControlPanelActor[i].Pos = self.TurretsControlPanelPos[i]
@@ -29,7 +29,7 @@ function VoidWanderers:InitTurretsControlPanelUI()
 			end
 		else
 			--print (self.TurretsControlPanelActor)
-		end
+		end]]
 	end
 
 	self.TurretsControlPanelEditMode = {}
@@ -42,9 +42,9 @@ function VoidWanderers:InitTurretsControlPanelUI()
 	self.Turrets = CF.GetTurretsArray(self.GS)
 	self.TurretsControlPanelLinesPerPage = 4
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Find and assign appropriate landing zone actors
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:LocateTurretControlPanelActors()
 	local N = tonumber(self.GS["PlayerVesselTurrets"])
 	local n = 1
@@ -58,9 +58,9 @@ function VoidWanderers:LocateTurretControlPanelActors()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:DestroyTurretsControlPanelUI()
 	local count = tonumber(self.GS["PlayerVesselTurrets"])
 	for i = 1, count do
@@ -70,9 +70,9 @@ function VoidWanderers:DestroyTurretsControlPanelUI()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:ProcessTurretsControlPanelUI()
 	local count = tonumber(self.GS["PlayerVesselTurrets"])
 
@@ -128,17 +128,17 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 						local down = false
 
 						if cont:IsState(Controller.PRESS_UP) then
-							self.HoldTimer:Reset()
+							self.HoldTimer[player + 1]:Reset()
 							up = true
 						end
 
 						if cont:IsState(Controller.PRESS_DOWN) then
-							self.HoldTimer:Reset()
+							self.HoldTimer[player + 1]:Reset()
 							down = true
 						end
 
-						if self.HoldTimer:IsPastSimMS(CF.KeyRepeatDelay) then
-							self.HoldTimer:Reset()
+						if self.HoldTimer[player + 1]:IsPastSimMS(CF.KeyRepeatDelay) then
+							self.HoldTimer[player + 1]:Reset()
 
 							if cont:IsState(Controller.HOLD_UP) then
 								up = true
@@ -297,27 +297,27 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 						local right = false
 
 						if cont:IsState(Controller.PRESS_UP) then
-							self.HoldTimer:Reset()
+							self.HoldTimer[player + 1]:Reset()
 							up = true
 						end
 
 						if cont:IsState(Controller.PRESS_DOWN) then
-							self.HoldTimer:Reset()
+							self.HoldTimer[player + 1]:Reset()
 							down = true
 						end
 
 						if cont:IsState(Controller.PRESS_LEFT) then
-							self.HoldTimer:Reset()
+							self.HoldTimer[player + 1]:Reset()
 							left = true
 						end
 
 						if cont:IsState(Controller.PRESS_RIGHT) then
-							self.HoldTimer:Reset()
+							self.HoldTimer[player + 1]:Reset()
 							right = true
 						end
 
-						if self.HoldTimer:IsPastSimMS(50) then
-							self.HoldTimer:Reset()
+						if self.HoldTimer[player + 1]:IsPastSimMS(50) then
+							self.HoldTimer[player + 1]:Reset()
 
 							if cont:IsState(Controller.HOLD_UP) then
 								up = true
@@ -423,9 +423,9 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:DeployTurrets()
 	self.TurretsDeployedActors = {}
 	local count = tonumber(self.GS["PlayerVesselTurrets"])
@@ -441,7 +441,7 @@ function VoidWanderers:DeployTurrets()
 				actor.Team = CF.PlayerTeam
 				actor.Pos = self.TurretsControlPanelPos[turr]
 				actor.AIMode = Actor.AIMODE_SENTRY
-				self:SetAlly(actor, true)
+				CF.SetAlly(actor, true)
 
 				local leftSpace = SceneMan:CastObstacleRay(
 					actor.Pos,
@@ -481,9 +481,9 @@ function VoidWanderers:DeployTurrets()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:RemoveDeployedTurrets()
 	if self.TurretsDeployedActors ~= nil then
 		local count = tonumber(self.GS["PlayerVesselTurrets"])
@@ -501,6 +501,6 @@ function VoidWanderers:RemoveDeployedTurrets()
 		self.TurretsDeployedActors = nil
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

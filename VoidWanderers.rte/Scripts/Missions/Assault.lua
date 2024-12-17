@@ -1,83 +1,77 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Objective: 	Kill all CF.CPUTeam enemies inside the Enemy::Base box set
 --	Set used: 	Enemy
 --	Events: 	Depending on mission difficulty AI might send dropships with up to 2 actors and
 --	 			launch one counterattack when it will try to kill player actors with
 --				1/3 of it's actors. Initial spawn rate varies based on mission difficulty
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionCreate()
-	print("ASSAULT CREATE")
+	print("ASSAULT CREATE");
 	
 	-- Mission difficulty settings
-	local diff = self.missionData["difficulty"]
+	local diff = self.missionData["difficulty"];
+	local target = self.missionData["missionTarget"];
+	local target = self.missionData["missionTarget"];
 
 	if diff == 1 then
-		self.missionData["spawnRate"] = 0.20
-		self.missionData["reinforcements"] = 0
-		self.missionData["interval"] = 10
-		self.missionData["counterAttackDelay"] = 0
+		self.missionData["spawnRate"] = 0.20;
+		self.missionData["reinforcements"] = 0;
+		self.missionData["interval"] = 10;
+		self.missionData["counterAttackDelay"] = 0;
 	elseif diff == 2 then
-		self.missionData["spawnRate"] = 0.35
-		self.missionData["reinforcements"] = 0
-		self.missionData["interval"] = 10
-		self.missionData["counterAttackDelay"] = 0
+		self.missionData["spawnRate"] = 0.35;
+		self.missionData["reinforcements"] = 0;
+		self.missionData["interval"] = 10;
+		self.missionData["counterAttackDelay"] = 0;
 	elseif diff == 3 then
-		self.missionData["spawnRate"] = 0.50
-		self.missionData["reinforcements"] = 1
-		self.missionData["interval"] = 20
-		self.missionData["counterAttackDelay"] = 300
+		self.missionData["spawnRate"] = 0.50;
+		self.missionData["reinforcements"] = 1;
+		self.missionData["interval"] = 20;
+		self.missionData["counterAttackDelay"] = 300;
 	elseif diff == 4 then
-		self.missionData["spawnRate"] = 0.65
-		self.missionData["reinforcements"] = 2
-		self.missionData["interval"] = 26
-		self.missionData["counterAttackDelay"] = 260
+		self.missionData["spawnRate"] = 0.65;
+		self.missionData["reinforcements"] = 2;
+		self.missionData["interval"] = 26;
+		self.missionData["counterAttackDelay"] = 260;
 	elseif diff == 5 then
-		self.missionData["spawnRate"] = 0.80
-		self.missionData["reinforcements"] = 3
-		self.missionData["interval"] = 24
-		self.missionData["counterAttackDelay"] = 220
+		self.missionData["spawnRate"] = 0.80;
+		self.missionData["reinforcements"] = 3;
+		self.missionData["interval"] = 24;
+		self.missionData["counterAttackDelay"] = 220;
 	elseif diff == 6 then
-		self.missionData["spawnRate"] = 0.90
-		self.missionData["reinforcements"] = 4
-		self.missionData["interval"] = 22
-		self.missionData["counterAttackDelay"] = 180
+		self.missionData["spawnRate"] = 0.90;
+		self.missionData["reinforcements"] = 4;
+		self.missionData["interval"] = 22;
+		self.missionData["counterAttackDelay"] = 180;
 	end
 
 	-- Use generic enemy set
-	local set = CF.GetRandomMissionPointsSet(self.Pts, "Enemy")
-	
-	self:DeployGenericMissionEnemies(
-		set,
-		"Enemy",
-		self.missionData["missionTarget"],
-		CF.CPUTeam,
-		self.missionData["spawnRate"]
-	)
-	-- Get LZs
-	self.missionData["landingZones"] = CF.GetPointsArray(self.Pts, "Enemy", set, "LZ")
-	-- Get base
-	self:ObtainBaseBoxes("Enemy", set)
-	-- Deploy mines
-	self:DeployInfantryMines(
-		CF.CPUTeam,
-		math.min(
-			-tonumber(self.GS["Player" .. self.missionData["missionTarget"] .. "Reputation"])
-				/ (CF.MaxDifficulty * CF.ReputationPerDifficulty),
-			1
-		) - 0.75
-	)
-	
-	self.missionData["craft"] = nil
-	self.missionData["craftCheckTime"] = self.Time
+	local set = CF.GetRandomMissionPointsSet(self.Pts, "Enemy");
 
-	self.missionData["reinforcementsTriggered"] = false
-	self.missionData["reinforcementsLast"] = 0
-	self.missionData["counterAttackTriggered"] = false
+	-- Get enemies placed
+	self:DeployGenericMissionEnemies(set, "Enemy", target, CF.CPUTeam, self.missionData["spawnRate"]);
+
+	-- Get LZs
+	self.missionData["landingZones"] = CF.GetPointsArray(self.Pts, "Enemy", set, "LZ");
+
+	-- Get base
+	self:ObtainBaseBoxes("Enemy", set);
+
+	-- Deploy mines
+	local rate = math.min(-tonumber(self.GS["Player" .. target .. "Reputation"]) / (CF.MaxDifficulty * CF.ReputationPerDifficulty), 1) - 0.75;
+	self:DeployInfantryMines(CF.CPUTeam, rate);
+	
+	self.missionData["craft"] = nil;
+	self.missionData["craftCheckTime"] = self.Time;
+
+	self.missionData["reinforcementsTriggered"] = false;
+	self.missionData["reinforcementsLast"] = 0;
+	self.missionData["counterAttackTriggered"] = false;
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	if self.missionData["stage"] == CF.MissionStages.ACTIVE then
 		local count = 0
@@ -188,6 +182,6 @@ function VoidWanderers:MissionUpdate()
 		end
 	end --]]--
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

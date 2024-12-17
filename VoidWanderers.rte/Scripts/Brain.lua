@@ -66,7 +66,7 @@ function Create(self)
 	self.SelfHealLevel = 0;
 	self.RepairLevel = 0;
 	self.SplitterLevel = 0;
-	self.QuantumStorageLevel = 0;
+	self.quantumStorageLevel = 0;
 
 	-- Obtain brain capabilities depending on type
 	if self.BrainNumber ~= Activity.PLAYER_NONE then -- If player controlled
@@ -81,7 +81,7 @@ function Create(self)
 		self.SelfHealLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "SelfHeal"}));
 		self.RepairLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Fix"}));
 		self.SplitterLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Splitter"}));
-		self.QuantumStorageLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "QuantumCapacity"}));
+		self.quantumStorageLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "QuantumCapacity"}));
 	elseif self:GetNumberValue("VW_PreassignedSkills") ~= 0 then -- If preset with values
 		self.Level = self:GetNumberValue("VW_HealthSkill");
 		self.ToughnessLevel = self:GetNumberValue("VW_ToughSkill");
@@ -92,7 +92,7 @@ function Create(self)
 		self.SelfHealLevel = self:GetNumberValue("VW_SelfHealSkill");
 		self.RepairLevel = self:GetNumberValue("VW_RepairSkill");
 		self.SplitterLevel = self:GetNumberValue("VW_SplitterSkill");
-		self.QuantumStorageLevel = self:GetNumberValue("VW_QuantumSkill");
+		self.quantumStorageLevel = self:GetNumberValue("VW_QuantumSkill");
 	end
 
 	-- Defaults are basically nothing but slight regen
@@ -102,8 +102,9 @@ function Create(self)
 	self.RegenInterval = 2000 - self.Level * 10;
 
 	-- Default power uses
-	self.QuantumCapacity = (1 + self.QuantumStorageLevel) * quantumCapacityPerLevel;
-	self.QuantumStorage = 0;
+	self.quantumCapacity = (1 + self.quantumStorageLevel) * quantumCapacityPerLevel;
+	self.quantumEfficacy = self.SplitterLevel * CF_Read(self, {"QuantumSplitterEffectiveness"});
+	self.quantumStorage = 0;
 
 	-- If player, get existing power uses
 	if self.BrainNumber ~= Activity.PLAYER_NONE then
@@ -112,8 +113,10 @@ function Create(self)
 			CF_Write({"GS", "Brain" .. self.BrainNumber .. "Identity"}, tostring(self:GetNumberValue("Identity")));
 		end
 
-		self.QuantumStorage = tonumber(CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}));
+		self.quantumStorage = tonumber(CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}));
 	end
+
+	self.quantumStorage = math.max(0, self.quantumStorage);
 
 	-- Determine enabled abilities
 	self.DistortEnabled = self.TelekinesisLevel > 0;
@@ -199,76 +202,91 @@ function Create(self)
 		end
 	end
 
-	-- Create skills menu
-	self.ActiveMenu = {};
-	self.ActiveMenu[1] = {};
-	self.SelectedMenuItem = 1;
+	-- Menu handling
+	self.activeMenu = {};
+	self.selectedMenuItem = 1;
+
 
 	self.skillMenu = {};
-	local count = 0;
+	self.skillMenu.TopLeft = "Brain Skills";
+	self.skillMenu.TopCenter = "";
+	self.skillMenu.TopRight = "+" .. self.quantumStorage .. " / " .. self.quantumCapacity .. " \242";
+
+	self.skillMenu.BottomCenter = "L/R - Mode, Scroll - Item, Fire - Select";
+
+	self.skillMenu.NextMenu = nil;
+	self.skillMenu.PrevMenu = nil;
+
+	function self.skillMenu:Update(owner)
+		self.TopRight = "+" .. owner.quantumStorage .. " / " .. owner.quantumCapacity .. " \242";
+	end
 
 	if self.ScannerLevel > 0 then
-		count = count + 1;
 		local skill = {};
-		skill["Text"] = "Toggle scanner"
-		skill["Count"] = -1
-		skill["Function"] = rpgbrain_skill_scanner
+		skill.Left = "Scanner";
+		skill.Center = "";
+		skill.Right = "[ OFF ]";
+
+		skill.Function = rpgbrain_skill_scanner;
+
 		table.insert(self.skillMenu, skill);
 
-		self.ScannerSkillIndex = count
+		self.ScannerSkillItem = skill;
 
 		if CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "ScannerEnabled"}) == "true" then
-			self.skillMenu[self.ScannerSkillIndex]["State"] = "On"
-			self.ScannerEnabled = true
-		else
-			self.skillMenu[self.ScannerSkillIndex]["State"] = "Off"
-			self.ScannerEnabled = false
+			skill.Right = "[ ON ]";
+			self.ScannerEnabled = true;
 		end
 	end
 
 	if self.RepairLevel > 0 then
-		count = count + 1;
 		skill = {};
-		skill["Text"] = "Repair weapon"
-		skill["Count"] = self.RepairLevel
-		skill["Function"] = rpgbrain_skill_repair
+		skill.Left = "Repair weapon";
+		skill.Center = "";
+		skill.Right = "-" .. tostring(10 - self.RepairLevel) .. " \242";
+
+		skill.Function = rpgbrain_skill_repair;
+
 		table.insert(self.skillMenu, skill);
 	end
 		
 	if self.HealLevel > 0 then
-		count = count + 1
-		skill = {}
-			
-		skill["Text"] = "Heal unit"
-		skill["Count"] = self.HealLevel
-		skill["Function"] = rpgbrain_skill_healstart
-		skill["ActorDetectRange"] = self.HealRange
-		skill["AffectsBrains"] = false
+		skill = {};
+		skill.Left = "Heal unit";
+		skill.Center = "";
+		skill.Right = "-" .. tostring(20 - 2 * self.HealLevel) .. " \242";
+
+		skill.Function = rpgbrain_skill_healstart;
+		skill.ActorDetectRange = self.HealRange;
+		skill.AffectsBrains = false;
+
 		table.insert(self.skillMenu, skill);
 	end
 
 	if self.SelfHealLevel > 0 then
 		local skill = {};
-		skill["Text"] = "Heal brain"
-		skill["Count"] = self.SelfHealLevel
-		skill["Function"] = rpgbrain_skill_selfhealstart
-		skill["ActorDetectRange"] = 0.1
-		skill["AffectsBrains"] = true
+		skill.Left = "Heal self";
+		skill.Center = "";
+		skill.Right = "-" .. tostring(30 - 2 * self.SelfHealLevel) .. " \242";
+
+		skill.Function = rpgbrain_skill_selfhealstart;
+		skill.ActorDetectRange = 0.1;
+		skill.AffectsBrains = true;
+
 		table.insert(self.skillMenu, skill);
 	end
 
 	if self.SplitterLevel > 0 then
-		count = count + 1
 		local skill = {};
 
-		skill["Text"] = "Nanolyze item"
-		skill["Count"] = -1
-		skill["Function"] = rpgbrain_skill_split
+		skill.Left = "Nanolyze item";
+		skill.Center = "";
+		skill.Right = "";
 
-		self.NanolyzeItem = count
+		skill.Function = rpgbrain_skill_split;
 
 		-- Make quantum sub-menu
-		local items = {}
+		local items = {};
 
 		local quantumItems = CF_Read(self, {"QuantumItems"});
 		local quantumItemPresets = CF_Read(self, {"QuantumItmPresets"});
@@ -281,48 +299,66 @@ function Create(self)
 			
 			if CF_Read(self, {"GS", "UnlockedQuantum_" .. quantumItemClasses[id] .. "_" .. quantumItemPresets[id] .. "_" .. quantumItemModules[id]}) then
 				local item = {};
-				item["ID"] = id;
-				item["Class"] = quantumItemClasses[id];
-				item["Preset"] = quantumItemPresets[id];
-				item["Module"] = quantumItemModules[id];
-				item["Price"] = quantumItemPrices[id];
+				item.ID = id;
+				item.Class = quantumItemClasses[id];
+				item.Preset = quantumItemPresets[id];
+				item.Module = quantumItemModules[id];
+				item.Price = quantumItemPrices[id];
 				table.insert(items, item);
 			end
 		end
 
-		self.Quantum = {}
+		self.quantumMenu = {};
+
 		for i = 1, #items do
-			self.Quantum[i] = {}
-			self.Quantum[i]["Text"] = items[i]["Preset"]
-			self.Quantum[i]["Count"] = items[i]["Price"]
+			self.quantumMenu[i] = {};
+			self.quantumMenu[i].Left = items[i].Preset;
+			self.quantumMenu[i].Right = "-" .. items[i].Price .. " \242";
 
-			self.Quantum[i]["ID"] = items[i]["ID"]
-			self.Quantum[i]["Preset"] = items[i]["Preset"]
-			self.Quantum[i]["Class"] = items[i]["Class"]
-			self.Quantum[i]["Module"] = items[i]["Module"]
-			self.Quantum[i]["Price"] = items[i]["Price"]
+			self.quantumMenu[i].ID = items[i].ID;
+			self.quantumMenu[i].Preset = items[i].Preset;
+			self.quantumMenu[i].Class = items[i].Class;
+			self.quantumMenu[i].Module = items[i].Module;
+			self.quantumMenu[i].Price = items[i].Price;
 
-			self.Quantum[i]["Function"] = rpgbrain_skill_synthesize
+			self.quantumMenu[i].Function = rpgbrain_skill_synthesize;
 		end
 
-		local n = #self.Quantum + 1
+		local n = #self.quantumMenu + 1;
 
-		self.Quantum[n] = {}
-		self.Quantum[n]["Text"] = "BACK"
-		self.Quantum[n]["Count"] = -1
-		self.Quantum[n]["SubMenu"] = self.skillMenu
+		self.quantumMenu[n] = {};
+		self.quantumMenu[n].Left = "BACK";
+		self.quantumMenu[n].Count = -1;
+		self.quantumMenu[n].SubMenu = self.skillMenu;
 
 		table.insert(self.skillMenu, skill);
 
 		-- Add synthesizer menu item
-		count = count + 1
-		skill = {}
+		skill = {};
 
-		skill["Text"] = "Synthesize item"
-		skill["Count"] = self.QuantumStorage
-		skill["SubMenu"] = self.Quantum
+		skill.Left = "Synthesize item";
+		skill.Center = "";
+		skill.Right = tostring(self.quantumStorage) .. " \242";
+		skill.Count = self.quantumStorage;
+		skill.SubMenu = self.quantumMenu;
 
-		self.QuantumStorageItem = count
+		table.insert(self.skillMenu, skill);
+		self.quantumMenuItem = skill;
+	end
+
+
+	self.returnMenu = {};
+	self.returnMenu.TopLeft = "Return to Orbit";
+	self.returnMenu.TopCenter = "";
+	self.returnMenu.TopRight = "+" .. self.quantumStorage .. " \242";
+
+	self.returnMenu.BottomCenter = "L/R - Mode, Scroll - Item, Fire - Select";
+
+	self.returnMenu.NextMenu = nil;
+	self.returnMenu.PrevMenu = nil;
+
+	function self.returnMenu:Update(owner)
+		self.TopRight = "+" .. owner.quantumStorage .. " \242";
 	end
 end
 
@@ -691,8 +727,8 @@ function Update(self)
 				if self.Vel:MagnitudeIsLessThan(15) then
 					self.PDAEnabled = true
 				end
-				self.SelectedMenuItem = 1
-				self.ActiveMenu = self.skillMenu
+				self.selectedMenuItem = 1
+				self.activeMenu = self.skillMenu
 			end
 			self:RemoveNumberValue("VW_EnablePDA")
 		end
@@ -943,21 +979,23 @@ function do_rpgbrain_shield(self)
 end
 
 function do_rpgbrain_pda(self)
-	local pos = self.Pos + Vector(0, -200)
+	local screen = ActivityMan:GetActivity():ScreenOfPlayer(self.BrainNumber);
+	local pos = CameraMan:GetOffset(screen) + Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight);
+	pos = pos - Vector(20, 20) - Vector(70, 53);
 
 	self.SkillTargetActor = nil
 	self.SkillTargetActors = {}
 
 	-- Detect nearby target actor
-	if #self.ActiveMenu > 0 and self.ActiveMenu[self.SelectedMenuItem]["ActorDetectRange"] ~= nil then
-		local detectionRange = self.ActiveMenu[self.SelectedMenuItem]["ActorDetectRange"]
-		if not self.ActiveMenu[self.SelectedMenuItem]["DetectAllActors"] then
+	if #self.activeMenu > 0 and self.activeMenu[self.selectedMenuItem].ActorDetectRange ~= nil then
+		local detectionRange = self.activeMenu[self.selectedMenuItem].ActorDetectRange
+		if not self.activeMenu[self.selectedMenuItem].DetectAllActors then
 			for actor in MovableMan.Actors do
 				local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX).Magnitude
 				if
 					actor.Team == self.Team
 					and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-					and (self.ActiveMenu[self.SelectedMenuItem]["AffectsBrains"] == actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua"))
+					and (self.activeMenu[self.selectedMenuItem].AffectsBrains == CF_Call(self, {"IsBrain"}, {actor}))
 					and detectionRange >= dist
 				then
 					self.SkillTargetActor = actor
@@ -974,7 +1012,7 @@ function do_rpgbrain_pda(self)
 				if
 					actor.Team == self.Team
 					and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-					and (self.ActiveMenu[self.SelectedMenuItem]["AffectsBrains"] == actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua"))
+					and (self.activeMenu[self.selectedMenuItem].AffectsBrains == CF.IsBrain(actor))
 					and detectionRange >= SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX).Magnitude
 				then
 					self.SkillTargetActors[#self.SkillTargetActors + 1] = actor
@@ -990,10 +1028,12 @@ function do_rpgbrain_pda(self)
 		end
 	end
 
-	local controller = self:GetController()
-	local up = false
-	local down = false
-	local select = false
+	local controller = self:GetController();
+	local up = false;
+	local down = false;
+	local left = false;
+	local right = false;
+	local select = false;
 
 	if not (controller:IsState(Controller.PIE_MENU_ACTIVE) or controller:IsState(Controller.PIE_MENU_OPENED)) then
 		if controller:IsGamepadControlled() or controller:IsKeyboardOnlyControlled() then
@@ -1045,73 +1085,79 @@ function do_rpgbrain_pda(self)
 	end
 
 	if up then
-		self.SelectedMenuItem = self.SelectedMenuItem - 1
-		if self.SelectedMenuItem < 1 then
-			self.SelectedMenuItem = #self.ActiveMenu
+		self.selectedMenuItem = self.selectedMenuItem - 1
+		if self.selectedMenuItem < 1 then
+			self.selectedMenuItem = #self.activeMenu
 		end
 	end
 
 	if down then
-		self.SelectedMenuItem = self.SelectedMenuItem + 1
-		if self.SelectedMenuItem > #self.ActiveMenu then
-			self.SelectedMenuItem = 1
+		self.selectedMenuItem = self.selectedMenuItem + 1
+		if self.selectedMenuItem > #self.activeMenu then
+			self.selectedMenuItem = 1
 		end
 	end
 
-	self.MenuItemsListStart = self.SelectedMenuItem - (self.SelectedMenuItem - 1) % 6
+	self.MenuItemsListStart = self.selectedMenuItem - (self.selectedMenuItem - 1) % 6
+
+	-- Draw background
+	CF_Call(self, {"DrawMenuBox"}, {self.BrainNumber, pos.X - 70, pos.Y - 39, pos.X + 70, pos.Y + 39});
+	CF_Call(self, {"DrawMenuBox"}, {self.BrainNumber, pos.X - 70, pos.Y - 53, pos.X + 70, pos.Y - 40});
+	CF_Call(self, {"DrawMenuBox"}, {self.BrainNumber, pos.X - 70, pos.Y + 40, pos.X + 70, pos.Y + 53});
+	local lineOffset = -36;
 
 	-- Show price if item will be nanolyzed
 	if self.NanolyzeItem ~= nil then
-		self.skillMenu[self.NanolyzeItem]["Count"] = "EMPTY";
+		self.skillMenu[self.NanolyzeItem].Count = "EMPTY";
 
 		if self.EquippedItem ~= nil then
 			local mass = self.EquippedItem.Mass;
-			local convert = self.SplitterLevel * CF_Read(self, {"QuantumSplitterEffectiveness"});
-			local matter = math.floor(mass * convert);
+			local matter = math.floor(mass * self.quantumEfficacy);
 
-			if self.QuantumStorage + matter > self.QuantumCapacity then
-				matter = self.QuantumCapacity - self.QuantumStorage;
+			if self.quantumStorage + matter > self.quantumCapacity then
+				matter = self.quantumCapacity - self.quantumStorage;
 			end
 
-			self.skillMenu[self.NanolyzeItem]["Count"] = "+" .. matter;
+			self.skillMenu[self.NanolyzeItem].Count = "+" .. matter;
 
-			if self.QuantumStorage == self.QuantumCapacity then
-				self.skillMenu[self.NanolyzeItem]["Count"] = "MAX";
+			if self.quantumStorage == self.quantumCapacity then
+				self.skillMenu[self.NanolyzeItem].Count = "MAX";
 			end
 
-			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.QuantumStorage);
+			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.quantumStorage);
 		end
 	end
 
-	-- Draw background
-	local pix = CreateMOPixel("ControlPanel_Skills", "VoidWanderers.rte")
-	pix.Pos = pos + Vector(0, 27)
-	MovableMan:AddParticle(pix)
-
 	-- Draw skills menu
-	if self.ActiveMenu == nil or #self.ActiveMenu == 0 then
-		local s = "NO SKILLS"
-		local l = CF_Call(self, {"GetStringPixelWidth"}, {s})[1]
+	if self.activeMenu == nil or #self.activeMenu == 0 then
+		local text = "NO SKILLS";
+		CF_Call(self, {"DrawString"}, {text, pos, 140, 11, false, false, 1, 1, nil, self.BrainNumber});
+	else	
+		local menu = self.activeMenu;
+		menu:Update(self);
 
-		CF_Call(self, {"DrawString"}, {s, pos + Vector(-l / 2, 2), 100, 8})
-	else
+		local text = menu.TopLeft;
+		CF_Call(self, {"DrawString"}, {text, pos + Vector(-67, -46), 135, 11, false, 11, 0, 1});
+		local text = menu.TopCenter;
+		CF_Call(self, {"DrawString"}, {text, pos + Vector(0, -46), 135, 11, false, 11, 1, 1});
+		local text = menu.TopRight;
+		CF_Call(self, {"DrawString"}, {text, pos + Vector(68, -46), 135, 11, false, 11, 2, 1});
+
+		local text = menu.BottomCenter;
+		CF_Call(self, {"DrawString"}, {text, pos + Vector(0, 46), 135, 11, true, 11, 1, 1});
+
 		for i = self.MenuItemsListStart, self.MenuItemsListStart + 6 - 1 do
-			if i <= #self.ActiveMenu then
-				local s = self.ActiveMenu[i]["Text"]
+			local menuItem = menu[i];
 
-				if self.ActiveMenu[i]["Count"] ~= nil and self.ActiveMenu[i]["Count"] ~= -1 then
-					s = s .. " " .. self.ActiveMenu[i]["Count"]
-				end
-
-				if self.ActiveMenu[i]["State"] ~= nil then
-					s = s .. " [ " .. self.ActiveMenu[i]["State"] .. " ]"
-				end
-
-				if i == self.SelectedMenuItem then
-					CF_Call(self, {"DrawString"}, {"> " .. s, pos + Vector(-50, (i - self.MenuItemsListStart) * 10), 150, 8})
-				else
-					CF_Call(self, {"DrawString"}, {s, pos + Vector(-50, (i - self.MenuItemsListStart) * 10), 150, 8})
-				end
+			if menuItem then
+				local prefix = i == self.selectedMenuItem and "> " or "";
+				local text = prefix .. menuItem.Left;
+				CF_Call(self, {"DrawString"}, {text, pos + Vector(-67, lineOffset), 135, 11, false, 11, 0});
+				local text = menuItem.Center;
+				CF_Call(self, {"DrawString"}, {text, pos + Vector(0, lineOffset), 135, 11, false, 11, 1});
+				local text = menuItem.Right;
+				CF_Call(self, {"DrawString"}, {text, pos + Vector(68, lineOffset), 135, 11, false, 11, 2});
+				lineOffset = lineOffset + 11;
 			end
 		end 
 	end
@@ -1121,13 +1167,13 @@ function do_rpgbrain_pda(self)
 			self.FirePressed = true
 
 			-- Execute skill function
-			if self.ActiveMenu[self.SelectedMenuItem]["Function"] ~= nil then
-				self.ActiveMenu[self.SelectedMenuItem]["Function"](self)
+			if self.activeMenu[self.selectedMenuItem].Function ~= nil then
+				self.activeMenu[self.selectedMenuItem].Function(self)
 			end
 
-			if self.ActiveMenu[self.SelectedMenuItem]["SubMenu"] ~= nil then
-				self.ActiveMenu = self.ActiveMenu[self.SelectedMenuItem]["SubMenu"]
-				self.SelectedMenuItem = 1
+			if self.activeMenu[self.selectedMenuItem].SubMenu ~= nil then
+				self.activeMenu = self.activeMenu[self.selectedMenuItem].SubMenu
+				self.selectedMenuItem = 1
 			end
 		end
 	else
@@ -1141,8 +1187,8 @@ function rpgbrain_skill_healstart(self)
 			self.HealTarget = self.SkillTargetActor;
 			self.HealSkillTimer:Reset();
 			swarm_create(self, self.HealTarget);
-			self.QuantumStorage = self.QuantumStorage - 20;
-			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.QuantumStorage);
+			self.quantumStorage = self.quantumStorage - 20;
+			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.quantumStorage);
 		end
 	end
 end
@@ -1153,8 +1199,8 @@ function rpgbrain_skill_selfhealstart(self)
 			self.HealTarget = self.SkillTargetActor;
 			self.HealSkillTimer:Reset();
 			swarm_create(self, self.HealTarget);
-			self.QuantumStorage = self.QuantumStorage - 30;
-			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.QuantumStorage);
+			self.quantumStorage = self.quantumStorage - 30;
+			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.quantumStorage);
 		end
 	end
 end
@@ -1208,30 +1254,30 @@ function rpgbrain_skill_healend(self)
 end
 
 function rpgbrain_skill_repair(self)
-	if self.RepairCount > 0 then
+	if self.RepairLevel > 0 and self.quantumStorage >= 5 then
 		local gun = self.EquippedItem;
 		if gun ~= nil then
 			gun:RemoveWounds(gun:GetWoundCount());
-			self.QuantumStorage = self.QuantumStorage - 5;
-			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.QuantumStorage);
+			self.quantumStorage = self.quantumStorage - 5;
+			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.quantumStorage);
 		end
 	end
 end
 
 function rpgbrain_skill_split(self)
 	if self.EquippedItem ~= nil then
-		if self.QuantumStorage < self.QuantumCapacity then
+		if self.quantumStorage < self.quantumCapacity then
 			local mass = self.EquippedItem.Mass
 			local convert = self.SplitterLevel * CF_Read(self, {"QuantumSplitterEffectiveness"})
 			local matter = math.floor(mass * convert)
 
-			self.QuantumStorage = self.QuantumStorage + matter
-			if self.QuantumStorage > self.QuantumCapacity then
-				self.QuantumStorage = self.QuantumCapacity
+			self.quantumStorage = self.quantumStorage + matter
+			if self.quantumStorage > self.quantumCapacity then
+				self.quantumStorage = self.quantumCapacity
 			end
 
-			self.skillMenu[self.QuantumStorageItem]["Count"] = self.QuantumStorage
-			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.QuantumStorage);
+			self.quantumItem.Count = self.quantumStorage
+			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.quantumStorage);
 
 			self.EquippedItem.ToDelete = true
 			self:GetController():SetState(Controller.WEAPON_CHANGE_PREV, true)
@@ -1240,30 +1286,29 @@ function rpgbrain_skill_split(self)
 end
 
 function rpgbrain_skill_synthesize(self)
-	if self.QuantumStorage >= self.ActiveMenu[self.SelectedMenuItem]["Price"] then
-		local preset = self.ActiveMenu[self.SelectedMenuItem]["Preset"]
-		local class = self.ActiveMenu[self.SelectedMenuItem]["Class"]
-		local module = self.ActiveMenu[self.SelectedMenuItem]["Module"]
+	if self.quantumStorage >= self.activeMenu[self.selectedMenuItem].Price then
+		local preset = self.activeMenu[self.selectedMenuItem].Preset
+		local class = self.activeMenu[self.selectedMenuItem].Class
+		local module = self.activeMenu[self.selectedMenuItem].Module
 
 		local newgun = VoidWanderersRPG_VW_MakeItem(preset, class, module)
 		if newgun ~= nil then
 			self:AddInventoryItem(newgun)
 			self:GetController():SetState(Controller.WEAPON_CHANGE_PREV, true)
 
-			self.QuantumStorage = self.QuantumStorage - self.ActiveMenu[self.SelectedMenuItem]["Price"]
-			self.skillMenu[self.QuantumStorageItem]["Count"] = self.QuantumStorage
-			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.QuantumStorage);
+			self.quantumStorage = self.quantumStorage - self.activeMenu[self.selectedMenuItem].Price
+			self.quantumMenuItem.Count = self.quantumStorage
+			CF_Write({"GS", "Brain" .. self.BrainNumber .. "QuantumStorage"}, self.quantumStorage);
 		end
 	end
 end
 
 function rpgbrain_skill_scanner(self)
-	self.ScannerEnabled = not self.ScannerEnabled
+	self.ScannerEnabled = not self.ScannerEnabled;
 
-	local enabled = CF_Read(self, {"GS", "Brain" .. self.BrainNumber .. "ScannerEnabled"}) == "true";
+	CF_Write({"GS", "Brain" .. self.BrainNumber .. "ScannerEnabled"}, tostring(self.ScannerEnabled));
 
-	CF_Write({"GS", "Brain" .. self.BrainNumber .. "ScannerEnabled"}, tostring(not enabled))
-	self.skillMenu[self.ScannerSkillIndex]["State"] = enabled and "Off" or "On"
+	self.ScannerSkillItem.Right = self.ScannerEnabled and "[ ON ]" or "[ OFF ]";
 end
 
 function swarm_swarmto(object, target, speed)

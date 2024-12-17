@@ -1,5 +1,5 @@
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
 --[[ Test encounter
 local id = "TEST"
 
@@ -23,8 +23,8 @@ function (self, variant)
 	end
 end
 --]]
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
 --[[ Define pirate identities
 CF.RandomEncounterPirates = {}
 
@@ -379,8 +379,8 @@ function(self, variant)
 	end
 end
 --]]
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
 --[[ Abandoned ship exploration
 local id = "ABANDONED_VESSEL_GENERIC"
 CF.RandomEncounters[#CF.RandomEncounters + 1] = id
@@ -580,8 +580,8 @@ function(self, variant)
 	end
 end
 --]]
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
 --[[ Hostile drone
 local id = "HOSTILE_DRONE";
 CF.RandomEncounters[#CF.RandomEncounters + 1] = id
@@ -744,44 +744,48 @@ function (self, variant)
 	end
 end
 --]]
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-local id = "REAVERS"
-CF.RandomEncounters[#CF.RandomEncounters + 1] = id
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
+-- Reavers
+local id = "REAVERS";
+CF.RandomEncounters[#CF.RandomEncounters + 1] = id;
 
-CF.RandomEncounterScripts[id] = "VoidWanderers.rte/Scripts/Encounters/Reavers.lua"
+CF.RandomEncounterScripts[id] = "VoidWanderers.rte/Scripts/Encounters/Reavers.lua";
 CF.RandomEncounterEligibilityTests[id] = function(self)
 	return self.GS["Planet"] == "MapPack-Space"
 		or self.GS["Planet"] == "MapPack-City"
 		or self.GS["Planet"] == "MapPack-Earth"
+		or self.GS["Planet"] == "Miranda"
+		or self.GS["Planet"] == "The Breach"
 		or self.GS["Planet"] == "CC-11y";
-end
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+end;
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Asteroid field
-local id = "ASTEROIDS"
-CF.RandomEncounters[#CF.RandomEncounters + 1] = id
+local id = "ASTEROIDS";
+CF.RandomEncounters[#CF.RandomEncounters + 1] = id;
 
 CF.RandomEncounterScripts[id] = "VoidWanderers.rte/Scripts/Encounters/AsteroidField.lua";
 CF.RandomEncounterEligibilityTests[id] = function(self)
 	return self.GS["Planet"] == "MapPack-Space";
 end;
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Faction assault
-local id = "ASSAULT"
-CF.RandomEncounters[#CF.RandomEncounters + 1] = id
+--[[
+local id = "AMBUSH";
+CF.RandomEncounters[#CF.RandomEncounters + 1] = id;
 
-CF.RandomEncounterScripts[id] = "VoidWanderers.rte/Scripts/Encounters/FactionAmbush.lua"
+CF.RandomEncounterScripts[id] = "VoidWanderers.rte/Scripts/Encounters/FactionAmbush.lua";
 CF.RandomEncounterEligibilityTests[id] = function(self)
 	for i = 1, tonumber(self.GS["ActiveCPUs"]) do
-		local rep = tonumber(self.GS["Player" .. i .. "Reputation"])
+		local rep = tonumber(self.GS["Player" .. i .. "Reputation"]);
 		if rep <= CF.ReputationHuntThreshold then
-			return true
+			return true;
 		end
 	end
-	return false
-end
+	return false;
+end;--]]
 --]]
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------

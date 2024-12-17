@@ -47,9 +47,9 @@ function VoidWanderers:StartActivity()
 	dofile(SCRIPT_TO_LAUNCH)
 	SceneMan:LoadScene(SCENE_TO_LAUNCH, true)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Launches new mission script without leaving current activity. Scene is case sensitive!
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:LaunchScript(scene, script)
 	print("VoidWanderers-LaunchScript: " .. scene .. " / " .. script)
 	--print(scene)
@@ -62,22 +62,22 @@ function VoidWanderers:LaunchScript(scene, script)
 	dofile(BASE_PATH .. script)
 	SceneMan:LoadScene(scene, true)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Pause Activity
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:PauseActivity(pause)
 	print("PAUSE! -- VoidWanderers:PauseActivity()!")
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- End Activity
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:EndActivity()
 	print("END! -- VoidWanderers:EndActivity()!")
 	CF.Self = nil
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Update Activity
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:UpdateActivity()
 	--print("VoidWanderers::Mission launcher - Update Once!")
 	if TRANSFER_IN_PROGRESS then

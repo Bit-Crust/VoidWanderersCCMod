@@ -2,9 +2,8 @@
 local id = "Sector 7"
 CF.Planet[#CF.Planet + 1] = id
 CF.PlanetName[id] = "Sector 7"
-CF.PlanetGlow[id] = "Sector 7"
+CF.PlanetGlow[id] = "Mods/VoidWanderers.rte/UI/Planets/Sector 7.png"
 CF.PlanetPos[id] = Vector(27, 32)
-CF.PlanetGlowModule[id] = "VoidWanderers_Grimmcrypt.rte"
 
 -- planet locations
 local id = "Station Alpha 9 Delta"

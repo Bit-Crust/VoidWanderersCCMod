@@ -83,7 +83,7 @@ for module in PresetMan.Modules do
 
 			CF.Factions[#CF.Factions + 1] = factionid
 			CF.FactionNames[factionid] = module.FriendlyName
-			CF.FactionDescriptions[factionid] = module.Description and module.Description or "DESCRIPTION UNAVAILABLE"
+			CF.FactionDescriptions[factionid] = module.Description;
 			-- Set true if faction is selectable by player or AI
 			CF.FactionPlayable[factionid] = true
 			CF.RequiredModules[factionid] = { "Base.rte", module.FileName }

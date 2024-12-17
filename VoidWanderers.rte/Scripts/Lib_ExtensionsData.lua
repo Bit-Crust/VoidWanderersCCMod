@@ -3,7 +3,6 @@ function CF.InitExtensionsData(activity)
 	CF.Planet = {};
 	CF.PlanetName = {};
 	CF.PlanetGlow = {};
-	CF.PlanetGlowModule = {};
 	CF.PlanetPos = {};
 	CF.PlanetScale = {}; -- Used just to show realistic km distances when traveling near moons or stations
 

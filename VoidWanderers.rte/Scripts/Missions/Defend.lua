@@ -1,4 +1,4 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Objective: 	Survive a few waves of incoming dropships while keeping at least one actor inside
 --				the base box
 --	Set used: 	Enemy
@@ -6,7 +6,7 @@
 --				will be unable to deploy forces due to MOID limit, then it will fire beam weapon until
 --				there are enough MOIDs to start assault
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionCreate()
 	print("DEFEND CREATE")
 	
@@ -82,9 +82,9 @@ function VoidWanderers:MissionCreate()
 	self.missionData["baseEffectTimer"] = Timer()
 	self.missionData["baseEffectTimer"]:Reset()
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	if self.missionData["stage"] == CF.MissionStages.ACTIVE then
 		local friends = 0
@@ -246,9 +246,9 @@ function VoidWanderers:MissionUpdate()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --[[function VoidWanderers:MissionDefendFireSuperWeapon(active, ownerteam, enemyteam)
 	-- Init superweapon variables
 	if self.SuperWeaponInitialized == false then
@@ -283,7 +283,7 @@ end
 		-- Get target
 		-- First try to shoot allies
 		for actor in MovableMan.Actors do
-			if self:IsAlly(actor) then
+			if CF.IsAlly(actor) then
 				target = actor
 				break
 			end
@@ -298,7 +298,7 @@ end
 				if
 					actor.Team == enemyteam
 					and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-					and not actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua")
+					and not CF.IsBrain(actor)
 				then
 					target = actor
 					targetok = self:MissionDefendIsTargetReachable(target)
@@ -334,9 +334,9 @@ end
 		end
 	end
 end]]
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Returns true if target can be reached by beam on surface
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --[[function VoidWanderers:MissionDefendIsTargetReachable(target)
 	if MovableMan:IsActor(target) then
 		local shotpos = SceneMan:MovePointToGround(Vector(target.Pos.X, 0), 20, 3)
@@ -346,6 +346,6 @@ end]]
 	end
 	return false
 end]]
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

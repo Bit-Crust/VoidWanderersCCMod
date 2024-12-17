@@ -1,161 +1,167 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Objective: 	Kill all invading reavers.
 --	Events: 	
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:EncounterCreate()
-	print("REAVERS CREATE")
+	print("REAVERS CREATE");
 
-	self.encounterData["reaversAct"] = { "Reaver", "Bone Reaver" }
-	self.encounterData["reaversActMod"] = { "VoidWanderers.rte", "VoidWanderers.rte" }
+	local encounterData = self.encounterData;
 
-	self.encounterData["reaversLight"] = { "JPL 10 Auto", "K-LDP 7.7mm" }
-	self.encounterData["reaversLightMod"] = { "VoidWanderers.rte", "VoidWanderers.rte" }
+	encounterData["reaversAct"] = { "Reaver", "Bone Reaver" };
+	encounterData["reaversActMod"] = { "VoidWanderers.rte", "VoidWanderers.rte" };
+	encounterData["reaversLight"] = { "JPL 10 Auto", "K-LDP 7.7mm" };
+	encounterData["reaversLightMod"] = { "VoidWanderers.rte", "VoidWanderers.rte" };
+	encounterData["reaversHeavy"] = { "K-HAR 10mm", "Shrike Mdl.G", "PBL Maw" };
+	encounterData["reaversHeavyMod"] = { "VoidWanderers.rte", "VoidWanderers.rte", "VoidWanderers.rte" };
+	encounterData["reaversThrown"] = { "M67 Grenade", "M24 Potato Masher", "Molotov Cocktail", "Scrambler" };
+	encounterData["reaversThrownMod"] = { "Ronin.rte", "Ronin.rte", "Ronin.rte", "Ronin.rte" };
+	encounterData["reaversInterval"] = 8;
 
-	self.encounterData["reaversHeavy"] = { "K-HAR 10mm", "Shrike Mdl.G", "PBL Maw" }
-	self.encounterData["reaversHeavyMod"] = { "VoidWanderers.rte", "VoidWanderers.rte", "VoidWanderers.rte" }
+	-- Pick one vessel that will contain at least one unit.
+	local validVessels = {};
+	for id = 1, #CF.Vessel do
+		local name = CF.Vessel[id];
+		local startUnits = math.ceil(CF.VesselStartClonesCapacity[name] * 0.5 + CF.VesselStartLifeSupport[name] * 0.5);
+		local maxUnits = math.ceil(CF.VesselMaxClonesCapacity[name] * 0.5 + CF.VesselMaxLifeSupport[name] * 0.5);
 
-	self.encounterData["reaversThrown"] = { "M67 Grenade", "M24 Potato Masher", "Molotov Cocktail", "Scrambler" }
-	self.encounterData["reaversThrownMod"] = { "Ronin.rte", "Ronin.rte", "Ronin.rte", "Ronin.rte" }
+		local startSpeed = CF.VesselStartSpeed[name];
+		local maxSpeed = CF.VesselMaxSpeed[name];
 
-	self.encounterData["reaversInterval"] = 8
+		if maxUnits > 0 then
+			table.insert(validVessels, {
+				name = name,
+				onboard = math.random(startUnits, maxUnits),
+				speed = math.random(startSpeed, maxSpeed)
+			});
+		end
+	end
+	local vessel = validVessels[math.random(#validVessels)];
 
-	local id = CF.Vessel[math.random(#CF.Vessel)]
+	-- Eat the rich! Boost difficulty based on player gold.
+	encounterData["playerGoldScalar"] = math.sqrt(1 + CF.GetPlayerGold(self.GS, 0) * 0.001);
 
-	id = (id == "Mule") and "Titan" or id
-
-	self.encounterData["speed"] = math.random(
-		CF.VesselStartSpeed[id],
-		math.max(math.ceil(CF.VesselMaxSpeed[id] * 0.5), CF.VesselStartSpeed[id])
-	) + 1
-
-	self.encounterData["distance"] = math.random(300, 400) - self.encounterData["speed"]
-	self.encounterData["maxDistance"] = math.random(400, 500)
-	-- Eat the rich!
-	self.encounterData["playerGoldScalar"] = math.sqrt(1 + CF.GetPlayerGold(self.GS, 0) * 0.001)
-	local maxCapacity = math.ceil(CF.VesselMaxClonesCapacity[id] * 0.5)
-	local minCapacity = math.ceil(math.max(maxCapacity * 0.5, CF.VesselStartClonesCapacity[id] * 0.5))
-	self.encounterData["reaversUnitCount"] = math.random(minCapacity, maxCapacity)
-	self.encounterData["difficulty"] = math.min(
-		math.max(math.floor(self.encounterData["reaversUnitCount"] * 0.2), 0),
-		CF.MaxDifficulty
-	)
+	encounterData["distance"] = math.random(300, 400);
+	encounterData["triggerDistance"] = math.random(400, 500);
+	encounterData["difficulty"] = math.min(CF.MaxDifficulty, math.max(0, math.floor(vessel.onboard * 0.2)));
 	
 	local message = "";
-	if self.encounterData["playerGoldScalar"] > 25 then
+	if encounterData["playerGoldScalar"] > 25 then
 		message = "The Reavers can smell your money! An incoming "
-			.. CF.VesselName[id]
-			.. " class ship has been detected, hiding will not be easy..."
-	elseif self.encounterData["playerGoldScalar"] > 10 then
+			.. vessel.name
+			.. " class ship has been detected, hiding will not be easy...";
+	elseif encounterData["playerGoldScalar"] > 10 then
 		message = "The Reavers are after our gold! An incoming "
-			.. CF.VesselName[id]
-			.. " class ship has been detected, what should we do?"
+			.. vessel.name
+			.. " class ship has been detected, what should we do?";
 	else
 		message = "An unknown "
-			.. CF.VesselName[id]
-			.. " class ship detected, it must be Reavers!! If we hide everything, they might think it's a dead ship."
+			.. vessel.name
+			.. " class ship detected, it must be Reavers!! If we hide everything, they might think it's a dead ship.";
 	end
+
+	encounterData["scanTimeMax"] = math.ceil(25 / math.sqrt(vessel.onboard));
+	encounterData["scanTime"] = math.random(math.min(CF.CountActors(CF.PlayerTeam) * 5 + 10, encounterData["scanTimeMax"] - 1), encounterData["scanTimeMax"]);
+
+	local scene = SceneMan.Scene;
+
+	-- Try generating if we don't have a reasonable right gate
+	if not scene:HasArea("RightGates") then
+		local screenRight = Vector(SceneMan.SceneWidth, SceneMan.SceneHeight / 2);
+		local path = Vector(-10000, 0);
+
+		local strike = Vector(0, 0);
+		SceneMan:CastStrengthRay(screenRight, path, 100, strike, 4, 0);
+
+		gates = Area("RightGates");
+		gates:AddBox(Box(strike - Vector(50, 50), 100, 100));
+
+		scene:SetArea(gates);
+	end
+
+	local gates = scene:GetArea("RightGates");
+
+	local centerGates = gates:GetCenterPoint();
+
+	encounterData["shotCount"] = 0;
+	for actor in MovableMan.Actors do
+		if IsADoor(actor) and SceneMan:ShortestDistance(actor.Pos, centerGates, false):MagnitudeIsLessThan(actor.Radius) then
+			encounterData["shotCount"] = encounterData["shotCount"] + 1;
+		end
+	end
+
+	local screenRight = Vector(SceneMan.SceneWidth, centerGates.Y);
+	encounterData["gateDistance"] = SceneMan:ShortestDistance(centerGates, screenRight, false).Magnitude;
+
+	encounterData["attackLaunched"] = false;
+	encounterData["scanLaunched"] = false;
+	encounterData["runLaunched"] = false;
+	encounterData["fightSelected"] = false;
+	encounterData["abortChase"] = false;
+	encounterData["isInitialized"] = true;
+	encounterData["vessel"] = vessel;
+	encounterData["gates"] = gates;
+
+	self.vesselData["flightDisabled"] = true;
+	self.vesselData["flightAimless"] = true;
+
 	local options = { "Fight the bastards!", "Stay low", "RUN!!!" };
 	self:SendTransmission(message, options);
-
-	self.encounterData["scanTimeMax"] = math.ceil(math.random(20, 25) / math.sqrt(self.encounterData["difficulty"]))
-	self.encounterData["scanTime"] = math.random(
-		math.min(CF.CountActors(CF.PlayerTeam) * 5 + 10, self.encounterData["scanTimeMax"] - 1),
-		self.encounterData["scanTimeMax"]
-	)
-
-	self.encounterData["dir"] = -1
-	if SceneMan.Scene:HasArea("LeftGates") then
-		if SceneMan.Scene:HasArea("RightGates") and math.random() < 0.5 then
-			self.encounterData["gates"] = SceneMan.Scene:GetArea("RightGates")
-			self.encounterData["dir"] = 1
-		else
-			self.encounterData["gates"] = SceneMan.Scene:GetArea("LeftGates")
-		end
-	elseif SceneMan.Scene:HasArea("RightGates") then
-		self.encounterData["gates"] = SceneMan.Scene:GetArea("RightGates")
-		self.encounterData["dir"] = 1
-	end
-	self.encounterData["shotCount"] = 0
-	local centerGates = self.encounterData["gates"]:GetCenterPoint()
-	if self.encounterData["gates"] then
-		for actor in MovableMan.Actors do
-			if
-				actor.ClassName == "ADoor"
-				and SceneMan:ShortestDistance(actor.Pos, centerGates, false):MagnitudeIsLessThan(actor.Radius)
-			then
-				self.encounterData["shotCount"] = self.encounterData["shotCount"] + 1
-			end
-		end
-	end
-	self.encounterData["gatesDistance"] = SceneMan:ShortestDistance(
-		centerGates,
-		Vector(self.encounterData["dir"] == 1 and SceneMan.SceneWidth or 0, centerGates.Y),
-		false
-	).Magnitude
-
-	self.encounterData["attackLaunched"] = false
-	self.encounterData["scanLaunched"] = false
-	self.encounterData["runLaunched"] = false
-	self.encounterData["fightSelected"] = false
-	self.encounterData["abortChase"] = false
-	self.encounterData["isInitialized"] = true
-
-	self.vesselData["flightDisabled"] = true
-	self.vesselData["flightAimless"] = true
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:EncounterUpdate()
+	local encounterData = self.encounterData;
+	local vessel = encounterData["vessel"];
 
-	if self.encounterData["encounterStartTime"] > self.Time then
+	if encounterData["encounterStartTime"] > self.Time then
 		if self.Time % 2 == 0 then
-			self:MakeAlertSound(1 / math.max(self.encounterData["encounterStartTime"] - self.Time / 30, 1))
+			self:MakeAlertSound(1 / math.max(encounterData["encounterStartTime"] - self.Time / 30, 1))
 		end
 	end
 
 	local variant = self.vesselData["dialogOptionChosen"];
 	if variant == 1 then
 		self:SendTransmission("BATTLE STATIONS!!!", {});
-		self.encounterData["fightSelected"] = true
-		self.encounterData["runLaunched"] = true
-		self.encounterData["runStarted"] = self.Time
-		self.encounterData["chaseTimer"] = Timer()
+		encounterData["fightSelected"] = true
+		encounterData["runLaunched"] = true
+		encounterData["runStarted"] = self.Time
+		encounterData["chaseTimer"] = Timer()
 		
 		self.vesselData["flightDisabled"] = false
 	end
 
 	if variant == 2 then
 		self:SendTransmission("They are scanning us...", {});
-		self.encounterData["scanLaunched"] = true
-		self.encounterData["ScanStarted"] = self.Time
+		encounterData["scanLaunched"] = true
+		encounterData["ScanStarted"] = self.Time
 	end
 
 	if variant == 3 then
 		self:SendTransmission("Let's pray we're faster...", {});
-		self.encounterData["BoostTriggered"] = false
-		self.encounterData["runLaunched"] = true
-		self.encounterData["runStarted"] = self.Time
-		self.encounterData["chaseTimer"] = Timer()
+		encounterData["boostTriggered"] = false
+		encounterData["runLaunched"] = true
+		encounterData["runStarted"] = self.Time
+		encounterData["chaseTimer"] = Timer()
 		
 		self.vesselData["flightDisabled"] = false
 	end
 
-	if self.encounterData["scanLaunched"] == true then
+	if encounterData["scanLaunched"] == true then
 		local prob = math.min(
 			math.floor(
-				self.encounterData["playerGoldScalar"]
-					+ CF.CountActors(CF.PlayerTeam) * math.max(self.encounterData["playerGoldScalar"], 5)
+				encounterData["playerGoldScalar"]
+					+ CF.CountActors(CF.PlayerTeam) * math.max(encounterData["playerGoldScalar"], 5)
 			),
 			99
 		)
 
-		local progress = self.Time - self.encounterData["ScanStarted"]
+		local progress = self.Time - encounterData["ScanStarted"]
 
 		FrameMan:SetScreenText(
 			"Scan progress "
-				.. math.floor(progress / self.encounterData["scanTimeMax"] * 100)
+				.. math.floor(progress / encounterData["scanTimeMax"] * 100)
 				.. "%\nProbability of being detected: "
 				.. prob
 				.. "%",
@@ -165,24 +171,24 @@ function VoidWanderers:EncounterUpdate()
 			true
 		)
 
-		if self.Time >= self.encounterData["ScanStarted"] + self.encounterData["scanTime"] then
+		if self.Time >= encounterData["ScanStarted"] + encounterData["scanTime"] then
 			if math.random(100) < prob then
 				self:SendTransmission("BATTLE STATIONS!!!", {});
-				self.encounterData["Text"] = "BATTLE STATIONS!!!"
-				self.encounterData["Variants"] = {}
+				encounterData["Text"] = "BATTLE STATIONS!!!"
+				encounterData["Variants"] = {}
 				self.vesselData["dialogOptionChosen"] = 0
-				self.encounterData["runLaunched"] = true
-				self.encounterData["scanLaunched"] = false
-				self.encounterData["runStarted"] = self.Time
-				self.encounterData["fightSelected"] = true
-				self.encounterData["chaseTimer"] = Timer()
+				encounterData["runLaunched"] = true
+				encounterData["scanLaunched"] = false
+				encounterData["runStarted"] = self.Time
+				encounterData["fightSelected"] = true
+				encounterData["chaseTimer"] = Timer()
 			else
 				self.MissionReport = {}
 				self.MissionReport[#self.MissionReport + 1] = prob > 90 and "They must be blind..."
 					or "We tricked them. Lucky we are."
 				CF.SaveMissionReport(self.GS, self.MissionReport)
 
-				self.encounterData["encounterConcluded"] = true
+				encounterData["encounterConcluded"] = true
 				self.vesselData["flightDisabled"] = false
 				self.vesselData["flightAimless"] = false
 				self.vesselData["dialog"] = nil
@@ -191,49 +197,48 @@ function VoidWanderers:EncounterUpdate()
 		end
 	end
 
-	if self.encounterData["runLaunched"] == true then
-		FrameMan:SetScreenText("\nDistance: " .. self.encounterData["distance"] .. "km", 0, 0, 1500, true)
+	if encounterData["runLaunched"] == true then
+		FrameMan:SetScreenText("\nDistance: " .. math.floor(encounterData["distance"]) .. "km", 0, 0, 1500, true)
 
-		if self.encounterData["chaseTimer"]:IsPastSimMS(350) then
-			if self.encounterData["fightSelected"] then
-				self.encounterData["distance"] = self.encounterData["distance"] - self.encounterData["speed"]
+		if encounterData["chaseTimer"]:IsPastSimMS(350) then
+			if encounterData["fightSelected"] then
+				encounterData["distance"] = encounterData["distance"] - vessel.speed
 			else
-				self.encounterData["distance"] = self.encounterData["distance"]
-					- self.encounterData["speed"]
+				encounterData["distance"] = encounterData["distance"]
+					- vessel.speed
 					+ tonumber(self.GS["PlayerVesselSpeed"])
 			end
-			self.encounterData["chaseTimer"]:Reset()
+			encounterData["chaseTimer"]:Reset()
 
 			-- Boost reavers if they're too far
-			if not self.encounterData["BoostTriggered"] then
+			if not encounterData["boostTriggered"] then
 				if
-					self.encounterData["distance"] > self.encounterData["maxDistance"]
-					or self.encounterData["speed"] == tonumber(self.GS["PlayerVesselSpeed"])
+					encounterData["distance"] > encounterData["triggerDistance"]
+					or vessel.speed == tonumber(self.GS["PlayerVesselSpeed"])
 				then
-					self.encounterData["BoostTriggered"] = true
-					self.encounterData["speed"] = self.encounterData["speed"]
-						+ math.floor(math.random(4) * self.encounterData["playerGoldScalar"])
-					self.encounterData["Text"] = (math.random() < 0.5 and "Oh crap" or "O kurwa")
+					encounterData["boostTriggered"] = true
+					vessel.speed = vessel.speed + math.floor(math.random(4) * encounterData["playerGoldScalar"])
+					encounterData["Text"] = (math.random() < 0.5 and "Oh crap" or "O kurwa")
 						.. ", they overloaded their reactor to boost the engines!!!"
 
-					if self.encounterData["speed"] <= tonumber(self.GS["PlayerVesselSpeed"]) then
-						self.encounterData["abortChase"] = true
+					if vessel.speed <= tonumber(self.GS["PlayerVesselSpeed"]) then
+						encounterData["abortChase"] = true
 					end
 				end
 			end
 
 			-- Stop chasing if it's too long
-			if not self.encounterData["fightSelected"] then
+			if not encounterData["fightSelected"] then
 				if
-					(self.Time > self.encounterData["runStarted"] + 40 and self.encounterData["distance"] > 150)
-					or self.encounterData["distance"] > self.encounterData["maxDistance"] + 100
-					or self.encounterData["abortChase"]
+					(self.Time > encounterData["runStarted"] + 40 and encounterData["distance"] > 150)
+					or encounterData["distance"] > encounterData["triggerDistance"] + 100
+					or encounterData["abortChase"]
 				then
 					self.MissionReport = {}
 					self.MissionReport[#self.MissionReport + 1] = "They stopped chasing us. Lucky we are."
 					CF.SaveMissionReport(self.GS, self.MissionReport)
 
-					self.encounterData["encounterConcluded"] = true
+					encounterData["encounterConcluded"] = true
 					self.vesselData["flightDisabled"] = false
 					self.vesselData["flightAimless"] = false
 					self.vesselData["dialog"] = nil
@@ -241,10 +246,10 @@ function VoidWanderers:EncounterUpdate()
 				end
 			end
 
-			if self.encounterData["distance"] <= 0 then
-				self.encounterData["attackLaunched"] = true
-				self.encounterData["runLaunched"] = false
-				self.encounterData["NextAttackTime"] = self.Time
+			if encounterData["distance"] <= 0 then
+				encounterData["attackLaunched"] = true
+				encounterData["runLaunched"] = false
+				encounterData["NextAttackTime"] = self.Time
 
 				--Deploy turrets
 				self:DeployTurrets()
@@ -257,40 +262,40 @@ function VoidWanderers:EncounterUpdate()
 		end
 	end
 
-	if self.encounterData["attackLaunched"] then
-		if self.Time % 10 == 0 and self.encounterData["reaversUnitCount"] > 0 then
-			FrameMan:SetScreenText("Remaining Reavers: " .. self.encounterData["reaversUnitCount"], 0, 0, 1500, true)
+	if encounterData["attackLaunched"] then
+		if self.Time % 10 == 0 and vessel.onboard > 0 then
+			FrameMan:SetScreenText("Remaining Reavers: " .. vessel.onboard, 0, 0, 1500, true)
 		end
-		local centerGates = self.encounterData["gates"]:GetCenterPoint()
-		if self.Time >= self.encounterData["NextAttackTime"] then
-			self.encounterData["NextAttackTime"] = self.Time + self.encounterData["reaversInterval"]
+		local centerGates = encounterData["gates"]:GetCenterPoint()
+		if self.Time >= encounterData["NextAttackTime"] then
+			encounterData["NextAttackTime"] = self.Time + encounterData["reaversInterval"]
 
 			-- Create assault bot
-			if MovableMan:GetMOIDCount() < CF.MOIDLimit and self.encounterData["reaversUnitCount"] > 0 then
+			if MovableMan:GetMOIDCount() < CF.MOIDLimit and vessel.onboard > 0 then
 				local rocket = CreateACRocket("Reaver Rocklet")
 				if rocket then
 					rocket.HFlipped = rocket.RandomEncounterDir == 1
 					rocket.Pos = Vector(
-						(self.encounterData["dir"] == 1 and SceneMan.SceneWidth + 1 or -1),
+						SceneMan.SceneWidth + 1,
 						centerGates.Y + math.random(rocket.Radius * RangeRand(-1, 1))
 					)
-					rocket.Vel = Vector(-math.random(8, 16) * self.encounterData["dir"], 0)
-					rocket.RotAngle = math.pi * 0.49 * self.encounterData["dir"]
+					rocket.Vel = Vector(-math.random(8, 16), 0)
+					rocket.RotAngle = math.pi * 0.49
 
 					rocket.Team = CF.CPUTeam
 					rocket.AIMode = Actor.AIMODE_DELIVER
 					rocket.Health = math.random(33, 66)
 
 					for i = 1, 2 do
-						if self.encounterData["reaversUnitCount"] > 0 then
-							local r1 = math.random(#self.encounterData["reaversAct"])
-							local r2 = math.random(#self.encounterData["reaversLight"])
-							local r3 = math.random(#self.encounterData["reaversHeavy"])
-							local r4 = math.random(#self.encounterData["reaversThrown"])
+						if vessel.onboard > 0 then
+							local r1 = math.random(#encounterData["reaversAct"])
+							local r2 = math.random(#encounterData["reaversLight"])
+							local r3 = math.random(#encounterData["reaversHeavy"])
+							local r4 = math.random(#encounterData["reaversThrown"])
 
 							local actor = CreateAHuman(
-								self.encounterData["reaversAct"][r1],
-								self.encounterData["reaversActMod"][r1]
+								encounterData["reaversAct"][r1],
+								encounterData["reaversActMod"][r1]
 							)
 							if actor then
 								actor.Team = CF.CPUTeam
@@ -342,8 +347,8 @@ function VoidWanderers:EncounterUpdate()
 									)
 								else
 									itm = CreateHDFirearm(
-										self.encounterData["reaversHeavy"][r3],
-										self.encounterData["reaversHeavyMod"][r3]
+										encounterData["reaversHeavy"][r3],
+										encounterData["reaversHeavyMod"][r3]
 									)
 								end
 								if itm then
@@ -351,35 +356,36 @@ function VoidWanderers:EncounterUpdate()
 								end
 
 								itm = CreateHDFirearm(
-									self.encounterData["reaversLight"][r2],
-									self.encounterData["reaversLightMod"][r2]
+									encounterData["reaversLight"][r2],
+									encounterData["reaversLightMod"][r2]
 								)
 								if itm then
 									actor:AddInventoryItem(itm)
 								end
 								itm = math.random() < 0.1 and CreateTDExplosive("Timed Explosive", "Coalition.rte")
 									or CreateTDExplosive(
-										self.encounterData["reaversThrown"][r4],
-										self.encounterData["reaversThrownMod"][r4]
+										encounterData["reaversThrown"][r4],
+										encounterData["reaversThrownMod"][r4]
 									)
 								if itm then
 									actor:AddInventoryItem(itm)
 								end
 
 								rocket:AddInventoryItem(actor)
-								self.encounterData["reaversUnitCount"] = self.encounterData["reaversUnitCount"] - 1
+								vessel.onboard = vessel.onboard - 1
 							end
 						end
 					end
 
 					MovableMan:AddActor(rocket)
+
 					-- Shoot rockets at doors
-					if self.encounterData["shotCount"] > 0 then
+					if encounterData["shotCount"] > 0 then
 						local startPos = rocket.Pos + Vector(0, rocket.Radius * (math.random() < 0.5 and -1 or 1))
 						local findMO = MovableMan:GetMOFromID(
 							SceneMan:CastMORay(
 								startPos,
-								Vector(-(50 + self.encounterData["gatesDistance"]), 0),
+								Vector(-(50 + encounterData["gateDistance"]), 0),
 								rocket.ID,
 								CF.CPUTeam,
 								rte.grassID,
@@ -387,29 +393,30 @@ function VoidWanderers:EncounterUpdate()
 								5
 							)
 						)
+
 						if findMO and findMO:GetRootParent().ClassName == "ADoor" then
 							local expl = CreateAEmitter("Reaver RPG")
 							expl.Team = CF.CPUTeam
 							expl.IgnoresTeamHits = true
 							expl.Pos = startPos
-							expl.LifeTime = self.encounterData["gatesDistance"]
-							expl.Vel.X = -math.random(40, 45) * self.encounterData["dir"]
+							expl.LifeTime = encounterData["gateDistance"]
+							expl.Vel.X = -math.random(40, 45)
 							expl.RotAngle = expl.Vel.AbsRadAngle
 							MovableMan:AddParticle(expl)
-							self.encounterData["shotCount"] = self.encounterData["shotCount"] - 1
+							encounterData["shotCount"] = encounterData["shotCount"] - 1
 						end
 					end
 
-					self.encounterData["Rocket"] = rocket
+					encounterData["Rocket"] = rocket
 				end
 			end
 		end
 
-		if self.encounterData["Rocket"] then
-			if MovableMan:IsActor(self.encounterData["Rocket"]) then
-				local rocket = ToACRocket(self.encounterData["Rocket"])
+		if encounterData["Rocket"] then
+			if MovableMan:IsActor(encounterData["Rocket"]) then
+				local rocket = ToACRocket(encounterData["Rocket"])
 				local empty = rocket:IsInventoryEmpty()
-				local boundsDist = self.encounterData["gatesDistance"] * 0.8 - 150
+				local boundsDist = encounterData["gateDistance"] * 0.8 - 150
 				if
 					(
 						self.vesselData["ship"]:IsInside(rocket.Pos)
@@ -421,8 +428,8 @@ function VoidWanderers:EncounterUpdate()
 				--if rocket.MainEngine then rocket.MainEngine:EnableEmission(true) end
 				local cont = rocket:GetController()
 
-				cont:SetState(Controller.MOVE_DOWN, empty or rocket.Vel.X * -self.encounterData["dir"] > 20)
-				cont:SetState(Controller.MOVE_UP, not empty and rocket.Vel.X * -self.encounterData["dir"] < 10)
+				cont:SetState(Controller.MOVE_DOWN, empty or rocket.Vel.X * -1 > 20)
+				cont:SetState(Controller.MOVE_UP, not empty and rocket.Vel.X * -1 < 10)
 				cont:SetState(Controller.MOVE_RIGHT, false)
 
 				local healthFactor = 1 - math.max(rocket.Health / rocket.MaxHealth, 0) * 0.5
@@ -436,32 +443,32 @@ function VoidWanderers:EncounterUpdate()
 				end
 
 				local futurePos = rocket.Pos + rocket.Vel * rte.PxTravelledPerFrame
-				if self.encounterData["gates"] and self.encounterData["gates"]:IsInside(rocket.Pos) then
+				if encounterData["gates"] and encounterData["gates"]:IsInside(rocket.Pos) then
 					rocket.Health = rocket.Health - 1
 				elseif not SceneMan:IsWithinBounds(futurePos.X, futurePos.Y, 100) and math.random() > healthFactor then
 					-- The rocket made it to safety, add an extra Reaver
-					self.encounterData["reaversUnitCount"] = self.encounterData["reaversUnitCount"] + 1
+					vessel.onboard = vessel.onboard + 1
 					rocket.ToDelete = true
 				end
 			else
-				self.encounterData["Rocket"] = nil
+				encounterData["Rocket"] = nil
 			end
 		end
 
 		-- Check winning conditions
 		if
-			self.encounterData["reaversUnitCount"] <= 0
-			and self.encounterData["Rocket"] == nil
+			vessel.onboard <= 0
+			and encounterData["Rocket"] == nil
 			and CF.CountActors(CF.CPUTeam) == 0
 		then
 			self.MissionReport = {}
 			self.MissionReport[#self.MissionReport + 1] = "Those were the last of them."
 
-			self:GiveRandomExperienceReward(self.encounterData["difficulty"])
+			self:GiveRandomExperienceReward(encounterData["difficulty"])
 			
 
 			-- Finish encounter
-			self.encounterData["encounterConcluded"] = true
+			encounterData["encounterConcluded"] = true
 			self.vesselData["flightDisabled"] = false
 			self.vesselData["flightAimless"] = false
 			self.vesselData["dialog"] = nil
@@ -474,7 +481,7 @@ function VoidWanderers:EncounterUpdate()
 			self:InitTurretsControlPanelUI()
 		else
 			for actor in MovableMan.Actors do
-				local boundsDist = self.encounterData["gatesDistance"] - actor.IndividualRadius
+				local boundsDist = encounterData["gateDistance"] - actor.IndividualRadius
 				--Reavers in danger of flying out of bounds
 				if actor.Team == CF.CPUTeam and IsAHuman(actor) and not self.vesselData["ship"]:IsInside(actor.Pos) then --(actor.Pos.X > SceneMan.SceneWidth - boundsDist or actor.Pos.X < boundsDist) then
 					local active = actor.Status < Actor.INACTIVE
@@ -483,7 +490,7 @@ function VoidWanderers:EncounterUpdate()
 					end
 					if active and actor.Age < 6000 then
 						actor.Status = Actor.UNSTABLE
-						actor.HFlipped = self.encounterData["dir"] == 1
+						actor.HFlipped = true
 						actor.AngularVel = actor.AngularVel
 							+ math.sin(actor.RotAngle - math.pi * 0.5 * actor.FlipFactor)
 								/ (1 + math.abs(actor.AngularVel))
@@ -514,7 +521,7 @@ function VoidWanderers:EncounterUpdate()
 
 							actor.Vel.Y = actor.Vel.Y * 0.5
 							actor.AngularVel = actor.AngularVel * 0.5
-							actor.HFlipped = self.encounterData["dir"] == 1
+							actor.HFlipped = true
 							actor.AIMode = Actor.AIMODE_GOTO
 							actor:AddAIMOWaypoint(
 								self:GetPlayerBrain(Activity.PLAYER_1) or self:GetPlayerBrain(Activity.PLAYER_2)
@@ -522,13 +529,13 @@ function VoidWanderers:EncounterUpdate()
 						end
 					else
 						actor.AngularVel = actor.AngularVel
-							- self.encounterData["dir"] / (1 + math.abs(actor.AngularVel) / (1 + actor.Vel.Magnitude))
+							- 1 / (1 + math.abs(actor.AngularVel) / (1 + actor.Vel.Magnitude))
 					end
 				end
 			end
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

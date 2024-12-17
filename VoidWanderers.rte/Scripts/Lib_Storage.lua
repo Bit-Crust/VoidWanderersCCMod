@@ -1,7 +1,7 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Returns sorted array of stored items from game state. If makefilters is true, then
 --	it will also return additional array with filtered items
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.GetStorageArray(gs, makefilters)
 	local arr = {}
 
@@ -80,9 +80,9 @@ function CF.GetStorageArray(gs, makefilters)
 
 	return arr, arr2
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Saves array of stored items to game state
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.SetStorageArray(gs, arr)
 	-- Clear stored array data
 	for i = 1, CF.MaxStorageItems do
@@ -96,7 +96,7 @@ function CF.SetStorageArray(gs, arr)
 	local itm = 1
 
 	for i = 1, #arr do
-		if arr[i]["Count"] > 0 then
+		if arr[i].Count > 0 then
 			gs["ItemStorage" .. itm .. "Preset"] = arr[i]["Preset"]
 			gs["ItemStorage" .. itm .. "Module"] = arr[i]["Module"]
 			gs["ItemStorage" .. itm .. "Class"] = arr[i]["Class"]
@@ -105,9 +105,9 @@ function CF.SetStorageArray(gs, arr)
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.GetItemShopArray(gs, makefilters)
 	local arr = {}
 
@@ -289,9 +289,9 @@ function CF.GetItemShopArray(gs, makefilters)
 
 	return arr, arr2
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.GetCloneShopArray(gs, makefilters)
 	local arr = {}
 
@@ -394,9 +394,9 @@ function CF.GetCloneShopArray(gs, makefilters)
 
 	return arr, arr2
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.RefreshBlackMarketItems(gs, location)
 	local registered = {};
 	local count = 1;
@@ -510,9 +510,9 @@ function CF.RefreshBlackMarketItems(gs, location)
 	gs["BlackMarket" .. location .. "ItemCount"] = count;
 	gs["BlackMarket" .. location .. "ItemsLastRefresh"] = gs["Time"];
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.RefreshBlackMarketActors(gs, location)
 	local registered = {};
 	local count = 1;
@@ -600,9 +600,9 @@ function CF.RefreshBlackMarketActors(gs, location)
 	gs["BlackMarket" .. location .. "ActorsCount"] = count;
 	gs["BlackMarket" .. location .. "ActorsLastRefresh"] = gs["Time"];
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.GetItemBlackMarketArray(gs, makefilters)
 	-- Find out if we need to create a list of available items for this black market
 	local location = gs["Location"];
@@ -723,9 +723,9 @@ function CF.GetItemBlackMarketArray(gs, makefilters)
 
 	return items, filterSets;
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.GetCloneBlackMarketArray(gs, makefilters)
 	-- Find out if we need to create a list of available actors for this black market
 	local location = gs["Location"];
@@ -826,9 +826,9 @@ function CF.GetCloneBlackMarketArray(gs, makefilters)
 
 	return actors, filterSets;
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Counts used storage units in storage array
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.CountUsedStorageInArray(arr)
 	local count = 0
 
@@ -842,9 +842,9 @@ function CF.CountUsedStorageInArray(arr)
 
 	return count
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Searches for given item in all faction files and returns it's factions and index if found
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.FindItemInFactions(preset, class, module)
 	for fact = 1, #CF.Factions do
 		local f = CF.Factions[fact]
@@ -866,10 +866,10 @@ function CF.FindItemInFactions(preset, class, module)
 
 	return nil, nil
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Put item to storage array. You still need to update filters array if this is a new item.
 --	Returns true if added item is new item and you need to sort and update filters
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.PutItemToStorageArray(arr, preset, class, module)
 	-- Find item in storage array
 	local found = 0
@@ -899,9 +899,9 @@ function CF.PutItemToStorageArray(arr, preset, class, module)
 
 	return isnew
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Searches for given actor in all faction files and returns it's factions and index if found
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.FindActorInFactions(preset, class, module)
 	for fact = 1, #CF.Factions do
 		local f = CF.Factions[fact]
@@ -923,126 +923,128 @@ function CF.FindActorInFactions(preset, class, module)
 
 	return nil, nil
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Returns sorted array of stored items from game state. If makefilters is true, then
 --	it will also return additional array with filtered items
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.GetClonesArray(gs)
-	local arr = {}
+	local clones = {};
 
 	-- Copy clones
 	for i = 1, CF.MaxClones do
 		if gs["ClonesStorage" .. i .. "Preset"] ~= nil then
-			arr[i] = {}
-			arr[i]["Preset"] = gs["ClonesStorage" .. i .. "Preset"]
-			arr[i]["Class"] = gs["ClonesStorage" .. i .. "Class"]
-			arr[i]["Module"] = gs["ClonesStorage" .. i .. "Module"]
-			arr[i]["Module"] = gs["ClonesStorage" .. i .. "Module"]
-			arr[i]["XP"] = gs["ClonesStorage" .. i .. "XP"]
-			arr[i]["Identity"] = gs["ClonesStorage" .. i .. "Identity"]
-			arr[i]["Player"] = gs["ClonesStorage" .. i .. "Player"]
-			arr[i]["Prestige"] = gs["ClonesStorage" .. i .. "Prestige"]
-			arr[i]["Name"] = gs["ClonesStorage" .. i .. "Name"]
+			local clone = {};
+			clone.Preset = gs["ClonesStorage" .. i .. "Preset"];
+			clone.Class = gs["ClonesStorage" .. i .. "Class"];
+			clone.Module = gs["ClonesStorage" .. i .. "Module"];
+			clone.Module = gs["ClonesStorage" .. i .. "Module"];
+			clone.XP = gs["ClonesStorage" .. i .. "XP"];
+			clone.Identity = gs["ClonesStorage" .. i .. "Identity"];
+			clone.Player = gs["ClonesStorage" .. i .. "Player"];
+			clone.Prestige = gs["ClonesStorage" .. i .. "Prestige"];
+			clone.Name = gs["ClonesStorage" .. i .. "Name"];
+
 			for j = 1, #CF.LimbID do
-				arr[i][CF.LimbID[j]] = gs["ClonesStorage" .. i .. CF.LimbID[j]]
+				clone[CF.LimbID[j]] = gs["ClonesStorage" .. i .. CF.LimbID[j]];
 			end
 
-			arr[i]["Items"] = {}
-			for itm = 1, CF.MaxItems do
+			clone.Items = {};
+
+			for itm = 1, CF.MaxStoredActorInventory do
 				if gs["ClonesStorage" .. i .. "Item" .. itm .. "Preset"] ~= nil then
-					arr[i]["Items"][itm] = {}
-					arr[i]["Items"][itm]["Preset"] = gs["ClonesStorage" .. i .. "Item" .. itm .. "Preset"]
-					arr[i]["Items"][itm]["Class"] = gs["ClonesStorage" .. i .. "Item" .. itm .. "Class"]
-					arr[i]["Items"][itm]["Module"] = gs["ClonesStorage" .. i .. "Item" .. itm .. "Module"]
+					local item = {};
+					item.Preset = gs["ClonesStorage" .. i .. "Item" .. itm .. "Preset"];
+					item.Class = gs["ClonesStorage" .. i .. "Item" .. itm .. "Class"];
+					item.Module = gs["ClonesStorage" .. i .. "Item" .. itm .. "Module"];
+					table.insert(clone.Items, item);
 				else
-					break
+					break;
 				end
 			end
+
+			table.insert(clones, clone);
 		else
-			break
+			break;
 		end
 	end
 
 	-- Sort clones
-	for i = 1, #arr do
-		for j = 1, #arr - 1 do
-			if arr[j]["Preset"] > arr[j + 1]["Preset"] then
-				local c = arr[j]
-				arr[j] = arr[j + 1]
-				arr[j + 1] = c
+	for i = 1, #clones do
+		for j = 1, #clones - 1 do
+			if clones[j].Preset > clones[j + 1].Preset then
+				local c = clones[j];
+				clones[j] = clones[j + 1];
+				clones[j + 1] = c;
 			end
 		end
 	end
 
-	return arr
+	return clones;
 end
-
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Counts used clones in clone array
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.CountUsedClonesInArray(arr)
 	return #arr
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Saves array of stored items to game state
------------------------------------------------------------------------------------------
-function CF.SetClonesArray(gs, arr)
+-----------------------------------------------------------------------
+function CF.SetClonesArray(gs, clones)
 	-- Clean clones
 	for i = 1, CF.MaxClones do
-		gs["ClonesStorage" .. i .. "Preset"] = nil
-		gs["ClonesStorage" .. i .. "Class"] = nil
-		gs["ClonesStorage" .. i .. "Module"] = nil
-		gs["ClonesStorage" .. i .. "XP"] = nil
-		gs["ClonesStorage" .. i .. "Identity"] = nil
-		gs["ClonesStorage" .. i .. "Player"] = nil
-		gs["ClonesStorage" .. i .. "Prestige"] = nil
-		gs["ClonesStorage" .. i .. "Name"] = nil
+		gs["ClonesStorage" .. i .. "Preset"] = nil;
+		gs["ClonesStorage" .. i .. "Class"] = nil;
+		gs["ClonesStorage" .. i .. "Module"] = nil;
+		gs["ClonesStorage" .. i .. "XP"] = nil;
+		gs["ClonesStorage" .. i .. "Identity"] = nil;
+		gs["ClonesStorage" .. i .. "Player"] = nil;
+		gs["ClonesStorage" .. i .. "Prestige"] = nil;
+		gs["ClonesStorage" .. i .. "Name"] = nil;
+
 		for j = 1, #CF.LimbID do
-			gs["ClonesStorage" .. i .. CF.LimbID[j]] = nil
+			gs["ClonesStorage" .. i .. CF.LimbID[j]] = nil;
 		end
 
-		for itm = 1, CF.MaxItems do
-			gs["ClonesStorage" .. i .. "Item" .. itm .. "Preset"] = nil
-			gs["ClonesStorage" .. i .. "Item" .. itm .. "Class"] = nil
-			gs["ClonesStorage" .. i .. "Item" .. itm .. "Module"] = nil
+		for itm = 1, CF.MaxStoredActorInventory do
+			gs["ClonesStorage" .. i .. "Item" .. itm .. "Preset"] = nil;
+			gs["ClonesStorage" .. i .. "Item" .. itm .. "Class"] = nil;
+			gs["ClonesStorage" .. i .. "Item" .. itm .. "Module"] = nil;
 		end
 	end
 
 	-- Save clones
-	for i = 1, #arr do
-		gs["ClonesStorage" .. i .. "Preset"] = arr[i]["Preset"]
-		gs["ClonesStorage" .. i .. "Class"] = arr[i]["Class"]
-		gs["ClonesStorage" .. i .. "Module"] = arr[i]["Module"]
-		gs["ClonesStorage" .. i .. "XP"] = arr[i]["XP"]
-		gs["ClonesStorage" .. i .. "Identity"] = arr[i]["Identity"]
-		gs["ClonesStorage" .. i .. "Player"] = arr[i]["Player"]
-		gs["ClonesStorage" .. i .. "Prestige"] = arr[i]["Prestige"]
-		gs["ClonesStorage" .. i .. "Name"] = arr[i]["Name"]
+	for i = 1, #clones do
+		local clone = clones[i];
+		gs["ClonesStorage" .. i .. "Preset"] = clone.Preset;
+		gs["ClonesStorage" .. i .. "Class"] = clone.Class;
+		gs["ClonesStorage" .. i .. "Module"] = clone.Module;
+		gs["ClonesStorage" .. i .. "XP"] = clone.XP;
+		gs["ClonesStorage" .. i .. "Identity"] = clone.Identity;
+		gs["ClonesStorage" .. i .. "Player"] = clone.Player;
+		gs["ClonesStorage" .. i .. "Prestige"] = clone.Prestige;
+		gs["ClonesStorage" .. i .. "Name"] = clone.Name;
+
 		for j = 1, #CF.LimbID do
-			gs["ClonesStorage" .. i .. CF.LimbID[j]] = arr[i][CF.LimbID[j]]
+			gs["ClonesStorage" .. i .. CF.LimbID[j]] = clone[CF.LimbID[j]];
 		end
 
-		--print (tostring(i).." "..arr[i]["Preset"])
-		--print (tostring(i).." "..arr[i]["Class"])
-
-		for itm = 1, #arr[i]["Items"] do
-			gs["ClonesStorage" .. i .. "Item" .. itm .. "Preset"] = arr[i]["Items"][itm]["Preset"]
-			gs["ClonesStorage" .. i .. "Item" .. itm .. "Class"] = arr[i]["Items"][itm]["Class"]
-			gs["ClonesStorage" .. i .. "Item" .. itm .. "Module"] = arr[i]["Items"][itm]["Module"]
-
-			--print (tostring(i).." "..itm.." "..arr[i]["Items"][itm]["Preset"])
-			--print (tostring(i).." "..itm.." "..arr[i]["Items"][itm]["Class"])
+		for itm = 1, #clone.Items do
+			local item = clone.Items[itm];
+			gs["ClonesStorage" .. i .. "Item" .. itm .. "Preset"] = item.Preset;
+			gs["ClonesStorage" .. i .. "Item" .. itm .. "Class"] = item.Class;
+			gs["ClonesStorage" .. i .. "Item" .. itm .. "Module"] = item.Module;
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
 --
------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.PutTurretToStorageArray(arr, preset, class, module)
 	-- Find item in storage array
 	local found = 0
@@ -1071,10 +1073,10 @@ function CF.PutTurretToStorageArray(arr, preset, class, module)
 
 	return isnew
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.GetTurretsArray(gs)
 	local arr = {}
 
@@ -1105,9 +1107,9 @@ function CF.GetTurretsArray(gs)
 	return arr
 end
 
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Counts used clones in clone array
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.CountUsedTurretsInArray(arr)
 	local count = 0
 
@@ -1117,9 +1119,9 @@ function CF.CountUsedTurretsInArray(arr)
 
 	return count
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Saves array of stored items to game state
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.SetTurretsArray(gs, arr)
 	-- Clean clones
 	for i = 1, CF.MaxTurrets do
@@ -1144,13 +1146,13 @@ function CF.SetTurretsArray(gs, arr)
 		--print (tostring(i).." "..arr[i]["Class"])
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.PutBombToStorageArray(arr, preset, class, module)
 	-- Find item in storage array
 	local found = 0
@@ -1180,10 +1182,10 @@ function CF.PutBombToStorageArray(arr, preset, class, module)
 
 	return isnew
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.GetBombsArray(gs)
 	local arr = {}
 
@@ -1214,9 +1216,9 @@ function CF.GetBombsArray(gs)
 	return arr
 end
 
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.CountUsedBombsInArray(arr)
 	local count = 0
 
@@ -1226,9 +1228,9 @@ function CF.CountUsedBombsInArray(arr)
 
 	return count
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function CF.SetBombsArray(gs, arr)
 	-- Clean clones
 	for i = 1, CF.MaxBombs do
@@ -1253,6 +1255,6 @@ function CF.SetBombsArray(gs, arr)
 		--print (tostring(i).." "..arr[i]["Class"])
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

@@ -1,25 +1,25 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:InitShipControlPanelUI()
-	local x, y
-	x = tonumber(self.SceneConfig["ShipControlPanelX"])
-	y = tonumber(self.SceneConfig["ShipControlPanelY"])
+	local x, y;
+	x = tonumber(self.SceneConfig.ShipControlPanelX);
+	y = tonumber(self.SceneConfig.ShipControlPanelY);
 
 	if x ~= nil and y ~= nil then
-		self.ShipControlPanelPos = Vector(x, y)
+		self.ShipControlPanelPos = Vector(x, y);
 	else
-		self.ShipControlPanelPos = nil
+		self.ShipControlPanelPos = nil;
 	end
 	
-	self:LocateShipControlPanelActor()
+	self:LocateShipControlPanelActor();
 	if self.ShipControlPanelPos ~= nil then
 		if not MovableMan:IsActor(self.ShipControlPanelActor) then
-			self.ShipControlPanelActor = CreateActor("Ship Control Panel")
+			self.ShipControlPanelActor = CreateActor("Ship Control Panel");
 			if self.ShipControlPanelActor ~= nil then
-				self.ShipControlPanelActor.Pos = self.ShipControlPanelPos
-				self.ShipControlPanelActor.Team = CF.PlayerTeam
-				MovableMan:AddActor(self.ShipControlPanelActor)
+				self.ShipControlPanelActor.Pos = self.ShipControlPanelPos;
+				self.ShipControlPanelActor.Team = CF.PlayerTeam;
+				MovableMan:AddActor(self.ShipControlPanelActor);
 			end
 		end
 	end
@@ -34,47 +34,40 @@ function VoidWanderers:InitShipControlPanelUI()
 		BRAIN = 5,
 		UPGRADE = 6,
 		SHIPYARD = 7,
-	}
+	};
 
 	if self.MissionReport ~= nil then
-		self.ShipControlMode = self.ShipControlPanelModes.REPORT
+		self.ShipControlMode = self.ShipControlPanelModes.REPORT;
 	else
-		self.ShipControlMode = self.ShipControlPanelModes.LOCATION
+		self.ShipControlMode = self.ShipControlPanelModes.LOCATION;
 	end
+	self.ShipControlDialogDefaultTime = 15000;
 
-	self.ShipControlLastMessageTime = -1000
-	self.ShipControlMessageIntrval = 3
-	self.ShipControlMessageText = ""
+	self.ShipControlMessageTime = -1;
+	self.ShipControlMessagePeriod = 3;
+	self.ShipControlMessageText = "";
 
-	self.ShipControlSelectedLocation = 1
-	self.ShipControlLocationList = nil
-	self.ShipControlLocationListStart = 1
+	self.ShipControlSelectedLocation = 1;
+	self.ShipControlLocationsPerPage = 10;
 
-	self.ShipControlSelectedPlanet = 1
-	self.ShipControlPlanetList = nil
-	self.ShipControlPlanetListStart = 1
+	self.ShipControlSelectedPlanet = 1;
+	self.ShipControlPlanetsPerPage = 10;
 
-	self.ShipControlSelectedMission = 1
-	self.ShipControlMissionList = nil
-	self.ShipControlMissionListStart = 1
+	self.ShipControlSelectedMission = 1;
+	self.ShipControlMissionsPerPage = 6;
 
-	self.ShipControlLocationsPerPage = 10
-	self.ShipControlPlanetsPerPage = 10
-	self.ShipControlMissionsPerPage = 5
+	self.ShipControlSelectedUpgrade = 1;
 
-	self.ShipControlSelectedUpgrade = 1
-	self.ShipControlSelectedSkillUpgrade = 1
-	self.ShipControlSelectedFaction = 1
-	self.ShipControlSelectedShip = 1
+	self.ShipControlSelectedSkillUpgrade = 1;
+
+	self.ShipControlSelectedShip = 1;
 	
-	self.ShipControlReputationPage = 1
-
-	self.vesselData["dialogOptionSelected"] = 1
-	self.ShipControlDialogDefaultTime = 17000
+	self.ShipControlReputationPage = 1;
+	self.ShipControlReputationsPerPage = 12;
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Find and assign appropriate actors
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:LocateShipControlPanelActor()
 	for _, group in pairs({MovableMan.AddedActors, MovableMan.Actors}) do
 		for actor in group do
@@ -86,9 +79,9 @@ function VoidWanderers:LocateShipControlPanelActor()
 	end
 	return false
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:DestroyShipControlPanelUI()
 	if self.ShipControlPanelActor ~= nil then
 		self.ShipControlPanelActor.ToDelete = true;
@@ -97,140 +90,599 @@ function VoidWanderers:DestroyShipControlPanelUI()
 	end
 	return false
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:SetRandomOrbitLocation()
-	local planetPanelWidth = 60
-	local randPos = Vector(planetPanelWidth * math.random(), 0):RadRotate(RangeRand(-math.pi, math.pi))
+	local planetPanelWidth = 60;
+	local randPos = Vector(planetPanelWidth * math.random(), 0):RadRotate(RangeRand(-math.pi, math.pi));
 
-	self.GS["ShipX"] = math.floor(randPos.X)
-	self.GS["ShipY"] = math.floor(randPos.Y)
+	self.GS["ShipX"] = math.floor(randPos.X);
+	self.GS["ShipY"] = math.floor(randPos.Y);
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:ProcessShipControlPanelUI()
-	local showidle = true
-	local resetlists = false
+	local resetLists = true;
+	local showIdle = true;
 
 	if self.MissionReport ~= nil then
 		--[[ Force-show report if we have some report array left from previous mission?
 		self:SwitchToActor(self.ShipControlPanelActor, 0, CF.PlayerTeam)
 		]]
 		--
-		self.MissionReport = nil
+		self.MissionReport = nil;
 	end
 
-	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		local act = self:GetControlledActor(player)
+	if self.ShipControlPanelActor then
+		local pos = self.ShipControlPanelPos;
 
-		if act and MovableMan:IsActor(act) and act.PresetName == "Ship Control Panel" then
-			showidle = false
+		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			local act = self:GetControlledActor(player);
 
-			-- Fill planet list
-			self.ShipControlPlanetList = {}
-			for i = 1, #CF.Planet do
-				if CF.Planet[i] ~= self.GS["Planet"] then
-					self.ShipControlPlanetList[#self.ShipControlPlanetList + 1] = CF.Planet[i]
-				end
-			end
+			if act and act.PresetName == self.ShipControlPanelActor.PresetName then
+				resetLists = false;
+				showIdle = false;
 
-			-- Sort planet list
-			for i = 1, #self.ShipControlPlanetList do
-				for j = 1, #self.ShipControlPlanetList - 1 do
-					if
-						CF.PlanetName[self.ShipControlPlanetList[j]]
-						> CF.PlanetName[self.ShipControlPlanetList[j + 1]]
-					then
-						local s = self.ShipControlPlanetList[j]
-						self.ShipControlPlanetList[j] = self.ShipControlPlanetList[j + 1]
-						self.ShipControlPlanetList[j + 1] = s
-					end
-				end
-			end
-
-			-- Fill location list
-			self.ShipControlLocationList = {}
-			for i = 1, #CF.Location do
-				if CF.LocationPlanet[CF.Location[i]] == self.GS["Planet"] then
-					self.ShipControlLocationList[#self.ShipControlLocationList + 1] = CF.Location[i]
-				end
-			end
-
-			-- Sort location list
-			for i = 1, #self.ShipControlLocationList do
-				for j = 1, #self.ShipControlLocationList - 1 do
-					if
-						CF.LocationName[self.ShipControlLocationList[j]]
-						> CF.LocationName[self.ShipControlLocationList[j + 1]]
-					then
-						local s = self.ShipControlLocationList[j]
-						self.ShipControlLocationList[j] = self.ShipControlLocationList[j + 1]
-						self.ShipControlLocationList[j + 1] = s
-					end
-				end
-			end
-
-			local cont = act:GetController()
-			local pos = act.Pos
-
-			---------------------------------------------------------------------------------------------------
-			if self.ShipControlMode == self.ShipControlPanelModes.LOCATION then
-				local up = false
-				local down = false
+				local cont = act:GetController();
+				local up = false;
+				local down = false;
 
 				if cont:IsState(Controller.PRESS_UP) then
-					self.HoldTimer:Reset()
-					up = true
+					self.HoldTimer[player + 1]:Reset();
+					up = true;
 				end
 
 				if cont:IsState(Controller.PRESS_DOWN) then
-					self.HoldTimer:Reset()
-					down = true
+					self.HoldTimer[player + 1]:Reset();
+					down = true;
 				end
 
-				if self.HoldTimer:IsPastSimMS(CF.KeyRepeatDelay) then
-					self.HoldTimer:Reset()
+				if self.HoldTimer[player + 1]:IsPastSimMS(CF.KeyRepeatDelay) then
+					self.HoldTimer[player + 1]:Reset();
 
 					if cont:IsState(Controller.HOLD_UP) then
-						up = true
+						up = true;
 					end
 
 					if cont:IsState(Controller.HOLD_DOWN) then
-						down = true
+						down = true;
+					end
+				end
+				
+				if
+					self.ShipControlMode == self.ShipControlPanelModes.REPORT
+					or self.ShipControlMode == self.ShipControlPanelModes.REPUTATION
+					or (self.ShipControlMode == self.ShipControlPanelModes.BRAIN and self.GS["Brain" .. player .. "Detached"] == "True")
+				then
+					CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 70, pos.X + 140, pos.Y + 70, CF.MenuNormalIdle);
+				else
+					CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 70, pos.X - 1, pos.Y + 70, CF.MenuNormalIdle);
+					if self.ShipControlMode == self.ShipControlPanelModes.PLANET then
+						local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Ship_GalaxyBackA.png";
+						PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(70, 0), path, 0, false, false);
+					else
+						if self.ShipControlMode == self.ShipControlPanelModes.LOCATION then
+							local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Ship_GalaxyBackB.png";
+							PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(70, 0), path, 0, false, false);
+							local path = CF.PlanetGlow[self.GS["Planet"]];
+							PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(70, 0), path, 0, false, false);
+						else
+							CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X + 0, pos.Y - 70, pos.X + 140, pos.Y + 70, CF.MenuNormalIdle);
+						end
 					end
 				end
 
-				if up then
-					-- Select location
-					self.ShipControlSelectedLocation = self.ShipControlSelectedLocation - 1
-					if self.ShipControlSelectedLocation < 1 then
-						self.ShipControlSelectedLocation = #self.ShipControlLocationList
+				local highBarLeftText = "";
+				local highBarCenterText = "";
+				local highBarRightText = "";
+				local highBarPalette = CF.MenuNormalIdle;
+
+				local lowBarCenterText = "";
+				local lowBarPalette = CF.MenuNormalIdle;
+				
+				local linesPerPage = 12;
+				local topOfPage = -68;
+
+				-----------------------------------------------------------------------
+				if self.ShipControlMode == self.ShipControlPanelModes.REPORT then
+					if not self.vesselData.dialog then
+						highBarCenterText = "REPORT";
+						lowBarCenterText = "Press DOWN to save game";
+
+						local lineOffset = topOfPage;
+
+						CF.DrawString("AVAILABLE GOLD: " .. CF.GetPlayerGold(self.GS, 0), pos + Vector(0, lineOffset), 276, 11, nil, nil, 1);
+						lineOffset = lineOffset + 11;
+						CF.DrawString("-----------------------------------------------------------------------", pos + Vector(0, lineOffset), 276, 11, nil, nil, 1);
+						lineOffset = lineOffset + 11;
+
+						for i = 1, CF.MaxMissionReportLines do
+							CF.DrawString(self.GS["MissionReport" .. i] or "", pos + Vector(0, lineOffset), 276, 11, nil, nil, 1);
+							lineOffset = lineOffset + 11;
+						end
+					
+
+						if cont:IsState(Controller.PRESS_DOWN) then
+							-- Save all items
+							for item in MovableMan.Items do
+								if IsHeldDevice(item) and not ToHeldDevice(item).UnPickupable then
+									local count = CF.CountUsedStorageInArray(self.StorageItems);
+
+									if count < tonumber(self.GS["PlayerVesselStorageCapacity"]) then
+										CF.PutItemToStorageArray(
+											self.StorageItems,
+											item.PresetName,
+											item.ClassName,
+											item.ModuleName
+										);
+									else
+										break;
+									end
+								end
+							end
+
+							self.GS["DeserializeOnboard"] = "True";
+							CF.SetStorageArray(self.GS, self.StorageItems);
+							self:SaveActors(false);
+							self:SaveCurrentGameState();
+							self:DestroyConsoles();
+							FORM_TO_LOAD = BASE_PATH .. "FormSave.lua";
+							self:LaunchScript("Void Wanderers", "StrategyScreenMain.lua");
+							return;
+						end
+					else
+						local lineOffset = topOfPage;
+						local offset = CF.DrawString(CF.SplitStringToFitWidth(self.vesselData.dialog.message, 276, false), pos + Vector(-138, lineOffset), 276, 135);
+
+						if self.vesselData.dialog.options and self.vesselData.dialogDefaultTimer:IsPastSimMS(1000) then
+							if up then
+								self.vesselData.dialogOptionSelected = self.vesselData.dialogOptionSelected - 1
+
+								if self.vesselData.dialogOptionSelected < 1 then
+									self.vesselData.dialogOptionSelected = #self.vesselData.dialog.options
+								end
+							end
+
+							if down then
+								self.vesselData.dialogOptionSelected = self.vesselData.dialogOptionSelected + 1
+
+								if self.vesselData.dialogOptionSelected > #self.vesselData.dialog.options then
+									self.vesselData.dialogOptionSelected = 1
+								end
+							end
+
+							if self.vesselData.dialogDefaultTimer:IsPastSimMS(self.ShipControlDialogDefaultTime) then
+								self.vesselData.dialogOptionChosen = #self.vesselData.dialog.options
+							end
+
+							if cont:IsState(Controller.WEAPON_FIRE) then
+								if not self.FirePressed[player] then
+									self.FirePressed[player] = true;
+									self.vesselData.dialogOptionChosen = self.vesselData.dialogOptionSelected;
+								end
+							else
+								self.FirePressed[player] = false;
+							end
+
+							for i = 1, #self.vesselData.dialog.options do
+								if self.vesselData.dialogOptionSelected == i then
+									offset = offset + CF.DrawString(
+										"> " .. self.vesselData.dialog.options[i],
+										pos + Vector(-137, -55) + offset,
+										252,
+										141
+									)
+								else
+									offset = offset + CF.DrawString(
+										self.vesselData.dialog.options[i],
+										pos + Vector(-137, -55) + offset,
+										262,
+										141
+									)
+								end
+							end
+						end
+
+						highBarCenterText = "INCOMING TRANSMISSION";
+						lowBarCenterText = "U/D - Select, FIRE - Accept";
 					end
 				end
+				-----------------------------------------------------------------------
+				if self.ShipControlMode == self.ShipControlPanelModes.LOCATION then
+					-- Fill location list
+					locations = {}
 
-				if down then
-					-- Select location
-					self.ShipControlSelectedLocation = self.ShipControlSelectedLocation + 1
-					if self.ShipControlSelectedLocation > #self.ShipControlLocationList then
-						self.ShipControlSelectedLocation = 1
+					for i = 1, #CF.Location do
+						if CF.LocationPlanet[CF.Location[i]] == self.GS["Planet"] then
+							locations[#locations + 1] = CF.Location[i]
+						end
+					end
+
+					-- Sort location list
+					for i = 1, #locations do
+						for j = 1, #locations - 1 do
+							if
+								CF.LocationName[locations[j]]
+								> CF.LocationName[locations[j + 1]]
+							then
+								local s = locations[j]
+								locations[j] = locations[j + 1]
+								locations[j + 1] = s
+							end
+						end
+					end
+
+					if up then
+						self.ShipControlSelectedLocation = self.ShipControlSelectedLocation - 1;
+						if self.ShipControlSelectedLocation < 1 then
+							self.ShipControlSelectedLocation = #locations;
+						end
+					end
+
+					if down then
+						self.ShipControlSelectedLocation = self.ShipControlSelectedLocation + 1;
+						if self.ShipControlSelectedLocation > #locations then
+							self.ShipControlSelectedLocation = 1;
+						end
+					end
+
+					local selectedLocation = locations[self.ShipControlSelectedLocation];
+
+					if cont:IsState(Controller.WEAPON_FIRE) then
+						if not self.FirePressed[player] then
+							self.FirePressed[player] = true;
+
+							if not self.encounterData.initialized then
+								if self.GS["Location"] == nil then
+									if self.GS["ShipX"] == nil or self.GS["ShipY"] == nil then
+										self:SetRandomOrbitLocation();
+									end
+								end
+
+								self.GS["Location"] = nil;
+								self.GS["Destination"] = selectedLocation;
+								local destpos = CF.LocationPos[self.GS["Destination"]] or Vector();
+								self.GS["DestX"] = tonumber(math.floor(destpos.X));
+								self.GS["DestY"] = tonumber(math.floor(destpos.Y));
+
+								self.GS["Distance"] = CF.Dist(Vector(tonumber(self.GS["ShipX"]), tonumber(self.GS["ShipY"])), destpos);
+							end
+						end
+					else
+						self.FirePressed[player] = false;
+					end
+
+					local locationListStart = self.ShipControlSelectedLocation - (self.ShipControlSelectedLocation - 1) % self.ShipControlLocationsPerPage;
+
+					if self.GS["Destination"] ~= nil then
+						local scale = CF.PlanetScale[self.GS["Planet"]] or 1;
+						local dst = tostring(math.ceil(tonumber(self.GS["Distance"]) * CF.KmPerPixel * scale));
+						local destinationName = CF.LocationName[self.GS["Destination"]];
+						highBarLeftText = "EN ROUTE TO: " .. (destinationName or "Unknown");
+						highBarRightText = (dst and (dst .. " km") or "");
+					else
+						local locationName = CF.LocationName[self.GS["Location"]];
+						highBarLeftText = "CURRENT LOCATION: " .. (locationName or "Distant orbit");
+					end
+					
+					lowBarCenterText = "U/D - Select location, L/R - Mode, FIRE - Fly";
+
+					-- Select green current location preset if we're on mission location
+					local msn = false
+
+					-- If we have mission in that location then draw red dot
+					for m = 1, CF.MaxMissions do
+						if self.GS["Location"] == self.GS["Mission" .. m .. "Location"] then
+							msn = true
+							break
+						end
+					end
+
+					local shippreset = "ControlPanel_Ship_CurrentLocation"
+
+					if msn then
+						shippreset = "ControlPanel_Ship_CurrentMissionLocation"
+					end
+
+					local sx = tonumber(self.GS["ShipX"])
+					local sy = tonumber(self.GS["ShipY"])
+
+					local dx = tonumber(self.GS["DestX"])
+					local dy = tonumber(self.GS["DestY"])
+
+					local cx = pos.X + 70
+					local cy = pos.Y
+				
+					path = "Mods/VoidWanderers.rte/UI/ControlPanels/" .. shippreset .. ".png";
+					PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(sx, sy) + Vector(70, 0), path, 0, false, false);
+
+					if dx ~= nil and dy ~= nil then
+						self:DrawDottedLine(cx + sx, cy + sy, cx + dx, cy + dy, Activity.PLAYER_NONE, 5)
+					end
+
+					local shippos = Vector(sx, sy)
+
+					local msn = false
+					local msntype
+					local msndiff
+					local msntgt
+					local msncon
+
+					-- If we have mission in that location then draw red dot
+					for m = 1, CF.MaxMissions do
+						if
+							selectedLocation
+							== self.GS["Mission" .. m .. "Location"]
+						then
+							msn = true
+							msntype = self.GS["Mission" .. m .. "Type"]
+							msndiff = CF.GetFullMissionDifficulty(self.GS, self.GS["Mission" .. m .. "Location"], m) --tonumber(self.GS["Mission"..m.."Difficulty"])
+							msntgt = tonumber(self.GS["Mission" .. m .. "TargetPlayer"])
+							msncon = tonumber(self.GS["Mission" .. m .. "SourcePlayer"])
+							break
+						end
+					end
+
+					-- Show selected location dot
+					local locpos = CF.LocationPos[selectedLocation]
+					if locpos ~= nil then
+						if msn then
+							path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Ship_MissionDot.png";
+							PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, pos + locpos + Vector(70, 0), path, 0, false, false);
+						else
+							path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Ship_LocationDot.png";
+							PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, pos + locpos + Vector(70, 0), path, 0, false, false);
+						end
+
+						--[[ Draw line to location
+						local sx, sy = shippos.X, shippos.Y;
+						local dx, dy = locpos.X, locpos.Y;
+						local cx, cy = pos.X + 70, pos.Y;
+						self:DrawDottedLine(cx + sx, cy + sy, cx + dx, cy + dy, "ControlPanel_Ship_RouteDot", 3);]]
+					end
+
+					-- Write security level
+					local diff;
+
+					if msn then
+						local text;
+						local offset = Vector(3, -topOfPage);
+						text = "TARGET: " .. CF.FactionNames[CF.GetPlayerFaction(self.GS, msntgt)];
+						offset = offset - CF.DrawString(text, pos + offset, 136, 33, nil, nil, nil, 2, nil);
+						text = "CONTRACTOR: " .. CF.FactionNames[CF.GetPlayerFaction(self.GS, msncon)];
+						offset = offset - CF.DrawString(text, pos + offset, 136, 33, nil, nil, nil, 2, nil);
+						text = "MISSION: " .. CF.MissionName[msntype];
+						offset = offset - CF.DrawString(text, pos + offset, 136, 33, nil, nil, nil, 2, nil);
+
+						diff = msndiff;
+					else
+						diff = CF.GetLocationDifficulty(self.GS, selectedLocation);
+					end
+
+					-- As long as it isn't marked NOT playable, assume we can go.
+					playable = CF.LocationPlayable[selectedLocation] ~= false;
+
+					if playable then
+						local text = "SECURITY: " .. string.upper(CF.LocationDifficultyTexts[diff]);
+						CF.DrawString(text, pos + Vector(70, topOfPage), 136, 11, nil, nil, 1, nil, nil);
+					else
+						if CF.IsLocationHasAttribute(selectedLocation, CF.LocationAttributeTypes.TRADESTAR) then
+							CF.DrawString("TRADE STAR", pos + Vector(70, -71), 136, 11, nil, nil, 1, nil, nil);
+						elseif CF.IsLocationHasAttribute(selectedLocation, CF.LocationAttributeTypes.BLACKMARKET) then
+							CF.DrawString("BLACK MARKET", pos + Vector(70, -71), 136, 11, nil, nil, 1, nil, nil);
+						elseif CF.IsLocationHasAttribute(selectedLocation, CF.LocationAttributeTypes.SHIPYARD) then
+							CF.DrawString("SHIPYARD", pos + Vector(70, -71), 136, 11, nil, nil, 1, nil, nil);
+						end
+					end
+					
+					local lineOffset = topOfPage;
+					CF.DrawString("FLY TO LOCATION: ", pos + Vector(-138, lineOffset), 135, 40, nil, nil, nil, nil, nil);
+					lineOffset = lineOffset + 22;
+
+					if #locations > 0 then
+						for i = locationListStart, locationListStart + self.ShipControlLocationsPerPage - 1 do
+							local pname = CF.LocationName[locations[i]];
+							if pname ~= nil then
+								local prefix = (i == self.ShipControlSelectedLocation and "> " or "");
+								CF.DrawString(prefix .. pname, pos + Vector(-138, lineOffset), 135, 11, nil, nil, nil, nil, nil);
+								lineOffset = lineOffset + 11;
+							end
+						end
+					else
+						CF.DrawString("--NO OTHER LOCATIONS--", pos + Vector(-138, (lineOffset - topOfPage) / 2), 135, 11, nil, nil, 1, 1);
 					end
 				end
+				-----------------------------------------------------------------------
+				if self.ShipControlMode == self.ShipControlPanelModes.PLANET then
+					local planets = {};
+					local planetSelected = self.ShipControlSelectedPlanet;
 
-				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed[player] then
-						self.FirePressed[player] = true
+					for i = 1, #CF.Planet do
+						planets[#planets + 1] = CF.Planet[i];
+					end
 
-						if not self.encounterData["initialized"] then
-							if self.GS["Location"] == nil then
+					for i = 1, #planets do
+						for j = 1, #planets - 1 do
+							if CF.PlanetName[planets[j]] > CF.PlanetName[planets[j + 1]] then
+								local s = planets[j];
+								planets[j] = planets[j + 1];
+								planets[j + 1] = s;
+							end
+						end
+					end
+
+					if up then
+						planetSelected = planetSelected - 1;
+
+						if planetSelected < 1 then
+							planetSelected = #planets;
+						end
+					end
+
+					if down then
+						planetSelected = planetSelected + 1;
+
+						if planetSelected > #planets then
+							planetSelected = 1;
+						end
+					end
+
+					if cont:IsState(Controller.WEAPON_FIRE) then
+						if not self.FirePressed[player] then
+							self.FirePressed[player] = true;
+
+							if not self.encounterData.initialized then
+								-- Travel to another planet
+								self.GS["Planet"] = planets[planetSelected];
+								self.GS["Location"] = nil;
+								self.GS["Destination"] = nil;
+
+								self.GS["DestX"] = nil;
+								self.GS["DestY"] = nil;
+
+								self:SetRandomOrbitLocation();
+								self.ShipControlSelectedLocation = 1;
+							end
+						end
+					else
+						self.FirePressed[player] = false;
+					end
+
+					local planetListStart = planetSelected - (planetSelected - 1) % self.ShipControlPlanetsPerPage;
+
+					-- Show current planet
+					local locname = CF.PlanetName[self.GS["Planet"]];
+					highBarLeftText = "NOW ORBITING: " .. (locname or "");
+					lowBarCenterText = "U/D - Select planet, L/R - Mode, FIRE - Fly";
+
+					-- Show current planet dot
+					local locpos = CF.PlanetPos[self.GS["Planet"]]
+					if locpos ~= nil then
+						path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Ship_CurrentLocation.png";
+						PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, pos + locpos + Vector(70, 0), path, 0, false, false);
+					end
+
+					-- Show selected planet dot
+					local shppos = CF.PlanetPos[planets[planetSelected]]
+					if shppos ~= nil then
+						path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Ship_LocationDot.png";
+						PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, pos + shppos + Vector(70, 0), path, 0, false, false);
+					end
+
+					if locpos ~= nil and shppos ~= nil then
+						-- Draw line to location
+						local sx, sy = locpos.X, locpos.Y;
+						local dx, dy = shppos.X, shppos.Y;
+						local cx, cy = pos.X + 70, pos.Y;
+						local gap = 3;
+						self:DrawWanderingDottedLine(cx + sx, cy + sy, cx + dx, cy + dy, Activity.PLAYER_NONE, gap, math.fmod(sx - dx, 6) - 3, math.fmod(sy - dy, 2 * math.pi), 10)
+					end
+					
+					local lineOffset = topOfPage;
+					CF.DrawString("WARP TO ANOTHER PLANET:", pos + Vector(-138, lineOffset), 135, 11);
+					lineOffset = lineOffset + 22;
+					-- Show planet list
+					if #planets > 0 then
+						for i = planetListStart, planetListStart + self.ShipControlPlanetsPerPage - 1 do
+							local pname = CF.PlanetName[planets[i]]
+							if pname ~= nil then
+								if i == planetSelected then
+									CF.DrawString("> " .. pname, pos + Vector(-138, lineOffset), 135, 11, nil, nil, nil, nil, nil)
+								else
+									CF.DrawString(pname, pos + Vector(-138, lineOffset), 135, 11, nil, nil, nil, nil, nil)
+								end
+								lineOffset = lineOffset + 11
+							end
+						end
+					else
+						CF.DrawString("NO OTHER LOCATIONS", pos + Vector(-138, -49), 130, 12, nil, nil, nil, nil, nil);
+					end
+
+					self.ShipControlSelectedPlanet = planetSelected;
+				end
+				-----------------------------------------------------------------------
+				if self.ShipControlMode == self.ShipControlPanelModes.MISSIONS then
+					-- Create CPU list
+					local cpus = tonumber(self.GS["ActiveCPUs"])
+
+					local missions = {};
+					local missionSelected = self.ShipControlSelectedMission;
+
+					for i = 1, CF.MaxMissions do
+						mission = {}
+						mission.SourcePlayer = tonumber(self.GS["Mission" .. i .. "SourcePlayer"])
+						mission.TargetPlayer = tonumber(self.GS["Mission" .. i .. "TargetPlayer"])
+						mission.Difficulty = CF.GetFullMissionDifficulty(self.GS, self.GS["Mission" .. i .. "Location"], i)
+						mission.Location = self.GS["Mission" .. i .. "Location"]
+						mission.Type = self.GS["Mission" .. i .. "Type"]
+
+						local rep = tonumber(self.GS["Player" .. mission.SourcePlayer .. "Reputation"])
+						local srep = (rep > 0 and "+" or "") .. tostring(rep)
+						mission.SourceFactionReputation = srep
+						mission.SourceFaction = CF.FactionNames[CF.GetPlayerFaction(self.GS, mission.SourcePlayer)]
+
+						local rep = tonumber(self.GS["Player" .. mission.TargetPlayer .. "Reputation"])
+						local srep = (rep > 0 and "+" or "") .. tostring(rep)
+						mission.TargetFactionRaputation = srep
+						mission.TargetFaction = CF.FactionNames[CF.GetPlayerFaction(self.GS, mission.TargetPlayer)]
+
+						mission.Description = CF.MissionBriefingText[mission.Type]
+						mission.GoldReward = CF.CalculateReward(CF.MissionGoldRewardPerDifficulty[mission.Type], mission.Difficulty)
+						mission.RepReward = CF.CalculateReward(CF.MissionReputationRewardPerDifficulty[mission.Type], mission.Difficulty)
+						table.insert(missions, mission);
+					end
+
+					if up then
+						-- Select planet
+						missionSelected = missionSelected - 1
+						if missionSelected < 1 then
+							missionSelected = #missions
+						end
+					end
+
+					if down then
+						-- Select planet
+						missionSelected = missionSelected + 1
+						if missionSelected > #missions then
+							missionSelected = 1
+						end
+					end
+
+					if cont:IsState(Controller.WEAPON_FIRE) then
+						if not self.FirePressed[player] then
+							self.FirePressed[player] = true
+
+							-- Find planet where mission is
+							local planet =
+								CF.LocationPlanet[missions[missionSelected].Location]
+
+							if self.GS["Planet"] ~= planet then
+								-- Move to planet if we're not there
+								self.GS["Planet"] = planet
+								self.GS["Location"] = nil
+								self.GS["Destination"] = nil
+
+								self:SetRandomOrbitLocation()
+								-- Recreate all lists
+								resetLists = true
+							end
+
+							if self.GS["Location"] ~= nil then
+								local locpos = CF.LocationPos[self.GS["Location"]] or Vector()
+
+								self.GS["ShipX"] = math.floor(locpos.X)
+								self.GS["ShipY"] = math.floor(locpos.Y)
+							else
 								if self.GS["ShipX"] == nil or self.GS["ShipY"] == nil then
 									self:SetRandomOrbitLocation()
 								end
 							end
 
+							-- Fly to location
 							self.GS["Location"] = nil
-							self.GS["Destination"] = self.ShipControlLocationList[self.ShipControlSelectedLocation]
+							self.GS["Destination"] = missions[missionSelected].Location
 
 							local destpos = CF.LocationPos[self.GS["Destination"]] or Vector()
 
@@ -239,1775 +691,709 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 							self.GS["Distance"] = CF.Dist(
 								Vector(tonumber(self.GS["ShipX"]), tonumber(self.GS["ShipY"])),
-								Vector(tonumber(self.GS["DestX"]), tonumber(self.GS["DestX"]))
+								Vector(tonumber(self.GS["DestX"]), tonumber(self.GS["DestY"]))
 							)
+
+							self.ShipControlMode = self.ShipControlPanelModes.LOCATION
+							self.SetDestination = self.GS["Destination"]
 						end
-					end
-				else
-					self.FirePressed[player] = false
-				end
-
-				self.ShipControlLocationListStart = self.ShipControlSelectedLocation
-					- (self.ShipControlSelectedLocation - 1) % self.ShipControlLocationsPerPage
-
-				-- Draw mode specific elements
-				-- Write current location
-				if self.GS["Destination"] ~= nil then
-					local scale = CF.PlanetScale[self.GS["Planet"]] or 1
-
-					local dst = math.ceil(tonumber(self.GS["Distance"]) * CF.KmPerPixel * scale)
-
-					CF.DrawString("EN ROUTE TO: ", pos + Vector(-62 - 71, -78), 270, 40)
-					local locname = CF.LocationName[self.GS["Destination"]]
-					if locname ~= nil then
-						CF.DrawString(locname .. " - " .. dst .. " km", pos + Vector(-64, -78), 180, 40)
-					end
-				else
-					CF.DrawString("CURRENT LOCATION:", pos + Vector(-62 - 71, -78), 270, 40)
-					local locname = CF.LocationName[self.GS["Location"]]
-					if locname ~= nil then
-						CF.DrawString(locname, pos + Vector(-34, -78), 130, 40)
 					else
-						CF.DrawString("Distant orbit", pos + Vector(-34, -78), 130, 40)
-					end
-				end
-
-				CF.DrawString("FLY TO LOCATION:", pos + Vector(-62 - 71, -60), 270, 40)
-
-				CF.DrawString("U/D - Select location, L/R - Mode, FIRE - Fly", pos + Vector(-62 - 71, 78), 270, 40)
-
-				--local shippos = Vector(0,0)
-
-				-- Select green current location preset if we're on mission location
-				local msn = false
-
-				-- If we have mission in that location then draw red dot
-				for m = 1, CF.MaxMissions do
-					if self.GS["Location"] == self.GS["Mission" .. m .. "Location"] then
-						msn = true
-						break
-					end
-				end
-
-				local shippreset = "ControlPanel_Ship_CurrentLocation"
-
-				if msn then
-					shippreset = "ControlPanel_Ship_CurrentMissionLocation"
-				end
-
-				local sx = tonumber(self.GS["ShipX"])
-				local sy = tonumber(self.GS["ShipY"])
-
-				local dx = tonumber(self.GS["DestX"])
-				local dy = tonumber(self.GS["DestY"])
-
-				local cx = pos.X + 70
-				local cy = pos.Y
-
-				self:PutGlow(shippreset, pos + Vector(sx, sy) + Vector(70, 0))
-
-				if dx ~= nil and dy ~= nil then
-					self:DrawDottedLine(cx + sx, cy + sy, cx + dx, cy + dy, "ControlPanel_Ship_DestDot", 5)
-				end
-
-				local shippos = Vector(sx, sy)
-
-				local msn = false
-				local msntype
-				local msndiff
-				local msntgt
-				local msncon
-
-				-- If we have mission in that location then draw red dot
-				for m = 1, CF.MaxMissions do
-					if
-						self.ShipControlLocationList[self.ShipControlSelectedLocation]
-						== self.GS["Mission" .. m .. "Location"]
-					then
-						msn = true
-						msntype = self.GS["Mission" .. m .. "Type"]
-						msndiff = CF.GetFullMissionDifficulty(self.GS, self.GS["Mission" .. m .. "Location"], m) --tonumber(self.GS["Mission"..m.."Difficulty"])
-						msntgt = tonumber(self.GS["Mission" .. m .. "TargetPlayer"])
-						msncon = tonumber(self.GS["Mission" .. m .. "SourcePlayer"])
-						break
-					end
-				end
-
-				-- Show selected location dot
-				local locpos = CF.LocationPos[self.ShipControlLocationList[self.ShipControlSelectedLocation]]
-				if locpos ~= nil then
-					if msn then
-						self:PutGlow("ControlPanel_Ship_MissionDot", pos + locpos + Vector(70, 0))
-					else
-						self:PutGlow("ControlPanel_Ship_LocationDot", pos + locpos + Vector(70, 0))
+						self.FirePressed[player] = false
 					end
 
-					-- Draw line to location
-					local sx = shippos.X
-					local sy = shippos.Y
+					local listStart = missionSelected - (missionSelected - 1) % self.ShipControlMissionsPerPage;
 
-					local dx = locpos.X
-					local dy = locpos.Y
-
-					local cx = pos.X + 70
-					local cy = pos.Y
-
-					self:DrawDottedLine(cx + sx, cy + sy, cx + dx, cy + dy, "ControlPanel_Ship_RouteDot", 3)
-				end
-
-				-- Write security level
-				local diff
-
-				if msn then
-					CF.DrawString("MISSION: " .. CF.MissionName[msntype], pos + Vector(8, 38), 140, 10)
-					CF.DrawString(
-						"CONTRACTOR: " .. CF.FactionNames[CF.GetPlayerFaction(self.GS, msncon)],
-						pos + Vector(8, 50),
-						130,
-						10
-					)
-					CF.DrawString(
-						"TARGET: " .. CF.FactionNames[CF.GetPlayerFaction(self.GS, msntgt)],
-						pos + Vector(8, 62),
-						130,
-						10
-					)
-					diff = msndiff
-				else
-					diff = CF.GetLocationDifficulty(
-						self.GS,
-						self.ShipControlLocationList[self.ShipControlSelectedLocation]
-					)
-				end
-
-				local playable = true
-
-				if CF.LocationPlayable[self.ShipControlLocationList[self.ShipControlSelectedLocation]] ~= nil then
-					playable = CF.LocationPlayable[self.ShipControlLocationList[self.ShipControlSelectedLocation]]
-				end
-
-				if playable then
-					CF.DrawString(
-						"SECURITY: " .. string.upper(CF.LocationDifficultyTexts[diff]),
-						pos + Vector(8, -60),
-						136,
-						10
-					)
-
-					-- Write gold status
-					local gold = CF.LocationGoldPresent[self.ShipControlLocationList[self.ShipControlSelectedLocation]]
-					if gold ~= nil then
-						CF.DrawString(
-							"GOLD: " .. (gold == true and "PRESENT" or "ABSENT"),
-							pos + Vector(8, -48),
-							136,
-							182 - 34
-						)
-					else
-						CF.DrawString("GOLD: UNKNOWN", pos + Vector(8, -48), 136, 182 - 34)
-					end
-				else
-					if
-						CF.IsLocationHasAttribute(
-							self.ShipControlLocationList[self.ShipControlSelectedLocation],
-							CF.LocationAttributeTypes.TRADESTAR
-						)
-					then
-						CF.DrawString("TRADE STAR", pos + Vector(8, -60), 136, 10)
-					end
-
-					if
-						CF.IsLocationHasAttribute(
-							self.ShipControlLocationList[self.ShipControlSelectedLocation],
-							CF.LocationAttributeTypes.BLACKMARKET
-						)
-					then
-						CF.DrawString("BLACK MARKET", pos + Vector(8, -60), 136, 10)
-					end
-
-					if
-						CF.IsLocationHasAttribute(
-							self.ShipControlLocationList[self.ShipControlSelectedLocation],
-							CF.LocationAttributeTypes.SHIPYARD
-						)
-					then
-						CF.DrawString("SHIPYARD", pos + Vector(8, -60), 136, 10)
-					end
-				end
-
-				-- Show location list
-				if #self.ShipControlLocationList > 0 then
-					for i = self.ShipControlLocationListStart, self.ShipControlLocationListStart + self.ShipControlLocationsPerPage - 1 do
-						local pname = CF.LocationName[self.ShipControlLocationList[i]]
-						if pname ~= nil then
-							if i == self.ShipControlSelectedLocation then
-								CF.DrawString(
-									"> " .. pname,
-									pos + Vector(-62 - 71, -40 + (i - self.ShipControlLocationListStart) * 11),
-									130,
-									10
-								)
-							else
-								CF.DrawString(
-									pname,
-									pos + Vector(-62 - 71, -40 + (i - self.ShipControlLocationListStart) * 11),
-									130,
-									10
-								)
-							end
-						end
-					end
-				else
-					CF.DrawString("NO OTHER LOCATIONS", pos + Vector(-62, 77), 130, 12)
-				end
-
-				local plntpreset = CF.PlanetGlow[self.GS["Planet"]]
-				local plntmodeule = CF.PlanetGlowModule[self.GS["Planet"]]
-				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(-71, 0))
-				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(70, 0))
-				self:PutGlow(plntpreset, pos + Vector(70, 0), plntmodeule)
-
-				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, -77))
-				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, 78))
-			end
-			---------------------------------------------------------------------------------------------------
-			if self.ShipControlMode == self.ShipControlPanelModes.PLANET then
-				local up = false
-				local down = false
-
-				if cont:IsState(Controller.PRESS_UP) then
-					self.HoldTimer:Reset()
-					up = true
-				end
-
-				if cont:IsState(Controller.PRESS_DOWN) then
-					self.HoldTimer:Reset()
-					down = true
-				end
-
-				if self.HoldTimer:IsPastSimMS(CF.KeyRepeatDelay) then
-					self.HoldTimer:Reset()
-
-					if cont:IsState(Controller.HOLD_UP) then
-						up = true
-					end
-
-					if cont:IsState(Controller.HOLD_DOWN) then
-						down = true
-					end
-				end
-
-				if up then
-					-- Select planet
-					self.ShipControlSelectedPlanet = self.ShipControlSelectedPlanet - 1
-					if self.ShipControlSelectedPlanet < 1 then
-						self.ShipControlSelectedPlanet = #self.ShipControlPlanetList
-					end
-				end
-
-				if down then
-					-- Select planet
-					self.ShipControlSelectedPlanet = self.ShipControlSelectedPlanet + 1
-					if self.ShipControlSelectedPlanet > #self.ShipControlPlanetList then
-						self.ShipControlSelectedPlanet = 1
-					end
-				end
-
-				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed[player] then
-						self.FirePressed[player] = true
-
-						if not self.encounterData["initialized"] then
-							-- Travel to another planet
-							self.GS["Planet"] = self.ShipControlPlanetList[self.ShipControlSelectedPlanet]
-							self.GS["Location"] = nil
-							self.GS["Destination"] = nil
-
-							self.GS["DestX"] = nil
-							self.GS["DestY"] = nil
-
-							self:SetRandomOrbitLocation()
-							-- Recreate all lists
-							resetlists = true
-						end
-					end
-				else
-					self.FirePressed[player] = false
-				end
-
-				self.ShipControlPlanetListStart = self.ShipControlSelectedPlanet
-					- (self.ShipControlSelectedPlanet - 1) % self.ShipControlPlanetsPerPage
-
-				-- Show current planet
-				local locname = CF.PlanetName[self.GS["Planet"]]
-				if locname ~= nil then
-					CF.DrawString(locname, pos + Vector(-54, -78), 130, 40)
-				end
-				CF.DrawString("NOW ORBITING:", pos + Vector(-62 - 71, -78), 130, 40)
-
-				CF.DrawString("WARP TO ANOTHER PLANET:", pos + Vector(-62 - 71, -60), 270, 40)
-
-				CF.DrawString("U/D - Select location, L/R - Mode, FIRE - Fly", pos + Vector(-62 - 71, 78), 270, 40)
-
-				-- Show current planet dot
-				local locpos = CF.PlanetPos[self.GS["Planet"]]
-				if locpos ~= nil then
-					self:PutGlow("ControlPanel_Ship_CurrentLocation", pos + locpos + Vector(70, 0))
-				end
-
-				-- Show selected planet dot
-				local shppos = CF.PlanetPos[self.ShipControlPlanetList[self.ShipControlSelectedPlanet]]
-				if shppos ~= nil then
-					self:PutGlow("ControlPanel_Ship_LocationDot", pos + shppos + Vector(70, 0))
-				end
-
-				if locpos ~= nil and shppos ~= nil then
-					-- Draw line to location
-					local sx = locpos.X
-					local sy = locpos.Y
-
-					local dx = shppos.X
-					local dy = shppos.Y
-
-					local cx = pos.X + 70
-					local cy = pos.Y
-					
-					local gap = 3
-
-					self:DrawWanderingDottedLine(cx + sx, cy + sy, cx + dx, cy + dy, "ControlPanel_Ship_RouteDot", gap, math.fmod(sx - dx, 6) - 3, math.fmod(sy - dy, 2 * math.pi), 10)
-				end
-
-				-- Show planet list
-				for i = self.ShipControlPlanetListStart, self.ShipControlPlanetListStart + self.ShipControlPlanetsPerPage - 1 do
-					local pname = CF.PlanetName[self.ShipControlPlanetList[i]]
-					if pname ~= nil then
-						if i == self.ShipControlSelectedPlanet then
-							CF.DrawString(
-								"> " .. pname,
-								pos + Vector(-62 - 71, -40 + (i - self.ShipControlPlanetListStart) * 11),
-								130,
-								12
-							)
-						else
-							CF.DrawString(
-								pname,
-								pos + Vector(-62 - 71, -40 + (i - self.ShipControlPlanetListStart) * 11),
-								130,
-								12
-							)
-						end
-					end
-				end
-
-				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(-71, 0))
-				self:PutGlow("ControlPanel_Ship_GalaxyBack", pos + Vector(70, 0))
-				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, -77))
-				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, 78))
-			end
-			---------------------------------------------------------------------------------------------------
-			if self.ShipControlMode == self.ShipControlPanelModes.REPORT then
-				-- Show current planet
-				self:PutGlow("ControlPanel_Ship_Report", pos)
-				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, -77))
-				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, 78))
-
-				if not self.vesselData["dialog"] then
-					CF.DrawString("REPORT", pos + Vector(-10, -77), 262, 141)
-					CF.DrawString("AVAILABLE GOLD: " .. CF.GetPlayerGold(self.GS, 0), pos + Vector(-130, -60), 262, 141)
-
-					CF.DrawString("Press DOWN to save game", pos + Vector(-60, 77), 262, 141)
-
-					for i = 1, CF.MaxMissionReportLines do
-						--CF.DrawString("LINE"..i, pos + Vector(-130,-70 + i * 10), 262, 141) -- Debug
-						if self.GS["MissionReport" .. i] ~= nil then
-							CF.DrawString(self.GS["MissionReport" .. i], pos + Vector(-130, -56 + i * 10), 262, 141)
-						else
-							break
-						end
-					end
-
-					if cont:IsState(Controller.PRESS_DOWN) then
-						-- Save all items
-						for item in MovableMan.Items do
-							if IsHeldDevice(item) and not ToHeldDevice(item).UnPickupable then
-								local count = CF.CountUsedStorageInArray(self.StorageItems)
-
-								if count < tonumber(self.GS["PlayerVesselStorageCapacity"]) then
-									CF.PutItemToStorageArray(
-										self.StorageItems,
-										item.PresetName,
-										item.ClassName,
-										item.ModuleName
-									)
+					-- Show faction list
+					local lineOffset = topOfPage;
+					for i = listStart, listStart + self.ShipControlMissionsPerPage - 1 do
+						local mission = missions[i];
+						if mission then
+							local factionName = mission.SourceFaction;
+							if factionName ~= nil then
+								if i == missionSelected then
+									CF.DrawString("> " .. mission.SourceFaction, pos + Vector(-137, lineOffset), 135, 11)
+									CF.DrawString("    VS " .. mission.TargetFaction, pos + Vector(-137, lineOffset + 11), 135, 11)
 								else
-									break
+									CF.DrawString(mission.SourceFaction, pos + Vector(-137, lineOffset), 135, 11)
+									CF.DrawString("    VS " .. mission.TargetFaction, pos + Vector(-137, lineOffset + 11), 135, 11)
 								end
-							end
-						end
-
-						CF.SetStorageArray(self.GS, self.StorageItems)
-						self.GS["DeserializeOnboard"] = "True"
-
-						self:SaveActors(false)
-						self:SaveCurrentGameState()
-
-						print(self.GS["PlayerGold"])
-
-						self:LaunchScript("Void Wanderers", "StrategyScreenMain.lua")
-						FORM_TO_LOAD = BASE_PATH .. "FormSave.lua"
-						self:DestroyConsoles()
-						return
-					end
-				else
-					local offset = 0
-					CF.DrawString("INCOMING TRANSMISSION", pos + Vector(-56, -77), 262, 141)
-					offset = offset + 12 + CF.DrawString(self.vesselData["dialog"].message, pos + Vector(-130, -56), 262, 141)
-
-					if self.vesselData["dialog"].options and self.vesselData["dialogDefaultTimer"]:IsPastSimMS(750) then
-						local up = false
-						local down = false
-
-						if cont:IsState(Controller.PRESS_UP) then
-							self.HoldTimer:Reset()
-							up = true
-						end
-
-						if cont:IsState(Controller.PRESS_DOWN) then
-							self.HoldTimer:Reset()
-							down = true
-						end
-
-						if self.HoldTimer:IsPastSimMS(CF.KeyRepeatDelay) then
-							self.HoldTimer:Reset()
-
-							if cont:IsState(Controller.HOLD_UP) then
-								up = true
-							end
-
-							if cont:IsState(Controller.HOLD_DOWN) then
-								down = true
-							end
-						end
-
-						if up then
-							-- Select planet
-							self.vesselData["dialogOptionSelected"] = self.vesselData["dialogOptionSelected"] - 1
-							if self.vesselData["dialogOptionSelected"] < 1 then
-								self.vesselData["dialogOptionSelected"] = #self.vesselData["dialog"].options
-							end
-						end
-
-						if down then
-							-- Select planet
-							self.vesselData["dialogOptionSelected"] = self.vesselData["dialogOptionSelected"] + 1
-							if self.vesselData["dialogOptionSelected"] > #self.vesselData["dialog"].options then
-								self.vesselData["dialogOptionSelected"] = 1
-							end
-						end
-
-						-- Force the last variant if the player taking too long
-						if self.vesselData["dialogDefaultTimer"]:IsPastSimMS(self.ShipControlDialogDefaultTime) then
-							self.vesselData["dialogOptionChosen"] = #self.vesselData["dialog"].options
-						end
-
-						if cont:IsState(Controller.WEAPON_FIRE) then
-							if not self.FirePressed[player] then
-								self.FirePressed[player] = true
-
-								self.vesselData["dialogOptionChosen"] = self.vesselData["dialogOptionSelected"]
-							end
-						else
-							self.FirePressed[player] = false
-						end
-
-						CF.DrawString("U/D - Select, L/R - Mode, FIRE - Accept", pos + Vector(-62 - 71, 78), 270, 40)
-
-						for i = 1, #self.vesselData["dialog"].options do
-							if self.vesselData["dialogOptionSelected"] == i then
-								CF.DrawString(
-									">",
-									pos + Vector(-130, -56 + offset),
-									262,
-									141
-								)
-								offset = offset + CF.DrawString(
-									self.vesselData["dialog"].options[i],
-									pos + Vector(-120, -56 + offset),
-									252,
-									141
-								)
-							else
-								offset = offset + CF.DrawString(
-									self.vesselData["dialog"].options[i],
-									pos + Vector(-130, -56 + offset),
-									262,
-									141
-								)
+								lineOffset = lineOffset + 22;
 							end
 						end
 					end
-				end
-			end
-			---------------------------------------------------------------------------------------------------
-			if self.ShipControlMode == self.ShipControlPanelModes.MISSIONS then
-				-- Create CPU list
-				local cpus = tonumber(self.GS["ActiveCPUs"])
 
-				self.ShipControlMissions = {}
-				for i = 1, CF.MaxMissions do
-					self.ShipControlMissions[i] = {}
-					self.ShipControlMissions[i]["SourcePlayer"] = tonumber(self.GS["Mission" .. i .. "SourcePlayer"])
-					self.ShipControlMissions[i]["TargetPlayer"] = tonumber(self.GS["Mission" .. i .. "TargetPlayer"])
-					self.ShipControlMissions[i]["Difficulty"] = CF.GetFullMissionDifficulty(
-						self.GS,
-						self.GS["Mission" .. i .. "Location"],
-						i
-					) --tonumber(self.GS["Mission"..i.."Difficulty"])
-					self.ShipControlMissions[i]["Location"] = self.GS["Mission" .. i .. "Location"]
-					self.ShipControlMissions[i]["Type"] = self.GS["Mission" .. i .. "Type"]
+					-- Show selected mission info
+					local lineOffset = topOfPage;
+					CF.DrawString("TARGET: " .. missions[missionSelected].TargetFaction, pos + Vector(3, lineOffset), 135, 11)
+					lineOffset = lineOffset + 11;
+					CF.DrawString("AT: " .. missions[missionSelected].Location, pos + Vector(3, lineOffset), 135, 11)
+					lineOffset = lineOffset + 11;
+					CF.DrawString("SECURITY: " .. CF.LocationDifficultyTexts[missions[missionSelected].Difficulty], pos + Vector(3, lineOffset), 135, 11)
+					lineOffset = lineOffset + 11;
 
-					local rep = tonumber(
-						self.GS["Player" .. self.ShipControlMissions[i]["SourcePlayer"] .. "Reputation"]
-					)
-					local srep = ""
-					if rep > 0 then
-						srep = "+" .. tostring(rep)
-					else
-						srep = tostring(rep)
-					end
-					self.ShipControlMissions[i]["SourceFactionReputation"] = srep
-					self.ShipControlMissions[i]["SourceFaction"] = CF.FactionNames[CF.GetPlayerFaction(
-						self.GS,
-						self.ShipControlMissions[i]["SourcePlayer"]
-					)]
+					CF.DrawString("GOLD: " .. missions[missionSelected].GoldReward .. " oz", pos + Vector(3, lineOffset), 135, 11)
+					lineOffset = lineOffset + 11;
+					CF.DrawString("REPUTATION: " .. missions[missionSelected].RepReward, pos + Vector(3, lineOffset), 135, 11)
+					lineOffset = lineOffset + 11;
 
-					local rep = tonumber(
-						self.GS["Player" .. self.ShipControlMissions[i]["TargetPlayer"] .. "Reputation"]
-					)
-					local srep = ""
-					if rep > 0 then
-						srep = "+" .. tostring(rep)
-					else
-						srep = tostring(rep)
-					end
-					self.ShipControlMissions[i]["TargetFactionRaputation"] = srep
-					self.ShipControlMissions[i]["TargetFaction"] = CF.FactionNames[CF.GetPlayerFaction(
-						self.GS,
-						self.ShipControlMissions[i]["TargetPlayer"]
-					)]
-
-					self.ShipControlMissions[i]["Description"] =
-						CF.MissionBriefingText[self.ShipControlMissions[i]["Type"]]
-
-					self.ShipControlMissions[i]["GoldReward"] = CF.CalculateReward(
-						CF.MissionGoldRewardPerDifficulty[self.ShipControlMissions[i]["Type"]],
-						self.ShipControlMissions[i]["Difficulty"]
-					)
-					self.ShipControlMissions[i]["RepReward"] = CF.CalculateReward(
-						CF.MissionReputationRewardPerDifficulty[self.ShipControlMissions[i]["Type"]],
-						self.ShipControlMissions[i]["Difficulty"]
-					)
-				end
-
-				local up = false
-				local down = false
-
-				if cont:IsState(Controller.PRESS_UP) then
-					self.HoldTimer:Reset()
-					up = true
-				end
-
-				if cont:IsState(Controller.PRESS_DOWN) then
-					self.HoldTimer:Reset()
-					down = true
-				end
-
-				if self.HoldTimer:IsPastSimMS(CF.KeyRepeatDelay) then
-					self.HoldTimer:Reset()
-
-					if cont:IsState(Controller.HOLD_UP) then
-						up = true
-					end
-
-					if cont:IsState(Controller.HOLD_DOWN) then
-						down = true
-					end
-				end
-
-				if up then
-					-- Select planet
-					self.ShipControlSelectedMission = self.ShipControlSelectedMission - 1
-					if self.ShipControlSelectedMission < 1 then
-						self.ShipControlSelectedMission = #self.ShipControlMissions
-					end
-				end
-
-				if down then
-					-- Select planet
-					self.ShipControlSelectedMission = self.ShipControlSelectedMission + 1
-					if self.ShipControlSelectedMission > #self.ShipControlMissions then
-						self.ShipControlSelectedMission = 1
-					end
-				end
-
-				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed[player] then
-						self.FirePressed[player] = true
-
-						-- Find planet where mission is
-						local planet =
-							CF.LocationPlanet[self.ShipControlMissions[self.ShipControlSelectedMission]["Location"]]
-
-						if self.GS["Planet"] ~= planet then
-							-- Move to planet if we're not there
-							self.GS["Planet"] = planet
-							self.GS["Location"] = nil
-							self.GS["Destination"] = nil
-
-							self:SetRandomOrbitLocation()
-							-- Recreate all lists
-							resetlists = true
-						end
-
-						if self.GS["Location"] ~= nil then
-							local locpos = CF.LocationPos[self.GS["Location"]] or Vector()
-
-							self.GS["ShipX"] = math.floor(locpos.X)
-							self.GS["ShipY"] = math.floor(locpos.Y)
-						else
-							if self.GS["ShipX"] == nil or self.GS["ShipY"] == nil then
-								self:SetRandomOrbitLocation()
-							end
-						end
-
-						-- Fly to location
-						self.GS["Location"] = nil
-						self.GS["Destination"] = self.ShipControlMissions[self.ShipControlSelectedMission]["Location"]
-
-						local destpos = CF.LocationPos[self.GS["Destination"]] or Vector()
-
-						self.GS["DestX"] = math.floor(destpos.X)
-						self.GS["DestY"] = math.floor(destpos.Y)
-
-						self.GS["Distance"] = CF.Dist(
-							Vector(tonumber(self.GS["ShipX"]), tonumber(self.GS["ShipY"])),
-							Vector(tonumber(self.GS["DestX"]), tonumber(self.GS["DestY"]))
-						)
-
-						self.ShipControlMode = self.ShipControlPanelModes.LOCATION
-						self.SetDestination = self.GS["Destination"]
-					end
-				else
-					self.FirePressed[player] = false
-				end
-
-				self.ShipControlMissionListStart = self.ShipControlSelectedMission
-					- (self.ShipControlSelectedMission - 1) % self.ShipControlMissionsPerPage
-
-				-- Show faction list
-				for i = self.ShipControlMissionListStart, self.ShipControlMissionListStart + self.ShipControlMissionsPerPage - 1 do
-					if self.ShipControlMissions[i] then
-						local factionName = self.ShipControlMissions[i]["SourceFaction"]
-						if factionName ~= nil then
-							if i == self.ShipControlSelectedMission then
-								CF.DrawString(
-									"> " .. self.ShipControlMissions[i]["SourceFaction"],
-									pos + Vector(-62 - 71, -86 + (i - self.ShipControlMissionListStart + 1) * 25),
-									120,
-									8
-								)
-								CF.DrawString(
-									">   VS " .. self.ShipControlMissions[i]["TargetFaction"],
-									pos + Vector(-62 - 71, -86 + (i - self.ShipControlMissionListStart + 1) * 25 + 10),
-									150,
-									8
-								)
-							else
-								CF.DrawString(
-									self.ShipControlMissions[i]["SourceFaction"],
-									pos + Vector(-62 - 71, -86 + (i - self.ShipControlMissionListStart + 1) * 25),
-									120,
-									8
-								)
-								CF.DrawString(
-									"VS " .. self.ShipControlMissions[i]["TargetFaction"],
-									pos
-										+ Vector(
-											-62 - 71 + 14,
-											-86 + (i - self.ShipControlMissionListStart + 1) * 25 + 10
-										),
-									120,
-									8
-								)
-							end
-						end
-					end
-				end
-
-				-- Show selected mission info
-				CF.DrawString(
-					"TARGET: " .. self.ShipControlMissions[self.ShipControlSelectedMission]["TargetFaction"],
-					pos + Vector(10, -61),
-					150,
-					8
-				)
-				CF.DrawString(
-					"AT: " .. self.ShipControlMissions[self.ShipControlSelectedMission]["Location"],
-					pos + Vector(10, -51),
-					150,
-					8
-				)
-				CF.DrawString(
-					"SECURITY: "
-						.. CF.LocationDifficultyTexts[self.ShipControlMissions[self.ShipControlSelectedMission]["Difficulty"]],
-					pos + Vector(10, -41),
-					270,
-					40
-				)
-
-				CF.DrawString(
-					"GOLD: " .. self.ShipControlMissions[self.ShipControlSelectedMission]["GoldReward"] .. " oz",
-					pos + Vector(10, -31),
-					270,
-					40
-				)
-				CF.DrawString(
-					"REPUTATION: " .. self.ShipControlMissions[self.ShipControlSelectedMission]["RepReward"],
-					pos + Vector(10, -21),
-					270,
-					40
-				)
-
-				CF.DrawString(
-					self.ShipControlMissions[self.ShipControlSelectedMission]["Description"],
-					pos + Vector(10, -5),
-					125,
-					80
-				)
-
-				CF.DrawString(
-					"Available missions: page "
-						.. math.ceil(self.ShipControlSelectedMission / self.ShipControlMissionsPerPage)
-						.. "/"
-						.. math.ceil(CF.MaxMissions / self.ShipControlMissionsPerPage),
-					pos + Vector(-62 - 71, -78),
-					270,
-					40
-				)
-				CF.DrawString("U/D - Select mission, L/R - Mode, FIRE - Fly", pos + Vector(-62 - 71, 78), 270, 40)
-				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(-71, 0))
-				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(70, 0))
-				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, -77))
-				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, 78))
-			end
-			---------------------------------------------------------------------------------------------------
-			if self.ShipControlMode == self.ShipControlPanelModes.REPUTATION then
-				-- Create reputation listing
-				local cpus = tonumber(self.GS["ActiveCPUs"])
-				local maxPerPage = 9
-				self.ShipControlFactions = {}
-				for i = 1, cpus do
-					self.ShipControlFactions[i] = {}
-					self.ShipControlFactions[i]["Faction"] = CF.FactionNames[CF.GetPlayerFaction(self.GS, i)]
-					self.ShipControlFactions[i]["Reputation"] = tonumber(self.GS["Player" .. i .. "Reputation"])
-
-					if self.ShipControlFactions[i]["Reputation"] > 0 then
-						self.ShipControlFactions[i]["ReputationStr"] = "+"
-							.. tostring(self.ShipControlFactions[i]["Reputation"])
-					else
-						self.ShipControlFactions[i]["ReputationStr"] = tostring(
-							self.ShipControlFactions[i]["Reputation"]
-						)
-					end
-				end
-
-				local up = false
-				local down = false
-
-				if cont:IsState(Controller.PRESS_UP) then
-					self.HoldTimer:Reset()
-					up = true
-				end
-				
-				if cont:IsState(Controller.PRESS_DOWN) then
-					self.HoldTimer:Reset()
-					down = true
-				end
-				
-				if self.HoldTimer:IsPastSimMS(CF.KeyRepeatDelay) then
-					self.HoldTimer:Reset()
+					local text = missions[missionSelected].Description;
+					text = CF.SplitStringToFitWidth(text, 115, false);
+					CF.DrawString(text, pos + Vector(70, (lineOffset + 68) / 2), 115, 66, nil, nil, 1, 1)
+					lineOffset = lineOffset + 11;
 					
-					if cont:IsState(Controller.HOLD_UP) then
-						up = true
-					end
-					
-					if cont:IsState(Controller.HOLD_DOWN) then
-						down = true
-					end
+					local page = math.ceil(missionSelected / self.ShipControlMissionsPerPage);
+					local maxPages = math.ceil(CF.MaxMissions / self.ShipControlMissionsPerPage);
+					highBarLeftText = "AVAILABLE MISSIONS: ";
+					highBarRightText = page .. "/" .. maxPages;
+					lowBarCenterText = "U/D - Select mission, L/R - Mode, FIRE - Fly";
+
+					self.ShipControlSelectedMission = missionSelected;
 				end
+				-----------------------------------------------------------------------
+				if self.ShipControlMode == self.ShipControlPanelModes.REPUTATION then
+					local factions = {};
 
-				local maxPage = math.max(1, math.ceil(#self.ShipControlFactions / maxPerPage))
-				-- print("maxPage: " .. maxPage)
-				if up then
-					-- Select faction
-					self.ShipControlSelectedFaction = self.ShipControlSelectedFaction - 1
-					if self.ShipControlSelectedFaction < 1 then
-						self.ShipControlSelectedFaction = #self.ShipControlFactions
+					for i = 1, tonumber(self.GS["ActiveCPUs"]) do
+						local faction = {};
+						faction.Faction = CF.FactionNames[CF.GetPlayerFaction(self.GS, i)];
+						faction.Reputation = tonumber(self.GS["Player" .. i .. "Reputation"]);
+						table.insert(factions, faction);
 					end
 
-					if self.ShipControlReputationPage > 1 then
-						self.ShipControlReputationPage = self.ShipControlReputationPage - 1
-					end
-				end
-
-				if down then
-					-- Select faction
-					self.ShipControlSelectedFaction = self.ShipControlSelectedFaction + 1
-					if self.ShipControlSelectedFaction > #self.ShipControlFactions then
-						self.ShipControlSelectedFaction = 1
-					end
-
-					if self.ShipControlReputationPage < maxPage then
-						self.ShipControlReputationPage = self.ShipControlReputationPage + 1
-					end
-
-				end
-
-				-- Show faction list
-				local curInd = maxPerPage * (self.ShipControlReputationPage - 1)
-				for i = 1, math.min(9, #self.ShipControlFactions - curInd) do
-					local str = self.ShipControlFactions[curInd+i]["Faction"]
-					if (self.ShipControlFactions[curInd+i]["Faction"] == self.PlayerFaction) then 
-						str = str .. " ( YOU )"
-					end
-					CF.DrawString(str, pos + Vector(-62 - 71, -76 + i * 15), 180, 10)
-					CF.DrawString(
-						self.ShipControlFactions[curInd+i]["ReputationStr"],
-						pos + Vector(-62 - 71 + 200, -76 + i * 15),
-						130,
-						10
-					)
-
-					if self.ShipControlFactions[curInd+i]["Reputation"] < CF.ReputationHuntThreshold then
-						local diff = math.floor(
-							math.abs(self.ShipControlFactions[curInd+i]["Reputation"] / CF.ReputationPerDifficulty)
-						)
-
-						if diff <= 0 then
-							diff = 1
-						end
-
-						if diff > CF.MaxDifficulty then
-							diff = CF.MaxDifficulty
-						end
-
-						--diff = 6 -- Debug!!!
-
-						local s = "Sent " .. CF.AssaultDifficultyTexts[diff] .. "s after you!"
-						CF.DrawString(s, pos + Vector(-62 - 71 + 120, -76 + i * 15), 160, 12)
-					end
-				end
-
-				local titleString = "Reputation intelligence report - PAGE "  .. self.ShipControlReputationPage .. " OF " .. maxPage
-				CF.DrawString(titleString, pos + Vector(-62 - 71, -78), 270, 40)
-				CF.DrawString("U/D - Next/Prev Page, L/R - Mode", pos + Vector(-62 - 71, 78), 270, 40)
-				self:PutGlow("ControlPanel_Ship_Report", pos)
-				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, -77))
-				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, 78))
-			end
-			---------------------------------------------------------------------------------------------------
-			if self.ShipControlMode == self.ShipControlPanelModes.BRAIN then
-				if self.GS["Brain" .. player .. "Detached"] == "True" then
-					if self.Time % 2 == 0 then
-						CF.DrawString(
-							"PLAYER " .. player + 1 .. " BRAIN DETACHED, ROBOT IN USE!",
-							pos + Vector(-106, -6),
-							270,
-							40
-						)
-						CF.DrawString(
-							self.GS["Brain" .. player .. "SkillPoints"] .. " POINTS AVAILABLE",
-							pos + Vector(-46, 6),
-							270,
-							40
-						)
-					end
-					CF.DrawString("L/R - Mode", pos + Vector(-62 - 71, 78), 270, 40)
-					self:PutGlow("ControlPanel_Ship_Report", pos)
-				else
-					self.ShipControlSkillUpgrades = {}
-					-- Toughness
-					local nm = #self.ShipControlSkillUpgrades + 1
-					self.ShipControlSkillUpgrades[nm] = {}
-					self.ShipControlSkillUpgrades[nm]["Name"] = "Toughness"
-					self.ShipControlSkillUpgrades[nm]["Variable"] = "Brain" .. player .. "Toughness"
-					self.ShipControlSkillUpgrades[nm]["Description"] = "How much punishment your brain robot can take."
-					local val = tonumber(self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]])
-					self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]] = val
-					self.ShipControlSkillUpgrades[nm]["Price"] = (val + 1) * 2
-
-					local nm = #self.ShipControlSkillUpgrades + 1
-					self.ShipControlSkillUpgrades[nm] = {}
-					self.ShipControlSkillUpgrades[nm]["Name"] = "Force field"
-					self.ShipControlSkillUpgrades[nm]["Variable"] = "Brain" .. player .. "Field"
-					self.ShipControlSkillUpgrades[nm]["Description"] = "Regeneration speed of force field."
-					local val = tonumber(self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]])
-					self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]] = val
-					self.ShipControlSkillUpgrades[nm]["Price"] = val + 1
-
-					local nm = #self.ShipControlSkillUpgrades + 1
-					self.ShipControlSkillUpgrades[nm] = {}
-					self.ShipControlSkillUpgrades[nm]["Name"] = "Telekinesis"
-					self.ShipControlSkillUpgrades[nm]["Variable"] = "Brain" .. player .. "Telekinesis"
-					self.ShipControlSkillUpgrades[nm]["Description"] = "Telekinesis abilities and their power."
-					local val = tonumber(self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]])
-					self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]] = val
-					self.ShipControlSkillUpgrades[nm]["Price"] = val + 1
-
-					local nm = #self.ShipControlSkillUpgrades + 1
-					self.ShipControlSkillUpgrades[nm] = {}
-					self.ShipControlSkillUpgrades[nm]["Name"] = "Scanning"
-					self.ShipControlSkillUpgrades[nm]["Variable"] = "Brain" .. player .. "Scanner"
-					self.ShipControlSkillUpgrades[nm]["Description"] = "Built-in scanner range."
-					local val = tonumber(self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]])
-					self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]] = val
-					self.ShipControlSkillUpgrades[nm]["Price"] = val + 1
-
-					local nm = #self.ShipControlSkillUpgrades + 1
-					self.ShipControlSkillUpgrades[nm] = {}
-					self.ShipControlSkillUpgrades[nm]["Name"] = "Healing"
-					self.ShipControlSkillUpgrades[nm]["Variable"] = "Brain" .. player .. "Heal"
-					self.ShipControlSkillUpgrades[nm]["Description"] =
-						"The strength of automatic healing of nearby allies."
-					local val = tonumber(self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]])
-					self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]] = val
-					self.ShipControlSkillUpgrades[nm]["Price"] = val + 1
-
-					local nm = #self.ShipControlSkillUpgrades + 1
-					self.ShipControlSkillUpgrades[nm] = {}
-					self.ShipControlSkillUpgrades[nm]["Name"] = "Self-Healing"
-					self.ShipControlSkillUpgrades[nm]["Variable"] = "Brain" .. player .. "SelfHeal"
-					self.ShipControlSkillUpgrades[nm]["Description"] =
-						"How many times brain-robot can fully heal itself."
-					local val = tonumber(self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]])
-					self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]] = val
-					self.ShipControlSkillUpgrades[nm]["Price"] = val + 1
-
-					local nm = #self.ShipControlSkillUpgrades + 1
-					self.ShipControlSkillUpgrades[nm] = {}
-					self.ShipControlSkillUpgrades[nm]["Name"] = "Engineering"
-					self.ShipControlSkillUpgrades[nm]["Variable"] = "Brain" .. player .. "Fix"
-					self.ShipControlSkillUpgrades[nm]["Description"] =
-						"How many times brain-robot can fix a weapon. Every level adds 3 charges."
-					local val = tonumber(self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]])
-					self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]] = val
-					self.ShipControlSkillUpgrades[nm]["Price"] = val + 1
-
-					local nm = #self.ShipControlSkillUpgrades + 1
-					self.ShipControlSkillUpgrades[nm] = {}
-					self.ShipControlSkillUpgrades[nm]["Name"] = "Quantum Splitter"
-					self.ShipControlSkillUpgrades[nm]["Variable"] = "Brain" .. player .. "Splitter"
-					self.ShipControlSkillUpgrades[nm]["Description"] =
-						"Effectiveness of built-in quantum splitter matter processing."
-					local val = tonumber(self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]])
-					self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]] = val
-					self.ShipControlSkillUpgrades[nm]["Price"] = val + 1
-
-					if tonumber(self.GS["Brain" .. player .. "Splitter"]) > 0 then
-						local nm = #self.ShipControlSkillUpgrades + 1
-						self.ShipControlSkillUpgrades[nm] = {}
-						self.ShipControlSkillUpgrades[nm]["Name"] = "Quantum Storage"
-						self.ShipControlSkillUpgrades[nm]["Variable"] = "Brain" .. player .. "QuantumCapacity"
-						self.ShipControlSkillUpgrades[nm]["Description"] = "Capacity of built-in quantum storage."
-						local val = tonumber(self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]])
-						self.GS[self.ShipControlSkillUpgrades[nm]["Variable"]] = val
-						self.ShipControlSkillUpgrades[nm]["Price"] = val + 1
-					end
-
-					local up = false
-					local down = false
-
-					if cont:IsState(Controller.PRESS_UP) then
-						self.HoldTimer:Reset()
-						up = true
-					end
-
-					if cont:IsState(Controller.PRESS_DOWN) then
-						self.HoldTimer:Reset()
-						down = true
-					end
-
-					if self.HoldTimer:IsPastSimMS(CF.KeyRepeatDelay) then
-						self.HoldTimer:Reset()
-
-						if cont:IsState(Controller.HOLD_UP) then
-							up = true
-						end
-
-						if cont:IsState(Controller.HOLD_DOWN) then
-							down = true
-						end
-					end
+					local pageIndex = linesPerPage * (self.ShipControlReputationPage - 1);
+					local lineOffset = topOfPage;
+					local maxPage = math.max(1, math.ceil(#factions / linesPerPage));
 
 					if up then
-						self.ShipControlSelectedSkillUpgrade = self.ShipControlSelectedSkillUpgrade - 1
-						if self.ShipControlSelectedSkillUpgrade < 1 then
-							self.ShipControlSelectedSkillUpgrade = #self.ShipControlSkillUpgrades
+						self.ShipControlReputationPage = self.ShipControlReputationPage - 1;
+						if self.ShipControlReputationPage < 1 then
+							self.ShipControlReputationPage = maxPage;
 						end
 					end
 
 					if down then
-						self.ShipControlSelectedSkillUpgrade = self.ShipControlSelectedSkillUpgrade + 1
-						if self.ShipControlSelectedSkillUpgrade > #self.ShipControlSkillUpgrades then
-							self.ShipControlSelectedSkillUpgrade = 1
+						self.ShipControlReputationPage = self.ShipControlReputationPage + 1;
+						if self.ShipControlReputationPage > maxPage then
+							self.ShipControlReputationPage = 1;
 						end
 					end
 
-					local current = tonumber(
-						self.GS[self.ShipControlSkillUpgrades[self.ShipControlSelectedSkillUpgrade]["Variable"]]
-					)
-					local maximum = 5
-					local price = self.ShipControlSkillUpgrades[self.ShipControlSelectedSkillUpgrade]["Price"]
-					local sklpts = tonumber(self.GS["Brain" .. player .. "SkillPoints"])
+					for i = 1, math.min(linesPerPage, #factions - pageIndex) do
+						faction = factions[pageIndex + i];
 
-					CF.DrawString("LEVEL: " .. self.GS["Brain" .. player .. "Level"], pos + Vector(-62 - 71, -60), 270, 40)
-					CF.DrawString("EXP: " .. self.GS["Brain" .. player .. "Exp"], pos + Vector(-62, -60), 270, 40)
+						local text
+						text = faction.Faction;
+						CF.DrawString(text, pos + Vector(-138, lineOffset), 270, 11, nil, nil, 0);
+						text = (faction.Reputation > 0 and "+" or "") .. faction.Reputation;
+						CF.DrawString(text, pos + Vector(138, lineOffset), 270, 11, nil, nil, 2);
 
-					if price > sklpts then
+						if faction.Reputation < CF.ReputationHuntThreshold then
+							local diff = math.floor(math.abs(faction.Reputation / CF.ReputationPerDifficulty));
+							diff = math.max(1, math.min(CF.MaxDifficulty, diff));
+
+							local text = "Sent " .. CF.AssaultDifficultyTexts[diff] .. "s!";
+							CF.DrawString(text, pos + Vector(33, lineOffset), 270, 11, true, nil, 0, 1);
+						end
+
+						lineOffset = lineOffset + 11;
+					end
+
+					highBarLeftText = "INTELLIGENCE REPORT";
+					highBarRightText = maxPage > 1 and (self.ShipControlReputationPage .. "/" .. maxPage) or "";
+					lowBarCenterText = "U/D - Next/Prev Page, L/R - Mode";
+				end
+				-----------------------------------------------------------------------
+				if self.ShipControlMode == self.ShipControlPanelModes.BRAIN then
+					if self.GS["Brain" .. player .. "Detached"] == "True" then
 						if self.Time % 2 == 0 then
-							CF.DrawString("POINTS: " .. sklpts, pos + Vector(-62 - 71, -46), 270, 40)
+							local text;
+							text = "PLAYER " .. player + 1 .. " BRAIN DETACHED, ROBOT IN USE!"
+							.. "\n" .. self.GS["Brain" .. player .. "SkillPoints"] .. " POINTS AVAILABLE";
+							CF.DrawString(text, pos + Vector(0, 0), 270, 40, nil, nil, 1, 1);
+						end
+						lowBarCenterText = "L/R - Mode";
+					else
+						local skills = {};
+						local selectedSkill = self.ShipControlSelectedSkillUpgrade;
+
+						do
+							local skill;
+
+							skill = {};
+							skill.Name = "Toughness";
+							skill.Variable = "Brain" .. player .. "Toughness";
+							skill.Description = "How much punishment your brain robot can take.";
+							skill.Price = (tonumber(self.GS[skill.Variable]) + 1) * 2;
+							table.insert(skills, skill);
+
+							skill = {};
+							skill.Name = "Force field";
+							skill.Variable = "Brain" .. player .. "Field";
+							skill.Description = "Regeneration speed of force field.";
+							skill.Price = tonumber(self.GS[skill.Variable]) + 1;
+							table.insert(skills, skill);
+
+							skill = {};
+							skill.Name = "Telekinesis";
+							skill.Variable = "Brain" .. player .. "Telekinesis";
+							skill.Description = "Telekinesis abilities and their power.";
+							skill.Price = tonumber(self.GS[skill.Variable]) + 1;
+							table.insert(skills, skill);
+
+							skill = {};
+							skill.Name = "Scanning";
+							skill.Variable = "Brain" .. player .. "Scanner";
+							skill.Description = "Built-in scanner range.";
+							skill.Price = tonumber(self.GS[skill.Variable]) + 1;
+							table.insert(skills, skill);
+
+							skill = {};
+							skill.Name = "Healing";
+							skill.Variable = "Brain" .. player .. "Heal";
+							skill.Description = "The strength of automatic healing of nearby allies.";
+							skill.Price = tonumber(self.GS[skill.Variable]) + 1;
+							table.insert(skills, skill);
+
+							skill = {};
+							skill.Name = "Self-Healing";
+							skill.Variable = "Brain" .. player .. "SelfHeal";
+							skill.Description = "How many times brain-robot can fully heal itself.";
+							skill.Price = tonumber(self.GS[skill.Variable]) + 1;
+							table.insert(skills, skill);
+
+							skill = {};
+							skill.Name = "Engineering";
+							skill.Variable = "Brain" .. player .. "Fix";
+							skill.Description = "How many times brain-robot can fix a weapon. Every level adds 3 charges.";
+							skill.Price = tonumber(self.GS[skill.Variable]) + 1;
+							table.insert(skills, skill);
+
+							skill = {};
+							skill.Name = "Quantum Splitter";
+							skill.Variable = "Brain" .. player .. "Splitter";
+							skill.Description = "Effectiveness of built-in quantum splitter matter processing.";
+							skill.Price = tonumber(self.GS[skill.Variable]) + 1;
+							table.insert(skills, skill);
+						end
+
+						if tonumber(self.GS["Brain" .. player .. "Splitter"]) > 0 then
+							skill = {};
+							skill.Name = "Quantum Storage";
+							skill.Variable = "Brain" .. player .. "QuantumCapacity";
+							skill.Description = "Capacity of built-in quantum storage.";
+							skill.Price = tonumber(self.GS[skill.Variable]) + 1;
+							table.insert(skills, skill);
+						end
+
+						if up then
+							selectedSkill = selectedSkill - 1;
+							if selectedSkill < 1 then
+								selectedSkill = #skills;
+							end
+						end
+
+						if down then
+							selectedSkill = selectedSkill + 1;
+							if selectedSkill > #skills then
+								selectedSkill = 1;
+							end
+						end
+
+						local current = tonumber(self.GS[skills[selectedSkill].Variable]);
+						local maximum = 5;
+						local price = skills[selectedSkill].Price;
+						local sklpts = tonumber(self.GS["Brain" .. player .. "SkillPoints"]);
+
+						if cont:IsState(Controller.WEAPON_FIRE) then
+							if not self.FirePressed[player] then
+								self.FirePressed[player] = true;
+
+								if current < maximum and price <= sklpts then
+									self.GS[skills[selectedSkill].Variable] = current + 1;
+									self.GS["Brain" .. player .. "SkillPoints"] = sklpts - price;
+								end
+							end
+						else
+							self.FirePressed[player] = false;
+						end
+
+						lineOffset = topOfPage;
+						CF.DrawString("LEVEL: " .. self.GS["Brain" .. player .. "Level"], pos + Vector(-138, lineOffset), 270, 11);
+						CF.DrawString(self.GS["Brain" .. player .. "Exp"] .. " / 250 EXP", pos + Vector(-3, lineOffset), 270, 11, nil, nil, 2);
+						lineOffset = lineOffset + 16;
+
+						if price > sklpts then
+							if self.Time % 2 == 0 then
+								CF.DrawString("POINTS: " .. sklpts, pos + Vector(-70, lineOffset), 270, 11, nil, nil, 1);
+							end
+						else
+							CF.DrawString("POINTS: " .. sklpts, pos + Vector(-70, lineOffset), 270, 11, nil, nil, 1);
+						end
+						lineOffset = lineOffset + 17;
+
+						for i = 1, #skills do
+							if i == selectedSkill then
+								CF.DrawString("> " .. skills[i].Name, pos + Vector(-138, lineOffset), 130, 11);
+							else
+								CF.DrawString(skills[i].Name, pos + Vector(-138, lineOffset), 130, 11);
+							end
+							lineOffset = lineOffset + 11;
+						end
+						
+						lineOffset = topOfPage;
+						CF.DrawString("Current level: ", pos + Vector(3, lineOffset), 270, 11);
+						CF.DrawString(current .. " / " .. maximum, pos + Vector(138, lineOffset), 270, 11, nil, nil, 2);
+						lineOffset = lineOffset + 16;
+
+						if current < maximum then
+							CF.DrawString("Skill price: " .. skills[selectedSkill].Price .. " pts", pos + Vector(70, lineOffset), 135, 11, nil, nil, 1);
+						else
+							CF.DrawString("Skill already maxxed", pos + Vector(70, lineOffset), 135, 11, nil, nil, 1);
+						end
+						lineOffset = lineOffset + 17;
+						
+						local text = skills[selectedSkill].Description;
+						text = CF.SplitStringToFitWidth(text, 115, false);
+						CF.DrawString(text, pos + Vector(70, lineOffset), 115, 110, nil, nil, 1);
+						lineOffset = lineOffset + 11;
+
+						self.ShipControlSelectedSkillUpgrade = selectedSkill;
+
+						lowBarCenterText = "U/D - Select, L/R - Mode, FIRE - Upgrade";
+					end
+
+					highBarRightText = "P" .. player + 1;
+					highBarLeftText = "BRAIN SKILLS";
+				end
+				-----------------------------------------------------------------------
+				if self.ShipControlMode == self.ShipControlPanelModes.UPGRADE then
+					-- Create upgrades list
+					local upgrades = {};
+					local selectedUpgrade = self.ShipControlSelectedUpgrade;
+
+					do
+						local upgrade;
+
+						upgrade = {};
+						upgrade.Name = "Cryo-chambers";
+						upgrade.Variable = "PlayerVesselClonesCapacity";
+						upgrade.Max = CF.VesselMaxClonesCapacity[self.GS["PlayerVessel"]];
+						upgrade.Description = "How many bodies you can store.";
+						upgrade.Price = CF.ClonePrice;
+						upgrade.Bundle = 1;
+						table.insert(upgrades, upgrade);
+
+						upgrade = {};
+						upgrade.Name = "Storage";
+						upgrade.Variable = "PlayerVesselStorageCapacity";
+						upgrade.Max = CF.VesselMaxStorageCapacity[self.GS["PlayerVessel"]];
+						upgrade.Description = "How many items you can store.";
+						upgrade.Price = CF.StoragePrice;
+						upgrade.Bundle = 5;
+						table.insert(upgrades, upgrade);
+
+						upgrade = {};
+						upgrade.Name = "Life support";
+						upgrade.Variable = "PlayerVesselLifeSupport";
+						upgrade.Max = CF.VesselMaxLifeSupport[self.GS["PlayerVessel"]];
+						upgrade.Description = "How many bodies can be active on ship simultaneously.";
+						upgrade.Price = CF.LifeSupportPrice;
+						upgrade.Bundle = 1;
+						table.insert(upgrades, upgrade);
+
+						upgrade = {};
+						upgrade.Name = "Communication";
+						upgrade.Variable = "PlayerVesselCommunication";
+						upgrade.Max = CF.VesselMaxCommunication[self.GS["PlayerVessel"]];
+						upgrade.Description = "How many bodies you can control on planet surface.";
+						upgrade.Price = CF.CommunicationPrice;
+						upgrade.Bundle = 1;
+						table.insert(upgrades, upgrade);
+
+						upgrade = {};
+						upgrade.Name = "Engine";
+						upgrade.Variable = "PlayerVesselSpeed";
+						upgrade.Max = CF.VesselMaxSpeed[self.GS["PlayerVessel"]];
+						upgrade.Description = "Speed of the vessel. Faster ships are harder to intercept.";
+						upgrade.Price = CF.EnginePrice;
+						upgrade.Bundle = 1;
+						table.insert(upgrades, upgrade);
+
+						upgrade = {};
+						upgrade.Name = "Turret systems";
+						upgrade.Variable = "PlayerVesselTurrets";
+						upgrade.Max = CF.VesselMaxTurrets[self.GS["PlayerVessel"]];
+						upgrade.Description = "How many turrets can be deployed inside the ship.";
+						upgrade.Price = CF.TurretPrice;
+						upgrade.Bundle = 1;
+						table.insert(upgrades, upgrade);
+
+						upgrade = {};
+						upgrade.Name = "Turret storage";
+						upgrade.Variable = "PlayerVesselTurretStorage";
+						upgrade.Max = CF.VesselMaxTurretStorage[self.GS["PlayerVessel"]];
+						upgrade.Description = "How many turrets can be stored in the ship.";
+						upgrade.Price = CF.TurretStoragePrice;
+						upgrade.Bundle = 1;
+						table.insert(upgrades, upgrade);
+
+						upgrade = {};
+						upgrade.Name = "Bomb bays";
+						upgrade.Variable = "PlayerVesselBombBays";
+						upgrade.Max = CF.VesselMaxBombBays[self.GS["PlayerVessel"]];
+						upgrade.Description = "How many bombs can be launched simultaneously.";
+						upgrade.Price = CF.BombBayPrice;
+						upgrade.Bundle = 1;
+						table.insert(upgrades, upgrade);
+
+						upgrade = {};
+						upgrade.Name = "Bomb storage";
+						upgrade.Variable = "PlayerVesselBombStorage";
+						upgrade.Max = CF.VesselMaxBombStorage[self.GS["PlayerVessel"]];
+						upgrade.Description = "How many bombs can be stored in the ship.";
+						upgrade.Price = CF.BombStoragePrice;
+						upgrade.Bundle = 1;
+						table.insert(upgrades, upgrade);
+					end
+
+					if up then
+						selectedUpgrade = selectedUpgrade - 1;
+						if selectedUpgrade < 1 then
+							selectedUpgrade = #upgrades;
+						end
+					end
+
+					if down then
+						selectedUpgrade = selectedUpgrade + 1;
+						if selectedUpgrade > #upgrades then
+							selectedUpgrade = 1;
+						end
+					end
+
+					local current = tonumber(self.GS[upgrades[selectedUpgrade].Variable]);
+					local maximum = upgrades[selectedUpgrade].Max;
+					local bundle = upgrades[selectedUpgrade].Bundle;
+					local amount = math.min(maximum - current, bundle);
+					local price = upgrades[selectedUpgrade].Price * amount;
+
+					if cont:IsState(Controller.WEAPON_FIRE) then
+						if not self.FirePressed[player] then
+							self.FirePressed[player] = true;
+
+							if current < maximum and price <= CF.GetPlayerGold(self.GS, 0) then
+								self.GS[upgrades[selectedUpgrade].Variable] = current + amount;
+								self:SetTeamFunds(CF.ChangeGold(self.GS, -price), CF.PlayerTeam);
+
+								-- Re-init turrets panels to add new turrets to ship
+								if selectedUpgrade == 6 then
+									self:InitTurretsControlPanelUI();
+								end
+							end
 						end
 					else
-						CF.DrawString("POINTS: " .. sklpts, pos + Vector(-62 - 71, -46), 270, 40)
+						self.FirePressed[player] = false;
 					end
 
-					CF.DrawString("Current level: " .. current, pos + Vector(10, -30), 270, 40)
-					CF.DrawString("Maximum level: " .. maximum, pos + Vector(10, -20), 270, 40)
+					lineOffset = topOfPage;
+					CF.DrawString("SELECT UPGRADE: ", pos + Vector(-138, lineOffset), 270, 11);
+					lineOffset = lineOffset + 16;
+
+					if price > CF.GetPlayerGold(self.GS, 0) then
+						if self.Time % 2 == 0 then
+							CF.DrawString("FUNDS: " .. CF.GetPlayerGold(self.GS, 0) .. " oz", pos + Vector(-70, lineOffset), 135, 11, nil, nil, 1)
+						end
+					else
+						CF.DrawString("FUNDS: " .. CF.GetPlayerGold(self.GS, 0) .. " oz", pos + Vector(-70, lineOffset), 135, 11, nil, nil, 1)
+					end
+					lineOffset = lineOffset + 17;
+
+					for i = 1, #upgrades do
+						if i == selectedUpgrade then
+							CF.DrawString("> " .. upgrades[i].Name, pos + Vector(-138, lineOffset), 135, 11);
+						else
+							CF.DrawString(upgrades[i].Name, pos + Vector(-138, lineOffset), 135, 11);
+						end
+						lineOffset = lineOffset + 11;
+					end
+
+					lineOffset = topOfPage;
+					CF.DrawString("Current: ", pos + Vector(3, lineOffset), 135, 11);
+					CF.DrawString(current .. " / " .. maximum, pos + Vector(138, lineOffset), 135, 11, nil, nil, 2);
+					lineOffset = lineOffset + 16;
+
 					if current < maximum then
-						CF.DrawString(
-							"Points needed: "
-								.. self.ShipControlSkillUpgrades[self.ShipControlSelectedSkillUpgrade]["Price"],
-							pos + Vector(10, -10),
-							270,
-							40
-						)
+						CF.DrawString("Upgrade price: " .. price .. " oz", pos + Vector(70, lineOffset), 125, 11, nil, nil, 1)
+					else
+						CF.DrawString("Upgrade already maxxed", pos + Vector(70, lineOffset), 125, 11, nil, nil, 1)
+					end
+					lineOffset = lineOffset + 17;
+
+					local text = upgrades[selectedUpgrade].Description .. (amount > 1 and " ( x" .. amount .. " )" or "");
+					text = CF.SplitStringToFitWidth(text, 115, false);
+					CF.DrawString(text, pos + Vector(70, lineOffset), 115, 88, nil, nil, 1);
+					lineOffset = lineOffset + 11;
+
+					self.ShipControlSelectedUpgrade = selectedUpgrade;
+
+					highBarLeftText = "UPGRADE SHIP";
+					highBarRightText = CF.VesselName[self.GS["PlayerVessel"]];
+					lowBarCenterText = "U/D - Select, L/R - Mode, FIRE - Upgrade";
+				end
+				-----------------------------------------------------------------------
+				if self.ShipControlMode == self.ShipControlPanelModes.SHIPYARD then
+					local vessels = {};
+					local vesselSelected = self.ShipControlSelectedShip;
+					for i = 1, #CF.Vessel do
+						table.insert(vessels, CF.Vessel[i]);
 					end
 
-					CF.DrawString(
-						self.ShipControlSkillUpgrades[self.ShipControlSelectedSkillUpgrade]["Description"],
-						pos + Vector(10, 10),
-						130,
-						80
-					)
+					if up then
+						vesselSelected = vesselSelected - 1;
+						if vesselSelected < 1 then
+							vesselSelected = #vessels;
+						end
+					end
+
+					if down then
+						vesselSelected = vesselSelected + 1;
+						if vesselSelected > #vessels then
+							vesselSelected = 1;
+						end
+					end
+
+					local id = vessels[vesselSelected];
+					local price = CF.VesselPrice[id];
+					local tradeInDeduction = CF.VesselPrice[self.GS["PlayerVessel"]] * CF.ShipSellCoeff;
+					local installFee = 0;
+					local specLines = {};
+
+					-- Procedurally index all of these values, which will look less ugly when a Vessel is an instantiated type.
+					local maximumPrefix = "VesselMax";
+					local referencePrefix = "VesselStart";
+					local playerPrefix = "PlayerVessel";
+					local upgradePostfixes = {
+						"ClonesCapacity", "StorageCapacity", "LifeSupport",
+						"Communication", "Speed", "Turrets",
+						"TurretStorage", "BombBays", "BombStorage"
+					};
+					local priceKeys = {
+						"ClonePrice", "StoragePrice", "LifeSupportPrice",
+						"CommunicationPrice", "EnginePrice", "TurretPrice",
+						"TurretStoragePrice", "BombBayPrice", "BombStoragePrice"
+					};
+					local upgradeLabels = {
+						"Cryo", "Storage", "Life support",
+						"Communication", "Engine", "Turrets",
+						"Turret storage", "Bomb bays", "Bomb Storage"
+					};
+
+					for i = 1, #upgradePostfixes do
+						local packageUnits = CF[referencePrefix .. upgradePostfixes[i]][id];
+						local currentUnits = tonumber(self.GS[playerPrefix .. upgradePostfixes[i]]);
+						local maximumUnits = CF[maximumPrefix .. upgradePostfixes[i]][id];
+						local actualUnits = packageUnits + currentUnits;
+						local extraUnits = 0;
+
+						if actualUnits > maximumUnits then
+							extraUnits = actualUnits - maximumUnits;
+							actualUnits = maximumUnits;
+						end
+
+						local purchaseUnits = actualUnits - packageUnits;
+
+						if purchaseUnits < 0 then
+							purchaseUnits = 0;
+						end
+
+						tradeInDeduction = tradeInDeduction + extraUnits * CF[priceKeys[i]] * CF.ShipSellCoeff;
+						installFee = installFee + purchaseUnits * CF[priceKeys[i]] * CF.ShipDevInstallCoeff;
+
+						table.insert(specLines, actualUnits .. " / " .. maximumUnits);
+					end
+
+					total = price + installFee - tradeInDeduction;
 
 					if cont:IsState(Controller.WEAPON_FIRE) then
 						if not self.FirePressed[player] then
 							self.FirePressed[player] = true
 
-							if current < maximum and price <= sklpts then
-								self.GS[self.ShipControlSkillUpgrades[self.ShipControlSelectedSkillUpgrade]["Variable"]] = current
-									+ 1
-								sklpts = sklpts - price
-								self.GS["Brain" .. player .. "SkillPoints"] = sklpts
+							local ok = true
+
+							if CF.CountUsedClonesInArray(self.Clones) > actcryo then
+								self.ShipControlMessageTime = self.Time
+								self.ShipControlMessageText = "Not enough storage to transfer clones"
+								ok = false
+							end
+
+							if CF.CountUsedStorageInArray(self.StorageItems) > actstor then
+								self.ShipControlMessageTime = self.Time
+								self.ShipControlMessageText = "Not enough storage to transfer items"
+								ok = false
+							end
+
+							if CF.GetPlayerGold(self.GS, 0) < total then
+								self.ShipControlMessageTime = self.Time
+								self.ShipControlMessageText = "Not enough gold"
+								ok = false
+							end
+
+							if ok then
+								-- Pay
+								self:SetTeamFunds(CF.ChangeGold(self.GS, -total), CF.PlayerTeam)
+
+								-- Clear turrets pos
+								local count = tonumber(self.GS["PlayerVesselTurrets"])
+								for i = 1, count do
+									self.GS["Actors - Turret" .. i .. "X"] = nil
+									self.GS["Actors - Turret" .. i .. "Y"] = nil
+								end
+
+								-- Assign new ship
+								self.GS["PlayerVessel"] = id
+
+								self.GS["PlayerVesselStorageCapacity"] = actstor
+								self.GS["PlayerVesselClonesCapacity"] = actcryo
+								self.GS["PlayerVesselLifeSupport"] = actlife
+								self.GS["PlayerVesselCommunication"] = actcomm
+								self.GS["PlayerVesselSpeed"] = actengn
+								self.GS["PlayerVesselTurrets"] = actturr
+								self.GS["PlayerVesselTurretStorage"] = actturs
+								self.GS["PlayerVesselBombBays"] = actbmbb
+								self.GS["PlayerVesselBombStorage"] = actbmbs
+
+								self.GS["Scene"] = CF.VesselScene[self.GS["PlayerVessel"]]
+
+								-- Save everything and restart script
+								self:SaveActors(true);
+								self.GS["DeserializeOnboard"] = "True";
+
+								self:SaveCurrentGameState()
+								self.EnableBrainSelection = false
+								self:DestroyConsoles()
+
+								self:LoadCurrentGameState()
+								self:LaunchScript(self.GS["Scene"], "Tactics.lua")
+								return
 							end
 						end
 					else
 						self.FirePressed[player] = false
 					end
 
-					-- Show list
-					for i = 1, #self.ShipControlSkillUpgrades do
-						if i == self.ShipControlSelectedSkillUpgrade then
-							CF.DrawString(
-								"> " .. self.ShipControlSkillUpgrades[i]["Name"],
-								pos + Vector(-62 - 71, -40 + i * 11),
-								130,
-								12
-							)
+					lineOffset = topOfPage;
+					CF.DrawString("SELECT SHIP:", pos + Vector(-138, lineOffset), 135, 11);
+					lineOffset = lineOffset + 11;
+
+					for i = 1, #vessels do
+						local id = vessels[i]
+
+						if i == vesselSelected then
+							CF.DrawString("> " .. CF.VesselName[id], pos + Vector(-138, lineOffset), 135, 11)
 						else
-							CF.DrawString(
-								self.ShipControlSkillUpgrades[i]["Name"],
-								pos + Vector(-62 - 71, -40 + i * 11),
-								130,
-								12
-							)
+							CF.DrawString(CF.VesselName[id], pos + Vector(-138, lineOffset), 135, 11)
+						end
+						lineOffset = lineOffset + 11;
+					end
+					
+					lineOffset = -topOfPage;
+					CF.DrawString("BASE PRICE: ", pos + Vector(-138, lineOffset), 135, 11, nil, nil, 0, 2)
+					CF.DrawString(tostring(price) .. " oz", pos + Vector(-3, lineOffset), 135, 11, nil, nil, 2, 2)
+					lineOffset = lineOffset - 11;
+
+					CF.DrawString("YOUR PRICE: ", pos + Vector(-138, lineOffset), 135, 11, nil, nil, 0, 2)
+					CF.DrawString(tostring(total) .. " oz", pos + Vector(-3, lineOffset), 135, 11, nil, nil, 2, 2)
+					lineOffset = lineOffset - 11;
+
+					CF.DrawString("FUNDS: ", pos + Vector(-138, lineOffset), 135, 11, nil, nil, 0, 2)
+					CF.DrawString(CF.GetPlayerGold(self.GS, 0) .. " oz", pos + Vector(-3, lineOffset), 135, 11, nil, nil, 2, 2)
+					lineOffset = lineOffset - 11;
+					
+					lineOffset = topOfPage;
+					CF.DrawString("SPECIFICATIONS:", pos + Vector(70, lineOffset), 135, 11, nil, nil, 1)
+					lineOffset = lineOffset + 17;
+					for i = 1, #specLines do
+						CF.DrawString(upgradeLabels[i] .. ": ", pos + Vector(9, lineOffset), 123, 11, nil, nil, 0)
+						CF.DrawString(specLines[i], pos + Vector(132, lineOffset), 123, 11, nil, nil, 2)
+						lineOffset = lineOffset + 11;
+					end
+
+					self.ShipControlSelectedShip = vesselSelected;
+					
+					highBarLeftText = "PURCHASE SHIP";
+					lowBarCenterText = "U/D - Select ship, L/R - Mode, FIRE - Buy ship";
+				end
+				-----------------------------------------------------------------------
+
+				if not self.encounterData.initialized then
+					if cont:IsState(Controller.PRESS_LEFT) then
+						self.ShipControlMode = self.ShipControlMode - 1
+						self.ShipSelectedItem = 1
+						self.LastShipSelectedItem = 0
+
+						if self.ShipControlMode == -1 then
+							self.ShipControlMode = self.ShipControlPanelModes.REPORT
 						end
 					end
 
-					CF.DrawString("U/D - Select, L/R - Mode, FIRE - Upgrade", pos + Vector(-62 - 71, 78), 270, 40)
-					self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(-71, 0))
-					self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(70, 0))
-				end
+					if cont:IsState(Controller.PRESS_RIGHT) then
+						self.ShipControlMode = self.ShipControlMode + 1
+						self.ShipSelectedItem = 1
+						self.LastShipSelectedItem = 0
 
-				CF.DrawString("Player " .. player + 1 .. " brain robot maintenance", pos + Vector(-62 - 71, -78), 270, 40)
-
-				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, -77))
-				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, 78))
-			end
-			-------------------------------------------------------------------------------
-			if self.ShipControlMode == self.ShipControlPanelModes.UPGRADE then
-				-- Create upgrades list
-				self.ShipControlUpgrades = {}
-				self.ShipControlUpgrades[1] = {}
-				self.ShipControlUpgrades[1]["Name"] = "Cryo-chambers"
-				self.ShipControlUpgrades[1]["Variable"] = "PlayerVesselClonesCapacity"
-				self.ShipControlUpgrades[1]["Max"] = CF.VesselMaxClonesCapacity[self.GS["PlayerVessel"]]
-				self.ShipControlUpgrades[1]["Description"] = "How many bodies you can store"
-				self.ShipControlUpgrades[1]["Price"] = CF.ClonePrice
-				self.ShipControlUpgrades[1]["Bundle"] = 1
-
-				self.ShipControlUpgrades[2] = {}
-				self.ShipControlUpgrades[2]["Name"] = "Storage"
-				self.ShipControlUpgrades[2]["Variable"] = "PlayerVesselStorageCapacity"
-				self.ShipControlUpgrades[2]["Max"] = CF.VesselMaxStorageCapacity[self.GS["PlayerVessel"]]
-				self.ShipControlUpgrades[2]["Description"] = "How many items you can store"
-				self.ShipControlUpgrades[2]["Price"] = CF.StoragePrice
-				self.ShipControlUpgrades[2]["Bundle"] = 5
-
-				self.ShipControlUpgrades[3] = {}
-				self.ShipControlUpgrades[3]["Name"] = "Life support"
-				self.ShipControlUpgrades[3]["Variable"] = "PlayerVesselLifeSupport"
-				self.ShipControlUpgrades[3]["Max"] = CF.VesselMaxLifeSupport[self.GS["PlayerVessel"]]
-				self.ShipControlUpgrades[3]["Description"] = "How many bodies can be active on ship simultaneously"
-				self.ShipControlUpgrades[3]["Price"] = CF.LifeSupportPrice
-				self.ShipControlUpgrades[3]["Bundle"] = 1
-
-				self.ShipControlUpgrades[4] = {}
-				self.ShipControlUpgrades[4]["Name"] = "Communication"
-				self.ShipControlUpgrades[4]["Variable"] = "PlayerVesselCommunication"
-				self.ShipControlUpgrades[4]["Max"] = CF.VesselMaxCommunication[self.GS["PlayerVessel"]]
-				self.ShipControlUpgrades[4]["Description"] = "How many bodies you can control on planet surface"
-				self.ShipControlUpgrades[4]["Price"] = CF.CommunicationPrice
-				self.ShipControlUpgrades[4]["Bundle"] = 1
-
-				self.ShipControlUpgrades[5] = {}
-				self.ShipControlUpgrades[5]["Name"] = "Engine"
-				self.ShipControlUpgrades[5]["Variable"] = "PlayerVesselSpeed"
-				self.ShipControlUpgrades[5]["Max"] = CF.VesselMaxSpeed[self.GS["PlayerVessel"]]
-				self.ShipControlUpgrades[5]["Description"] =
-					"Speed of the vessel. Faster ships are harder to intercept."
-				self.ShipControlUpgrades[5]["Price"] = CF.EnginePrice
-				self.ShipControlUpgrades[5]["Bundle"] = 1
-
-				self.ShipControlUpgrades[6] = {}
-				self.ShipControlUpgrades[6]["Name"] = "Turret systems"
-				self.ShipControlUpgrades[6]["Variable"] = "PlayerVesselTurrets"
-				self.ShipControlUpgrades[6]["Max"] = CF.VesselMaxTurrets[self.GS["PlayerVessel"]]
-				self.ShipControlUpgrades[6]["Description"] = "How many turrets can be deployed inside the ship"
-				self.ShipControlUpgrades[6]["Price"] = CF.TurretPrice
-				self.ShipControlUpgrades[6]["Bundle"] = 1
-
-				self.ShipControlUpgrades[7] = {}
-				self.ShipControlUpgrades[7]["Name"] = "Turret storage"
-				self.ShipControlUpgrades[7]["Variable"] = "PlayerVesselTurretStorage"
-				self.ShipControlUpgrades[7]["Max"] = CF.VesselMaxTurretStorage[self.GS["PlayerVessel"]]
-				self.ShipControlUpgrades[7]["Description"] = "How many turrets can be stored in the ship"
-				self.ShipControlUpgrades[7]["Price"] = CF.TurretStoragePrice
-				self.ShipControlUpgrades[7]["Bundle"] = 1
-
-				self.ShipControlUpgrades[8] = {}
-				self.ShipControlUpgrades[8]["Name"] = "Bomb bays"
-				self.ShipControlUpgrades[8]["Variable"] = "PlayerVesselBombBays"
-				self.ShipControlUpgrades[8]["Max"] = CF.VesselMaxBombBays[self.GS["PlayerVessel"]]
-				self.ShipControlUpgrades[8]["Description"] = "How many bombs can be launched simultaneously"
-				self.ShipControlUpgrades[8]["Price"] = CF.BombBayPrice
-				self.ShipControlUpgrades[8]["Bundle"] = 1
-
-				self.ShipControlUpgrades[9] = {}
-				self.ShipControlUpgrades[9]["Name"] = "Bomb storage"
-				self.ShipControlUpgrades[9]["Variable"] = "PlayerVesselBombStorage"
-				self.ShipControlUpgrades[9]["Max"] = CF.VesselMaxBombStorage[self.GS["PlayerVessel"]]
-				self.ShipControlUpgrades[9]["Description"] = "How many bombs can be stored in the ship"
-				self.ShipControlUpgrades[9]["Price"] = CF.BombStoragePrice
-				self.ShipControlUpgrades[9]["Bundle"] = 1
-
-				local up = false
-				local down = false
-
-				if cont:IsState(Controller.PRESS_UP) then
-					self.HoldTimer:Reset()
-					up = true
-				end
-
-				if cont:IsState(Controller.PRESS_DOWN) then
-					self.HoldTimer:Reset()
-					down = true
-				end
-
-				if self.HoldTimer:IsPastSimMS(CF.KeyRepeatDelay) then
-					self.HoldTimer:Reset()
-
-					if cont:IsState(Controller.HOLD_UP) then
-						up = true
-					end
-
-					if cont:IsState(Controller.HOLD_DOWN) then
-						down = true
-					end
-				end
-
-				if up then
-					-- Select planet
-					self.ShipControlSelectedUpgrade = self.ShipControlSelectedUpgrade - 1
-					if self.ShipControlSelectedUpgrade < 1 then
-						self.ShipControlSelectedUpgrade = #self.ShipControlUpgrades
-					end
-				end
-
-				if down then
-					-- Select planet
-					self.ShipControlSelectedUpgrade = self.ShipControlSelectedUpgrade + 1
-					if self.ShipControlSelectedUpgrade > #self.ShipControlUpgrades then
-						self.ShipControlSelectedUpgrade = 1
-					end
-				end
-
-				-- Show planet list
-				for i = 1, #self.ShipControlUpgrades do
-					if i == self.ShipControlSelectedUpgrade then
-						CF.DrawString(
-							"> " .. self.ShipControlUpgrades[i]["Name"],
-							pos + Vector(-62 - 71, -40 + i * 11),
-							130,
-							12
-						)
-					else
-						CF.DrawString(
-							self.ShipControlUpgrades[i]["Name"],
-							pos + Vector(-62 - 71, -40 + i * 11),
-							130,
-							12
-						)
-					end
-				end
-
-				CF.DrawString("SELECT UPGRADE:", pos + Vector(-62 - 71, -60), 270, 40)
-
-				local current = tonumber(self.GS[self.ShipControlUpgrades[self.ShipControlSelectedUpgrade]["Variable"]])
-				local maximum = self.ShipControlUpgrades[self.ShipControlSelectedUpgrade]["Max"]
-				local bundle = self.ShipControlUpgrades[self.ShipControlSelectedUpgrade]["Bundle"]
-				amount = math.min(maximum - current, bundle)
-
-
-				local price = self.ShipControlUpgrades[self.ShipControlSelectedUpgrade]["Price"] * amount
-
-				if price > CF.GetPlayerGold(self.GS, 0) then
-					if self.Time % 2 == 0 then
-						CF.DrawString(
-							"FUNDS: " .. CF.GetPlayerGold(self.GS, 0) .. " oz",
-							pos + Vector(-62 - 71, -46),
-							270,
-							40
-						)
-					end
-				else
-					CF.DrawString(
-						"FUNDS: " .. CF.GetPlayerGold(self.GS, 0) .. " oz",
-						pos + Vector(-62 - 71, -46),
-						270,
-						40
-					)
-				end
-
-				CF.DrawString("Current: " .. current, pos + Vector(10, -30), 270, 40)
-				CF.DrawString("Maximum: " .. maximum, pos + Vector(10, -20), 270, 40)
-				if current < maximum then
-					CF.DrawString("Upgrade price: " .. price .. " oz", pos + Vector(10, -10), 270, 40)
-				end
-
-				if amount == 1 then
-					CF.DrawString(
-						self.ShipControlUpgrades[self.ShipControlSelectedUpgrade]["Description"],
-						pos + Vector(10, 10),
-						130,
-						80
-					)
-				else
-					CF.DrawString(
-						self.ShipControlUpgrades[self.ShipControlSelectedUpgrade]["Description"]
-							.. " ( x"
-							.. amount
-							.. " )",
-						pos + Vector(10, 10),
-						130,
-						80
-					)
-				end
-
-				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed[player] then
-						self.FirePressed[player] = true
-
-						if current < maximum and price <= CF.GetPlayerGold(self.GS, 0) then
-							self.GS[self.ShipControlUpgrades[self.ShipControlSelectedUpgrade]["Variable"]] = current
-								+ amount
-							self:SetTeamFunds(CF.ChangeGold(self.GS, -price), CF.PlayerTeam)
-
-							-- Re-init turrets panels to add new turrets to ship
-							if self.ShipControlSelectedUpgrade == 6 then
-								self:InitTurretsControlPanelUI()
+						if CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.SHIPYARD) then
+							if self.ShipControlMode == 8 then
+								self.ShipControlMode = self.ShipControlPanelModes.SHIPYARD
+							end
+						else
+							if self.ShipControlMode == 6 then
+								self.ShipControlMode = self.ShipControlPanelModes.BRAIN
 							end
 						end
 					end
 				else
-					self.FirePressed[player] = false
+					self.ShipControlMode = self.ShipControlPanelModes.REPORT
 				end
 
-				CF.DrawString("Upgrade ship", pos + Vector(-62 - 71, -78), 270, 40)
-				CF.DrawString("U/D - Select, L/R - Mode, FIRE - Upgrade", pos + Vector(-62 - 71, 78), 270, 40)
-				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(-71, 0))
-				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(70, 0))
-
-				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, -77))
-				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, 78))
-			end
-			---------------------------------------------------------------------------------------------------
-			if self.ShipControlMode == self.ShipControlPanelModes.SHIPYARD then
-				-- Create ship list
-				self.ShipControlShips = {}
-				for i = 1, #CF.Vessel do
-					local id = CF.Vessel[i]
-
-					if self.GS["PlayerVessel"] ~= id then
-						local nv = #self.ShipControlShips + 1
-
-						self.ShipControlShips[nv] = id
+				if self.ShipControlMessageText then
+					if self.Time <= self.ShipControlMessageTime + self.ShipControlMessagePeriod then
+						lowBarPalette = CF.MenuDeniedIdle;
+						lowBarCenterText = self.ShipControlMessageText;
 					end
 				end
 
-				local up = false
-				local down = false
+				CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 84, pos.X + 140, pos.Y - 71, highBarPalette);
+				CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y + 71, pos.X + 140, pos.Y + 84, lowBarPalette);
 
-				if cont:IsState(Controller.PRESS_UP) then
-					self.HoldTimer:Reset()
-					up = true
-				end
+				CF.DrawString(highBarLeftText, pos + Vector(-138, -77), 276, 11, nil, nil, 0, 1);
+				CF.DrawString(highBarCenterText, pos + Vector(0, -77), 276, 11, nil, nil, 1, 1);
+				CF.DrawString(highBarRightText, pos + Vector(138, -77), 276, 11, nil, nil, 2, 1);
 
-				if cont:IsState(Controller.PRESS_DOWN) then
-					self.HoldTimer:Reset()
-					down = true
-				end
-
-				if self.HoldTimer:IsPastSimMS(CF.KeyRepeatDelay) then
-					self.HoldTimer:Reset()
-
-					up = cont:IsState(Controller.HOLD_UP)
-					down = cont:IsState(Controller.HOLD_DOWN)
-				end
-
-				if up then
-					-- Select planet
-					self.ShipControlSelectedShip = self.ShipControlSelectedShip - 1
-					if self.ShipControlSelectedShip < 1 then
-						self.ShipControlSelectedShip = #self.ShipControlShips
-					end
-				end
-
-				if down then
-					-- Select planet
-					self.ShipControlSelectedShip = self.ShipControlSelectedShip + 1
-					if self.ShipControlSelectedShip > #self.ShipControlShips then
-						self.ShipControlSelectedShip = 1
-					end
-				end
-
-				-- Show ship list
-				for i = 1, #self.ShipControlShips do
-					local id = self.ShipControlShips[i]
-
-					if i == self.ShipControlSelectedShip then
-						CF.DrawString("> " .. CF.VesselName[id], pos + Vector(-62 - 71, -40 + i * 11), 130, 12)
-					else
-						CF.DrawString(CF.VesselName[id], pos + Vector(-62 - 71, -40 + i * 11), 130, 12)
-					end
-				end
-
-				CF.DrawString("SELECT SHIP:", pos + Vector(-62 - 71, -60), 140, 40)
-				CF.DrawString("SPECIFICATIONS:", pos + Vector(8, -60), 140, 40)
-
-				-- Show specs
-				local id = self.ShipControlShips[self.ShipControlSelectedShip]
-				local price = CF.VesselPrice[id]
-				local bonus = CF.VesselPrice[self.GS["PlayerVessel"]] * CF.ShipSellCoeff
-				local instl = 0
-
-				-- Cryo chambers
-				local newcryo = CF.VesselStartClonesCapacity[id]
-				local oldcryo = tonumber(self.GS["PlayerVesselClonesCapacity"])
-				local maxcryo = CF.VesselMaxClonesCapacity[id]
-				local actcryo = newcryo + oldcryo
-				local exccryo = 0
-				if actcryo > maxcryo then
-					exccryo = newcryo + oldcryo - maxcryo
-					actcryo = maxcryo
-				end
-
-				local inscryo = actcryo - newcryo
-				if inscryo < 0 then
-					inscryo = 0
-				end
-
-				bonus = bonus + exccryo * CF.ClonePrice * CF.ShipSellCoeff
-				instl = instl + inscryo * CF.ClonePrice * CF.ShipDevInstallCoeff
-
-				--print (inscryo)
-				--print (instl)
-
-				CF.DrawString("Cryo:", pos + Vector(8, -48), 140, 40)
-				CF.DrawString("" .. actcryo .. "/" .. maxcryo, pos + Vector(8 + 90, -48), 140, 40)
-
-				-- Storage
-				local newstor = CF.VesselStartStorageCapacity[id]
-				local oldstor = tonumber(self.GS["PlayerVesselStorageCapacity"])
-				local maxstor = CF.VesselMaxStorageCapacity[id]
-				local actstor = newstor + oldstor
-				local excstor = 0
-				if actstor > maxstor then
-					excstor = newstor + oldstor - maxstor
-					actstor = maxstor
-				end
-
-				local insstor = actstor - newstor
-				if insstor < 0 then
-					insstor = 0
-				end
-
-				bonus = bonus + excstor * CF.StoragePrice * CF.ShipSellCoeff
-				instl = instl + insstor * CF.StoragePrice * CF.ShipDevInstallCoeff
-
-				--print (insstor)
-				--print (instl)
-
-				CF.DrawString("Storage:", pos + Vector(8, -36), 140, 40)
-				CF.DrawString("" .. actstor .. "/" .. maxstor, pos + Vector(8 + 90, -36), 140, 40)
-
-				-- Life support
-				local newlife = CF.VesselStartLifeSupport[id]
-				local oldlife = tonumber(self.GS["PlayerVesselLifeSupport"])
-				local maxlife = CF.VesselMaxLifeSupport[id]
-				local actlife = newlife + oldlife
-				local exclife = 0
-				if actlife > maxlife then
-					exclife = newlife + oldlife - maxlife
-					actlife = maxlife
-				end
-
-				local inslife = actlife - newlife
-				if inslife < 0 then
-					inslife = 0
-				end
-
-				bonus = bonus + exclife * CF.LifeSupportPrice * CF.ShipSellCoeff
-				instl = instl + inslife * CF.LifeSupportPrice * CF.ShipDevInstallCoeff
-
-				--print (inslife)
-				--print (instl)
-
-				CF.DrawString("Life support:", pos + Vector(8, -24), 140, 40)
-				CF.DrawString("" .. actlife .. "/" .. maxlife, pos + Vector(8 + 90, -24), 140, 40)
-
-				-- Communcation
-				local newcomm = CF.VesselStartCommunication[id]
-				local oldcomm = tonumber(self.GS["PlayerVesselCommunication"])
-				local maxcomm = CF.VesselMaxCommunication[id]
-				local actcomm = newcomm + oldcomm
-				local exccomm = 0
-				if actcomm > maxcomm then
-					exccomm = newcomm + oldcomm - maxcomm
-					actcomm = maxcomm
-				end
-
-				local inscomm = actcomm - newcomm
-				if inscomm < 0 then
-					inscomm = 0
-				end
-				
-				bonus = bonus + exccomm * CF.CommunicationPrice * CF.ShipSellCoeff
-				instl = instl + inscomm * CF.CommunicationPrice * CF.ShipDevInstallCoeff
-
-				--print (inscomm)
-				--print (instl)
-
-				CF.DrawString("Communication:", pos + Vector(8, -12), 140, 40)
-				CF.DrawString("" .. actcomm .. "/" .. maxcomm, pos + Vector(8 + 90, -12), 140, 40)
-
-				-- Engine
-				local actengn = CF.VesselStartSpeed[id]
-				local maxengn = CF.VesselMaxSpeed[id]
-				local excengn = tonumber(self.GS["PlayerVesselEngine"])
-
-				CF.DrawString("Engine:", pos + Vector(8, 0), 140, 40)
-				CF.DrawString("" .. actengn .. "/" .. maxengn, pos + Vector(8 + 90, 0), 140, 40)
-
-				-- Turrets
-				local newturr = CF.VesselStartTurrets[id]
-				local oldturr = tonumber(self.GS["PlayerVesselTurrets"])
-				local maxturr = CF.VesselMaxTurrets[id]
-				local actturr = newturr + oldturr
-				local excturr = 0
-				if actturr > maxturr then
-					excturr = newturr + oldturr - maxturr
-					actturr = maxturr
-				end
-
-				local insturr = actturr - newturr
-				if insturr < 0 then
-					insturr = 0
-				end
-
-				bonus = bonus + excturr * CF.TurretPrice * CF.ShipSellCoeff
-				instl = instl + insturr * CF.TurretPrice * CF.ShipDevInstallCoeff
-
-				--print (insturr)
-				--print (instl)
-
-				CF.DrawString("Turrets:", pos + Vector(8, 12), 140, 40)
-				CF.DrawString("" .. actturr .. "/" .. maxturr, pos + Vector(8 + 90, 12), 140, 40)
-
-				-- Turrets storage
-				local newturs = CF.VesselStartTurretStorage[id]
-				local oldturs = tonumber(self.GS["PlayerVesselTurretStorage"])
-				local maxturs = CF.VesselMaxTurretStorage[id]
-				local actturs = newturs + oldturs
-				local excturs = 0
-				if actturs > maxturs then
-					excturs = newturs + oldturs - maxturs
-					actturs = maxturs
-				end
-
-				local insturs = actturs - newturs
-				if insturs < 0 then
-					insturs = 0
-				end
-
-				bonus = bonus + excturs * CF.TurretStoragePrice * CF.ShipSellCoeff
-				instl = instl + insturs * CF.TurretStoragePrice * CF.ShipDevInstallCoeff
-
-				--print (insturs)
-				--print (instl)
-
-				CF.DrawString("Turret storage:", pos + Vector(8, 24), 140, 40)
-				CF.DrawString("" .. actturs .. "/" .. maxturs, pos + Vector(8 + 90, 24), 140, 40)
-
-				-- Bomb bays
-				local newbmbb = CF.VesselStartBombBays[id]
-				local oldbmbb = tonumber(self.GS["PlayerVesselBombBays"])
-				local maxbmbb = CF.VesselMaxBombBays[id]
-				local actbmbb = newbmbb + oldbmbb
-				local excbmbb = 0
-				if actbmbb > maxbmbb then
-					excbmbb = newbmbb + oldbmbb - maxbmbb
-					actbmbb = maxbmbb
-				end
-
-				local insbmbb = actbmbb - newbmbb
-				if insbmbb < 0 then
-					insbmbb = 0
-				end
-
-				bonus = bonus + excbmbb * CF.BombBayPrice * CF.ShipSellCoeff
-				instl = instl + insbmbb * CF.BombBayPrice * CF.ShipDevInstallCoeff
-
-				--print (insbmbb)
-				--print (instl)
-
-				CF.DrawString("Bomb bays:", pos + Vector(8, 36), 140, 40)
-				CF.DrawString("" .. actbmbb .. "/" .. maxbmbb, pos + Vector(8 + 90, 36), 140, 40)
-
-				-- Bombs storage
-				local newbmbs = CF.VesselStartBombStorage[id]
-				local oldbmbs = tonumber(self.GS["PlayerVesselBombStorage"])
-				local maxbmbs = CF.VesselMaxBombStorage[id]
-				local actbmbs = newbmbs + oldbmbs
-				local excbmbs = 0
-				if actbmbs > maxbmbs then
-					excbmbs = newbmbs + oldbmbs - maxbmbs
-					actbmbs = maxbmbs
-				end
-
-				local insbmbs = actbmbs - newbmbs
-				if insbmbs < 0 then
-					insbmbs = 0
-				end
-
-				bonus = bonus + excbmbs * CF.BombStoragePrice * CF.ShipSellCoeff
-				instl = instl + insbmbs * CF.BombStoragePrice * CF.ShipDevInstallCoeff
-
-				--print (insbmbs)
-				--print (instl)
-
-				CF.DrawString("Bomb storage:", pos + Vector(8, 48), 140, 40)
-				CF.DrawString("" .. actbmbs .. "/" .. maxbmbs, pos + Vector(8 + 90, 48), 140, 40)
-
-				bonus = math.floor(bonus)
-				instl = math.floor(instl)
-
-				total = price + instl - bonus
-
-				CF.DrawString("BASE PRICE:", pos + Vector(8, 48) + Vector(-140, 0), 140, 40)
-				CF.DrawString(tostring(price) .. "oz", pos + Vector(76, 48) + Vector(-140, 0), 140, 40)
-
-				--CF.DrawString("INSTALL:", pos + Vector(8, 36), 140, 40)
-				--CF.DrawString(tostring(instl).."oz", pos + Vector(70, 36), 140, 40)
-
-				--CF.DrawString("TRADE-IN:", pos + Vector(8, 48), 140, 40)
-				--CF.DrawString(tostring(bonus).."oz", pos + Vector(70, 48), 140, 40)
-
-				CF.DrawString("YOUR PRICE:", pos + Vector(8, 60) + Vector(-140, 0), 140, 40)
-				CF.DrawString(tostring(total) .. "oz", pos + Vector(76, 60) + Vector(-140, 0), 140, 40)
-
-				if total > CF.GetPlayerGold(self.GS, 0) then
-					if self.Time % 2 == 0 then
-						CF.DrawString(
-							"FUNDS: " .. CF.GetPlayerGold(self.GS, 0) .. " oz",
-							pos + Vector(-62 - 71, -46),
-							270,
-							40
-						)
-					end
-				else
-					CF.DrawString(
-						"FUNDS: " .. CF.GetPlayerGold(self.GS, 0) .. " oz",
-						pos + Vector(-62 - 71, -46),
-						270,
-						40
-					)
-				end
-
-				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed[player] then
-						self.FirePressed[player] = true
-
-						local ok = true
-
-						if CF.CountUsedClonesInArray(self.Clones) > actcryo then
-							self.ShipControlLastMessageTime = self.Time
-							self.ShipControlMessageText = "Not enough storage to transfer clones"
-							ok = false
-						end
-
-						if CF.CountUsedStorageInArray(self.StorageItems) > actstor then
-							self.ShipControlLastMessageTime = self.Time
-							self.ShipControlMessageText = "Not enough storage to transfer items"
-							ok = false
-						end
-
-						if CF.GetPlayerGold(self.GS, 0) < total then
-							self.ShipControlLastMessageTime = self.Time
-							self.ShipControlMessageText = "Not enough gold"
-							ok = false
-						end
-
-						if ok then
-							-- Pay
-							self:SetTeamFunds(CF.ChangeGold(self.GS, -total), CF.PlayerTeam)
-
-							-- Clear turrets pos
-							local count = tonumber(self.GS["PlayerVesselTurrets"])
-							for i = 1, count do
-								self.GS["Actors - Turret" .. i .. "X"] = nil
-								self.GS["Actors - Turret" .. i .. "Y"] = nil
-							end
-
-							-- Assign new ship
-							self.GS["PlayerVessel"] = id
-
-							self.GS["PlayerVesselStorageCapacity"] = actstor
-							self.GS["PlayerVesselClonesCapacity"] = actcryo
-							self.GS["PlayerVesselLifeSupport"] = actlife
-							self.GS["PlayerVesselCommunication"] = actcomm
-							self.GS["PlayerVesselSpeed"] = actengn
-							self.GS["PlayerVesselTurrets"] = actturr
-							self.GS["PlayerVesselTurretStorage"] = actturs
-							self.GS["PlayerVesselBombBays"] = actbmbb
-							self.GS["PlayerVesselBombStorage"] = actbmbs
-
-							self.GS["Scene"] = CF.VesselScene[self.GS["PlayerVessel"]]
-
-							-- Save everything and restart script
-							self:SaveActors(true);
-							self.GS["DeserializeOnboard"] = "True";
-
-							self:SaveCurrentGameState()
-							self.EnableBrainSelection = false
-							self:DestroyConsoles()
-
-							self:LoadCurrentGameState()
-							self:LaunchScript(self.GS["Scene"], "Tactics.lua")
-							return
-						end
-					end
-				else
-					self.FirePressed[player] = false
-				end
-
-				CF.DrawString("Buy new ship", pos + Vector(-62 - 71, -78), 270, 40)
-				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(-71, 0))
-				self:PutGlow("ControlPanel_Ship_PlanetBack", pos + Vector(70, 0))
-
-				if self.Time < self.ShipControlLastMessageTime + self.ShipControlMessageIntrval then
-					self:PutGlow("ControlPanel_Ship_HorizontalPanelRed", pos + Vector(0, 78))
-					CF.DrawString(self.ShipControlMessageText, pos + Vector(-130, 78), 300, 10)
-				else
-					CF.DrawString("U/D - Select ship, L/R - Mode, FIRE - Buy ship", pos + Vector(-62 - 71, 78), 270, 40)
-					self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, 78))
-				end
-
-				self:PutGlow("ControlPanel_Ship_HorizontalPanel", pos + Vector(0, -77))
-			end
-			---------------------------------------------------------------------------------------------------
-
-			if not self.encounterData["initialized"] then
-				if cont:IsState(Controller.PRESS_LEFT) then
-					self.ShipControlMode = self.ShipControlMode - 1
-					self.ShipSelectedItem = 1
-					self.LastShipSelectedItem = 0
-
-					if self.ShipControlMode == -1 then
-						self.ShipControlMode = self.ShipControlPanelModes.REPORT
-					end
-				end
-
-				if cont:IsState(Controller.PRESS_RIGHT) then
-					self.ShipControlMode = self.ShipControlMode + 1
-					self.ShipSelectedItem = 1
-					self.LastShipSelectedItem = 0
-
-					if CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.SHIPYARD) then
-						if self.ShipControlMode == 8 then
-							self.ShipControlMode = self.ShipControlPanelModes.SHIPYARD
-						end
-					else
-						if self.ShipControlMode == 6 then
-							self.ShipControlMode = self.ShipControlPanelModes.BRAIN
-						end
-					end
-				end
-			else
-				self.ShipControlMode = self.ShipControlPanelModes.REPORT
+				CF.DrawString(lowBarCenterText, pos + Vector(0, 78), 276, 11, nil, nil, 1, 1);
 			end
 		end
 	end
 
-	if showidle and self.ShipControlPanelPos ~= nil and self.ShipControlPanelActor ~= nil then
-		self:PutGlow("ControlPanel_Ship", self.ShipControlPanelPos)
-		--CF.DrawString("BRIDGE",self.ShipControlPanelPos + Vector(-15,0),120,20 )
-		resetlists = true
+	if resetLists then
+		self.ShipControlSelectedLocation = 1;
+		self.ShipControlSelectedPlanet = 1;
+		self.ShipControlSelectedMission = 1;
+		self.ShipControlReputationPage = 1;
+		self.ShipControlSelectedSkillUpgrade = 1;
+		self.ShipControlSelectedUpgrade = 1;
+		self.ShipControlSelectedShip = 1;
 	end
 
-	if resetlists then
-		self.ShipControlMode = self.ShipControlPanelModes.LOCATION
-
-		self.ShipControlSelectedLocation = 1
-		self.ShipControlLocationList = nil
-		self.ShipControlLocationListStart = 1
-
-		self.ShipControlSelectedPlanet = 1
-		self.ShipControlPlanetListStart = 1
-		self.ShipControlPlanetList = nil
+	if showIdle and self.ShipControlPanelPos ~= nil and self.ShipControlPanelActor ~= nil then
+		local player = Activity.PLAYER_NONE;
+		local pos = self.ShipControlPanelPos;
+		local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Ship.png";
+		local rotation = 0;
+		local hflip = false;
+		local vflip = false;
+		PrimitiveMan:DrawBitmapPrimitive(player, pos, path, rotation, hflip, vflip);
 	end
 
 	if MovableMan:IsActor(self.ShipControlPanelActor) then
-		self.ShipControlPanelActor.Health = 100
+		self.ShipControlPanelActor.Health = 100;
 	end
 end

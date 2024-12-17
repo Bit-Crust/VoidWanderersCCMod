@@ -1,12 +1,12 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Generic functions to add to library
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 CF = {}
 
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Initialize global faction lists
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.InitFactions = function(activity)
 	print("CF.InitFactions")
 	CF.PlayerTeam = Activity.TEAM_1
@@ -32,7 +32,7 @@ CF.InitFactions = function(activity)
 
 	CF.OrdersRange = 175
 
-	CF.MaxMissions = 25
+	CF.MaxMissions = 30
 
 	CF.MaxHolograms = 23
 
@@ -48,10 +48,43 @@ CF.InitFactions = function(activity)
 	CF.MaxLevel = 150
 	CF.ExpPerLevel = 250
 
+	CF.ElementTypes = { BUTTON = 0, LABEL = 1, PLANET = 2 };
+	CF.ElementStates = { IDLE = 0, MOUSE_OVER = 1, PRESSED = 2 };
+	
+	CF.MenuNormalIdle = { 228, 50, 191 };
+	CF.MenuNormalMouseOver = { 228, 50, 190 };
+	CF.MenuNormalPressed = { 228, 224, 190 };
+	CF.MenuNormalPalette = {
+		[CF.ElementStates.IDLE] = CF.MenuNormalIdle,
+		[CF.ElementStates.MOUSE_OVER] = CF.MenuNormalMouseOver,
+		[CF.ElementStates.PRESSED] = CF.MenuNormalPressed
+	};
+	
+	CF.MenuSelectIdle = { 228, 50, 192 };
+	CF.MenuSelectMouseOver = { 228, 50, 191 };
+	CF.MenuSelectPressed = { 228, 224, 191 };
+	CF.MenuSelectPalette = {
+		[CF.ElementStates.IDLE] = CF.MenuSelectIdle,
+		[CF.ElementStates.MOUSE_OVER] = CF.MenuSelectMouseOver,
+		[CF.ElementStates.PRESSED] = CF.MenuSelectPressed
+	};
+	
+	CF.MenuDeniedIdle = { 228, 50, 240 };
+	CF.MenuDeniedMouseOver = { 228, 50, 241 };
+	CF.MenuDeniedPressed = { 228, 224, 241 };
+	CF.MenuDeniedPalette = {
+		[CF.ElementStates.IDLE] = CF.MenuDeniedIdle,
+		[CF.ElementStates.MOUSE_OVER] = CF.MenuDeniedMouseOver,
+		[CF.ElementStates.PRESSED] = CF.MenuDeniedPressed
+	};
+
+	local fontIcons = {};
+	fontIcons[242] = "Mods/VoidWanderers.rte/UI/Letters/242.png";
+	CF.FontIcons = fontIcons;
+
 	CF.Ranks = { 50, 125, 250, 500, 1000 }
 	CF.PrestigeSlice = CreatePieSlice("Claim Prestige PieSlice", CF.ModuleName)
 
-	CF.PermanentLimbLoss = true
 	CF.LimbID = { "FG1", "BG1", "FG2", "BG2", "HEAD", "JETPAK" }
 
 	CF.QuantumCapacityPerLevel = 50
@@ -84,7 +117,7 @@ CF.InitFactions = function(activity)
 	CF.AmbientEnemyDoubleSpawn = 0.25
 	CF.AmbientReinforcementsInterval = 80 -- In ticks
 
-	CF.MaxMissionReportLines = 13
+	CF.MaxMissionReportLines = 10
 
 	CF.ClonePrice = 1500
 	CF.StoragePrice = 200
@@ -143,10 +176,10 @@ CF.InitFactions = function(activity)
 
 	CF.MaxCPUPlayers = 255
 	CF.MaxSaveGames = 16
-	CF.MaxItems = 8 -- Max items per clone in clone storage
+	CF.MaxStoredActorInventory = 32 -- Good luck exceeding this haha
 	CF.MaxItemsPerPreset = 3 -- Max items per AI unit preset
 	CF.MaxStorageItems = 1000
-	CF.MaxClones = 1000 -- Max clones in clone storage
+	CF.MaxClones = 100 -- Max clones in clone storage
 	CF.MaxTurrets = 1000
 	CF.MaxBombs = 1000
 	CF.MaxUnitsPerDropship = 3
@@ -550,30 +583,30 @@ CF.InitFactions = function(activity)
 		dofile(CF.ExtensionFiles[i])
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.GetPlayerFaction = function(config, p)
 	return config["Player" .. p .. "Faction"]
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.GetPlayerAllyFaction = function(config)
 	return config["PlayerAllyFaction"]
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Update mission stats to store in campaign
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.UpdateGenericStats = function(config)
 	print("CF['UpdateGenericStats']")
 
 	config["Kills"] = tonumber(config["Kills"]) + CF.Activity:GetTeamDeathCount(CF.CPUTeam)
 	config["Deaths"] = tonumber(config["Deaths"]) + CF.Activity:GetTeamDeathCount(CF.PlayerTeam)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Transfers player to strategy screen after 3 second of victory message
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.ReturnOnMissionEnd = function()
 	if not CF.StartReturnCountdown then
 		if CF.Activity.ActivityState == Activity.OVER then
@@ -588,9 +621,9 @@ CF.ReturnOnMissionEnd = function()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- For a given char returns its index, width, vector offsset  if any
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.GetCharData = function(char)
 	if CF.Chars == nil then
 		CF.Chars = {}
@@ -661,7 +694,7 @@ CF.GetCharData = function(char)
 		CF.Chars["'"] = { 65, 8, Vector(0, -3) }
 		CF.Chars["a"] = { 66, 8, nil }
 		CF.Chars["b"] = { 67, 8, nil }
-		CF.Chars["c"] = { 68, 8, nil }
+		CF.Chars["gs"] = { 68, 8, nil }
 		CF.Chars["d"] = { 69, 8, nil }
 		CF.Chars["e"] = { 70, 8, nil }
 		CF.Chars["f"] = { 71, 8, nil }
@@ -701,20 +734,9 @@ CF.GetCharData = function(char)
 
 	return i[1], i[2] - 2, i[3]
 end
---------------------------------------------------------------------------
--- Return size of string in pixels
------------------------------------------------------------------------------
-CF.GetStringPixelWidth = function(str)
-	local len = 0
-	for i = 1, #str do
-		local cindex, cwidth, coffset = CF.GetCharData(string.sub(str, i, i))
-		len = len + cwidth
-	end
-	return len - #str
-end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.Split = function(str, pat)
 	local t = {} -- NOTE: use {n = 0} in Lua-5.0
 	local fpat = "(.-)" .. pat
@@ -733,80 +755,316 @@ CF.Split = function(str, pat)
 	end
 	return t
 end
------------------------------------------------------------------------------
--- Draw string on screen at speicified pos not wider that width and not higher than height
------------------------------------------------------------------------------
-CF.DrawString = function(str, pos, width, height)
-	--TODO: Implement Primitive version
-	--PrimitiveMan:DrawTextPrimitive(pos, str, false, 0)
-	local x = pos.X
-	local y = pos.Y
-	local chr
-	local drawthistime
-	local letterpreset = "Ltr"
+do
+	local defaultPos = Vector(0, 0);
+	local widthCaches = { [true] = {}, [false] = {} };
+	
+	-----------------------------------------------------------------------
+	-- Return size of string in pixels
+	-----------------------------------------------------------------------
+	CF.GetStringPixelWidth = function(str, width, smallFont)
+		smallFont = smallFont or false;
+		width = width or math.huge;
 
-	local words = CF.Split(str, " ")
-	for w = 1, #words do
-		drawthistime = true
+		local fontCache = widthCaches[smallFont];
+		local totalX = 0;
+		local length = #str;
+		for i = 1, #str do
+			local ch = str:sub(i, i);
+			local w = fontCache[ch:byte()];
 
-		if x + CF.GetStringPixelWidth(words[w]) > pos.X + width then
-			x = pos.X
-			y = y + 11
-
-			if y > pos.Y + height then
-				return
-			end
-		end
-
-		for i = 1, #words[w] do
-			chr = string.sub(words[w], i, i)
-
-			if chr == "\n" then
-				x = pos.X
-				y = y + 12
-
-				if y > pos.Y + height then
-					return
-				end
-			else
-				local cindex, cwidth, coffset = CF.GetCharData(chr)
-
-				local pix = CreateMOPixel(letterpreset .. cindex)
-				local offset = coffset
-				if offset ~= nil then
-					pix.Pos = Vector(x, y) + offset
+			if not w then
+				if ch ~= "\t" then
+					w = FrameMan:CalculateTextWidth(ch, smallFont);
+					fontCache[ch:byte()] = w;
 				else
-					pix.Pos = Vector(x, y)
+					w = 13;
+					fontCache[ch:byte()] = w;
 				end
+			end
 
-				MovableMan:AddParticle(pix)
+			totalX = totalX + w;
 
-				x = x + cwidth
+			if totalX > width then
+				break;
 			end
 		end
 
-		-- Simulate space character, only if we're not at the begining of new line
-		if x ~= pos.X then
-			x = x + 6
+		return totalX;
+	end
+	-----------------------------------------------------------------------
+	-- Split a string for display
+	-----------------------------------------------------------------------
+	function CF.SplitStringToFitWidth(str, width, smallFont)
+		smallFont = smallFont or false;
+
+		local fontCache = widthCaches[smallFont];
+		local totalX = 0;
+		local string = "";
+		local lastIndex = 0;
+		local lastWhiteSpace;
+		local lastWhiteIndex;
+		local lastLine = 1;
+		local length = #str;
+		local offsets = {};
+
+		for i = 1, length do
+			local ch = str:sub(i, i);
+			local w = fontCache[ch:byte()];
+
+			if not w then
+				if ch ~= "\t" then
+					w = FrameMan:CalculateTextWidth(ch, smallFont);
+					fontCache[ch:byte()] = w;
+				else
+					w = 13;
+					fontCache[ch:byte()] = w;
+				end
+			end
+
+			totalX = totalX + w;
+
+			local isNewLine = ch == "\n";
+			local isWhiteSpace = isNewLine or ch == "\t" or ch == " ";
+			local isLastChar = i == length;
+			local isWidthExceeded = totalX > width;
+
+			if isWhiteSpace and not isWidthExceeded then
+				lastWhiteIndex = i;
+			end
+
+			if (isWhiteSpace or (isWidthExceeded and lastWhiteIndex)) and (isWidthExceeded or isNewLine) or isLastChar then
+				local endLine = isLastChar and i or (lastWhiteIndex and lastWhiteIndex or i);
+				string = string .. str:sub(lastLine, endLine) .. (not (isLastChar or isNewLine) and "\n" or "");
+				lastLine = lastWhiteIndex and (lastWhiteIndex + 1) or (i + 1);
+				lastWhiteIndex = nil;
+				totalX = FrameMan:CalculateTextWidth(str:sub(endLine + 1, i), smallFont);
+			end
 		end
+
+		return string;
+	end
+	-----------------------------------------------------------------------
+	-- Draw string on screen at speicified pos not wider that width and not higher than height
+	-----------------------------------------------------------------------
+	function CF.DrawString(str, pos, width, height, smallFont, lineOffset, halignment, valignment, rotation, player)
+		str = str or (error("You forgot the valid string!!!", 2));
+		pos = pos or defaultPos;
+		width = width or math.huge;
+		height = height or math.huge;
+		smallFont = smallFont or false;
+		lineOffset = lineOffset or (smallFont and 9 or 11);
+		halignment = halignment or 0;
+		valignment = valignment or 0;
+		rotation = rotation or 0;
+		player = player or Activity.PLAYER_NONE;
+
+		local fontCache = widthCaches[smallFont];
+		local totalX = 0;
+		local totalY = 0;
+		local lineString = "";
+		local lastIndex = 0;
+		local length = #str;
+		local offsets = {};
+		local lines = {};
+		local lineWidths = {};
+		local icons = {};
+		local iconOffsets = {};
+		local iconFromLine = {};
+
+		for i = 1, length do
+			local ch = str:sub(i, i);
+			local w = fontCache[ch:byte()];
+
+			if not w then
+				if ch == "\242" then
+					w = 9;
+					table.insert(icons, ch:byte());
+					table.insert(iconOffsets, Vector(totalX + 4, totalY + 7));
+					table.insert(iconFromLine, #lines + 1);
+					ch = "   ";
+				elseif ch == "\t" then
+					w = 15;
+					ch = "     ";
+					fontCache[ch:byte()] = w;
+				else
+					w = FrameMan:CalculateTextWidth(ch, smallFont);
+					fontCache[ch:byte()] = w;
+				end
+			end
+
+			local newLine = ch == "\n";
+			local drawFlag = newLine or totalX + w > width;
+
+			if not drawFlag then
+				lineString = lineString .. ch;
+				lastIndex = i;
+				totalX = totalX + w;
+			end
+
+			if i == length or drawFlag then
+				table.insert(offsets, Vector(0, totalY));
+				table.insert(lines, lineString);
+				table.insert(lineWidths, totalX);
+
+				if i ~= length and totalY + lineOffset * 2 <= height then
+					totalY = totalY + lineOffset;
+					if not newLine then
+						totalX = w;
+						lineString = ch;
+					else
+						totalX = 0;
+						lineString = "";
+					end
+				else
+					break;
+				end
+			end
+		end
+
+		-- Offset has to be adjusted by both the number of lines and a constant 4
+		local alignmentOffset = Vector(0, - (lineOffset * #lines + (smallFont and -4 or 4)) * valignment / 2);
+
+		for i, line in pairs(lines) do
+			local offset = offsets[i] + alignmentOffset;
+				-- + Vector(0, lineOffset * (1 - math.cos(rotation)) / 2);
+			PrimitiveMan:DrawTextPrimitive(player, pos + offset:RadRotate(rotation), line, smallFont, halignment, rotation);
+		end
+		
+		for i, icon in pairs(icons) do
+			local offset = Vector(iconOffsets[i].X - lineWidths[iconFromLine[i]] * halignment / 2, iconOffsets[i].Y) + alignmentOffset;
+			PrimitiveMan:DrawBitmapPrimitive(player, pos + offset:RadRotate(rotation), CF.FontIcons[icon], rotation, false, false);
+		end
+
+		return Vector(0, totalY + lineOffset), str:sub(lastIndex + 1, -1);
+	end
+end
+-----------------------------------------------------------------------
+-- Draw boxes for menus
+-----------------------------------------------------------------------
+local emptyBlend = { 000, 000, 000, 000 };
+function CF.DrawMenuBox(player, x1, y1, x2, y2, palette, blendMode, blend)
+	player = player or Activity.PLAYER_NONE;
+	palette = palette or CF.MenuNormalIdle;
+	blendMode = blendMode or DrawBlendMode.Transparency;
+	blend = blend or emptyBlend;
+
+	local outter = BoxPrimitive(player, Vector(x1, y1), Vector(x2, y2), palette[1]);
+	local inner = BoxPrimitive(player, Vector(x1, y1) + Vector(1, 1), Vector(x2, y2) - Vector(1, 1), palette[2]);
+	local panel = BoxFillPrimitive(player, Vector(x1, y1) + Vector(2, 2), Vector(x2, y2) - Vector(2, 2), palette[3]);
+	PrimitiveMan:DrawPrimitives(blendMode, blend[1], blend[2], blend[3], blend[4], { outter, inner, panel });
+end
+-----------------------------------------------------------------------
+function CF.DrawMenuFrame(player, x1, y1, x2, y2, palette, blendMode, blend)
+	player = player or Activity.PLAYER_NONE;
+	palette = palette or CF.MenuNormalIdle;
+	blendMode = blendMode or DrawBlendMode.Transparency;
+	blend = blend or emptyBlend;
+
+	local outter = BoxPrimitive(player, Vector(x1, y1), Vector(x2, y2), palette[1]);
+	local inner = BoxPrimitive(player, Vector(x1, y1) + Vector(1, 1), Vector(x2, y2) + Vector(-1, -1), palette[2]);
+	local panel = BoxFillPrimitive(player, Vector(x1, y1) + Vector(2, 2), Vector(x2, y1) + Vector(-2, 11), palette[3]);
+	PrimitiveMan:DrawPrimitives(blendMode, blend[1], blend[2], blend[3], blend[4], { outter, inner, panel });
+end
+-----------------------------------------------------------------------
+-- Draw progress bars for menus
+-----------------------------------------------------------------------
+function CF.DrawProgressBar(player, left, top, right, bottom, progress, palette, blendMode, blend)
+	player = player or Activity.PLAYER_NONE;
+	blendMode = blendMode or DrawBlendMode.Transparency;
+	blend = blend or emptyBlend;
+
+	local width = right - left + 1;
+	local height = bottom - top - 4;
+	local primitives = {};
+
+	-- Shade
+	local start, stop;
+	start, stop = Vector(left + 1, bottom), Vector(right, bottom);
+	table.insert(primitives, LinePrimitive(player, start, stop, palette[3]));
+	start, stop = Vector(right, top + 1), Vector(right, bottom - 1);
+	table.insert(primitives, LinePrimitive(player, start, stop, palette[3]));
+
+	-- Box
+	start, stop = Vector(left, top), Vector(right - 1, bottom - 1);
+	table.insert(primitives, BoxPrimitive(player, start, stop, palette[1]));
+
+	-- Segments
+	local n = math.floor(progress * (width / 2 - 2));
+	for i = 1, n do
+		start, stop = Vector(left + i * 2 - 1, top + 1), Vector(left + i * 2, top + 1);
+		table.insert(primitives, LinePrimitive(player, start, stop, palette[3]));
+		start, stop = Vector(left + i * 2 - 1, bottom - 2), Vector(left + i * 2, bottom - 2);
+		table.insert(primitives, LinePrimitive(player, start, stop, palette[3]));
+		start, stop = Vector(left + i * 2 - 1, top + 2), Vector(left + i * 2 - 1, bottom - 3);
+		table.insert(primitives, LinePrimitive(player, start, stop, palette[3]));
+		start, stop = Vector(left + i * 2, top + 2), Vector(left + i * 2, top + 2);
+		table.insert(primitives, LinePrimitive(player, start, stop, palette[2]));
+		start, stop = Vector(left + i * 2, bottom - 3), Vector(left + i * 2, bottom - 3);
+		table.insert(primitives, LinePrimitive(player, start, stop, palette[2]));
+		start, stop = Vector(left + i * 2, top + 3), Vector(left + i * 2, bottom - 4);
+		table.insert(primitives, LinePrimitive(player, start, stop, palette[1]));
+	end
+	
+	-- Remainder
+	start, stop = Vector(left + 1 + n * 2, top + 1), Vector(right - 2, bottom - 2);
+	table.insert(primitives, BoxFillPrimitive(player, start, stop, palette[3]));
+	PrimitiveMan:DrawPrimitives(blendMode, blend[1], blend[2], blend[3], blend[4], primitives);
+end
+-----------------------------------------------------------------------
+-- Draw label element
+-----------------------------------------------------------------------
+function CF.DrawLabel(el, player)
+	player = player or Activity.PLAYER_NONE;
+	-- Labels can ommit presets or texts
+	if el.Backdrop then
+		local x = el.Pos.X;
+		local y = el.Pos.Y;
+		local w = el.Width;
+		local h = el.Height;
+		local palettes = el.Palettes or CF.MenuNormalPalette;
+		local state = el.State or CF.ElementStates.IDLE;
+		CF.DrawMenuBox(player, x - w / 2, y - h / 2, x + w / 2 - 1, y + h / 2 - 1, palettes[state]);
 	end
 
-	return y - pos.Y + 12
+	if el.Text then
+		CF.DrawString(el.Text, el.Pos, el.Width, el.Height, nil, nil, el.Centered and 1 or 0, el.Centered and 1 or 0, nil, player);
+	end
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
+-- Draw button element
+-----------------------------------------------------------------------
+function CF.DrawButton(el, player)
+	player = player or Activity.PLAYER_NONE;
+	if el.Visible ~= false then
+		local x = el.Pos.X;
+		local y = el.Pos.Y;
+		local w = el.Width;
+		local h = el.Height;
+		local palettes = el.Palettes or CF.MenuNormalPalette;
+		local state = el.State or CF.ElementStates.IDLE;
+		if el.Backdrop ~= false then
+			CF.DrawMenuBox(player, x - w / 2, y - h / 2, x + w / 2 - 1, y + h / 2 - 1, palettes[state]);
+		else
+			CF.DrawMenuFrame(player, x - w / 2, y - h / 2, x + w / 2 - 1, y + h / 2 - 1, palettes[state]);
+		end
+
+		if el.Text then
+			CF.DrawString(el.Text, el.Pos, el.Width - 6, el.Height - 6, nil, nil, 1, 1, nil, player);
+		end
+	end
+end
+-----------------------------------------------------------------------
 -- Converts time in second to string h:mm:ss
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.ConvertTimeToString = function(timenum)
 	local timestr = ""
 
 	local hours = (timenum - timenum % 3600) / 3600
-	--print ("Hours "..hours)
 	timenum = timenum - hours * 3600
 	local minutes = (timenum - timenum % 60) / 60
-	--print ("Minutes "..minutes)
 	timenum = timenum - minutes * 60
 	local seconds = timenum
-	--print ("Minutes "..seconds)
 
 	if hours > 0 then
 		timestr = timestr .. string.format("%d", hours) .. ":"
@@ -827,9 +1085,9 @@ CF.ConvertTimeToString = function(timenum)
 
 	return timestr
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Make item of specified preset, module and class
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.MakeItem = function(preset, class, module)
 	local item
 	if class == nil then
@@ -849,36 +1107,36 @@ CF.MakeItem = function(preset, class, module)
 	end
 	return item
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Make actor of specified preset, class, module, rank, identity, and player
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.MakeActor = function(item, class, module, xp, identity, player, prestige, name, limbs)
 	local actor
-	if class == nil then
-		class = "AHuman"
-	end
-	if item == nil then
-		item = "Skeleton"
-	end
+	class = class or "AHuman";
+	item = item or "Skeleton";
+
 	if class == "AHuman" then
-		actor = module == nil and CreateAHuman(item) or CreateAHuman(item, module)
+		actor = module == nil and CreateAHuman(item) or CreateAHuman(item, module);
+
 		if limbs then
-			CF.ReplaceLimbs(actor, limbs)
+			CF.ReplaceLimbs(actor, limbs);
 		end
+
 		for item in actor.Inventory do
 			if item then
-				actor:RemoveInventoryItem(item.PresetName)
+				actor:RemoveInventoryItem(item.PresetName);
 			end
 		end
 	elseif class == "ACrab" then
-		actor = module == nil and CreateACrab(item) or CreateACrab(item, module)
+		actor = module == nil and CreateACrab(item) or CreateACrab(item, module);
 	elseif class == "Actor" then
-		actor = module == nil and CreateActor(item) or CreateActor(item, module)
+		actor = module == nil and CreateActor(item) or CreateActor(item, module);
 	elseif class == "ACDropShip" then
-		actor = module == nil and CreateACDropShip(item) or CreateACDropShip(item, module)
+		actor = module == nil and CreateACDropShip(item) or CreateACDropShip(item, module);
 	elseif class == "ACRocket" then
-		actor = module == nil and CreateACRocket(item) or CreateACRocket(item, module)
+		actor = module == nil and CreateACRocket(item) or CreateACRocket(item, module);
 	end
+
 	if actor then
 		actor.AngularVel = 0
 		if identity then
@@ -912,11 +1170,12 @@ CF.MakeActor = function(item, class, module, xp, identity, player, prestige, nam
 	else
 		actor = CreateAHuman("Skeleton", "Uzira.rte")
 	end
-	return actor
+
+	return actor;
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Use class name to get reference type
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.FixActorReference = function(actor)
 	local cl = actor.ClassName
 	if cl == "AHuman" then
@@ -932,9 +1191,9 @@ CF.FixActorReference = function(actor)
 	end
 	return ToActor(actor)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Buff an actor based on their rank
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.BuffActor = function(actor, rank, prestige)
 	local actor = CF.FixActorReference(actor)
 	rank = tonumber(rank) * math.sqrt(prestige * 0.1 + 1)
@@ -992,9 +1251,9 @@ CF.BuffActor = function(actor, rank, prestige)
 	end
 	--print("actor ".. actor.PresetName .." buffed with" .. (prestige and " prestige " or "rank ").. rank)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Reverse buff effect
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.UnBuffActor = function(actor, rank, prestige)
 	local actor = CF.FixActorReference(actor)
 	local rankFactor = 1 + (tonumber(rank) * 0.1 * math.sqrt(prestige * 0.1 + 1))
@@ -1032,9 +1291,9 @@ CF.UnBuffActor = function(actor, rank, prestige)
 		actor.LimbPathPushForce = actor.LimbPathPushForce / (math.sqrt(sqrtFactor))
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Get a specific limb by ID
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.GetLimbData = function(actor, id)
 	local limb
 	if IsAHuman(actor) then
@@ -1068,9 +1327,9 @@ CF.GetLimbData = function(actor, id)
 	end
 	return ""
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Read the limb data of this AHuman and replace limbs accordingly
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.ReplaceLimbs = function(actor, limbs)
 	if IsAHuman(actor) then
 		actor = ToAHuman(actor)
@@ -1167,9 +1426,9 @@ CF.ReplaceLimbs = function(actor, limbs)
 	end
 	return false
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.AttemptReplaceLimb = function(actor, limb)
 	local j = 0
 	local isArm = string.find(limb.PresetName, " Arm")
@@ -1254,9 +1513,9 @@ CF.AttemptReplaceLimb = function(actor, limb)
 	end
 	return j ~= 0
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.RandomizeLimbs = function(actor, limbs)
 	if IsAHuman(actor) then
 		actor = ToAHuman(actor)
@@ -1300,24 +1559,24 @@ CF.RandomizeLimbs = function(actor, limbs)
 	end
 	return false
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Set which actor is being named right now
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.SetNamingActor = function(actor, player)
 	CF.TypingActor = actor
 	CF.TypingPlayer = player
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.SetRandomName = function(actor)
 	if not actor:StringValueExists("VW_Name") then
 		actor:SetStringValue("VW_Name", CF.GenerateRandomName())
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.GenerateRandomName = function()
 	if not CF.RandomNames then
 		CF.RandomNames = {}
@@ -1352,9 +1611,9 @@ CF.GenerateRandomName = function()
 	end
 	return name
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Set actors to hunt for nearby actors of a specific team - or regroup near actors of the same team
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.HuntForActors = function(hunter, targetTeam)
 	if hunter and MovableMan:IsActor(hunter) and hunter.AIMode == Actor.AIMODE_SENTRY then
 		local enemies = {}
@@ -1372,7 +1631,7 @@ CF.HuntForActors = function(hunter, targetTeam)
 					closestDistance = dist.Magnitude
 					closestActor = target
 				end
-				if target:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
+				if CF.IsBrain(actor) then
 					table.insert(brains, target)
 				end
 			end
@@ -1398,9 +1657,9 @@ CF.HuntForActors = function(hunter, targetTeam)
 	end
 	return nil
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Send actors after specific target(s)
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.Hunt = function(hunter, targets)
 	if hunter and MovableMan:IsActor(hunter) and #targets > 0 then
 		local target = targets[math.random(#targets)]
@@ -1419,36 +1678,36 @@ CF.Hunt = function(hunter, targets)
 	end
 	return false
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
-CF.GetPlayerGold = function(c)
-	return tonumber(c["PlayerGold"])
+-----------------------------------------------------------------------
+CF.GetPlayerGold = function(gs)
+	return tonumber(gs["PlayerGold"])
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
-CF.SetPlayerGold = function(c, funds)
+-----------------------------------------------------------------------
+CF.SetPlayerGold = function(gs, funds)
 	-- Set the in-activity gold as well, although we don't use it
-	c["PlayerGold"] = math.ceil(funds)
+	gs["PlayerGold"] = math.ceil(funds)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
-CF.CommitMissionResult = function(c, result)
+-----------------------------------------------------------------------
+CF.CommitMissionResult = function(gs, result)
 	-- Set result
-	c["LastMissionResult"] = result
+	gs["LastMissionResult"] = result
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------
-CF.ChangeGold = function(c, amount)
-	CF.SetPlayerGold(c, CF.GetPlayerGold(c) + amount)
-	return CF.GetPlayerGold(c);
+-----------------------------------------------------------------------
+CF.ChangeGold = function(gs, amount)
+	CF.SetPlayerGold(gs, CF.GetPlayerGold(gs) + amount)
+	return CF.GetPlayerGold(gs);
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Get table with inventory of actor, inventory cleared as a result
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.GetInventory = function(actor)
 	--print("GetInventory")
 	local inventory = {}
@@ -1508,61 +1767,61 @@ CF.GetInventory = function(actor)
 
 	return inventory, classes, modules
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Calculate distance
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.Dist = function(pos1, pos2)
 	return SceneMan:ShortestDistance(pos1, pos2, SceneMan.SceneWrapsX).Magnitude
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.DistOver = function(pos1, pos2, magnitude)
 	return SceneMan:ShortestDistance(pos1, pos2, SceneMan.SceneWrapsX):MagnitudeIsGreaterThan(magnitude)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.DistUnder = function(pos1, pos2, magnitude)
 	return SceneMan:ShortestDistance(pos1, pos2, SceneMan.SceneWrapsX):MagnitudeIsLessThan(magnitude)
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Save mission report
------------------------------------------------------------------------------
-CF.SaveMissionReport = function(c, rep)
+-----------------------------------------------------------------------
+CF.SaveMissionReport = function(gs, rep)
 	-- Dump mission report to config to be saved
 	for i = 1, CF.MaxMissionReportLines do
-		c["MissionReport" .. i] = nil
+		gs["MissionReport" .. i] = nil
 	end
 
 	for i = 1, #rep do
-		c["MissionReport" .. i] = rep[i]
+		gs["MissionReport" .. i] = rep[i]
 	end
 end
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.CountActors = function(team)
-	local c = 0
+	local gs = 0
 
 	for actor in MovableMan.Actors do
 		if
 			actor.Team == team
 			and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-			and not (actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") or actor:NumberValueExists("VW_Ally"))
+			and not (CF.IsBrain(actor) or actor:NumberValueExists("VW_Ally"))
 		then
-			c = c + 1
+			gs = gs + 1
 		end
 	end
 
-	return c
+	return gs
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Returns how many science points corresponds to selected difficulty level
------------------------------------------------------------------------------------------
-CF.GetTechLevelFromDifficulty = function(c, p, diff, maxdiff)
+-----------------------------------------------------------------------
+CF.GetTechLevelFromDifficulty = function(gs, p, diff, maxdiff)
 	local maxpoints = 0
-	local f = CF.GetPlayerFaction(c, p)
+	local f = CF.GetPlayerFaction(gs, p)
 
 	for i = 1, #CF.ItmNames[f] do
 		if CF.ItmUnlockData[f][i] > maxpoints then
@@ -1578,17 +1837,17 @@ CF.GetTechLevelFromDifficulty = function(c, p, diff, maxdiff)
 
 	return math.floor(maxpoints / maxdiff * diff)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.CalculateReward = function(base, diff)
 	local coeff = 1 + (diff - 1) * 0.35
 
 	return math.floor(base * coeff)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.IsLocationHasAttribute = function(loc, attr)
 	local attrs = CF.LocationAttributes[loc]
 
@@ -1602,17 +1861,17 @@ CF.IsLocationHasAttribute = function(loc, attr)
 
 	return false
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
-CF.GiveExp = function(c, exppts)
+-----------------------------------------------------------------------
+CF.GiveExp = function(gs, exppts)
 	local levelup = false
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if ActivityMan:GetActivity():PlayerActive(player) and ActivityMan:GetActivity():PlayerHuman(player) then
-			local curexp = tonumber(c["Brain" .. player .. "Exp"])
-			local cursklpts = tonumber(c["Brain" .. player .. "SkillPoints"])
-			local curlvl = tonumber(c["Brain" .. player .. "Level"])
+			local curexp = tonumber(gs["Brain" .. player .. "Exp"])
+			local cursklpts = tonumber(gs["Brain" .. player .. "SkillPoints"])
+			local curlvl = tonumber(gs["Brain" .. player .. "Level"])
 
 			--print ("Curexp "..curexp)
 			--print ("Exppts "..exppts)
@@ -1636,14 +1895,14 @@ CF.GiveExp = function(c, exppts)
 				end
 			end
 
-			c["Brain" .. player .. "SkillPoints"] = cursklpts
-			c["Brain" .. player .. "Exp"] = curexp
-			c["Brain" .. player .. "Level"] = curlvl
+			gs["Brain" .. player .. "SkillPoints"] = cursklpts
+			gs["Brain" .. player .. "Exp"] = curexp
+			gs["Brain" .. player .. "Level"] = curlvl
 		end
 	end
 
 	return levelup
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

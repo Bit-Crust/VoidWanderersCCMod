@@ -1,9 +1,9 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Objective: 	Kill all CF.CPUTeam enemies
 --	Set used: 	Squad
 --	Events:
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionCreate()
 	print("SQUAD CREATE")
 	
@@ -64,9 +64,9 @@ function VoidWanderers:MissionCreate()
 	self.missionData["brainHuntTriggered"] = false
 	self.missionData["assaultWaitTime"] = self.Time
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	if self.missionData["stage"] == CF.MissionStages.ACTIVE then
 		local count = 0
@@ -171,7 +171,7 @@ function VoidWanderers:MissionUpdate()
 
 			-- Attempt to find another commander
 			for actor in MovableMan.Actors do
-				if actor.Team == CF.CPUTeam and actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
+				if actor.Team == CF.CPUTeam and CF.IsBrain(actor) then
 					self.missionData["brain"] = actor
 					brainwasfound = false
 					break
@@ -213,6 +213,6 @@ function VoidWanderers:MissionUpdate()
 		end
 	end --]]--
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

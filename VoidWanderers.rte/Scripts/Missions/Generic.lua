@@ -1,7 +1,7 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Generic mission script which is executed when no mission assigned and when no other
 --	default script is specified for location
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Generic events:
 --
 --	Periodically script will spawn a dropship with 1-3 units based on scene difficulty level.
@@ -14,7 +14,7 @@
 --	will switch to brain hunt mode. If custom AI is enabled the will search and destroy any
 --	enemy actors, if not they will probably move to player LZ's since they are brain units
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionCreate()
 	print("GENERIC CREATE")
 
@@ -73,9 +73,9 @@ function VoidWanderers:MissionCreate()
 	print("TEAM 3: " .. CF.GetPlayerFaction(self.GS, team3Player))
 	print("TEAM 4: " .. CF.GetPlayerFaction(self.GS, team4Player))
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 
 	-- Count actors
@@ -203,7 +203,7 @@ function VoidWanderers:MissionUpdate()
 
 		-- Assign non-sentry non-diggers on other teams to go attack nearby target units
 		for team = Activity.NOTEAM, Activity.MAXTEAMCOUNT - 1 do
-			if team ~= Activity.TEAM_1 and #activeUnits[team] > 0 and totalUnits[targets[team]] > 0 then
+			if team > Activity.TEAM_1 and #activeUnits[team] > 0 and totalUnits[targets[team]] > 0 then
 				-- Target assailants first, then miners, then sentries
 				local targetGroup = (#activeUnits[targets[team]] > 0 and activeUnits[targets[team]]
 					or (#miningUnits[targets[team]] > 0 and miningUnits[targets[team]] or sentryUnits[targets[team]]))
@@ -243,6 +243,6 @@ function VoidWanderers:MissionUpdate()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

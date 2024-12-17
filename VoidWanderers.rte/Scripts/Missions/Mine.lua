@@ -1,10 +1,10 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Objective: 	Kill all enemies to protect friendly miners, deploy mining operation
 --				and protect incoming friendly miners from incoming enemy troops
 --	Set used: 	Enemy
 --	Events: 	After a while AI will send some dropships to replace dead miners
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionCreate()
 	print("MINE CREATE")
 
@@ -99,9 +99,9 @@ function VoidWanderers:MissionCreate()
 
 	self:SetTeamFunds(0, CF.CPUTeam)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	local friends = 0
 	if self.missionData["stage"] == CF.MissionStages.ACTIVE then
@@ -109,7 +109,7 @@ function VoidWanderers:MissionUpdate()
 
 		for actor in MovableMan.Actors do
 			if actor.Team == CF.PlayerTeam then
-				if actor:HasObjectInGroup("Tools - Diggers") and self:IsAlly(actor) then
+				if actor:HasObjectInGroup("Tools - Diggers") and CF.IsAlly(actor) then
 					friends = friends + 1
 
 					self:AddObjectivePoint("PROTECT", actor.AboveHUDPos, CF.PlayerTeam, GameActivity.ARROWDOWN)
@@ -184,7 +184,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["interval"] = math.floor(self.missionData["interval"] * 1.5)
 
 			for actor in MovableMan.Actors do
-				if self:IsAlly(actor) and actor.GoldCarried > 0 then
+				if CF.IsAlly(actor) and actor.GoldCarried > 0 then
 					self:SetTeamFunds(CF.ChangeGold(self.GS, actor.GoldCarried), CF.PlayerTeam)
 					actor.GoldCarried = 0
 				end
@@ -196,7 +196,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["statusShowStart"] = self.Time
 
 			for actor in MovableMan.Actors do
-				if self:IsAlly(actor) then
+				if CF.IsAlly(actor) then
 					actor.Health = 0
 				end
 			end
@@ -256,11 +256,11 @@ function VoidWanderers:MissionUpdate()
 						end
 					end
 					if actor then
-						self:SetAlly(actor, true)
+						CF.SetAlly(actor, true)
 						ship:AddInventoryItem(actor)
 					end
 				end
-				self:SetAlly(ship, true)
+				CF.SetAlly(ship, true)
 				ship.Team = CF.PlayerTeam
 				ship.Pos = Vector(self.missionData["minerLandingZones"][math.random(#self.missionData["minerLandingZones"])].X, -10)
 				ship:SetGoldValue(0)
@@ -336,7 +336,7 @@ function VoidWanderers:MissionUpdate()
 				ship.Pos = Vector(self.missionData["minerLandingZones"][math.random(#self.missionData["minerLandingZones"])].X, -10)
 				ship.AIMode = Actor.AIMODE_DELIVER
 				MovableMan:AddActor(ship)
-
+				
 				self.missionData["enemyDropShips"] = self.missionData["enemyDropShips"] - 1
 			end
 		else
@@ -347,6 +347,6 @@ function VoidWanderers:MissionUpdate()
 			+ math.max(self.missionData["interval"] - friends, self.missionData["allySpawnInterval"])
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

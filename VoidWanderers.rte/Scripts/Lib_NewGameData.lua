@@ -1,6 +1,6 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Initializes all game data when new game started and returns new gameState
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 CF.MakeFreshGameState = function(playerFaction, cpus, activity)
 	local gameState = {}
 	local diff = activity.Difficulty
@@ -24,7 +24,7 @@ CF.MakeFreshGameState = function(playerFaction, cpus, activity)
 		gameState["MissionDifficultyBonus"] = 1
 	elseif diff <= GameActivity.NUTSDIFFICULTY then
 		gameState["MissionDifficultyBonus"] = 2
-	elseif diff <= GameActivity.MAXDIFFICULTY then
+	else
 		gameState["MissionDifficultyBonus"] = 3
 	end
 
@@ -32,20 +32,18 @@ CF.MakeFreshGameState = function(playerFaction, cpus, activity)
 	gameState["PlayerFaction"] = tostring(playerFaction)
 	gameState["PlayerGold"] = tostring(math.floor(activity:GetStartingGold()))
 
-	-- Assign player ship
-	gameState["PlayerVessel"] = "Mule"
-	--gameState["PlayerVessel"] = "Ager 9th" -- DEBUG
-
 	-- Set vessel attributes
-	gameState["PlayerVesselStorageCapacity"] = tostring(CF.VesselStartStorageCapacity[gameState["PlayerVessel"]])
-	gameState["PlayerVesselClonesCapacity"] = tostring(CF.VesselStartClonesCapacity[gameState["PlayerVessel"]])
-	gameState["PlayerVesselLifeSupport"] = tostring(CF.VesselStartLifeSupport[gameState["PlayerVessel"]])
-	gameState["PlayerVesselCommunication"] = tostring(CF.VesselStartCommunication[gameState["PlayerVessel"]])
-	gameState["PlayerVesselSpeed"] = tostring(CF.VesselStartSpeed[gameState["PlayerVessel"]])
-	gameState["PlayerVesselTurrets"] = tostring(CF.VesselStartTurrets[gameState["PlayerVessel"]])
-	gameState["PlayerVesselTurretStorage"] = tostring(CF.VesselStartTurretStorage[gameState["PlayerVessel"]])
-	gameState["PlayerVesselBombBays"] = tostring(CF.VesselStartBombBays[gameState["PlayerVessel"]])
-	gameState["PlayerVesselBombStorage"] = tostring(CF.VesselStartBombStorage[gameState["PlayerVessel"]])
+	local vessel = diff == GameActivity.MAXDIFFICULTY and "Mule" or "Lynx";
+	gameState["PlayerVesselStorageCapacity"] = tostring(CF.VesselStartStorageCapacity[vessel])
+	gameState["PlayerVesselClonesCapacity"] = tostring(CF.VesselStartClonesCapacity[vessel])
+	gameState["PlayerVesselLifeSupport"] = tostring(CF.VesselStartLifeSupport[vessel])
+	gameState["PlayerVesselCommunication"] = tostring(CF.VesselStartCommunication[vessel])
+	gameState["PlayerVesselSpeed"] = tostring(CF.VesselStartSpeed[vessel])
+	gameState["PlayerVesselTurrets"] = tostring(CF.VesselStartTurrets[vessel])
+	gameState["PlayerVesselTurretStorage"] = tostring(CF.VesselStartTurretStorage[vessel])
+	gameState["PlayerVesselBombBays"] = tostring(CF.VesselStartBombBays[vessel])
+	gameState["PlayerVesselBombStorage"] = tostring(CF.VesselStartBombStorage[vessel])
+	gameState["PlayerVessel"] = vessel;
 
 	-- Set up initial location - Tradestar
 	gameState["Planet"] = tostring(CF.Planet[1])
@@ -271,6 +269,6 @@ CF.MakeFreshGameState = function(playerFaction, cpus, activity)
 
 	return gameState
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

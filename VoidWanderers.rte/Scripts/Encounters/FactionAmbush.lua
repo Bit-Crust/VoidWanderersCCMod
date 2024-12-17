@@ -1,10 +1,10 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Objective: 	Kill all invading troops.
 --	Events: 	Depending on mission difficulty AI might send dropships with up to 2 actors and
 --	 			launch one counterattack when it will try to kill player actors with
 --				1/3 of it's actors. Initial spawn rate varies based on mission difficulty
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:EncounterCreate()
 	print("FACTION AMBUSH CREATE")
 
@@ -51,9 +51,9 @@ function VoidWanderers:EncounterCreate()
 		)
 	)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:EncounterUpdate()
 	if self.vesselData["dialogOptionChosen"] ~= 0 then
 		self.encounterData["encounterConcluded"] = true
@@ -224,6 +224,6 @@ function VoidWanderers:EncounterUpdate()
 	end
 	--]]
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

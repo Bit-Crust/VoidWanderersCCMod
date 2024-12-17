@@ -3,9 +3,8 @@
 local id = "TradeStar"
 CF.Planet[#CF.Planet + 1] = id
 CF.PlanetName[id] = "FreeTrade TradeStar"
-CF.PlanetGlow[id] = "Station"
+CF.PlanetGlow[id] = "Mods/VoidWanderers.rte/UI/Planets/Station.png"
 CF.PlanetPos[id] = Vector(25, -20)
-CF.PlanetGlowModule[id] = "VoidWanderers.rte"
 CF.PlanetScale[id] = 0.05
 
 -- Add locations
@@ -35,9 +34,8 @@ CF.LocationAttributes[id] = { CF.LocationAttributeTypes.TRADESTAR }
 local id = "CC-11Y"
 CF.Planet[#CF.Planet + 1] = id
 CF.PlanetName[id] = "CC-11Y"
-CF.PlanetGlow[id] = "CC-11Y"
+CF.PlanetGlow[id] = "Mods/VoidWanderers.rte/UI/Planets/CC-11Y.png"
 CF.PlanetPos[id] = Vector(27, 32)
-CF.PlanetGlowModule[id] = "VoidWanderers.rte"
 
 -- Add black markets
 local id = "Station Ypsilon-2"

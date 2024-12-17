@@ -156,7 +156,7 @@ CF.MissionRequiredData[id][i]["Max"] = 16
 
 CF.GenericMissionCount = #CF.Mission
 
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --[[ Ship counterattack fake encounter
 CF.RandomEncountersFunctions["COUNTERATTACK"] = 
 function(self, variant)
@@ -222,4 +222,4 @@ function(self, variant)
 	end
 end
 --]]
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------

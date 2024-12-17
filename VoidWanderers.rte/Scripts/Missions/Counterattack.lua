@@ -1,4 +1,4 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Objective: 	Kill enemy brain unit
 --	Set used: 	Enemy, Assassinate
 --	Events: 	Depending on mission difficulty AI might send dropships with up to 2 actors and
@@ -6,7 +6,7 @@
 --				half of it's actors. Initial spawn rate varies based on mission difficulty.
 --				After commander's death units go nuts for a few moments
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionCreate()
 	print("COUNTERATTACK CREATE")
 
@@ -82,9 +82,9 @@ function VoidWanderers:MissionCreate()
 	self.missionData["reinforcementsLast"] = self.Time
 	self.missionData["counterAttackTriggered"] = false
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	if self.MissionStage == CF.MissionStages.ACTIVE then
 		local count = 0
@@ -203,7 +203,7 @@ function VoidWanderers:MissionUpdate()
 			local count = 0
 
 			for actor in MovableMan.Actors do
-				if actor.Team == CF.CPUTeam and not actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
+				if actor.Team == CF.CPUTeam and not CF.IsBrain(actor) then
 					CF.HuntForActors(actor, CF.PlayerTeam)
 				end
 			end
@@ -236,6 +236,6 @@ function VoidWanderers:MissionUpdate()
 		end
 	end --]]--
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

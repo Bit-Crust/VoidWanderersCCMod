@@ -1,7 +1,7 @@
------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- To-do: try to diminish the amount of allies this missino spawns cus god damn does it bloat the ship when you rescue them
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionCreate()
 	print("ABANDONED VESSEL FIREFIGHT CREATE")
 
@@ -126,15 +126,15 @@ function VoidWanderers:MissionCreate()
 
 	self:InitExplorationPoints()
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	self:ProcessExplorationPoints()
 
 	for actor in MovableMan.AddedActors do
 		for t = 1, #self.missionData["CPUTeams"] do
-			if actor.Team == self.missionData["CPUTeams"][t] and (actor.Team ~= CF.PlayerTeam or self:IsAlly(actor)) then
+			if actor.Team == self.missionData["CPUTeams"][t] and (actor.Team ~= CF.PlayerTeam or CF.IsAlly(actor)) then
 				if self.missionData["firefightWaypoint"][t] and math.random() < 0.5 then
 					actor.AIMode = Actor.AIMODE_GOTO
 					actor:ClearAIWaypoints()
@@ -189,9 +189,9 @@ function VoidWanderers:MissionUpdate()
 				self.missionData["firefightEnded"] = true
 
 				for actor in MovableMan.Actors do
-					if self:IsAlly(actor) then
+					if CF.IsAlly(actor) then
 						if self.GS["BrainsOnMission"] == "True" then
-							self:SetAlly(actor, false)
+							CF.SetAlly(actor, false)
 						else
 							actor.AIMode = math.random() < 0.5 and Actor.AIMODE_SENTRY or Actor.AIMODE_PATROL
 						end
@@ -204,6 +204,6 @@ function VoidWanderers:MissionUpdate()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

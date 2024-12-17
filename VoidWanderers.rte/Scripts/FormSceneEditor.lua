@@ -1,6 +1,6 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --	Load event. Put all UI element initialiations here.
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:FormLoad()
 	print("Form load")
 
@@ -66,11 +66,11 @@ function VoidWanderers:FormLoad()
 	end
 
 	el = {}
-	el["Type"] = self.ElementTypes.BUTTON
+	el["Type"] = CF.ElementTypes.BUTTON
 	el["Presets"] = {}
-	el["Presets"][self.ButtonStates.IDLE] = "ButtonSceneEditorWideIdle"
-	el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
-	el["Presets"][self.ButtonStates.PRESSED] = "ButtonSceneEditorWidePressed"
+	el["Presets"][CF.ElementStates.IDLE] = "ButtonSceneEditorWideIdle"
+	el["Presets"][CF.ElementStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
+	el["Presets"][CF.ElementStates.PRESSED] = "ButtonSceneEditorWidePressed"
 	el["RelPos"] = Vector(-self.Res.X / 2 + 20 + sx / 2, -self.Res.Y / 2 + 20)
 	el["Text"] = "SAVE"
 	el["Width"] = sx
@@ -82,11 +82,11 @@ function VoidWanderers:FormLoad()
 	self.UI[#self.UI + 1] = el
 
 	el = {}
-	el["Type"] = self.ElementTypes.BUTTON
+	el["Type"] = CF.ElementTypes.BUTTON
 	el["Presets"] = {}
-	el["Presets"][self.ButtonStates.IDLE] = "ButtonSceneEditorWideIdle"
-	el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
-	el["Presets"][self.ButtonStates.PRESSED] = "ButtonSceneEditorWidePressed"
+	el["Presets"][CF.ElementStates.IDLE] = "ButtonSceneEditorWideIdle"
+	el["Presets"][CF.ElementStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
+	el["Presets"][CF.ElementStates.PRESSED] = "ButtonSceneEditorWidePressed"
 	el["RelPos"] = Vector(-self.Res.X / 2 + 20 + sx / 2 + 161, -self.Res.Y / 2 + 20)
 	el["Text"] = "Show Generic"
 	el["Width"] = sx
@@ -98,11 +98,11 @@ function VoidWanderers:FormLoad()
 	self.UI[#self.UI + 1] = el
 
 	el = {}
-	el["Type"] = self.ElementTypes.BUTTON
+	el["Type"] = CF.ElementTypes.BUTTON
 	el["Presets"] = {}
-	el["Presets"][self.ButtonStates.IDLE] = "ButtonSceneEditorWideIdle"
-	el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
-	el["Presets"][self.ButtonStates.PRESSED] = "ButtonSceneEditorWidePressed"
+	el["Presets"][CF.ElementStates.IDLE] = "ButtonSceneEditorWideIdle"
+	el["Presets"][CF.ElementStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
+	el["Presets"][CF.ElementStates.PRESSED] = "ButtonSceneEditorWidePressed"
 	el["RelPos"] = Vector(-self.Res.X / 2 + 20 + sx / 2 + 321, -self.Res.Y / 2 + 20)
 	el["Text"] = "Snap to grid 12px"
 	el["Width"] = sx
@@ -120,11 +120,11 @@ function VoidWanderers:FormLoad()
 	-- Create scene buttons
 	for i = 1, #self.Data do
 		el = {}
-		el["Type"] = self.ElementTypes.BUTTON
+		el["Type"] = CF.ElementTypes.BUTTON
 		el["Presets"] = {}
-		el["Presets"][self.ButtonStates.IDLE] = "ButtonSceneEditorWideIdle"
-		el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
-		el["Presets"][self.ButtonStates.PRESSED] = "ButtonSceneEditorWidePressed"
+		el["Presets"][CF.ElementStates.IDLE] = "ButtonSceneEditorWideIdle"
+		el["Presets"][CF.ElementStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
+		el["Presets"][CF.ElementStates.PRESSED] = "ButtonSceneEditorWidePressed"
 		el["RelPos"] = Vector(-self.Res.X / 2 + 20 + sx / 2 + x * sx, -self.Res.Y / 2 + 20 + y * sy)
 		el["Text"] = self.Data[i]["Name"]
 		el["Data"] = self.Data[i]["Name"]
@@ -196,9 +196,9 @@ function VoidWanderers:FormLoad()
 	end	]]
 	--
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:ShowElements()
 	local pos = self.FixedPos
 
@@ -207,29 +207,29 @@ function VoidWanderers:ShowElements()
 		self.UI[i]["Pos"] = pos + self.UI[i]["RelPos"]
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:HideElements()
 	for i = 1, #self.UI do
 		self.UI[i]["Visible"] = false
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:AlwaysShowGenericMarks_OnClick()
 	self.ShowGeneric = not self.ShowGeneric
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:SnapToGrid_OnClick()
 	self.SnapToGrid = not self.SnapToGrid
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:Save_OnClick()
 	for k, v in pairs(self.Pts) do -- Mission type
 		--print (k)
@@ -263,9 +263,9 @@ function VoidWanderers:Save_OnClick()
 
 	CF.WriteSceneConfigFile(self.SceneConfig, CF.ModuleName, SceneMan.Scene.PresetName .. ".dat")
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:MissionType_OnClick()
 	local newui = {}
 
@@ -289,11 +289,11 @@ function VoidWanderers:MissionType_OnClick()
 	-- Fill sets
 	for i = 1, CF.MissionMaxSets[self.SelectedType] do
 		el = {}
-		el["Type"] = self.ElementTypes.BUTTON
+		el["Type"] = CF.ElementTypes.BUTTON
 		el["Presets"] = {}
-		el["Presets"][self.ButtonStates.IDLE] = "ButtonSceneEditorIdle"
-		el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonSceneEditorMouseOver"
-		el["Presets"][self.ButtonStates.PRESSED] = "ButtonSceneEditorPressed"
+		el["Presets"][CF.ElementStates.IDLE] = "ButtonSceneEditorIdle"
+		el["Presets"][CF.ElementStates.MOUSE_OVER] = "ButtonSceneEditorMouseOver"
+		el["Presets"][CF.ElementStates.PRESSED] = "ButtonSceneEditorPressed"
 		el["RelPos"] = Vector(-self.Res.X / 2 + 20 + sx / 2 + x * sx + 161, -self.Res.Y / 2 + 20 + y * sy)
 		el["Text"] = "SET " .. i
 		el["Data"] = i
@@ -316,11 +316,11 @@ function VoidWanderers:MissionType_OnClick()
 	-- Fill point types
 	for i = 1, #CF.MissionRequiredData[self.SelectedType] do
 		el = {}
-		el["Type"] = self.ElementTypes.BUTTON
+		el["Type"] = CF.ElementTypes.BUTTON
 		el["Presets"] = {}
-		el["Presets"][self.ButtonStates.IDLE] = "ButtonSceneEditorWideIdle"
-		el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
-		el["Presets"][self.ButtonStates.PRESSED] = "ButtonSceneEditorWidePressed"
+		el["Presets"][CF.ElementStates.IDLE] = "ButtonSceneEditorWideIdle"
+		el["Presets"][CF.ElementStates.MOUSE_OVER] = "ButtonSceneEditorWideMouseOver"
+		el["Presets"][CF.ElementStates.PRESSED] = "ButtonSceneEditorWidePressed"
 		el["RelPos"] = Vector(-self.Res.X / 2 + 20 + sx / 2 + x * sx + 252, -self.Res.Y / 2 + 20 + y * sy)
 		el["Text"] = CF.MissionRequiredData[self.SelectedType][i]["Name"]
 		el["Data"] = i
@@ -343,15 +343,15 @@ function VoidWanderers:MissionType_OnClick()
 
 	--CF.DisableUIProcessing = true
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:Set_OnClick()
 	self.SelectedSet = self.UI[self.MousePressedElement]["Data"]
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:PointType_OnClick()
 	local newui = {}
 
@@ -375,11 +375,11 @@ function VoidWanderers:PointType_OnClick()
 	-- Fill sets
 	for i = 1, CF.MissionRequiredData[self.SelectedType][self.SelectedPointType]["Max"] do
 		el = {}
-		el["Type"] = self.ElementTypes.BUTTON
+		el["Type"] = CF.ElementTypes.BUTTON
 		el["Presets"] = {}
-		el["Presets"][self.ButtonStates.IDLE] = "ButtonSceneEditorIdle"
-		el["Presets"][self.ButtonStates.MOUSE_OVER] = "ButtonSceneEditorMouseOver"
-		el["Presets"][self.ButtonStates.PRESSED] = "ButtonSceneEditorPressed"
+		el["Presets"][CF.ElementStates.IDLE] = "ButtonSceneEditorIdle"
+		el["Presets"][CF.ElementStates.MOUSE_OVER] = "ButtonSceneEditorMouseOver"
+		el["Presets"][CF.ElementStates.PRESSED] = "ButtonSceneEditorPressed"
 		el["RelPos"] = Vector(-self.Res.X / 2 + 20 + sx / 2 + x * sx + 252 + 161, -self.Res.Y / 2 + 20 + y * sy)
 		el["Text"] = tostring(i)
 		el["Data"] = i
@@ -397,15 +397,15 @@ function VoidWanderers:PointType_OnClick()
 	self:ShowElements()
 	self.SelectedPoint = 1
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:Point_OnClick()
 	self.SelectedPoint = self.UI[self.MousePressedElement]["Data"]
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:FormUpdate()
 	--print (UInputMan:MouseWheelMoved())
 
@@ -492,9 +492,9 @@ function VoidWanderers:FormUpdate()
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:FormClick()
 	if not self.ButtonPressed then
 		local el = self.MousePressedElement
@@ -547,9 +547,9 @@ function VoidWanderers:FormClick()
 	end--]]
 	--
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:FormDraw()
 	self:ClearObjectivePoints()
 
@@ -705,9 +705,9 @@ function VoidWanderers:FormDraw()
 	FrameMan:ClearScreenText(0)
 	FrameMan:SetScreenText(s, 0, 0, 1000, false)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:PutGlow(preset, pos)
 	local glow = CreateMOPixel(preset, self.ModuleName)
 	if glow then
@@ -715,13 +715,13 @@ function VoidWanderers:PutGlow(preset, pos)
 		MovableMan:AddParticle(glow)
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:FormClose() end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:PutGlowWithModule(preset, pos, module)
 	local glow = CreateMOPixel(preset, module)
 	if glow then
@@ -729,9 +729,9 @@ function VoidWanderers:PutGlowWithModule(preset, pos, module)
 		MovableMan:AddParticle(glow)
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:DrawDottedLine(x1, y1, x2, y2, dot, interval)
 	local d = CF.Dist(Vector(x1, y1), Vector(x2, y2))
 
@@ -750,12 +750,12 @@ function VoidWanderers:DrawDottedLine(x1, y1, x2, y2, dot, interval)
 	d = math.floor(d)
 
 	for i = 1, d, interval do
-		self:PutGlowWithModule(dot, Vector(x, y), self.ModuleName)
+		self:PutGlow(dot, Vector(x, y));
 
 		x = x + ax
 		y = y + ay
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 --
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

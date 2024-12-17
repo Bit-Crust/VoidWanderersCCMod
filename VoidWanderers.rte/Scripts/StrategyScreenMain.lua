@@ -1,13 +1,6 @@
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Initialize menu screen systems.
------------------------------------------------------------------------------------------
-
-local menuPanelBase = { 228 };
-local menuPanelTrim = { 227, 50, 190 };
-local menuPanelSheen = { 173 };
-local menuPanelInset = { 224 };
-local menuPanelGround = { 189, 190, 209, 213, 11, 12 };
-
+-----------------------------------------------------------------------
 function VoidWanderers:StartActivity(isNewGame)
 	print("VoidWanderers:StrategyScreen:StartActivity");
 
@@ -50,6 +43,7 @@ function VoidWanderers:StartActivity(isNewGame)
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		self:SetPlayerBrain(nil, player);
+		self:SetPlayerHadBrain(player, false);
 		FrameMan:ClearScreenText(player);
 	end
 
@@ -61,9 +55,6 @@ function VoidWanderers:StartActivity(isNewGame)
 
 	self.FirePressed = {}
 	self.MouseFirePressed = true
-
-	self.ElementTypes = { BUTTON = 0, LABEL = 1, PLANET = 2 }
-	self.ButtonStates = { IDLE = 0, MOUSE_OVER = 1, PRESSED = 2 }
 
 	self.UI = {}
 
@@ -80,71 +71,22 @@ function VoidWanderers:StartActivity(isNewGame)
 
 	self.IsInitialized = true
 end
------------------------------------------------------------------------------------------
--- Draw label element
------------------------------------------------------------------------------------------
-function VoidWanderers:DrawLabel(el, state)
-	-- Labels can ommit presets or texts
-	if el["Preset"] then
-		local pix = CreateMOPixel(el["Preset"])
-		pix.Pos = el.Pos
-		MovableMan:AddParticle(pix)
-	end
-
-	if el["Text"] then
-		local centered = true
-
-		if el["Centered"] ~= nil and el["Centered"] == false then
-			centered = false
-		end
-
-		if centered then
-			local w = CF.GetStringPixelWidth(el["Text"])
-			CF.DrawString(el["Text"], Vector(el.Pos.X - (w / 2) + 4, el.Pos.Y), el["Width"], el["Height"])
-		else
-			CF.DrawString(el["Text"], el.Pos, el["Width"], el["Height"])
-		end
-	end
-end
------------------------------------------------------------------------------------------
--- Draw button element
------------------------------------------------------------------------------------------
-function VoidWanderers:DrawButton(el, state)
-	if el.Visible ~= false then
-		if el.Text then
-			local w = CF.GetStringPixelWidth(el.Text)
-			CF.DrawString(el.Text, Vector(el.Pos.X - (w / 2) + 4, el.Pos.Y), el.Width, el.Height)
-		end
-
-		PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2, el.Pos + Vector(el.Width, el.Height) / 2 - Vector(1, 1), menuPanelBase[1])
-		PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2 + Vector(1, 1), el.Pos + Vector(el.Width, el.Height) / 2 - Vector(3, 3), menuPanelTrim[state + 1])
-		if state == 0 then
-			PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2 + Vector(1, 1), el.Pos - Vector(el.Width, el.Height) / 2 + Vector(1, 1), menuPanelSheen[1])
-		end
-		if state == 2 then
-			PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2 + Vector(2, 2), el.Pos + Vector(el.Width, el.Height) / 2 - Vector(4, 4), menuPanelInset[1])
-			PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2 + Vector(3, 3), el.Pos + Vector(el.Width, el.Height) / 2 - Vector(4, 4), menuPanelGround[state == 0 and 1 or 2])
-		else
-			PrimitiveMan:DrawBoxFillPrimitive(el.Pos - Vector(el.Width, el.Height) / 2 + Vector(2, 2), el.Pos + Vector(el.Width, el.Height) / 2 - Vector(4, 4), menuPanelGround[state == 0 and 1 or 2])
-		end
-	end
-end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Check if pos is within button area
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:IsWithinButton(el, pos)
 	local isvisible = true
 
-	if el["Visible"] ~= nil then
-		if el["Visible"] == false then
+	if el.Visible ~= nil then
+		if el.Visible == false then
 			isvisible = false
 		end
 	end
 
 	if isvisible then
-		local elpos = el["Pos"]
-		local wx = el["Width"]
-		local wy = el["Height"]
+		local elpos = el.Pos
+		local wx = el.Width
+		local wy = el.Height
 
 		if
 			pos.X > elpos.X - (wx / 2)
@@ -158,37 +100,35 @@ function VoidWanderers:IsWithinButton(el, pos)
 
 	return false
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Redraw non-custom elements
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:RedrawKnownFormElements()
 	for i = 1, #self.UI do
-		-- Redraw button
-		if self.UI[i]["Type"] == self.ElementTypes.BUTTON then
-			local state = self.ButtonStates.IDLE
-
-			if i == self.MouseOverElement then
-				state = self.ButtonStates.MOUSE_OVER
-			end
-
+		if self.UI[i].Type == CF.ElementTypes.BUTTON then
+			local button = self.UI[i];
+			local state = CF.ElementStates.IDLE;
 			if i == self.MousePressedElement then
-				state = self.ButtonStates.PRESSED
+				state = CF.ElementStates.PRESSED;
+			elseif i == self.MouseOverElement then
+				state = CF.ElementStates.MOUSE_OVER;
 			end
+			button.State = state;
 
-			self:DrawButton(self.UI[i], state, true)
+			CF.DrawButton(button);
 		end
 
-		if self.UI[i]["Type"] == self.ElementTypes.LABEL then
-			self:DrawLabel(self.UI[i])
+		if self.UI[i].Type == CF.ElementTypes.LABEL then
+			CF.DrawLabel(self.UI[i])
 		end
 	end
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Get element id above which mouse currently is
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:GetMouseOverKnownFormElements()
 	for i = 1, #self.UI do
-		if self.UI[i]["Type"] == self.ElementTypes.BUTTON then
+		if self.UI[i].Type == CF.ElementTypes.BUTTON then
 			if self:IsWithinButton(self.UI[i], self.Cursor) then
 				return i
 			end
@@ -197,21 +137,22 @@ function VoidWanderers:GetMouseOverKnownFormElements()
 
 	return nil
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Update Activity
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 function VoidWanderers:UpdateActivity()
 	if not self.IsInitialized then
 		--Init mission if we're still not
 		print("*");
 		self:StartActivity(true);
 	end
-
+	
 	self:ClearObjectivePoints();
 
 	-- Set the screen of disabled 4-th player when we're playing in 3-player mode
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		local screen = self:ScreenOfPlayer(player);
+		FrameMan:ClearScreenText(player);
 		if screen ~= -1 then
 			if screen ~= 0 then
 				CameraMan:SetOffset(self.CamOffset[screen] - self.Res / 2, screen);
@@ -272,43 +213,7 @@ function VoidWanderers:UpdateActivity()
 	self.Cursor = self.Mouse + self.Scroll;
 
 	-- Process mouse hovers and presses -- TODO: UInputMan doesn't seem to register the mouse press functions?
-	if self.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
-		self.MouseOverElement = self:GetMouseOverKnownFormElements()
-
-		if self.MouseOverElement then
-			if self.UI[self.MouseOverElement].OnHover ~= nil then
-				self.UI[self.MouseOverElement].OnHover(self)
-			end
-		end
-
-		-- Process standard input
-		if cont:IsState(Controller.WEAPON_FIRE) then
-			if not self.MouseFirePressed then
-				self.MousePressedElement = self:GetMouseOverKnownFormElements()
-
-				local dontpass = false
-
-				if self.MousePressedElement ~= nil then
-					if self.UI[self.MousePressedElement].OnClick ~= nil then
-						dontpass = true
-						self.UI[self.MousePressedElement].OnClick(self)
-					end
-				end
-
-				if not dontpass then
-					self:FormClick()
-				end
-
-				self.MouseOverElement = nil
-				self.MousePressedElement = nil
-				self.MousePressStartElement = nil
-				self.MousePressEndElement = nil
-			end
-			self.MouseFirePressed = true
-		else
-			self.MouseFirePressed = false
-		end
-	else
+	if self.MenuNavigationScheme == self.MenuNavigationSchemes.MOUSE then
 		-- Process mouse input
 		self.MouseOverElement = self:GetMouseOverKnownFormElements()
 
@@ -356,6 +261,42 @@ function VoidWanderers:UpdateActivity()
 			self.MousePressStartElement = nil
 			self.MousePressEndElement = nil
 		end
+	else
+		self.MouseOverElement = self:GetMouseOverKnownFormElements()
+
+		if self.MouseOverElement then
+			if self.UI[self.MouseOverElement].OnHover ~= nil then
+				self.UI[self.MouseOverElement].OnHover(self)
+			end
+		end
+
+		-- Process standard input
+		if cont:IsState(Controller.WEAPON_FIRE) then
+			if not self.MouseFirePressed then
+				self.MousePressedElement = self:GetMouseOverKnownFormElements()
+
+				local dontpass = false
+
+				if self.MousePressedElement ~= nil then
+					if self.UI[self.MousePressedElement].OnClick ~= nil then
+						dontpass = true
+						self.UI[self.MousePressedElement].OnClick(self)
+					end
+				end
+
+				if not dontpass then
+					self:FormClick()
+				end
+
+				self.MouseOverElement = nil
+				self.MousePressedElement = nil
+				self.MousePressStartElement = nil
+				self.MousePressEndElement = nil
+			end
+			self.MouseFirePressed = true
+		else
+			self.MouseFirePressed = false
+		end
 	end
 
 	self:RedrawKnownFormElements()
@@ -363,6 +304,6 @@ function VoidWanderers:UpdateActivity()
 	self:FormDraw()
 	PrimitiveMan:DrawBitmapPrimitive(self:ScreenOfPlayer(self.MenuNavigatingPlayer), self.Cursor + Vector(5, 5), "Mods/VoidWanderers.rte/UI/Generic/Cursor.png", 0)
 end
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Thats all folks!!!
------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------

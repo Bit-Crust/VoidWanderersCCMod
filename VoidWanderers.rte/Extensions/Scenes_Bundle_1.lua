@@ -96,9 +96,8 @@ if PresetMan:GetModuleID("BB+.rte") ~= -1 then
 	local id = "The Breach"
 	CF.Planet[#CF.Planet + 1] = id
 	CF.PlanetName[id] = "The Breach"
-	CF.PlanetGlow[id] = "The Breach"
+	CF.PlanetGlow[id] = "Mods/VoidWanderers.rte/UI/Planets/TheBreach.png"
 	CF.PlanetPos[id] = Vector(-13, 40)
-	CF.PlanetGlowModule[id] = "VoidWanderers.rte"
 
 	local id = "Bluffside Bastion"
 	CF.Location[#CF.Location + 1] = id
@@ -391,7 +390,6 @@ if activated then
 	local id = "Miranda"
 	CF.Planet[#CF.Planet + 1] = id
 	CF.PlanetName[id] = "Miranda"
-	CF.PlanetGlow[id] = "Miranda"
+	CF.PlanetGlow[id] = "Mods/VoidWanderers.rte/UI/Planets/Miranda.png"
 	CF.PlanetPos[id] = Vector(-43, 10)
-	CF.PlanetGlowModule[id] = "VoidWanderers.rte"
 end
