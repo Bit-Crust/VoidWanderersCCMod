@@ -36,11 +36,7 @@ function VoidWanderers:InitShipControlPanelUI()
 		SHIPYARD = 7,
 	};
 
-	if self.MissionReport ~= nil then
-		self.ShipControlMode = self.ShipControlPanelModes.REPORT;
-	else
-		self.ShipControlMode = self.ShipControlPanelModes.LOCATION;
-	end
+	self.ShipControlMode = self.ShipControlPanelModes.LOCATION;
 	self.ShipControlDialogDefaultTime = 15000;
 
 	self.ShipControlMessageTime = -1;
@@ -106,14 +102,6 @@ end
 function VoidWanderers:ProcessShipControlPanelUI()
 	local resetLists = true;
 	local showIdle = true;
-
-	if self.MissionReport ~= nil then
-		--[[ Force-show report if we have some report array left from previous mission?
-		self:SwitchToActor(self.ShipControlPanelActor, 0, CF.PlayerTeam)
-		]]
-		--
-		self.MissionReport = nil;
-	end
 
 	if self.ShipControlPanelActor then
 		local pos = self.ShipControlPanelPos;
@@ -198,11 +186,15 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						CF.DrawString("-----------------------------------------------------------------------", pos + Vector(0, lineOffset), 276, 11, nil, nil, 1);
 						lineOffset = lineOffset + 11;
 
+						local fullReport = "";
+						
 						for i = 1, CF.MaxMissionReportLines do
-							CF.DrawString(self.GS["MissionReport" .. i] or "", pos + Vector(0, lineOffset), 276, 11, nil, nil, 1);
-							lineOffset = lineOffset + 11;
+							local reportLine = self.GS["MissionReport" .. i] or "";
+							fullReport = fullReport .. CF.SplitStringToFitWidth(reportLine, 276, false);
+							fullReport = fullReport .. "\n";
 						end
 					
+						CF.DrawString(fullReport, pos + Vector(0, lineOffset), 276, 110, nil, nil, 1, 0);
 
 						if cont:IsState(Controller.PRESS_DOWN) then
 							-- Save all items
@@ -399,7 +391,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(sx, sy) + Vector(70, 0), path, 0, false, false);
 
 					if dx ~= nil and dy ~= nil then
-						self:DrawDottedLine(cx + sx, cy + sy, cx + dx, cy + dy, Activity.PLAYER_NONE, 5)
+						self:DrawDottedLine(cx + dx, cy + dy, cx + sx, cy + sy, Activity.PLAYER_NONE, 5)
 					end
 
 					local shippos = Vector(sx, sy)
@@ -792,7 +784,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							diff = math.max(1, math.min(CF.MaxDifficulty, diff));
 
 							local text = "Sent " .. CF.AssaultDifficultyTexts[diff] .. "s!";
-							CF.DrawString(text, pos + Vector(33, lineOffset), 270, 11, true, nil, 0, 1);
+							CF.DrawString(text, pos + Vector(33, lineOffset + 6), 270, 11, true, nil, 0, 1);
 						end
 
 						lineOffset = lineOffset + 11;
@@ -1382,10 +1374,10 @@ function VoidWanderers:ProcessShipControlPanelUI()
 		self.ShipControlSelectedUpgrade = 1;
 		self.ShipControlSelectedShip = 1;
 	end
-
-	if showIdle and self.ShipControlPanelPos ~= nil and self.ShipControlPanelActor ~= nil then
+	
+	if showIdle and MovableMan:ValidMO(self.ShipControlPanelActor) and self.ShipControlPanelActor.Team == Activity.TEAM_1 then
 		local player = Activity.PLAYER_NONE;
-		local pos = self.ShipControlPanelPos;
+		local pos = self.ShipControlPanelActor.Pos;
 		local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Ship.png";
 		local rotation = 0;
 		local hflip = false;

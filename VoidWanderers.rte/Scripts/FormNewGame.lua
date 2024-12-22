@@ -23,8 +23,8 @@ function VoidWanderers:FormLoad()
 			local el = {};
 			
 			el.Type = CF.ElementTypes.BUTTON;
-			el.Width = self.TileW;
-			el.Height = self.TileH;
+			el.Width = self.TileW - 2;
+			el.Height = self.TileH - 2;
 			el.Backdrop = false;
 			el.Text = "";
 			el.Palettes = CF.MenuNormalPalette;
@@ -151,15 +151,14 @@ function VoidWanderers:FormLoad()
 			xtile = 1;
 			ytile = ytile + 1;
 		end
-	end
 
-	for i = 1, self.PlayableFactionCount do
 		local actor = CF.SpawnRandomInfantry(
 			-1,
 			self.FactionButtons[i].Pos,
 			self.FactionButtons[i].FactionId,
 			Actor.AIMODE_SENTRY
 		);
+
 		if actor ~= nil then
 			actor:EnableOrDisableAllScripts(false);
 			actor:SetControllerMode(Controller.CIM_DISABLED, -1);
@@ -200,36 +199,42 @@ function VoidWanderers:FormLoad()
 	end
 
 	-- Draw selection plates
-	self.SelectionButtons = {};
+	self.participantSlots = {};
+	self.participantTags = {};
+	self.participantLabels = {};
 	local xtile = 1;
 	local ytile = 0;
 	local tilesperrow = self.FactionButtonsPerRow;
 
 
 	for i = 1, self.MaxCPUPlayersSelectable do
-		el = {};
+		local el = {};
 		el.Type = CF.ElementTypes.LABEL;
+		el.Backdrop = false;
+		el.Text = "";
 		el.Pos = Vector(
 			self.Mid.X - ((tilesperrow * self.TileW) / 2) + (xtile * self.TileW) - (self.TileW / 2),
 			self.Mid.Y + 90 + (ytile * tileH2) + 60
 		);
-		el.Width = 60;
-		el.Backdrop = true;
-		el.Palettes = i == 1 and CF.MenuSelectPalette or CF.MenuNormalPalette;
-		el.State = i == 1 and CF.ElementStates.IDLE or CF.ElementStates.MOUSE_OVER;
-		el.Height = 70;
+		el.Width = self.TileW - 2;
+		el.Height = 12;
 
-		self.SelectionButtons[i] = el;
+		self.participantSlots[i] = el;
 		self.UI[#self.UI + 1] = el;
 
 		-- Add labels
 		local el = {};
 		el.Type = CF.ElementTypes.LABEL;
-		el.Pos = self.SelectionButtons[i].Pos + Vector(0, -39);
+		el.Backdrop = true;
 		el.Text = i == 1 and "PLAYER" or ("FACTION " .. i);
-		el.Width = self.TileW;
-		el.Height = 11;
+		el.Palettes = i == 1 and CF.MenuSelectPalette or CF.MenuNormalPalette;
+		el.State = i == 1 and CF.ElementStates.IDLE or CF.ElementStates.MOUSE_OVER;
+		el.Pos = self.participantSlots[i].Pos + Vector(0, -39);
+		el.Width = self.TileW - 2;
+		el.Height = 14;
 		el.Centered = true;
+		
+		self.participantLabels[i] = el;
 		self.UI[#self.UI + 1] = el;
 
 		xtile = xtile + 1;
@@ -329,7 +334,7 @@ function VoidWanderers:FormClick()
 			-- If we're clear, add a unit and a faction to the list
 			local actor = CF.SpawnRandomInfantry(
 				-1,
-				self.SelectionButtons[self.Phase + 1].Pos,
+				self.participantSlots[self.Phase + 1].Pos,
 				self.FactionButtons[f].FactionId,
 				Actor.AIMODE_SENTRY
 			)
@@ -433,7 +438,7 @@ function VoidWanderers:FormUpdate()
 			local s = "No MOIDs";
 			local l = CF.GetStringPixelWidth(s);
 
-			CF.DrawString(s, self.SelectionButtons[i + 1].Pos + Vector(-l / 2, 0), 100, 100); 
+			CF.DrawString(s, self.participantSlots[i + 1].Pos + Vector(-l / 2, 0), 100, 100); 
 		end
 	end
 end

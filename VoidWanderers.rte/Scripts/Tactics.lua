@@ -52,38 +52,46 @@ function VoidWanderers:StartActivity(isNewGame)
 	
 	-- Load generic level data
 	self.SceneConfig = CF.ReadSceneConfigFile(SceneMan.Scene.ModuleName, SceneMan.Scene.PresetName .. ".dat")
-
-	if SceneMan.Scene:GetArea("Vessel") then
+	local vesselArea = SceneMan.Scene:GetArea("Vessel");
+	
+	if vesselArea then
 		if not isNewGame then
-			self.vesselData = self.saveLoadHandler:ReadSavedStringAsTable("vesselData")
+			self.vesselData = self.saveLoadHandler:ReadSavedStringAsTable("vesselData");
 		else
-			self.vesselData = {}
-			self.vesselData["initialized"] = true
-			self.vesselData["artificialGravity"] = Vector(0, rte.PxTravelledPerFrame / (1 + SceneMan.Scene.GlobalAcc.Y))
-			self.vesselData["ship"] = SceneMan.Scene:GetArea("Vessel")
-			self.vesselData["spaceDeck"] = SceneMan.Scene:GetArea("SpaceWalk") or self.vesselData["ship"]
-			self.vesselData["flightDisabled"] = false
-			self.vesselData["flightAimless"] = false
-			self.vesselData["throttle"] = 1
+			self.vesselData = {};
+			self.vesselData["initialized"] = true;
+			self.vesselData["team"] = self.GS["Mode"] == "Vessel" and 0 or 1;
+			self.vesselData["artificialGravity"] = Vector(0, rte.PxTravelledPerFrame / (1 + SceneMan.Scene.GlobalAcc.Y));
+			self.vesselData["ship"] = vesselArea;
+			self.vesselData["spaceDeck"] = SceneMan.Scene:GetArea("Vessel Spacedeck") or Area("Vessel Spacedeck");
+			self.vesselData["flightDisabled"] = false;
+			self.vesselData["flightAimless"] = false;
+			self.vesselData["throttle"] = self.vesselData["team"] == 0 and 1 or 0;
 
-			self.vesselData["dialogDefaultTimer"] = Timer()
+			self.vesselData["dialogDefaultTimer"] = Timer();
 
 			-- Create emitters
-			self.vesselData["engines"] = {}
+			self.vesselData["engines"] = {};
 			for i = 1, 10 do
-				local x, y
+				local x, y;
 
-				x = tonumber(self.SceneConfig["Engine" .. i .. "X"])
-				y = tonumber(self.SceneConfig["Engine" .. i .. "Y"])
-				local em = CreateAEmitter("Vessel Main Thruster")
-				if em and x and y then
-					em.Pos = Vector(x, y)
-					self.vesselData["engines"][i] = em
-					MovableMan:AddParticle(em)
-					em:EnableEmission(not self.vesselData["flightDisabled"])
-					em.Throttle = self.vesselData["throttle"]
+				x = tonumber(self.SceneConfig["Engine" .. i .. "X"]);
+				y = tonumber(self.SceneConfig["Engine" .. i .. "Y"]);
+
+				if x and y then
+					local em = CreateAEmitter("Vessel Main Thruster");
+
+					if em then
+						em.Pos = Vector(x, y);
+						self.vesselData["engines"][i] = em;
+						MovableMan:AddParticle(em);
+						em:EnableEmission(not self.vesselData["flightDisabled"]);
+						em.Throttle = self.vesselData["throttle"];
+					else
+						break;
+					end
 				else
-					break
+					break;
 				end
 			end
 		end
@@ -128,8 +136,6 @@ function VoidWanderers:StartActivity(isNewGame)
 			self.Difficulty = difficulty;
 		end
 	end
-
-	self.AssaultSpawn = SceneMan.Scene:GetArea("AssaultSpawn")
 
 	-- Read brain location data
 	if self.GS["Mode"] == "Vessel" then
@@ -203,12 +209,12 @@ function VoidWanderers:StartActivity(isNewGame)
 					MovableMan:AddActor(actor);
 				elseif self.GS["Actor" .. i .. "Preset"] then
 					local limbData = {}
-					for j = 1, #CF.LimbID do
-						limbData[j] = self.GS["Actor" .. i .. CF.LimbID[j]]
+					for j = 1, #CF.HumanLimbID do
+						limbData[j] = self.GS["Actor" .. i .. CF.HumanLimbID[j]]
 					end
 					local actor = CF.MakeActor(
-						self.GS["Actor" .. i .. "Preset"],
 						self.GS["Actor" .. i .. "Class"],
+						self.GS["Actor" .. i .. "Preset"],
 						self.GS["Actor" .. i .. "Module"],
 						self.GS["Actor" .. i .. "XP"],
 						self.GS["Actor" .. i .. "Identity"],
@@ -225,8 +231,8 @@ function VoidWanderers:StartActivity(isNewGame)
 						for j = 1, CF.MaxSavedItemsPerActor do
 							if self.GS["Actor" .. i .. "Item" .. j .. "Preset"] then
 								local itm = CF.MakeItem(
-									self.GS["Actor" .. i .. "Item" .. j .. "Preset"],
 									self.GS["Actor" .. i .. "Item" .. j .. "Class"],
+									self.GS["Actor" .. i .. "Item" .. j .. "Preset"],
 									self.GS["Actor" .. i .. "Item" .. j .. "Module"]
 								)
 								if itm then
@@ -300,12 +306,12 @@ function VoidWanderers:StartActivity(isNewGame)
 					MovableMan:AddActor(actor)
 				elseif self.GS["Deployed" .. i .. "Preset"] then
 					local limbData = {}
-					for j = 1, #CF.LimbID do
-						limbData[j] = self.GS["Deployed" .. i .. CF.LimbID[j]]
+					for j = 1, #CF.HumanLimbID do
+						limbData[j] = self.GS["Deployed" .. i .. CF.HumanLimbID[j]]
 					end
 					local actor = CF.MakeActor(
-						self.GS["Deployed" .. i .. "Preset"],
 						self.GS["Deployed" .. i .. "Class"],
+						self.GS["Deployed" .. i .. "Preset"],
 						self.GS["Deployed" .. i .. "Module"],
 						self.GS["Deployed" .. i .. "XP"],
 						self.GS["Deployed" .. i .. "Identity"],
@@ -322,8 +328,8 @@ function VoidWanderers:StartActivity(isNewGame)
 						for j = 1, CF.MaxSavedItemsPerActor do
 							if self.GS["Deployed" .. i .. "Item" .. j .. "Preset"] then
 								local itm = CF.MakeItem(
-									self.GS["Deployed" .. i .. "Item" .. j .. "Preset"],
 									self.GS["Deployed" .. i .. "Item" .. j .. "Class"],
+									self.GS["Deployed" .. i .. "Item" .. j .. "Preset"],
 									self.GS["Deployed" .. i .. "Item" .. j .. "Module"]
 								)
 								if itm then
@@ -384,7 +390,7 @@ function VoidWanderers:StartActivity(isNewGame)
 		self:InitConsoles()
 
 		-- If we're on temp-location then cancel this location
-		if CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TEMPLOCATION) then
+		if (isNewGame) and CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TEMPLOCATION) then
 			self.GS["Location"] = nil
 		end
 	end
@@ -441,12 +447,12 @@ function VoidWanderers:StartActivity(isNewGame)
 					self.GS["MissionDeployedTroops"] = tonumber(self.GS["MissionDeployedTroops"]) + 1;
 				elseif self.GS["Deployed" .. i .. "Preset"] then
 					local limbData = {}
-					for j = 1, #CF.LimbID do
-						limbData[j] = self.GS["Deployed" .. i .. CF.LimbID[j]]
+					for j = 1, #CF.HumanLimbID do
+						limbData[j] = self.GS["Deployed" .. i .. CF.HumanLimbID[j]]
 					end
 					local actor = CF.MakeActor(
-						self.GS["Deployed" .. i .. "Preset"],
 						self.GS["Deployed" .. i .. "Class"],
+						self.GS["Deployed" .. i .. "Preset"],
 						self.GS["Deployed" .. i .. "Module"],
 						self.GS["Deployed" .. i .. "XP"],
 						self.GS["Deployed" .. i .. "Identity"],
@@ -463,8 +469,8 @@ function VoidWanderers:StartActivity(isNewGame)
 						for j = 1, CF.MaxSavedItemsPerActor do
 							if self.GS["Deployed" .. i .. "Item" .. j .. "Preset"] then
 								local itm = CF.MakeItem(
-									self.GS["Deployed" .. i .. "Item" .. j .. "Preset"],
 									self.GS["Deployed" .. i .. "Item" .. j .. "Class"],
+									self.GS["Deployed" .. i .. "Item" .. j .. "Preset"],
 									self.GS["Deployed" .. i .. "Item" .. j .. "Module"]
 								)
 								if itm then
@@ -564,21 +570,13 @@ function VoidWanderers:StartActivity(isNewGame)
 					CF.CreateAIUnitPresets(
 						self.GS,
 						self.missionData["missionContractor"],
-						CF.GetTechLevelFromDifficulty(
-							self.GS,
-							self.missionData["missionContractor"],
-							self.missionData["difficulty"],
-							CF.MaxDifficulty
-						)
+						CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, self.missionData["missionContractor"]), self.missionData["difficulty"])
 					)
 					CF.CreateAIUnitPresets(
 						self.GS,
 						self.missionData["missionTarget"],
-						CF.GetTechLevelFromDifficulty(
-							self.GS,
-							self.missionData["missionTarget"],
-							self.missionData["difficulty"],
-							CF.MaxDifficulty
+						CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"]),
+							self.missionData["difficulty"]
 						)
 					)
 
@@ -624,14 +622,17 @@ function VoidWanderers:StartActivity(isNewGame)
 			local crtspos = CF.RandomSampleOfList(crts, amount)
 
 			for i = 1, #crtspos do
-				local crt = math.random() < CF.ActorCratesRate and CreateMOSRotating("Crate", self.ModuleName)
-					or (
-						math.random() < 0.01 and CreateAHuman("Case", self.ModuleName)
-						or CreateAttachable("Case", self.ModuleName)
-					)
+				local cachePreset = math.random() < CF.ActorCratesRate and "Crate" or "Case";
+				local cacheClass = (cachePreset == "Case" and math.random() < 0.01) and "AHuman" or "Attachable";
+				local cache = nil;
 
-				if crt then
-					crt.Pos = crtspos[i]
+				if cacheClass == "AHuman" then
+					cache = CreateAHuman(cachePreset, self.ModuleName);
+				else
+					cache = CreateAttachable(cachePreset, self.ModuleName);
+				end
+
+				if cache then
 					if math.random() < CF.CrateRandomLocationsRate then
 						-- Try to spawn a crate at a totally random location
 						local materialThreshold = 100 -- The average strength of the terrain surrounding the crate has to be below this
@@ -649,7 +650,7 @@ function VoidWanderers:StartActivity(isNewGame)
 							if terrCheck ~= rte.airID then
 								surroundingStrength = surroundingStrength
 									+ SceneMan:GetMaterialFromID(terrCheck).StructuralIntegrity
-								local radius = crt.Radius
+								local radius = cache.Radius
 								local dots = 5
 								for i = 1, dots do
 									local checkPos = potentialPos + Vector(radius, 0):RadRotate((math.pi * 2) * (i / dots))
@@ -663,7 +664,8 @@ function VoidWanderers:StartActivity(isNewGame)
 										)
 								end
 								if surroundingStrength < materialThreshold * (1 + dots) then
-									crt.Pos = potentialPos
+									cache.Pos = potentialPos
+									cache.RotAngle = math.random() * math.pi * 2;
 									ok = true
 								end
 							else
@@ -672,23 +674,14 @@ function VoidWanderers:StartActivity(isNewGame)
 							end
 							attempts = attempts + 1
 						end
-						if i > #crtspos * hiddenRate then
-							crt:EraseFromTerrain()
-						end
 					else
-						crt:EraseFromTerrain()
+						cache.Pos = crtspos[i] + Vector(math.random(-10, 10), math.random(-3, 3));
+						cache.RotAngle = math.random() * 0.6 - 0.3;
 					end
-					crt.PinStrength = crt.GibImpulseLimit * 0.8
-					MovableMan:AddMO(crt)
-				end
-			end
-			
-			-- Convert non-CPU doors
-			if CF.LocationRemoveDoors[self.GS["Location"]] then
-				for actor in MovableMan.Actors do
-					if actor.ClassName == "ADoor" then
-						actor.Team = CF.CPUTeam
-					end
+
+					cache.PinStrength = cache.GibImpulseLimit * 0.1;
+
+					MovableMan:AddMO(cache);
 				end
 			end
 
@@ -697,43 +690,45 @@ function VoidWanderers:StartActivity(isNewGame)
 				SceneMan:MakeAllUnseen(Vector(CF.FogOfWarResolution, CF.FogOfWarResolution), CF.CPUTeam)
 				SceneMan:MakeAllUnseen(Vector(CF.FogOfWarResolution, CF.FogOfWarResolution), CF.PlayerTeam)
 
-				-- Reveal outside areas for everyone.
-				for x = 0, SceneMan.SceneWidth - 1, CF.FogOfWarResolution do
-					local altitude = Vector(0, 0)
-					SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0)
-					if altitude.Y > 1 then
-						SceneMan:RevealUnseenBox(x - 10, 0, CF.FogOfWarResolution + 20, altitude.Y + 10, CF.CPUTeam)
-						SceneMan:RevealUnseenBox(x - 10, 0, CF.FogOfWarResolution + 20, altitude.Y + 10, CF.PlayerTeam)
+				if not self.vesselData["initialized"] then
+					-- Reveal outside areas for everyone.
+					for x = 0, SceneMan.SceneWidth - 1, CF.FogOfWarResolution do
+						local altitude = Vector(0, 0)
+						SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0)
+						if altitude.Y > 1 then
+							SceneMan:RevealUnseenBox(x - 10, 0, CF.FogOfWarResolution + 20, altitude.Y + 10, CF.CPUTeam)
+							SceneMan:RevealUnseenBox(x - 10, 0, CF.FogOfWarResolution + 20, altitude.Y + 10, CF.PlayerTeam)
 
-						-- ambient crabs
-						if false and math.random(1, 1000) <= 4 then
-							local onScreen = false;
-							local platonicCrab = ToACrab(PresetMan:GetPreset("ACrab", "Crab", "Base.rte"));
-							local platonicMegaCrab = ToACrab(PresetMan:GetPreset("ACrab", "Mega Crab", "Base.rte"));
-							platonicCrab = math.random(1, 100) >= 100 and platonicMegaCrab or platonicCrab;
+							-- ambient crabs
+							if false and math.random(1, 1000) <= 4 then
+								local onScreen = false;
+								local platonicCrab = ToACrab(PresetMan:GetPreset("ACrab", "Crab", "Base.rte"));
+								local platonicMegaCrab = ToACrab(PresetMan:GetPreset("ACrab", "Mega Crab", "Base.rte"));
+								platonicCrab = math.random(1, 100) >= 100 and platonicMegaCrab or platonicCrab;
 
-							for player = Activity.PLAYER_NONE + 1, Activity.MAXPLAYERCOUNT - 1 do
-								onScreen = FrameMan.PlayerScreenWidth / 2 >= platonicCrab.Radius + SceneMan:ShortestDistance(Vector(x, 0), Vector(CameraMan:GetOffset(player).X + FrameMan.PlayerScreenWidth / 2, 0), true).Magnitude;
-								if onScreen then
-									break;
+								for player = Activity.PLAYER_NONE + 1, Activity.MAXPLAYERCOUNT - 1 do
+									onScreen = FrameMan.PlayerScreenWidth / 2 >= platonicCrab.Radius + SceneMan:ShortestDistance(Vector(x, 0), Vector(CameraMan:GetOffset(player).X + FrameMan.PlayerScreenWidth / 2, 0), true).Magnitude;
+									if onScreen then
+										break;
+									end
 								end
-							end
 							
-							if not onScreen then
-								local crab = platonicCrab:Clone();
-								if crab then
-									crab.Pos = altitude + Vector(0, -128);
-									MovableMan:AddActor(crab);
+								if not onScreen then
+									local crab = platonicCrab:Clone();
+									if crab then
+										crab.Pos = altitude + Vector(0, -128);
+										MovableMan:AddActor(crab);
+									end
 								end
 							end
 						end
 					end
 				end
 
-				for Act in MovableMan.AddedActors do
-					if not IsADoor(Act) then
+				for actor in MovableMan.AddedActors do
+					if not IsADoor(actor) and actor.CanRevealUnseen then
 						for angle = 0, math.pi * 2, 0.05 do
-							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150 + FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, CF.FogOfWarResolution)
+							SceneMan:CastSeeRay(actor.Team, actor.EyePos, Vector(150 + FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, CF.FogOfWarResolution)
 						end
 					end
 				end
@@ -955,6 +950,7 @@ function VoidWanderers:UpdateActivity()
 		end
 		self.actorList[i] = nil
 	end
+
 	for actor in MovableMan.Actors do
 		local isFriendly = actor.Team == CF.PlayerTeam
 		if not isFriendly then
@@ -1019,12 +1015,17 @@ function VoidWanderers:UpdateActivity()
 				object.ToDelete = true;
 			end
 		end
+
+		local isVisible = not SceneMan:IsUnseen(actor.Pos.X, actor.Pos.Y, CF.PlayerTeam);
+
+		actor.HUDVisible = ToActor(PresetMan:GetPreset(actor.ClassName, actor.PresetName, actor.ModuleName)).HUDVisible and isVisible
+
 		-- Display icons
 		if CF.EnableIcons then
 			if
 				actor.HUDVisible
 				and (isFriendly or SettingsMan.ShowEnemyHUD)
-				and not SceneMan:IsUnseen(actor.Pos.X, actor.Pos.Y, CF.PlayerTeam)
+				and isVisible
 			then
 				local cont = actor:GetController()
 				local pieMenuOpen = cont:IsState(Controller.PIE_MENU_ACTIVE)
@@ -1335,9 +1336,10 @@ function VoidWanderers:UpdateActivity()
 		local flightSpeed = tonumber(self.GS["PlayerVesselSpeed"])
 		local engineBurst = false
 		local engineBoost = 0
+		local isUserVessel = self.vesselData["team"] == 0;
 
 		-- Fly to new location
-		if self.GS["Destination"] ~= nil and not self.vesselData["flightDisabled"] then
+		if isUserVessel and self.GS["Destination"] ~= nil and not self.vesselData["flightDisabled"] then
 			local dx = tonumber(self.GS["DestX"])
 			local dy = tonumber(self.GS["DestY"])
 
@@ -1380,36 +1382,35 @@ function VoidWanderers:UpdateActivity()
 		local acceleration = 0.1
 		local targetVel = -math.ceil(engineBoost/5) + 0.2
 		for background in SceneMan.Scene.BackgroundLayers do
-			local scroll = background.AutoScrollStepX
+			local scroll = background.AutoScrollStepX * (isUserVessel and 1 or 0)
 			background.AutoScrollStepX = scroll + math.min(acceleration, math.max(-acceleration, targetVel - scroll))
 		end
 
 		-- Create or delete shops if we arrived/departed to/from Star base
-		if
-			CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TRADESTAR)
-			or CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.BLACKMARKET)
-		then
-			if not self.ShopsCreated then
-				-- Destroy any previously created item shops and create a new one
-				self:DestroyItemShopControlPanelUI()
-				self:DestroyCloneShopControlPanelUI()
-				self:InitItemShopControlPanelUI()
-				self:InitCloneShopControlPanelUI()
-				self.ShopsCreated = true
-				self:StartMusic(CF.MusicTypes.COMMERCE)
-			end
-		else
-			if self.ShopsCreated then
-				self:DestroyItemShopControlPanelUI()
-				self:DestroyCloneShopControlPanelUI()
-				self.ShopsCreated = false
-				self:StartMusic(CF.MusicTypes.SHIP_CALM)
+		if isUserVessel then
+			if CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TRADESTAR) or CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.BLACKMARKET) then
+				if not self.ShopsCreated then
+					-- Destroy any previously created item shops and create a new one
+					self:DestroyItemShopControlPanelUI()
+					self:DestroyCloneShopControlPanelUI()
+					self:InitItemShopControlPanelUI()
+					self:InitCloneShopControlPanelUI()
+					self.ShopsCreated = true
+					self:StartMusic(CF.MusicTypes.COMMERCE)
+				end
+			else
+				if self.ShopsCreated then
+					self:DestroyItemShopControlPanelUI()
+					self:DestroyCloneShopControlPanelUI()
+					self.ShopsCreated = false
+					self:StartMusic(CF.MusicTypes.SHIP_CALM)
+				end
 			end
 		end
 
 		-- Auto heal all actors when not in combat or random encounter
 		local overCrowded = CF.CountActors(CF.PlayerTeam) > tonumber(self.GS["PlayerVesselLifeSupport"]);
-		if overCrowded then
+		if isUserVessel and overCrowded then
 			local count = CF.CountActors(CF.PlayerTeam) - tonumber(self.GS["PlayerVesselLifeSupport"])
 			local s = count == 1 and "BODY" or "BODIES"
 
@@ -1432,20 +1433,20 @@ function VoidWanderers:UpdateActivity()
 			local sentient = actor.ClassName == "AHuman" or actor.ClassName == "ACrab"
 			
 			if sentient then
-				local ourTeam = actor.Team == CF.PlayerTeam;
+				local ourTeam = actor.Team == self.vesselData["team"];
 				local spaceWalking = not self.vesselData["ship"]:IsInside(actor.Pos) and not self.vesselData["spaceDeck"]:IsInside(actor.Pos)
 
-				if overCrowded or spaceWalking then
+				if (isUserVessel and overCrowded) or spaceWalking then
 					actor.Health = actor.Health - 1 / math.sqrt(1 + math.abs(actor.Mass + actor.Material.StructuralIntegrity))
 					-- Kill all actors outside the ship
-					if spaceWalking and ourTeam then
+					if spaceWalking and ourTeam and isUserVessel then
 						if not self.flyPhase then
 							self.flyPhase = {}
 						end
 						self.flyPhase[#self.flyPhase] = { actor }
 					end
 				else
-					if actor.Health > 0 and actor.Health < actor.MaxHealth and ourTeam then
+					if actor.Health > 0 and actor.Health < actor.MaxHealth and ourTeam and isUserVessel then
 						actor.Health = math.min(actor.Health + 0.1, actor.MaxHealth)
 					end
 				end
@@ -1459,6 +1460,7 @@ function VoidWanderers:UpdateActivity()
 					local inShip = self.vesselData["ship"]:IsInside(mo.Pos);
 					local onDeck = self.vesselData["spaceDeck"]:IsInside(mo.Pos);
 					local artGrav = self.vesselData["artificialGravity"] * mo.GlobalAccScalar;
+
 					if artGrav then
 						if inShip then
 							mo.Vel = mo.Vel + artGrav
@@ -1466,6 +1468,7 @@ function VoidWanderers:UpdateActivity()
 							mo.Vel = mo.Vel + artGrav / 2
 						end
 					end
+
 					if engineBoost > 0 then
 						--[[if not artGrav then
 							mo.Vel = mo.Vel + Vector(engineBoost / 400, 0)
@@ -1722,22 +1725,35 @@ function VoidWanderers:UpdateActivity()
 	self:YSortObjectivePoints()
 
 	for _, set in pairs{ MovableMan.Actors, MovableMan.AddedActors } do for actor in set do
+		if _ == 1 and actor:NumberValueExists("VW_Passable") then 
+			actor.IgnoresActorHits = actor:GetNumberValue("VW_Passable") == 1;
+			actor:RemoveNumberValue("VW_Passable");
+			print("We're here, at least")
+			print(actor.Team)
+			print(Activity.TEAM_1)
+
+			if actor.Team > Activity.TEAM_1 then
+				actor.Team = Activity.TEAM_1;
+				actor:SetNumberValue("VW_ConscriptPrice", math.ceil(actor:GetTotalValue(0, 1, 1) * (8 + 2 * math.random())));
+				CF.SetAlly(actor, true);
+			end
+		end
 		-- No dead unit settles immediately and all can carry others, though most can't use it
 		if IsAHuman(actor) or IsACrab(actor) then
 			actor.RestThreshold = -1;
-			if actor:HasScript("VoidWanderers.rte/Scripts/Carry.lua") then
-				actor:EnableScript("VoidWanderers.rte/Scripts/Carry.lua");
+			if actor:HasScript("VoidWanderers.rte/Actors/Shared/Carry.lua") then
+				actor:EnableScript("VoidWanderers.rte/Actors/Shared/Carry.lua");
 			else
-				actor:AddScript("VoidWanderers.rte/Scripts/Carry.lua");
+				actor:AddScript("VoidWanderers.rte/Actors/Shared/Carry.lua");
 			end
 		end
 		-- Activate any added brains
 		if actor:NumberValueExists("VW_PreassignedSkills") then
-			if actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
-				actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua");
+			if actor:HasScript("VoidWanderers.rte/Actors/Shared/Brain.lua") then
+				actor:AddScript("VoidWanderers.rte/Actors/Shared/Brain.lua");
 				actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil);
 			else
-				actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua");
+				actor:EnableScript("VoidWanderers.rte/Actors/Shared/Brain.lua");
 			end
 		end
 		-- Active units of standing have the ability to fix their wounds
@@ -1763,10 +1779,6 @@ function VoidWanderers:UpdateActivity()
 	end
 
 	for actor in MovableMan.AddedActors do
-		if actor:NumberValueExists("VW_Passable") then 
-			actor.IgnoresActorHits = actor:GetNumberValue("VW_Passable") == 1;
-			actor:RemoveNumberValue("VW_Passable");
-		end
 		-- Space out spawned-in craft
 		if actor.Pos.Y <= 0 then
 			local dir = 0;
@@ -2125,45 +2137,19 @@ end
 function VoidWanderers:SpawnViaTable(nm)
 	local actor = CF.SpawnAIUnitWithPreset(
 		self.GS,
-		nm["Player"],
-		nm["Team"],
-		nm["Pos"],
-		nm["AIMode"],
-		nm["Preset"]
+		nm.Player,
+		nm.Team,
+		nm.Pos,
+		nm.AIMode,
+		nm.Preset
 	)
 
 	if actor then
-		if nm["Name"] and not actor:StringValueExists("VW_Name") then
-			actor:SetStringValue("VW_Name", nm["Name"])
+		if nm.Name then
+			actor:SetStringValue("VW_Name", nm.Name)
 		end
 
-		-- Give diggers of required
-		if nm["Digger"] then
-			local diggers = CF.MakeListOfMostPowerfulWeapons(
-				self.GS,
-				nm["Player"],
-				CF.WeaponTypes.DIGGER,
-				10000
-			)
-
-			if diggers ~= nil then
-				local r = math.random(#diggers)
-				local itm = diggers[r]["Item"]
-				local fct = diggers[r]["Faction"]
-
-				local pre = CF.ItmPresets[fct][itm]
-				local cls = CF.ItmClasses[fct][itm]
-				local mdl = CF.ItmModules[fct][itm]
-
-				local newitem = CF.MakeItem(pre, cls, mdl)
-
-				if newitem then
-					actor:AddInventoryItem(newitem)
-				end
-			end
-		end
-
-		if nm["Ally"] then
+		if nm.Ally then
 			CF.SetAlly(actor, true)
 		end
 
@@ -2191,8 +2177,8 @@ function VoidWanderers:ClearActors()
 		self.GS["Actor" .. i .. "Prestige"] = nil;
 		self.GS["Actor" .. i .. "Name"] = nil;
 
-		for j = 1, #CF.LimbID do
-			self.GS["Actor" .. i .. CF.LimbID[j]] = nil;
+		for j = 1, #CF.HumanLimbID do
+			self.GS["Actor" .. i .. CF.HumanLimbID[j]] = nil;
 		end
 
 		for j = 1, CF.MaxSavedItemsPerActor do
@@ -2223,8 +2209,9 @@ function VoidWanderers:SaveActors(clearpos)
 			self.GS["Actor" .. savedactor .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer");
 			self.GS["Actor" .. savedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige");
 			self.GS["Actor" .. savedactor .. "Name"] = actor:GetStringValue("VW_Name");
-			for j = 1, #CF.LimbID do
-				self.GS["Actor" .. savedactor .. CF.LimbID[j]] = CF.GetLimbData(actor, j);
+
+			for i, limbID in pairs(CF.HumanLimbID) do
+				self.GS["Actor" .. savedactor .. limbID] = CF.GetLimbData(actor, limbID)
 			end
 
 			if not clearpos then
@@ -2264,8 +2251,8 @@ function VoidWanderers:ClearDeployed()
 		self.GS["Deployed" .. i .. "Prestige"] = nil
 		self.GS["Deployed" .. i .. "Name"] = nil
 
-		for j = 1, #CF.LimbID do
-			self.GS["Deployed" .. i .. CF.LimbID[j]] = nil
+		for j = 1, #CF.HumanLimbID do
+			self.GS["Deployed" .. i .. CF.HumanLimbID[j]] = nil
 		end
 
 		for j = 1, CF.MaxSavedItemsPerActor do
@@ -2298,8 +2285,8 @@ end
 			self.GS["Deployed" .. saveddeployed .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
 			self.GS["Deployed" .. saveddeployed .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
 			self.GS["Deployed" .. saveddeployed .. "Name"] = actor:GetStringValue("VW_Name")
-			for j = 1, #CF.LimbID do
-				self.GS["Deployed" .. saveddeployed .. CF.LimbID[j] ] = CF.GetLimbData(actor, j)
+			for j = 1, #CF.HumanLimbID do
+				self.GS["Deployed" .. saveddeployed .. CF.HumanLimbID[j] ] = CF.GetLimbData(actor, j)
 			end
 
 			if clearpos then
@@ -2358,8 +2345,8 @@ function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 					self.GS["Deployed" .. i .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
 					self.GS["Deployed" .. i .. "Name"] = actor:GetStringValue("VW_Name")
 					
-					for j = 1, #CF.LimbID do
-						self.GS["Deployed" .. i .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
+					for i, limbID in pairs(CF.HumanLimbID) do
+						self.GS["Deployed" .. i .. limbID] = CF.GetLimbData(actor, limbID)
 					end
 
 					for j = 1, #pre do
@@ -2392,10 +2379,10 @@ function VoidWanderers:LocatePlayerBrains(swapToBrains, initPieMenu)
 					self.PlayersWithBrains[player + 1] = true
 					if initPieMenu then
 						actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
-						if actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
-							actor:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
+						if actor:HasScript("VoidWanderers.rte/Actors/Shared/Brain.lua") then
+							actor:EnableScript("VoidWanderers.rte/Actors/Shared/Brain.lua")
 						else
-							actor:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
+							actor:AddScript("VoidWanderers.rte/Actors/Shared/Brain.lua")
 						end
 					end
 					self:GetBanner(GUIBanner.RED, player):ClearText()
@@ -2601,11 +2588,13 @@ end
 -----------------------------------------------------------------------
 function VoidWanderers:DeployInfantryMines(team, rate)
 	local points = {}
+
 	for actor in MovableMan.AddedActors do
 		if actor.Team == team and IsAHuman(actor) then
 			table.insert(points, actor.Pos)
 		end
 	end
+
 	if false and #points == 0 then
 		for _, spawn in pairs(self.SpawnTable) do
 			if spawn["Team"] and spawn["Team"] == team and spawn["Pos"] then
@@ -2613,10 +2602,11 @@ function VoidWanderers:DeployInfantryMines(team, rate)
 			end
 		end
 	end
+
 	local randomPoints = CF.RandomSampleOfList(points, math.floor(#points * rate + 0.5))
+
 	for _, pos in pairs(randomPoints) do
 		local mine = CreateMOSRotating("Anti Personnel Mine Active", "Base.rte")
-		mine:AddScript(CF.ModuleName .. "/Objects/MineSet.lua")
 		mine.Pos = pos
 		mine.Team = team
 		mine.Sharpness = team
@@ -2765,18 +2755,20 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:InitExplorationPoints()
-	local set = CF.GetRandomMissionPointsSet(self.Pts, "Exploration")
+	local set = CF.GetRandomMissionPointsSet(self.Pts, "Exploration");
+	local pts = CF.GetPointsArray(self.Pts, "Exploration", set, "Explore");
+	self.missionData["explorationPoint"] = pts[math.random(#pts)];
 
-	local pts = CF.GetPointsArray(self.Pts, "Exploration", set, "Explore")
-	self.missionData["explorationPoint"] = pts[math.random(#pts)]
-	self.missionData["explorationRecovered"] = false
+	self.missionData["explorationRecovered"] = false;
 
-	self.missionData["explorationHologram"] = "Holo" .. math.random(CF.MaxHolograms)
+	local hologram = ToMOSRotating(PresetMan:GetPreset("MOSRotating", "Hologram", "VoidWanderers.rte")):Clone();
+	hologram.Frame = math.random(hologram.FrameCount - 1);
+	hologram.Pos = self.missionData["explorationPoint"] * 1;
+	MovableMan:AddParticle(hologram);
+	self.missionData["explorationHologram"] = hologram;
 
-	self.missionData["explorationText"] = {}
-	self.missionData["explorationTextStart"] = -100
-
-	--print (self.missionData["explorationPoint"])
+	self.missionData["explorationText"] = {};
+	self.missionData["explorationTextStart"] = -100;
 end
 -----------------------------------------------------------------------
 --
@@ -2784,16 +2776,13 @@ end
 function VoidWanderers:ProcessExplorationPoints()
 	if self.missionData["explorationPoint"] ~= nil then
 		if not self.missionData["explorationRecovered"] then
-			if math.random(10) < 7 then
-				self:PutGlow(self.missionData["explorationHologram"], self.missionData["explorationPoint"])
-			end
-
 			-- Send all units to brainhunt
 			for actor in MovableMan.Actors do
 				if actor.Team == CF.PlayerTeam and CF.DistUnder(actor.Pos, self.missionData["explorationPoint"], 25) then
 					if CF.IsCommander(actor) then
-						self.missionData["explorationText"] = self:GiveRandomExplorationReward()
-						self.missionData["explorationRecovered"] = true
+						self.missionData["explorationText"] = self:GiveRandomExplorationReward();
+						self.missionData["explorationRecovered"] = true;
+						MovableMan:RemoveParticle(self.missionData["explorationHologram"]);
 
 						self.missionData["explorationTextStart"] = self.Time
 
@@ -2939,6 +2928,7 @@ function VoidWanderers:MakeAlertSound(volume)
 				pos = brain.Pos
 			end
 		end
+
 		local alarm = CreateAEmitter("Alarm Effect", CF.ModuleName)
 		alarm.Pos = pos
 		alarm.BurstSound.Volume = volume
@@ -2953,8 +2943,6 @@ function VoidWanderers:StartMusic(musictype)
 	local track = -1
 
 	MusicMan:ResetMusicState()
-	MusicMan:EndDynamicMusic(false)
-	
 	MusicMan:PlayDynamicSong(CF.Music[musictype], "Default", true, false, false)
 
 	self.LastMusicType = musictype

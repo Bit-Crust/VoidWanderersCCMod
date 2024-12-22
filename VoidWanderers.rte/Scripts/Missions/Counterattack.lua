@@ -62,14 +62,17 @@ function VoidWanderers:MissionCreate()
 	local cmndrpts = CF.GetPointsArray(self.Pts, "Assassinate", set, "Commander")
 	local cpos = cmndrpts[math.random(#cmndrpts)]
 
-	self.missionData["brain"] = CF.MakeBrain(self.GS, self.missionData["missionContractor"], CF.CPUTeam, cpos, true)
-	if self.missionData["brain"] then
-		MovableMan:AddActor(self.missionData["brain"])
+	local faction = CF.GetPlayerFaction(self.GS, self.missionData["missionContractor"]);
+	local brain = CF.MakeBrain(faction, true)
+
+	if brain then
+		brain.Team = Activity.TEAM_2;
+		brain.Pos = cpos;
+		MovableMan:AddActor(brain);
 		if math.random(CF.MaxDifficulty) <= self.missionData["difficulty"] then
-			self.missionData["brain"]:AddInventoryItem(CF.CreateBluePrint(self.GS, self.missionData["missionContractor"]));
+			brain:AddInventoryItem(CF.CreateBluePrint(self.GS, faction));
 		end
-	else
-		error("Can't create CPU brain")
+		self.missionData["brain"] = brain;
 	end
 
 	for actor in MovableMan.Actors do

@@ -7,7 +7,7 @@ CF = {}
 -----------------------------------------------------------------------
 -- Initialize global faction lists
 -----------------------------------------------------------------------
-CF.InitFactions = function(activity)
+function CF.InitFactions(activity)
 	print("CF.InitFactions")
 	CF.PlayerTeam = Activity.TEAM_1
 	CF.CPUTeam = Activity.TEAM_2
@@ -34,7 +34,7 @@ CF.InitFactions = function(activity)
 
 	CF.MaxMissions = 30
 
-	CF.MaxHolograms = 23
+	CF.UniqueHolograms = 24
 
 	CF.BombsPerBay = 5
 	CF.BombInterval = 1
@@ -80,15 +80,17 @@ CF.InitFactions = function(activity)
 
 	local fontIcons = {};
 	fontIcons[242] = "Mods/VoidWanderers.rte/UI/Letters/242.png";
+	fontIcons[243] = "Mods/VoidWanderers.rte/UI/Letters/243.png";
 	CF.FontIcons = fontIcons;
 
 	CF.Ranks = { 50, 125, 250, 500, 1000 }
 	CF.PrestigeSlice = CreatePieSlice("Claim Prestige PieSlice", CF.ModuleName)
 
-	CF.LimbID = { "FG1", "BG1", "FG2", "BG2", "HEAD", "JETPAK" }
+	CF.HumanLimbID = { "FGArm", "BGArm", "FGLeg", "BGLeg", "Head", "Jetpack" }
+	CF.CrabLimbID = { "LeftFGLeg", "LeftBGLeg", "RightFGLeg", "RightBGLeg", "Turret", "Jetpack" }
 
-	CF.QuantumCapacityPerLevel = 50
-	CF.QuantumSplitterEffectiveness = 0.2
+	CF.QuantumCapacityPerLevel = 50;
+	CF.QuantumSplitterEffectiveness = 1 / 6;
 
 	CF.SecurityIncrementPerMission = 10
 	CF.SecurityIncrementPerDeployment = 2
@@ -586,175 +588,12 @@ end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-CF.GetPlayerFaction = function(config, p)
+function CF.GetPlayerFaction(config, p)
 	return config["Player" .. p .. "Faction"]
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-CF.GetPlayerAllyFaction = function(config)
-	return config["PlayerAllyFaction"]
-end
------------------------------------------------------------------------
--- Update mission stats to store in campaign
------------------------------------------------------------------------
-CF.UpdateGenericStats = function(config)
-	print("CF['UpdateGenericStats']")
-
-	config["Kills"] = tonumber(config["Kills"]) + CF.Activity:GetTeamDeathCount(CF.CPUTeam)
-	config["Deaths"] = tonumber(config["Deaths"]) + CF.Activity:GetTeamDeathCount(CF.PlayerTeam)
-end
------------------------------------------------------------------------
--- Transfers player to strategy screen after 3 second of victory message
------------------------------------------------------------------------
-CF.ReturnOnMissionEnd = function()
-	if not CF.StartReturnCountdown then
-		if CF.Activity.ActivityState == Activity.OVER then
-			CF.StartReturnCountdown = true
-			CF.MissionEndTimer:Reset()
-		end
-	end
-
-	if CF.StartReturnCountdown then
-		if CF.MissionEndTimer:IsPastSimMS(CF.MissionReturnInterval) then
-			--CF.LaunchMissionActivity("Unmapped Lands 2")
-		end
-	end
-end
------------------------------------------------------------------------
--- For a given char returns its index, width, vector offsset  if any
------------------------------------------------------------------------
-CF.GetCharData = function(char)
-	if CF.Chars == nil then
-		CF.Chars = {}
-		CF.Chars[" "] = { 1, 8, nil }
-		CF.Chars["!"] = { 2, 5, Vector(-3, 0) }
-		CF.Chars['"'] = { 3, 8, Vector(0, -2) }
-		CF.Chars["#"] = { 4, 8, nil }
-		CF.Chars["$"] = { 5, 8, nil }
-		CF.Chars["%"] = { 6, 8, nil }
-		CF.Chars["&"] = { 7, 6, Vector(-2, 0) }
-		CF.Chars["`"] = { 8, 5, Vector(-3, -2) }
-		CF.Chars["("] = { 9, 6, Vector(-1, 0) }
-		CF.Chars[")"] = { 10, 6, Vector(-2, 0) }
-		CF.Chars["*"] = { 11, 6, Vector(-2, 0) }
-		CF.Chars["+"] = { 12, 8, nil }
-		CF.Chars[","] = { 13, 5, Vector(-3, 5) }
-		CF.Chars["-"] = { 14, 9, nil }
-		CF.Chars["."] = { 15, 5, Vector(-3, 4) }
-		CF.Chars["/"] = { 16, 6, Vector(-1, 0) }
-		CF.Chars["0"] = { 17, 9, nil }
-		CF.Chars["1"] = { 18, 6, Vector(-2, 0) }
-		CF.Chars["2"] = { 19, 8, nil }
-		CF.Chars["3"] = { 20, 8, nil }
-		CF.Chars["4"] = { 21, 8, nil }
-		CF.Chars["5"] = { 22, 8, nil }
-		CF.Chars["6"] = { 23, 8, nil }
-		CF.Chars["7"] = { 24, 8, nil }
-		CF.Chars["8"] = { 25, 8, nil }
-		CF.Chars["9"] = { 26, 8, nil }
-		CF.Chars[":"] = { 27, 5, Vector(-3, -1) }
-		CF.Chars[""] = { 28, 5, Vector(-3, -1) }
-		CF.Chars["<"] = { 29, 7, Vector(-1, 0) }
-		CF.Chars["="] = { 30, 8, Vector(0, -1) }
-		CF.Chars[">"] = { 31, 7, Vector(-1, 0) }
-		CF.Chars["?"] = { 32, 8, nil }
-		CF.Chars["@"] = { 33, 11, Vector(0, -1) }
-		CF.Chars["A"] = { 34, 8, nil }
-		CF.Chars["B"] = { 35, 8, nil }
-		CF.Chars["C"] = { 36, 8, Vector(0, -3) }
-		CF.Chars["D"] = { 37, 9, nil }
-		CF.Chars["E"] = { 38, 8, nil }
-		CF.Chars["F"] = { 39, 8, nil }
-		CF.Chars["G"] = { 40, 8, nil }
-		CF.Chars["H"] = { 41, 8, nil }
-		CF.Chars["I"] = { 42, 6, Vector(-2, 0) }
-		CF.Chars["J"] = { 43, 8, nil }
-		CF.Chars["K"] = { 44, 8, nil }
-		CF.Chars["L"] = { 45, 8, Vector(0, 3) }
-		CF.Chars["M"] = { 46, 10, Vector(2, -1) }
-		CF.Chars["N"] = { 47, 8, nil }
-		CF.Chars["O"] = { 48, 8, nil }
-		CF.Chars["P"] = { 49, 8, nil }
-		CF.Chars["Q"] = { 50, 8, nil }
-		CF.Chars["R"] = { 51, 8, nil }
-		CF.Chars["S"] = { 52, 8, nil }
-		CF.Chars["T"] = { 53, 7, Vector(-1, 0) }
-		CF.Chars["U"] = { 54, 8, nil }
-		CF.Chars["V"] = { 55, 8, nil }
-		CF.Chars["W"] = { 56, 10, Vector(2, 0) }
-		CF.Chars["X"] = { 57, 8, nil }
-		CF.Chars["Y"] = { 58, 8, nil }
-		CF.Chars["Z"] = { 59, 8, nil }
-		CF.Chars["["] = { 60, 6, Vector(-1, 0) }
-		CF.Chars["\\"] = { 61, 6, Vector(-1, 0) }
-		CF.Chars["]"] = { 62, 6, Vector(-1, 0) }
-		CF.Chars["^"] = { 63, 8, Vector(-1, -3) }
-		CF.Chars["_"] = { 64, 8, Vector(0, 4) }
-		CF.Chars["'"] = { 65, 8, Vector(0, -3) }
-		CF.Chars["a"] = { 66, 8, nil }
-		CF.Chars["b"] = { 67, 8, nil }
-		CF.Chars["gs"] = { 68, 8, nil }
-		CF.Chars["d"] = { 69, 8, nil }
-		CF.Chars["e"] = { 70, 8, nil }
-		CF.Chars["f"] = { 71, 8, nil }
-		CF.Chars["g"] = { 72, 8, nil }
-		CF.Chars["h"] = { 73, 8, nil }
-		CF.Chars["i"] = { 74, 5, Vector(-3, 0) }
-		CF.Chars["j"] = { 75, 6, Vector(-2, 0) }
-		CF.Chars["k"] = { 76, 8, nil }
-		CF.Chars["l"] = { 77, 5, Vector(-3, 0) }
-		CF.Chars["m"] = { 78, 10, nil }
-		CF.Chars["n"] = { 79, 8, nil }
-		CF.Chars["o"] = { 80, 8, nil }
-		CF.Chars["p"] = { 81, 8, nil }
-		CF.Chars["q"] = { 82, 8, nil }
-		CF.Chars["r"] = { 83, 9, Vector(1, 0) }
-		CF.Chars["s"] = { 84, 8, nil }
-		CF.Chars["t"] = { 85, 8, nil }
-		CF.Chars["u"] = { 86, 8, nil }
-		CF.Chars["v"] = { 87, 8, nil }
-		CF.Chars["w"] = { 88, 10, Vector(1, 0) }
-		CF.Chars["x"] = { 89, 8, nil }
-		CF.Chars["y"] = { 90, 8, nil }
-		CF.Chars["z"] = { 91, 8, nil }
-		CF.Chars["{"] = { 92, 7, nil }
-		CF.Chars["|"] = { 93, 7, nil }
-		CF.Chars["}"] = { 94, 7, nil }
-		CF.Chars["~"] = { 95, 8, nil }
-	end
-
-	local i = nil
-
-	i = CF.Chars[char]
-
-	if i == nil then
-		i = { 96, 8, nil }
-	end
-
-	return i[1], i[2] - 2, i[3]
-end
------------------------------------------------------------------------
---
------------------------------------------------------------------------
-CF.Split = function(str, pat)
-	local t = {} -- NOTE: use {n = 0} in Lua-5.0
-	local fpat = "(.-)" .. pat
-	local last_end = 1
-	local s, e, cap = str:find(fpat, 1)
-	while s do
-		if s ~= 1 or cap ~= "" then
-			table.insert(t, cap)
-		end
-		last_end = e + 1
-		s, e, cap = str:find(fpat, last_end)
-	end
-	if last_end <= #str then
-		cap = str:sub(last_end)
-		table.insert(t, cap)
-	end
-	return t
-end
 do
 	local defaultPos = Vector(0, 0);
 	local widthCaches = { [true] = {}, [false] = {} };
@@ -762,7 +601,7 @@ do
 	-----------------------------------------------------------------------
 	-- Return size of string in pixels
 	-----------------------------------------------------------------------
-	CF.GetStringPixelWidth = function(str, width, smallFont)
+	function CF.GetStringPixelWidth(str, width, smallFont)
 		smallFont = smallFont or false;
 		width = width or math.huge;
 
@@ -874,15 +713,16 @@ do
 
 		for i = 1, length do
 			local ch = str:sub(i, i);
-			local w = fontCache[ch:byte()];
+			local byte = ch:byte();
+			local w = fontCache[byte];
 
 			if not w then
-				if ch == "\242" then
+				if byte >= 242 and byte < 255 then
 					w = 9;
 					table.insert(icons, ch:byte());
 					table.insert(iconOffsets, Vector(totalX + 4, totalY + 7));
 					table.insert(iconFromLine, #lines + 1);
-					ch = "   ";
+					ch = "  \207\207";
 				elseif ch == "\t" then
 					w = 15;
 					ch = "     ";
@@ -940,134 +780,141 @@ do
 	end
 end
 -----------------------------------------------------------------------
--- Draw boxes for menus
+--
 -----------------------------------------------------------------------
-local emptyBlend = { 000, 000, 000, 000 };
-function CF.DrawMenuBox(player, x1, y1, x2, y2, palette, blendMode, blend)
-	player = player or Activity.PLAYER_NONE;
-	palette = palette or CF.MenuNormalIdle;
-	blendMode = blendMode or DrawBlendMode.Transparency;
-	blend = blend or emptyBlend;
+do
+	-----------------------------------------------------------------------
+	-- Draw boxes for menus
+	-----------------------------------------------------------------------
+	local emptyBlend = { 000, 000, 000, 000 };
+	function CF.DrawMenuBox(player, x1, y1, x2, y2, palette, blendMode, blend)
+		player = player or Activity.PLAYER_NONE;
+		palette = palette or CF.MenuNormalIdle;
+		blendMode = blendMode or DrawBlendMode.Transparency;
+		blend = blend or emptyBlend;
 
-	local outter = BoxPrimitive(player, Vector(x1, y1), Vector(x2, y2), palette[1]);
-	local inner = BoxPrimitive(player, Vector(x1, y1) + Vector(1, 1), Vector(x2, y2) - Vector(1, 1), palette[2]);
-	local panel = BoxFillPrimitive(player, Vector(x1, y1) + Vector(2, 2), Vector(x2, y2) - Vector(2, 2), palette[3]);
-	PrimitiveMan:DrawPrimitives(blendMode, blend[1], blend[2], blend[3], blend[4], { outter, inner, panel });
-end
------------------------------------------------------------------------
-function CF.DrawMenuFrame(player, x1, y1, x2, y2, palette, blendMode, blend)
-	player = player or Activity.PLAYER_NONE;
-	palette = palette or CF.MenuNormalIdle;
-	blendMode = blendMode or DrawBlendMode.Transparency;
-	blend = blend or emptyBlend;
-
-	local outter = BoxPrimitive(player, Vector(x1, y1), Vector(x2, y2), palette[1]);
-	local inner = BoxPrimitive(player, Vector(x1, y1) + Vector(1, 1), Vector(x2, y2) + Vector(-1, -1), palette[2]);
-	local panel = BoxFillPrimitive(player, Vector(x1, y1) + Vector(2, 2), Vector(x2, y1) + Vector(-2, 11), palette[3]);
-	PrimitiveMan:DrawPrimitives(blendMode, blend[1], blend[2], blend[3], blend[4], { outter, inner, panel });
-end
------------------------------------------------------------------------
--- Draw progress bars for menus
------------------------------------------------------------------------
-function CF.DrawProgressBar(player, left, top, right, bottom, progress, palette, blendMode, blend)
-	player = player or Activity.PLAYER_NONE;
-	blendMode = blendMode or DrawBlendMode.Transparency;
-	blend = blend or emptyBlend;
-
-	local width = right - left + 1;
-	local height = bottom - top - 4;
-	local primitives = {};
-
-	-- Shade
-	local start, stop;
-	start, stop = Vector(left + 1, bottom), Vector(right, bottom);
-	table.insert(primitives, LinePrimitive(player, start, stop, palette[3]));
-	start, stop = Vector(right, top + 1), Vector(right, bottom - 1);
-	table.insert(primitives, LinePrimitive(player, start, stop, palette[3]));
-
-	-- Box
-	start, stop = Vector(left, top), Vector(right - 1, bottom - 1);
-	table.insert(primitives, BoxPrimitive(player, start, stop, palette[1]));
-
-	-- Segments
-	local n = math.floor(progress * (width / 2 - 2));
-	for i = 1, n do
-		start, stop = Vector(left + i * 2 - 1, top + 1), Vector(left + i * 2, top + 1);
-		table.insert(primitives, LinePrimitive(player, start, stop, palette[3]));
-		start, stop = Vector(left + i * 2 - 1, bottom - 2), Vector(left + i * 2, bottom - 2);
-		table.insert(primitives, LinePrimitive(player, start, stop, palette[3]));
-		start, stop = Vector(left + i * 2 - 1, top + 2), Vector(left + i * 2 - 1, bottom - 3);
-		table.insert(primitives, LinePrimitive(player, start, stop, palette[3]));
-		start, stop = Vector(left + i * 2, top + 2), Vector(left + i * 2, top + 2);
-		table.insert(primitives, LinePrimitive(player, start, stop, palette[2]));
-		start, stop = Vector(left + i * 2, bottom - 3), Vector(left + i * 2, bottom - 3);
-		table.insert(primitives, LinePrimitive(player, start, stop, palette[2]));
-		start, stop = Vector(left + i * 2, top + 3), Vector(left + i * 2, bottom - 4);
-		table.insert(primitives, LinePrimitive(player, start, stop, palette[1]));
+		local outter = BoxPrimitive(player, Vector(x1, y1), Vector(x2, y2), palette[1]);
+		local inner = BoxPrimitive(player, Vector(x1, y1) + Vector(1, 1), Vector(x2, y2) - Vector(1, 1), palette[2]);
+		local panel = BoxFillPrimitive(player, Vector(x1, y1) + Vector(2, 2), Vector(x2, y2) - Vector(2, 2), palette[3]);
+		PrimitiveMan:DrawPrimitives(blendMode, blend[1], blend[2], blend[3], blend[4], { outter, inner, panel });
 	end
+	-----------------------------------------------------------------------
+	-- Draw questionable frame for menus
+	-----------------------------------------------------------------------
+	function CF.DrawMenuFrame(player, x1, y1, x2, y2, palette, blendMode, blend)
+		player = player or Activity.PLAYER_NONE;
+		palette = palette or CF.MenuNormalIdle;
+		blendMode = blendMode or DrawBlendMode.Transparency;
+		blend = blend or emptyBlend;
+
+		local outter = BoxPrimitive(player, Vector(x1, y1), Vector(x2, y2), palette[1]);
+		local inner = BoxPrimitive(player, Vector(x1, y1) + Vector(1, 1), Vector(x2, y2) + Vector(-1, -1), palette[2]);
+		local panel = BoxFillPrimitive(player, Vector(x1, y1) + Vector(2, 2), Vector(x2, y1) + Vector(-2, 11), palette[3]);
+		PrimitiveMan:DrawPrimitives(blendMode, blend[1], blend[2], blend[3], blend[4], { outter, inner, panel });
+	end
+	-----------------------------------------------------------------------
+	-- Draw progress bars for menus
+	-----------------------------------------------------------------------
+	function CF.DrawProgressBar(player, left, top, right, bottom, progress, palette, blendMode, blend)
+		player = player or Activity.PLAYER_NONE;
+		blendMode = blendMode or DrawBlendMode.Transparency;
+		blend = blend or emptyBlend;
+
+		local width = right - left + 1;
+		local height = bottom - top - 4;
+		local primitives = {};
+
+		-- Shade
+		local start, stop;
+		start, stop = Vector(left + 1, bottom), Vector(right, bottom);
+		table.insert(primitives, LinePrimitive(player, start, stop, palette[3]));
+		start, stop = Vector(right, top + 1), Vector(right, bottom - 1);
+		table.insert(primitives, LinePrimitive(player, start, stop, palette[3]));
+
+		-- Box
+		start, stop = Vector(left, top), Vector(right - 1, bottom - 1);
+		table.insert(primitives, BoxPrimitive(player, start, stop, palette[1]));
+
+		-- Segments
+		local n = math.floor(progress * (width / 2 - 2));
+		for i = 1, n do
+			start, stop = Vector(left + i * 2 - 1, top + 1), Vector(left + i * 2, top + 1);
+			table.insert(primitives, LinePrimitive(player, start, stop, palette[3]));
+			start, stop = Vector(left + i * 2 - 1, bottom - 2), Vector(left + i * 2, bottom - 2);
+			table.insert(primitives, LinePrimitive(player, start, stop, palette[3]));
+			start, stop = Vector(left + i * 2 - 1, top + 2), Vector(left + i * 2 - 1, bottom - 3);
+			table.insert(primitives, LinePrimitive(player, start, stop, palette[3]));
+			start, stop = Vector(left + i * 2, top + 2), Vector(left + i * 2, top + 2);
+			table.insert(primitives, LinePrimitive(player, start, stop, palette[2]));
+			start, stop = Vector(left + i * 2, bottom - 3), Vector(left + i * 2, bottom - 3);
+			table.insert(primitives, LinePrimitive(player, start, stop, palette[2]));
+			start, stop = Vector(left + i * 2, top + 3), Vector(left + i * 2, bottom - 4);
+			table.insert(primitives, LinePrimitive(player, start, stop, palette[1]));
+		end
 	
-	-- Remainder
-	start, stop = Vector(left + 1 + n * 2, top + 1), Vector(right - 2, bottom - 2);
-	table.insert(primitives, BoxFillPrimitive(player, start, stop, palette[3]));
-	PrimitiveMan:DrawPrimitives(blendMode, blend[1], blend[2], blend[3], blend[4], primitives);
-end
------------------------------------------------------------------------
--- Draw label element
------------------------------------------------------------------------
-function CF.DrawLabel(el, player)
-	player = player or Activity.PLAYER_NONE;
-	-- Labels can ommit presets or texts
-	if el.Backdrop then
-		local x = el.Pos.X;
-		local y = el.Pos.Y;
-		local w = el.Width;
-		local h = el.Height;
-		local palettes = el.Palettes or CF.MenuNormalPalette;
-		local state = el.State or CF.ElementStates.IDLE;
-		CF.DrawMenuBox(player, x - w / 2, y - h / 2, x + w / 2 - 1, y + h / 2 - 1, palettes[state]);
+		-- Remainder
+		start, stop = Vector(left + 1 + n * 2, top + 1), Vector(right - 2, bottom - 2);
+		table.insert(primitives, BoxFillPrimitive(player, start, stop, palette[3]));
+		PrimitiveMan:DrawPrimitives(blendMode, blend[1], blend[2], blend[3], blend[4], primitives);
 	end
-
-	if el.Text then
-		CF.DrawString(el.Text, el.Pos, el.Width, el.Height, nil, nil, el.Centered and 1 or 0, el.Centered and 1 or 0, nil, player);
-	end
-end
------------------------------------------------------------------------
--- Draw button element
------------------------------------------------------------------------
-function CF.DrawButton(el, player)
-	player = player or Activity.PLAYER_NONE;
-	if el.Visible ~= false then
-		local x = el.Pos.X;
-		local y = el.Pos.Y;
-		local w = el.Width;
-		local h = el.Height;
-		local palettes = el.Palettes or CF.MenuNormalPalette;
-		local state = el.State or CF.ElementStates.IDLE;
-		if el.Backdrop ~= false then
+	-----------------------------------------------------------------------
+	-- Draw label element
+	-----------------------------------------------------------------------
+	function CF.DrawLabel(el, player)
+		player = player or Activity.PLAYER_NONE;
+		-- Labels can ommit presets or texts
+		if el.Backdrop then
+			local x = el.Pos.X;
+			local y = el.Pos.Y;
+			local w = el.Width;
+			local h = el.Height;
+			local palettes = el.Palettes or CF.MenuNormalPalette;
+			local state = el.State or CF.ElementStates.IDLE;
 			CF.DrawMenuBox(player, x - w / 2, y - h / 2, x + w / 2 - 1, y + h / 2 - 1, palettes[state]);
-		else
-			CF.DrawMenuFrame(player, x - w / 2, y - h / 2, x + w / 2 - 1, y + h / 2 - 1, palettes[state]);
 		end
 
 		if el.Text then
-			CF.DrawString(el.Text, el.Pos, el.Width - 6, el.Height - 6, nil, nil, 1, 1, nil, player);
+			CF.DrawString(el.Text, el.Pos, el.Width, el.Height, nil, nil, el.Centered and 1 or 0, el.Centered and 1 or 0, nil, player);
+		end
+	end
+	-----------------------------------------------------------------------
+	-- Draw button element
+	-----------------------------------------------------------------------
+	function CF.DrawButton(el, player)
+		player = player or Activity.PLAYER_NONE;
+		if el.Visible ~= false then
+			local x = el.Pos.X;
+			local y = el.Pos.Y;
+			local w = el.Width;
+			local h = el.Height;
+			local palettes = el.Palettes or CF.MenuNormalPalette;
+			local state = el.State or CF.ElementStates.IDLE;
+			if el.Backdrop ~= false then
+				CF.DrawMenuBox(player, x - w / 2, y - h / 2, x + w / 2 - 1, y + h / 2 - 1, palettes[state]);
+			else
+				CF.DrawMenuFrame(player, x - w / 2, y - h / 2, x + w / 2 - 1, y + h / 2 - 1, palettes[state]);
+			end
+
+			if el.Text then
+				CF.DrawString(el.Text, el.Pos, el.Width - 6, el.Height - 6, nil, nil, 1, 1, nil, player);
+			end
 		end
 	end
 end
 -----------------------------------------------------------------------
 -- Converts time in second to string h:mm:ss
 -----------------------------------------------------------------------
-CF.ConvertTimeToString = function(timenum)
-	local timestr = ""
+function CF.ConvertTimeToString(period)
+	local timestr = "";
 
-	local hours = (timenum - timenum % 3600) / 3600
-	timenum = timenum - hours * 3600
-	local minutes = (timenum - timenum % 60) / 60
-	timenum = timenum - minutes * 60
-	local seconds = timenum
+	local hours = (period - period % 3600) / 3600;
+	period = period - hours * 3600;
+	local minutes = (period - period % 60) / 60;
+	period = period - minutes * 60;
+	local seconds = period;
 
 	if hours > 0 then
-		timestr = timestr .. string.format("%d", hours) .. ":"
+		timestr = timestr .. string.format("%d", hours) .. ":";
 	end
 
 	local s
@@ -1088,90 +935,89 @@ end
 -----------------------------------------------------------------------
 -- Make item of specified preset, module and class
 -----------------------------------------------------------------------
-CF.MakeItem = function(preset, class, module)
-	local item
-	if class == nil then
-		class = "HDFirearm"
-	end
+function CF.MakeItem(class, preset, module)
+	local item = nil;
+	class = class or "HDFirearm";
+
 	if class == "HeldDevice" then
-		item = module == nil and CreateHeldDevice(preset) or CreateHeldDevice(preset, module)
+		item = module == nil and CreateHeldDevice(preset) or CreateHeldDevice(preset, module);
 	elseif class == "HDFirearm" then
-		item = module == nil and CreateHDFirearm(preset) or CreateHDFirearm(preset, module)
-		--if ammo then
-		--	item:SetNumberValue("FA_RoundCount", ammo)
-		--end
+		item = module == nil and CreateHDFirearm(preset) or CreateHDFirearm(preset, module);
 	elseif class == "TDExplosive" then
-		item = module == nil and CreateTDExplosive(preset) or CreateTDExplosive(preset, module)
+		item = module == nil and CreateTDExplosive(preset) or CreateTDExplosive(preset, module);
 	elseif class == "ThrownDevice" then
-		item = module == nil and CreateThrownDevice(preset) or CreateThrownDevice(preset, module)
+		item = module == nil and CreateThrownDevice(preset) or CreateThrownDevice(preset, module);
 	end
-	return item
+
+	return item;
 end
 -----------------------------------------------------------------------
--- Make actor of specified preset, class, module, rank, identity, and player
+-- Make actor of specified preset, class, module, rank, identity, and player, and prestige, name, and limbs, wow
 -----------------------------------------------------------------------
-CF.MakeActor = function(item, class, module, xp, identity, player, prestige, name, limbs)
-	local actor
+function CF.MakeActor(class, preset, module, xp, identity, player, prestige, name, limbs)
+	local actor = nil;
 	class = class or "AHuman";
-	item = item or "Skeleton";
+	preset = preset or "Skeleton";
 
 	if class == "AHuman" then
-		actor = module == nil and CreateAHuman(item) or CreateAHuman(item, module);
-
-		if limbs then
-			CF.ReplaceLimbs(actor, limbs);
-		end
-
-		for item in actor.Inventory do
-			if item then
-				actor:RemoveInventoryItem(item.PresetName);
-			end
-		end
+		actor = module == nil and CreateAHuman(preset) or CreateAHuman(preset, module);
 	elseif class == "ACrab" then
-		actor = module == nil and CreateACrab(item) or CreateACrab(item, module);
+		actor = module == nil and CreateACrab(preset) or CreateACrab(preset, module);
 	elseif class == "Actor" then
-		actor = module == nil and CreateActor(item) or CreateActor(item, module);
+		actor = module == nil and CreateActor(preset) or CreateActor(preset, module);
 	elseif class == "ACDropShip" then
-		actor = module == nil and CreateACDropShip(item) or CreateACDropShip(item, module);
+		actor = module == nil and CreateACDropShip(preset) or CreateACDropShip(preset, module);
 	elseif class == "ACRocket" then
-		actor = module == nil and CreateACRocket(item) or CreateACRocket(item, module);
+		actor = module == nil and CreateACRocket(preset) or CreateACRocket(preset, module);
 	end
 
+	if limbs then
+		CF.ReplaceLimbs(actor, limbs);
+	end
+
+	for item in actor.Inventory do
+		if item then
+			actor:RemoveInventoryItem(item.PresetName);
+		end
+	end
+
+	xp = tonumber(xp);
+
 	if actor then
-		actor.AngularVel = 0
+		actor.AngularVel = 0;
 		if identity then
-			actor:SetNumberValue("Identity", tonumber(identity))
+			actor:SetNumberValue("Identity", tonumber(identity));
 		end
 		if player then
-			actor:SetNumberValue("VW_BrainOfPlayer", tonumber(player))
+			actor:SetNumberValue("VW_BrainOfPlayer", tonumber(player));
 		end
 		if prestige then
 			actor:SetNumberValue("VW_Prestige", tonumber(prestige))
-			if name and name ~= "" then
-				actor:SetStringValue("VW_Name", name)
-			end
+		end
+		if name and name ~= "" then
+			actor:SetStringValue("VW_Name", name)
 		end
 		if xp then
-			xp = tonumber(xp)
-			actor:SetNumberValue("VW_XP", xp)
-			local setRank
-			for rank = 1, #CF.Ranks do
-				if xp >= CF.Ranks[rank] then
-					setRank = rank
-				else
-					break
-				end
-			end
-			if setRank then
-				actor:SetNumberValue("VW_Rank", setRank)
-				CF.BuffActor(actor, setRank, actor:GetNumberValue("VW_Prestige"))
-			end
+			actor:SetNumberValue("VW_XP", xp);
+			local rank = CF.GetRankFromXP(xp);
+			actor:SetNumberValue("VW_Rank", rank);
+			CF.BuffActor(actor, rank, actor:GetNumberValue("VW_Prestige"));
 		end
-	else
-		actor = CreateAHuman("Skeleton", "Uzira.rte")
 	end
 
 	return actor;
+end
+-----------------------------------------------------------------------
+-- Use class name to get reference type
+-----------------------------------------------------------------------
+function CF.GetRankFromXP(xp)
+	local maxRank = #CF.Ranks;
+	for rank = 1, maxRank do
+		if xp < CF.Ranks[rank] then
+			return rank - 1;
+		end
+	end
+	return maxRank;
 end
 -----------------------------------------------------------------------
 -- Use class name to get reference type
@@ -1294,137 +1140,102 @@ end
 -----------------------------------------------------------------------
 -- Get a specific limb by ID
 -----------------------------------------------------------------------
-CF.GetLimbData = function(actor, id)
-	local limb
+function CF.GetLimbData(actor, id)
+	local limb;
+
 	if IsAHuman(actor) then
-		actor = ToAHuman(actor)
-		if id == 1 then
-			limb = actor.FGArm
-		elseif id == 2 then
-			limb = actor.BGArm
-		elseif id == 3 then
-			limb = actor.FGLeg
-		elseif id == 4 then
-			limb = actor.BGLeg
-		elseif id == 5 then
-			limb = actor.Head
-		elseif id == 6 then
-			limb = actor.Jetpack
+		actor = ToAHuman(actor);
+		limb = actor[id];
+		if limb then
+			return limb:GetModuleAndPresetName();
 		end
-		return (limb and limb:GetModuleAndPresetName() or "Null")
 	elseif IsACrab(actor) then
-		actor = ToACrab(actor)
-		if id == 1 then
-			limb = actor.LFGLeg
-		elseif id == 2 then
-			limb = actor.LBGLeg
-		elseif id == 3 then
-			limb = actor.RFGLeg
-		elseif id == 4 then
-			limb = actor.RBGLeg
+		actor = ToACrab(actor);
+		limb = actor[id];
+		if limb then
+			return limb:GetModuleAndPresetName();
 		end
-		return (limb and limb:GetModuleAndPresetName() or "Null")
 	end
-	return ""
+
+	return "None";
 end
 -----------------------------------------------------------------------
 -- Read the limb data of this AHuman and replace limbs accordingly
 -----------------------------------------------------------------------
 CF.ReplaceLimbs = function(actor, limbs)
 	if IsAHuman(actor) then
-		actor = ToAHuman(actor)
-		for j = 1, #CF.LimbID do
-			local targetLimb = j == 1 and actor.FGArm
-				or (
-					j == 2 and actor.BGArm
-					or (j == 3 and actor.FGLeg or (j == 4 and actor.BGLeg or (j == 5 and actor.Head or actor.Jetpack)))
-				)
-			local origLimbName = targetLimb and targetLimb:GetModuleAndPresetName() or "Null"
-			local limbString = limbs[j] or origLimbName
-			if limbString ~= "Null" then
-				local newLimb
-				if j == 5 then --Head
-					newLimb = CreateAttachable(limbString)
-					--Try to create Heads of other subclasses if we can't find an Attachable
-					if newLimb == nil then
-						print("This is fine, trying to find Head as HeldDevice...")
-						newLimb = CreateHeldDevice(limbString)
-					end
-					if newLimb == nil then
-						print("It's still fine, trying to find Head as AEmitter...")
-						newLimb = CreateAEmitter(limbString)
-					end
-				else
-					newLimb = (j == 1 or j == 2) and CreateArm(limbString)
-						or (j == 6 and CreateAEJetpack(limbString) or CreateLeg(limbString))
-				end
-				if newLimb == nil then
-					print("ERROR: CF['ReplaceLimbs']: Limb not found!! Not OK!!")
-					break
-				end
-				if targetLimb then
-					newLimb.ParentOffset = targetLimb.ParentOffset
-					if j >= 5 then
-						newLimb.DrawnAfterParent = targetLimb.DrawnAfterParent
-					elseif targetLimb.EntryWound then
-						newLimb.ParentBreakWound = ToAEmitter(targetLimb.EntryWound):Clone()
-					end
-				end
-				--Can't use a temp pointer to set limbs... refer to the ID
-				if j == 1 then
-					actor.FGArm = newLimb
-				elseif j == 2 then
-					actor.BGArm = newLimb
-				elseif j == 3 then
-					actor.FGLeg = newLimb
-				elseif j == 4 then
-					actor.BGLeg = newLimb
-				elseif j == 5 then
-					actor.Head = newLimb
-				elseif j == 6 then
-					if actor.Jetpack then
-						newLimb.JetTimeTotal = actor.Jetpack.JetTimeTotal
-						newLimb.JetReplenishRate = actor.Jetpack.JetReplenishRate
-						newLimb.ParticlesPerMinute = actor.Jetpack.ParticlesPerMinute
-					end
+		actor = ToAHuman(actor);
+		
+		for i, limbID in pairs(CF.CrabLimbID) do
+			local targetLimb = actor[limbID];
+			local limbString = limbs[limbID];
 
-					actor.Jetpack = newLimb
+			if limbString == "None" then
+				actor:RemoveAttachable(targetLimb, false, false);
+			elseif limbString then
+				local newLimb = nil;
+
+				if limbID == "Head" then
+					newLimb = CreateAttachable(limbString) or CreateHeldDevice(limbString) or CreateAEmitter(limbString);
+				elseif limbID == "Jetpack" then
+					newLimb = CreateAEJetpack(limbString);
+				elseif limbID == "FGArm" or limbID == "BGArm" then
+					newLimb = CreateArm(limbString);
+				elseif limbID == "FGLeg" or limbID == "BGLeg" then
+					newLimb = CreateLeg(limbString);
 				end
-			elseif targetLimb then
-				actor:RemoveAttachable(targetLimb, false, false)
-			end
-			actor:SetStringValue(CF.LimbID[j], limbString)
-		end
-		-- Replace helmets etc.
-		if actor.Head and #limbs > #CF.LimbID then
-			for att in actor.Head.Attachables do
-				if att.DamageMultiplier == 0 then
-					actor.Head:RemoveAttachable(att, false, false)
+
+				if targetLimb then
+					newLimb.ParentOffset = targetLimb.ParentOffset;
+					newLimb.DrawnAfterParent = targetLimb.DrawnAfterParent;
+					if targetLimb.ParentBreakWound then
+						newLimb.ParentBreakWound = ToAEmitter(targetLimb.ParentBreakWound):Clone();
+					end
 				end
-			end
-			for i = #CF.LimbID + 1, #CF.LimbID + #limbs do
-				local limbString = limbs[i]
-				newLimb = CreateAttachable(limbString)
-				if newLimb == nil then
-					print("This is fine, trying to find attachable as HeldDevice...")
-					newLimb = CreateHeldDevice(limbString)
-				end
-				if newLimb == nil then
-					print("It's still fine, trying to find attachable as AEmitter...")
-					newLimb = CreateAEmitter(limbString)
-				end
-				if newLimb then
-					actor.Head:AddAttachable(newLimb)
-				end
+
+				actor[limbID] = newLimb;
 			end
 		end
-		return true
+
+		return true;
 	elseif IsACrab(actor) then
-		actor = ToACrab(actor)
-		--Todo
-		return false
+		actor = ToACrab(actor);
+		
+		for i, limbID in pairs(CF.CrabLimbID) do
+			local targetLimb = actor[limbID];
+			local limbString = limbs[limbID];
+
+			if limbString == "None" then
+				actor:RemoveAttachable(targetLimb, false, false);
+			elseif limbString then
+				local newLimb = nil;
+
+				if limbID == "Head" then
+					newLimb = CreateAttachable(limbString) or CreateHeldDevice(limbString) or CreateAEmitter(limbString);
+				elseif limbID == "Jetpack" then
+					newLimb = CreateAEJetpack(limbString);
+				elseif limbID == "FGArm" or limbID == "BGArm" then
+					newLimb = CreateArm(limbString);
+				elseif limbID == "FGLeg" or limbID == "BGLeg" then
+					newLimb = CreateLeg(limbString);
+				end
+
+				if targetLimb then
+					newLimb.ParentOffset = targetLimb.ParentOffset;
+					newLimb.DrawnAfterParent = targetLimb.DrawnAfterParent;
+					if targetLimb.ParentBreakWound then
+						newLimb.ParentBreakWound = ToAEmitter(targetLimb.ParentBreakWound):Clone();
+					end
+				end
+
+				actor[limbID] = newLimb;
+			end
+		end
+
+		return true;
 	end
-	return false
+
+	return false;
 end
 -----------------------------------------------------------------------
 --
@@ -1819,23 +1630,22 @@ end
 -----------------------------------------------------------------------
 --	Returns how many science points corresponds to selected difficulty level
 -----------------------------------------------------------------------
-CF.GetTechLevelFromDifficulty = function(gs, p, diff, maxdiff)
+CF.GetTechLevelFromDifficulty = function(faction, difficulty)
 	local maxpoints = 0
-	local f = CF.GetPlayerFaction(gs, p)
 
-	for i = 1, #CF.ItmNames[f] do
-		if CF.ItmUnlockData[f][i] > maxpoints then
-			maxpoints = CF.ItmUnlockData[f][i]
+	for i = 1, #CF.ItmNames[faction] do
+		if CF.ItmUnlockData[faction][i] > maxpoints then
+			maxpoints = CF.ItmUnlockData[faction][i]
 		end
 	end
 
-	for i = 1, #CF.ActNames[f] do
-		if CF.ActUnlockData[f][i] > maxpoints then
-			maxpoints = CF.ActUnlockData[f][i]
+	for i = 1, #CF.ActNames[faction] do
+		if CF.ActUnlockData[faction][i] > maxpoints then
+			maxpoints = CF.ActUnlockData[faction][i]
 		end
 	end
 
-	return math.floor(maxpoints / maxdiff * diff)
+	return math.floor(maxpoints / CF.MaxDifficulty * difficulty)
 end
 -----------------------------------------------------------------------
 --

@@ -28,7 +28,6 @@ if PresetMan:GetModuleID("Southlands.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Southlands"
 	CF.LocationPos[id] = Vector(-12, 52)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 15
 	CF.LocationGoldPresent[id] = false
@@ -45,7 +44,6 @@ if PresetMan:GetModuleID("MiroCliffside.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Mirokan's Cliffside"
 	CF.LocationPos[id] = Vector(51, -25)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 25
 	CF.LocationGoldPresent[id] = false
@@ -62,7 +60,6 @@ if PresetMan:GetModuleID("BB+.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Grasslands Garrison"
 	CF.LocationPos[id] = Vector(10, -15)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 35
 	CF.LocationGoldPresent[id] = true
@@ -84,7 +81,6 @@ if PresetMan:GetModuleID("BB+.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Silverhill Stronghold"
 	CF.LocationPos[id] = Vector(-30, 32)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 35
 	CF.LocationGoldPresent[id] = true
@@ -92,23 +88,15 @@ if PresetMan:GetModuleID("BB+.rte") ~= -1 then
 	CF.LocationPlanet[id] = "Miranda"
 	CF.LocationMissions[id] = { "Assault", "Assassinate", "Zombies", "Defend", "Destroy", "Squad", "Evacuate" } --]]--
 
-	-- Define BB+ planet
-	local id = "The Breach"
-	CF.Planet[#CF.Planet + 1] = id
-	CF.PlanetName[id] = "The Breach"
-	CF.PlanetGlow[id] = "Mods/VoidWanderers.rte/UI/Planets/TheBreach.png"
-	CF.PlanetPos[id] = Vector(-13, 40)
-
 	local id = "Bluffside Bastion"
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Bluffside Bastion"
 	CF.LocationPos[id] = Vector(56, -5)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 35
 	CF.LocationGoldPresent[id] = true
 	CF.LocationScenes[id] = { "Bluffside Bastion" }
-	CF.LocationPlanet[id] = "The Breach"
+	CF.LocationPlanet[id] = "Miranda"
 	CF.LocationMissions[id] = {
 		"Assault",
 		"Assassinate",
@@ -125,12 +113,11 @@ if PresetMan:GetModuleID("BB+.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Burraki Mining Outpost"
 	CF.LocationPos[id] = Vector(-20, 15)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 35
 	CF.LocationGoldPresent[id] = true
 	CF.LocationScenes[id] = { "Burraki Mining Outpost" }
-	CF.LocationPlanet[id] = "The Breach"
+	CF.LocationPlanet[id] = "Miranda"
 	CF.LocationMissions[id] = {
 		"Assault",
 		"Assassinate",
@@ -147,12 +134,11 @@ if PresetMan:GetModuleID("BB+.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Bywater Barracks"
 	CF.LocationPos[id] = Vector(-50, 25)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 35
 	CF.LocationGoldPresent[id] = true
 	CF.LocationScenes[id] = { "Bywater Barracks" }
-	CF.LocationPlanet[id] = "The Breach"
+	CF.LocationPlanet[id] = "Miranda"
 	CF.LocationMissions[id] = {
 		"Assault",
 		"Assassinate",
@@ -169,12 +155,11 @@ if PresetMan:GetModuleID("BB+.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Cliffside Camp"
 	CF.LocationPos[id] = Vector(-3, 40)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 35
 	CF.LocationGoldPresent[id] = true
 	CF.LocationScenes[id] = { "Cliffside Camp" }
-	CF.LocationPlanet[id] = "The Breach"
+	CF.LocationPlanet[id] = "Miranda"
 	CF.LocationMissions[id] = {
 		"Assault",
 		"Assassinate",
@@ -191,12 +176,11 @@ if PresetMan:GetModuleID("BB+.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Fangdor Fortress"
 	CF.LocationPos[id] = Vector(47, 23)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 35
 	CF.LocationGoldPresent[id] = true
 	CF.LocationScenes[id] = { "Fangdor Fortress" }
-	CF.LocationPlanet[id] = "The Breach"
+	CF.LocationPlanet[id] = "Miranda"
 	CF.LocationMissions[id] = {
 		"Assault",
 		"Assassinate",
@@ -213,12 +197,11 @@ if PresetMan:GetModuleID("BB+.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Hemslock Hold"
 	CF.LocationPos[id] = Vector(17, 54)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 35
 	CF.LocationGoldPresent[id] = true
 	CF.LocationScenes[id] = { "Hemslock Hold" }
-	CF.LocationPlanet[id] = "The Breach"
+	CF.LocationPlanet[id] = "Miranda"
 	CF.LocationMissions[id] = {
 		"Assault",
 		"Assassinate",
@@ -235,12 +218,11 @@ if PresetMan:GetModuleID("BB+.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Hidden Research Center"
 	CF.LocationPos[id] = Vector(12, 14)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 35
 	CF.LocationGoldPresent[id] = true
 	CF.LocationScenes[id] = { "Hidden Research Center" }
-	CF.LocationPlanet[id] = "The Breach"
+	CF.LocationPlanet[id] = "Miranda"
 	CF.LocationMissions[id] = {
 		"Assault",
 		"Assassinate",
@@ -257,12 +239,11 @@ if PresetMan:GetModuleID("BB+.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Lightbank Lair"
 	CF.LocationPos[id] = Vector(-42, -14)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 35
 	CF.LocationGoldPresent[id] = true
 	CF.LocationScenes[id] = { "Lightbank Lair" }
-	CF.LocationPlanet[id] = "The Breach"
+	CF.LocationPlanet[id] = "Miranda"
 	CF.LocationMissions[id] = {
 		"Assault",
 		"Assassinate",
@@ -279,12 +260,11 @@ if PresetMan:GetModuleID("BB+.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Mourning Hollow"
 	CF.LocationPos[id] = Vector(52, 17)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 35
 	CF.LocationGoldPresent[id] = true
 	CF.LocationScenes[id] = { "Mourning Hollow" }
-	CF.LocationPlanet[id] = "The Breach"
+	CF.LocationPlanet[id] = "Miranda"
 	CF.LocationMissions[id] = {
 		"Assault",
 		"Assassinate",
@@ -301,12 +281,11 @@ if PresetMan:GetModuleID("BB+.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Ramshackle Ridge"
 	CF.LocationPos[id] = Vector(13, 21)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 35
 	CF.LocationGoldPresent[id] = true
 	CF.LocationScenes[id] = { "Ramshackle Ridge" }
-	CF.LocationPlanet[id] = "The Breach"
+	CF.LocationPlanet[id] = "Miranda"
 	CF.LocationMissions[id] = {
 		"Assault",
 		"Assassinate",
@@ -323,12 +302,11 @@ if PresetMan:GetModuleID("BB+.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Weyton Watch"
 	CF.LocationPos[id] = Vector(29, 35)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 35
 	CF.LocationGoldPresent[id] = true
 	CF.LocationScenes[id] = { "Weyton Watch" }
-	CF.LocationPlanet[id] = "The Breach"
+	CF.LocationPlanet[id] = "Miranda"
 	CF.LocationMissions[id] = {
 		"Assault",
 		"Assassinate",
@@ -350,7 +328,6 @@ if PresetMan:GetModuleID("Bedrock.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Canyons"
 	CF.LocationPos[id] = Vector(29, 5)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 35
 	CF.LocationGoldPresent[id] = true
@@ -362,7 +339,6 @@ if PresetMan:GetModuleID("Bedrock.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Stone Mountain"
 	CF.LocationPos[id] = Vector(-49 , -7)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 35
 	CF.LocationGoldPresent[id] = true
@@ -375,7 +351,6 @@ if PresetMan:GetModuleID("Bedrock.rte") ~= -1 then
 	CF.Location[#CF.Location + 1] = id
 	CF.LocationName[id] = "Temple Cave"
 	CF.LocationPos[id] = Vector(26 , 29)
-	CF.LocationRemoveDoors[id] = true
 	CF.LocationDescription[id] = ""
 	CF.LocationSecurity[id] = 35
 	CF.LocationGoldPresent[id] = true

@@ -73,7 +73,11 @@ function VoidWanderers:MissionCreate()
 	local cmndrpts = CF.GetPointsArray(self.Pts, "Assassinate", pointSetIndex, "Commander")
 	local cpos = cmndrpts[math.random(#cmndrpts)]
 
-	self.missionData["brain"] = CF.MakeRPGBrain(self.GS, self.missionData["missionTarget"], CF.CPUTeam, cpos, math.floor(diff / 3), true)
+	local faction = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"]);
+	local brain = CF.MakeRPGBrain(faction, math.floor(diff / 3), true);
+	brain.Team = CF.CPUTeam;
+	brain.Pos = cpos;
+	self.missionData["brain"] = brain;
 
 	if self.missionData["brain"] then
 		self.missionData["brain"]:AddToGroup("MissionBrain")
@@ -183,7 +187,7 @@ function VoidWanderers:MissionUpdate()
 						) < 0
 					then
 						local f = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])
-						self.missionData["craft"] = CF.MakeActor(CF.Crafts[f], CF.CraftClasses[f], CF.CraftModules[f])
+						self.missionData["craft"] = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
 							or CreateACDropShip("Dropship MK1", "Base.rte")
 						self.missionData["craft"].Pos = Vector(self.missionData["brain"].Pos.X, -10)
 						self.missionData["craft"].Team = self.missionData["brain"].Team
@@ -270,7 +274,7 @@ function VoidWanderers:MissionUpdate()
 
 					local count = math.random(2, 3)
 					local f = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])
-					local ship = CF.MakeActor(CF.Crafts[f], CF.CraftClasses[f], CF.CraftModules[f])
+					local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
 					if ship then
 						for i = 1, count do
 							local actor = CF.SpawnAIUnit(self.GS, self.missionData["missionTarget"], CF.CPUTeam, nil, nil)

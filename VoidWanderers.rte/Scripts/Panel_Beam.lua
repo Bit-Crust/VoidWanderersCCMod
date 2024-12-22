@@ -62,7 +62,7 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:ProcessBeamControlPanelUI()
-	local drawIdle = true;
+	local showIdle = true;
 
 	if self.BeamControlPanelActor then
 		local pos = self.BeamControlPanelPos;
@@ -71,7 +71,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 			local act = self:GetControlledActor(player);
 
 			if act and act.PresetName == self.BeamControlPanelActor.PresetName then
-				drawIdle = false;
+				showIdle = false;
 				local pos = self.BeamControlPanelPos;
 				local cont = act:GetController();
 				local canbeam = false;
@@ -212,8 +212,8 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 										self.GS["Deployed" .. deployedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
 										self.GS["Deployed" .. deployedactor .. "Name"] = actor:GetStringValue("VW_Name")
 
-										for j = 1, #CF.LimbID do
-											self.GS["Deployed" .. deployedactor .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
+										for i, limbID in pairs(CF.HumanLimbID) do
+											self.GS["Deployed" .. deployedactor .. limbID] = CF.GetLimbData(actor, limbID)
 										end
 
 										for j = 1, #pre do
@@ -236,9 +236,9 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 										self.GS["Actor" .. savedactor .. "Name"] = actor:GetStringValue("VW_Name")
 										self.GS["Actor" .. savedactor .. "X"] = math.floor(actor.Pos.X)
 										self.GS["Actor" .. savedactor .. "Y"] = math.floor(actor.Pos.Y)
-
-										for j = 1, #CF.LimbID do
-											self.GS["Actor" .. savedactor .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
+										
+										for i, limbID in pairs(CF.HumanLimbID) do
+											self.GS["Actor" .. deployedactor .. limbID] = CF.GetLimbData(actor, limbID)
 										end
 
 										for j = 1, #pre do
@@ -303,10 +303,10 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 			end
 		end
 	end
-
-	if drawIdle then
+	
+	if showIdle and MovableMan:ValidMO(self.BeamControlPanelActor) and self.BeamControlPanelActor.Team == Activity.TEAM_1 then
 		local player = Activity.PLAYER_NONE;
-		local pos = self.BeamControlPanelPos;
+		local pos = self.BeamControlPanelActor.Pos;
 		local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Beam.png";
 		local rotation = 0;
 		local hflip = false;

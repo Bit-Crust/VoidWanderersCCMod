@@ -86,7 +86,7 @@ CF.ReadExtensionsList = function(filename, defaultpath)
 
 	while not LuaMan:FileEOF(fileid) do
 		line = LuaMan:FileReadLine(fileid)
-		s = string.gsub(line, "\n", "")
+		local s = string.gsub(line, "\n", "")
 		s = string.gsub(s, "\r", "")
 
 		local enabled = false

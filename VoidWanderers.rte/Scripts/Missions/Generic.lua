@@ -39,9 +39,10 @@ function VoidWanderers:MissionCreate()
 	local team3Player = selection[math.random(#selection)]
 	local team4Player = selection[math.random(#selection)]
 	self.missionData["CPUPlayers"] = { team2Player, team3Player, team4Player }
-	CF.CreateAIUnitPresets(self.GS, team2Player, CF.GetTechLevelFromDifficulty(self.GS, team2Player, self.missionData["difficulty"], CF.MaxDifficulty))
-	CF.CreateAIUnitPresets(self.GS, team3Player, CF.GetTechLevelFromDifficulty(self.GS, team3Player, self.missionData["difficulty"], CF.MaxDifficulty))
-	CF.CreateAIUnitPresets(self.GS, team4Player, CF.GetTechLevelFromDifficulty(self.GS, team4Player, self.missionData["difficulty"], CF.MaxDifficulty))
+	
+	CF.CreateAIUnitPresets(self.GS, team2Player, CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, team2Player), self.missionData["difficulty"]))
+	CF.CreateAIUnitPresets(self.GS, team3Player, CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, team3Player), self.missionData["difficulty"]))
+	CF.CreateAIUnitPresets(self.GS, team4Player, CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, team4Player), self.missionData["difficulty"]))
 
 	-- Place some ambient randos
 	for i = 1, #ambientEnemyPositions do
@@ -128,7 +129,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["dropShipCount"] = self.missionData["dropShipCount"] + 1
 			local count = math.random(math.ceil(math.max(1, math.min(CF.MaxDifficulty, self.missionData["difficulty"] / 2))))
 			local f = CF.GetPlayerFaction(self.GS, self.missionData["CPUPlayers"][team])
-			local ship = CF.MakeActor(CF.Crafts[f], CF.CraftClasses[f], CF.CraftModules[f])
+			local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
 
 			if ship then
 				for i = 1, count do
@@ -164,7 +165,7 @@ function VoidWanderers:MissionUpdate()
 		local team = Activity.TEAM_2
 		local count = 3
 		local f = CF.GetPlayerFaction(self.GS, self.missionData["CPUPlayers"][team])
-		local ship = CF.MakeActor(CF.Crafts[f], CF.CraftClasses[f], CF.CraftModules[f])
+		local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
 
 		if ship then
 			for i = 1, count do

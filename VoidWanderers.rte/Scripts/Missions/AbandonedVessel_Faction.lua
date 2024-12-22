@@ -14,16 +14,7 @@ function VoidWanderers:MissionCreate()
 
 	self.missionData["landingZones"] = CF.GetPointsArray(self.Pts, "Deploy", set, "EnemyLZ")
 
-	-- Select faction
-	local ok = false
-
-	while not ok do
-		self.missionData["selectedFaction"] = CF.Factions[math.random(#CF.Factions)]
-		if CF.FactionPlayable[self.missionData["selectedFaction"]] then
-			ok = true
-		end
-	end
-
+	self.missionData["selectedFaction"] = CF.GetPlayerFaction(self.GS, math.random(tonumber(self.GS["ActiveCPUs"])));
 	local diff = CF.GetLocationDifficulty(self.GS, self.GS["Location"])
 	self.missionData["difficulty"] = diff
 
@@ -33,7 +24,7 @@ function VoidWanderers:MissionCreate()
 	CF.CreateAIUnitPresets(
 		self.GS,
 		self.missionData["fakePlayer"],
-		CF.GetTechLevelFromDifficulty(self.GS, self.missionData["fakePlayer"], diff, CF.MaxDifficulty)
+		CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, self.missionData["fakePlayer"]), diff)
 	)
 
 	--print ("DIFF: "..self.missionData["difficulty"])
@@ -43,48 +34,51 @@ function VoidWanderers:MissionCreate()
 
 		local pre = math.random(CF.PresetTypes.ENGINEER)
 		local nw = {}
-		nw["Preset"] = pre
+		nw.Preset = pre
 
-		if math.random() < 0.175 then
-			tm = CF.PlayerTeam
-			if self.GS["BrainsOnMission"] ~= "True" then
-				nw["Ally"] = 1
-			end
-		elseif math.random() < 0.275 then
+		if math.random() < 1/7 then
+			tm = Activity.TEAM_1
+			nw.Ally = 1
+		elseif math.random() < 3/7 then
+			tm = Activity.TEAM_4
+		elseif math.random() < 5/7 then
 			tm = Activity.TEAM_3
 		else
-			tm = CF.CPUTeam
+			tm = Activity.TEAM_2
 		end
 
-		nw["Team"] = tm
-		nw["Player"] = self.missionData["fakePlayer"]
+		nw.Team = tm
+		nw.Player = self.missionData["fakePlayer"]
 		local rand = math.random()
-		if tm == CF.CPUTeam and rand < 0.5 then
+		if tm == Activity.TEAM_2 and rand < 0.5 then
 			if rand < 0.1 then
-				nw["AIMode"] = Actor.AIMODE_BRAINHUNT
+				nw.AIMode = Actor.AIMODE_BRAINHUNT
 			else
-				nw["AIMode"] = Actor.AIMODE_PATROL
+				nw.AIMode = Actor.AIMODE_PATROL
 			end
 		else
-			nw["AIMode"] = Actor.AIMODE_SENTRY
+			nw.AIMode = Actor.AIMODE_SENTRY
 		end
-		nw["Pos"] = enmpos[i]
+		nw.Pos = enmpos[i]
 
-		self:SpawnViaTable(nw)
+		self:SpawnViaTable(nw);
 		
 		-- Spawn another engineer
 		if math.random() < CF.AmbientEnemyDoubleSpawn then
 			local pre = CF.PresetTypes.HEAVY2
-			local nw = {}
-			nw["Preset"] = pre
-			nw["Team"] = tm
-			nw["Player"] = self.missionData["fakePlayer"]
-			nw["AIMode"] = Actor.AIMODE_SENTRY
-			nw["Pos"] = enmpos[i]
 
-			self:SpawnViaTable(nw)
+			local nw = {}
+			nw.Preset = pre
+			nw.Team = tm
+			nw.Ally = tm == Activity.TEAM_1;
+			nw.Player = self.missionData["fakePlayer"]
+			nw.AIMode = Actor.AIMODE_SENTRY
+			nw.Pos = enmpos[i]
+
+			self:SpawnViaTable(nw);
 		end
 	end
+
 	for actor in MovableMan.Actors do
 		if actor.ClassName == "ADoor" and math.random() < 0.33 then
 			actor.GibSound = nil

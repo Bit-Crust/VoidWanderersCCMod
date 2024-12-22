@@ -99,13 +99,13 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:ProcessItemShopControlPanelUI()
-	local showidle = true;
+	local showIdle = true;
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		local act = self:GetControlledActor(player);
 
 		if act and MovableMan:IsActor(act) and act.PresetName == "Item Shop Control Panel" then
-			showidle = false;
+			showIdle = false;
 			local pos = act.Pos;
 
 			local cont = act:GetController();
@@ -344,7 +344,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 		end
 	end
 
-	if showidle and MovableMan:ValidMO(self.ItemShopControlPanelActor) then
+	if showIdle and MovableMan:ValidMO(self.ItemShopControlPanelActor) and self.ItemShopControlPanelActor.Team == Activity.TEAM_1 then
 		local player = Activity.PLAYER_NONE;
 		local pos = self.ItemShopControlPanelActor.Pos;
 		local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_ItemShop.png";

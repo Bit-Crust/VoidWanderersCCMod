@@ -35,8 +35,8 @@ function VoidWanderers:EncounterCreate()
 
 	self.encounterData["enemiesToSpawn"] = CF.AssaultDifficultyUnitCount[self.encounterData["ambushDifficulty"]]
 	self.encounterData["nextSpawnTime"] = self.encounterData["encounterStartTime"] + CF.AssaultDifficultySpawnInterval[self.encounterData["ambushDifficulty"]] + 1
-	self.encounterData["nextSpawnPos"] = self.AssaultSpawn and self.AssaultSpawn:GetRandomPoint()
-		or (self.EnemySpawn and self.EnemySpawn[math.random(#self.EnemySpawn)] or nil);
+	self.encounterData["assaultSpawn"] = SceneMan.Scene:GetArea("Vessel Assault Spawn");
+	self.encounterData["nextSpawnPos"] = self.encounterData["assaultSpawn"] and self.encounterData["assaultSpawn"]:GetRandomPoint() or self.EnemySpawn[math.random(#self.EnemySpawn)];
 	self.encounterData["ambushWarningTime"] = 6 - math.floor(self.encounterData["ambushDifficulty"] * 0.5 + 0.5)
 
 	-- Create attacker's unit presets
@@ -44,10 +44,8 @@ function VoidWanderers:EncounterCreate()
 		self.GS,
 		self.encounterData["ambushAssailant"],
 		CF.GetTechLevelFromDifficulty(
-			self.GS, 
-			self.encounterData["ambushAssailant"], 
-			self.encounterData["ambushDifficulty"], 
-			CF.MaxDifficulty
+			CF.GetPlayerFaction(self.GS, self.encounterData["ambushAssailant"])
+			self.encounterData["ambushDifficulty"]
 		)
 	)
 end
@@ -219,7 +217,7 @@ function VoidWanderers:EncounterUpdate()
 		MovableMan:AddParticle(sfx)
 
 		self.AssaultWarningTime = 6 - math.floor(self.AssaultDifficulty * 0.5 + 0.5)
-		self.AssaultNextSpawnPos = self.AssaultSpawn and self.AssaultSpawn:GetRandomPoint()
+		self.AssaultNextSpawnPos = self.encounterData["assaultSpawn"] and self.encounterData["assaultSpawn"]:GetRandomPoint()
 			or self.EnemySpawn[math.random(#self.EnemySpawn)]
 	end
 	--]]

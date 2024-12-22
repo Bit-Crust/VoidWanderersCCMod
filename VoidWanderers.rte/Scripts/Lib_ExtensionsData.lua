@@ -13,7 +13,6 @@ function CF.InitExtensionsData(activity)
 	CF.LocationDescription = {};
 	CF.LocationSecurity = {};
 	CF.LocationGoldPresent = {};
-	CF.LocationRemoveDoors = {};
 	CF.LocationScenes = {};
 	CF.LocationPlanet = {};
 	CF.LocationScript = {};

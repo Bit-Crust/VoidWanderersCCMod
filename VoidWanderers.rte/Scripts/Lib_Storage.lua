@@ -398,7 +398,7 @@ end
 --
 -----------------------------------------------------------------------
 function CF.RefreshBlackMarketItems(gs, location)
-	local registered = {};
+	local registeredCharacteristics = {};
 	local count = 1;
 	
 	for i = 1, 100 do
@@ -420,8 +420,8 @@ function CF.RefreshBlackMarketItems(gs, location)
 			local characteristic = class .. "_" .. preset .. "_" .. module;
 
 			local isduplicate = false;
-			for j = 1, #registered do
-				if characteristic == registered[j] then
+			for j = 1, #registeredCharacteristics do
+				if characteristic == registeredCharacteristics[j] then
 					isduplicate = true;
 					break;
 				end
@@ -429,7 +429,7 @@ function CF.RefreshBlackMarketItems(gs, location)
 
 			if CF.BlackMarketItmPresets[index] and math.random() < (1 / i) and not isduplicate then
 				gs["BlackMarket" .. location .. "Item" .. count .. "Index"] = index;
-				registered[count] = characteristic;
+				registeredCharacteristics[count] = characteristic;
 				count = count + 1;
 			end
 		end
@@ -442,13 +442,12 @@ function CF.RefreshBlackMarketItems(gs, location)
 			local class = CF.ArtItmClasses[index];
 			local preset = CF.ArtItmPresets[index];
 			local module = CF.ArtItmModules[index];
-			local characteristic = class .. "_" .. preset .. "_" .. module;
 
 			if CF.IsEntityUnlocked(gs, "Blackprint", class, preset, module) then
 				gs["BlackMarket" .. location .. "Item" .. count .. "Class"] = class;
 				gs["BlackMarket" .. location .. "Item" .. count .. "Preset"] = preset;
 				gs["BlackMarket" .. location .. "Item" .. count .. "Module"] = module;
-				registered[count] = characteristic;
+				registeredCharacteristics[count] = class .. "_" .. preset .. "_" .. module;
 				count = count + 1;
 			end
 		end
@@ -462,8 +461,8 @@ function CF.RefreshBlackMarketItems(gs, location)
 			local characteristic = class .. "_" .. preset .. "_" .. module;
 
 			local isduplicate = false;
-			for j = 1, #registered do
-				if characteristic == registered[j] then
+			for j = 1, #registeredCharacteristics do
+				if characteristic == registeredCharacteristics[j] then
 					isduplicate = true;
 					break;
 				end
@@ -473,7 +472,7 @@ function CF.RefreshBlackMarketItems(gs, location)
 				gs["BlackMarket" .. location .. "Item" .. count .. "Class"] = class;
 				gs["BlackMarket" .. location .. "Item" .. count .. "Preset"] = preset;
 				gs["BlackMarket" .. location .. "Item" .. count .. "Module"] = module;
-				registered[count] = characteristic;
+				registeredCharacteristics[count] = characteristic;
 				count = count + 1;
 			end
 		end
@@ -491,8 +490,8 @@ function CF.RefreshBlackMarketItems(gs, location)
 			local characteristic = class .. "_" .. preset .. "_" .. module;
 
 			local isduplicate = false;
-			for j = 1, #registered do
-				if characteristic == registered[j] then
+			for j = 1, #registeredCharacteristics do
+				if characteristic == registeredCharacteristics[j] then
 					isduplicate = true;
 					break;
 				end
@@ -501,7 +500,7 @@ function CF.RefreshBlackMarketItems(gs, location)
 			if not isduplicate and preset and math.random() < (1 / count) then
 				gs["BlackMarket" .. location .. "Item" .. count .. "Faction"] = faction;
 				gs["BlackMarket" .. location .. "Item" .. count .. "Index"] = index;
-				registered[count] = characteristic;
+				registeredCharacteristics[count] = characteristic;
 				count = count + 1;
 			end
 		end
@@ -514,7 +513,7 @@ end
 --
 -----------------------------------------------------------------------
 function CF.RefreshBlackMarketActors(gs, location)
-	local registered = {};
+	local registeredCharacteristics = {};
 	local count = 1;
 	
 	for i = 1, 100 do
@@ -532,13 +531,12 @@ function CF.RefreshBlackMarketActors(gs, location)
 			local class = CF.ArtActClasses[index];
 			local preset = CF.ArtActPresets[index];
 			local module = CF.ArtActModules[index];
-			local characteristic = class .. "_" .. preset .. "_" .. module;
 
 			if CF.IsEntityUnlocked(gs, "Blackprint", class, preset, module) then
 				gs["BlackMarket" .. location .. "Actor" .. count .. "Class"] = class;
 				gs["BlackMarket" .. location .. "Actor" .. count .. "Preset"] = preset;
 				gs["BlackMarket" .. location .. "Actor" .. count .. "Module"] = module;
-				registered[count] = characteristic;
+				registeredCharacteristics[count] = class .. "_" .. preset .. "_" .. module;
 				count = count + 1;
 			end
 		end
@@ -552,8 +550,8 @@ function CF.RefreshBlackMarketActors(gs, location)
 			local characteristic = class .. "_" .. preset .. "_" .. module;
 
 			local isduplicate = false;
-			for j = 1, #registered do
-				if characteristic == registered[j] then
+			for j = 1, #registeredCharacteristics do
+				if characteristic == registeredCharacteristics[j] then
 					isduplicate = true;
 					break;
 				end
@@ -563,7 +561,7 @@ function CF.RefreshBlackMarketActors(gs, location)
 				gs["BlackMarket" .. location .. "Actor" .. count .. "Class"] = class;
 				gs["BlackMarket" .. location .. "Actor" .. count .. "Preset"] = preset;
 				gs["BlackMarket" .. location .. "Actor" .. count .. "Module"] = module;
-				registered[count] = characteristic;
+				registeredCharacteristics[count] = characteristic;
 				count = count + 1;
 			end
 		end
@@ -581,8 +579,8 @@ function CF.RefreshBlackMarketActors(gs, location)
 			local characteristic = class .. "_" .. preset .. "_" .. module;
 
 			local isduplicate = false;
-			for j = 1, #registered do
-				if characteristic == registered[j] then
+			for j = 1, #registeredCharacteristics do
+				if characteristic == registeredCharacteristics[j] then
 					isduplicate = true;
 					break;
 				end
@@ -591,7 +589,7 @@ function CF.RefreshBlackMarketActors(gs, location)
 			if not isduplicate and CF.ActTypes[faction][index] ~= CF.ActorTypes.TURRET and preset and math.random() < (1 / count) then
 				gs["BlackMarket" .. location .. "Actor" .. count .. "Faction"] = faction;
 				gs["BlackMarket" .. location .. "Actor" .. count .. "Index"] = index;
-				registered[count] = characteristic;
+				registeredCharacteristics[count] = characteristic;
 				count = count + 1;
 			end
 		end
@@ -944,8 +942,8 @@ function CF.GetClonesArray(gs)
 			clone.Prestige = gs["ClonesStorage" .. i .. "Prestige"];
 			clone.Name = gs["ClonesStorage" .. i .. "Name"];
 
-			for j = 1, #CF.LimbID do
-				clone[CF.LimbID[j]] = gs["ClonesStorage" .. i .. CF.LimbID[j]];
+			for j = 1, #CF.HumanLimbID do
+				clone[CF.HumanLimbID[j]] = gs["ClonesStorage" .. i .. CF.HumanLimbID[j]];
 			end
 
 			clone.Items = {};
@@ -1002,8 +1000,8 @@ function CF.SetClonesArray(gs, clones)
 		gs["ClonesStorage" .. i .. "Prestige"] = nil;
 		gs["ClonesStorage" .. i .. "Name"] = nil;
 
-		for j = 1, #CF.LimbID do
-			gs["ClonesStorage" .. i .. CF.LimbID[j]] = nil;
+		for j = 1, #CF.HumanLimbID do
+			gs["ClonesStorage" .. i .. CF.HumanLimbID[j]] = nil;
 		end
 
 		for itm = 1, CF.MaxStoredActorInventory do
@@ -1025,8 +1023,8 @@ function CF.SetClonesArray(gs, clones)
 		gs["ClonesStorage" .. i .. "Prestige"] = clone.Prestige;
 		gs["ClonesStorage" .. i .. "Name"] = clone.Name;
 
-		for j = 1, #CF.LimbID do
-			gs["ClonesStorage" .. i .. CF.LimbID[j]] = clone[CF.LimbID[j]];
+		for j = 1, #CF.HumanLimbID do
+			gs["ClonesStorage" .. i .. CF.HumanLimbID[j]] = clone[CF.HumanLimbID[j]];
 		end
 
 		for itm = 1, #clone.Items do

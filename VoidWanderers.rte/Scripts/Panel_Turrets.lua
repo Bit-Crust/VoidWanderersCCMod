@@ -78,7 +78,7 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 
 	for turr = 1, count do
 		if MovableMan:IsActor(self.TurretsControlPanelActor[turr]) then
-			local showidle = true
+			local showIdle = true
 			local empty = true
 
 			if self.GS["DeployedTurret" .. turr .. "Preset"] ~= nil then
@@ -93,7 +93,7 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 					and MovableMan:IsActor(act)
 					and act.ID == self.TurretsControlPanelActor[turr].ID
 				then
-					showidle = false
+					showIdle = false
 
 					local pos = self.TurretsControlPanelPos[turr]
 					local cont = act:GetController()
@@ -404,12 +404,12 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 				end
 			end
 
-			if showidle then
+			if showIdle then
 				self.TurretsControlPanelEditMode[turr] = false
 				self.TurretsControlPanelInitialized[turr] = false
 			end
 
-			if showidle and self.TurretsControlPanelPos[turr] ~= nil then
+			if showIdle and self.TurretsControlPanelPos[turr] ~= nil then
 				if empty then
 					self:PutGlow("ControlPanel_Turret_Empty", self.TurretsControlPanelPos[turr])
 				else
@@ -436,7 +436,7 @@ function VoidWanderers:DeployTurrets()
 		local module = self.GS["DeployedTurret" .. turr .. "Module"]
 
 		if preset ~= nil and class ~= nil then
-			local actor = CF.MakeActor(preset, class, module)
+			local actor = CF.MakeActor(class, preset, module)
 			if actor then
 				actor.Team = CF.PlayerTeam
 				actor.Pos = self.TurretsControlPanelPos[turr]

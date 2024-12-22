@@ -179,7 +179,7 @@ function VoidWanderers:MissionUpdate()
 					self.missionData["troopCount"]
 				)
 				local f = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])
-				local ship = CF.MakeActor(CF.Crafts[f], CF.CraftClasses[f], CF.CraftModules[f])
+				local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
 				if ship then
 					for i = 1, count do
 						local actor = CF.SpawnAIUnit(

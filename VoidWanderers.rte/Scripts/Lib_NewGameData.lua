@@ -2,38 +2,38 @@
 -- Initializes all game data when new game started and returns new gameState
 -----------------------------------------------------------------------
 CF.MakeFreshGameState = function(playerFaction, cpus, activity)
-	local gameState = {}
-	local diff = activity.Difficulty
+	local gameState = {};
+	local difficulty = activity.Difficulty;
 
 	-- Init game time
 	gameState["Time"] = tostring(0)
 
-	gameState["Difficulty"] = tostring(diff)
+	gameState["Difficulty"] = tostring(difficulty)
 	gameState["FogOfWar"] = activity:GetFogOfWarEnabled() and "True" or "False"
 	gameState["AISkillPlayer"] = tostring(activity:GetTeamAISkill(Activity.TEAM_1))
 	gameState["AISkillCPU"] = tostring(activity:GetTeamAISkill(Activity.TEAM_2))
 
 	-- Difficulty related variables
-	if diff <= GameActivity.CAKEDIFFICULTY then
+	if difficulty <= GameActivity.CAKEDIFFICULTY then
 		gameState["MissionDifficultyBonus"] = -2
-	elseif diff <= GameActivity.EASYDIFFICULTY then
+	elseif difficulty <= GameActivity.EASYDIFFICULTY then
 		gameState["MissionDifficultyBonus"] = -1
-	elseif diff <= GameActivity.MEDIUMDIFFICULTY then
+	elseif difficulty <= GameActivity.MEDIUMDIFFICULTY then
 		gameState["MissionDifficultyBonus"] = -0
-	elseif diff <= GameActivity.HARDDIFFICULTY then
+	elseif difficulty <= GameActivity.HARDDIFFICULTY then
 		gameState["MissionDifficultyBonus"] = 1
-	elseif diff <= GameActivity.NUTSDIFFICULTY then
+	elseif difficulty <= GameActivity.NUTSDIFFICULTY then
 		gameState["MissionDifficultyBonus"] = 2
 	else
 		gameState["MissionDifficultyBonus"] = 3
 	end
 
 	-- Set up players
-	gameState["PlayerFaction"] = tostring(playerFaction)
+	gameState["PlayerFaction"] = playerFaction
 	gameState["PlayerGold"] = tostring(math.floor(activity:GetStartingGold()))
 
 	-- Set vessel attributes
-	local vessel = diff == GameActivity.MAXDIFFICULTY and "Mule" or "Lynx";
+	local vessel = difficulty == GameActivity.MAXDIFFICULTY and "Mule" or "Lynx";
 	gameState["PlayerVesselStorageCapacity"] = tostring(CF.VesselStartStorageCapacity[vessel])
 	gameState["PlayerVesselClonesCapacity"] = tostring(CF.VesselStartClonesCapacity[vessel])
 	gameState["PlayerVesselLifeSupport"] = tostring(CF.VesselStartLifeSupport[vessel])
@@ -65,10 +65,10 @@ CF.MakeFreshGameState = function(playerFaction, cpus, activity)
 			gameState["Player" .. i .. "Type"] = "CPU"
 
 			gameState["Player" .. i .. "Reputation"] = 0
-			if gameState["Player" .. i .. "Faction"] == gameState["PlayerFaction"] then
+			if cpus[i] == playerFaction then
 				gameState["Player" .. i .. "Reputation"] = 500
-			elseif CF.FactionNatures[gameState["PlayerFaction"]] == CF.FactionNatures[gameState["Player" .. i .. "Faction"]] then
-				gameState["Player" .. i .. "Reputation"] = CF.ReputationHuntThreshold * (tonumber(gameState["Difficulty"]) / 100)
+			elseif CF.FactionNatures[playerFaction] ~= CF.FactionNatures[cpus[i]] then
+				gameState["Player" .. i .. "Reputation"] = CF.ReputationHuntThreshold * (difficulty / 100)
 			end
 
 			activecpus = activecpus + 1
@@ -80,26 +80,26 @@ CF.MakeFreshGameState = function(playerFaction, cpus, activity)
 	CF.GenerateRandomMissions(gameState)
 
 	local repBudget = 800
+	local playerFaction = CF.GetPlayerFaction(gameState, 1);
+	local actors = CF.MakeListOfMostPowerfulActorsOfClass(playerFaction, CF.ActorTypes.ANY, "AHuman", repBudget * 2)
 
-	local actors = CF.MakeListOfMostPowerfulActorsOfClass(gameState, 1, CF.ActorTypes.ANY, "AHuman", repBudget * 2)
-
-	local pistols = CF.MakeListOfMostPowerfulWeapons(gameState, 1, CF.WeaponTypes.PISTOL, repBudget)
-	local rifles = CF.MakeListOfMostPowerfulWeapons(gameState, 1, CF.WeaponTypes.RIFLE, repBudget * 2)
-	local shotguns = CF.MakeListOfMostPowerfulWeapons(gameState, 1, CF.WeaponTypes.SHOTGUN, repBudget * 2)
-	local snipers = CF.MakeListOfMostPowerfulWeapons(gameState, 1, CF.WeaponTypes.SNIPER, repBudget * 2)
-	local shields = CF.MakeListOfMostPowerfulWeapons(gameState, 1, CF.WeaponTypes.SHIELD, repBudget)
-	local diggers = CF.MakeListOfMostPowerfulWeapons(gameState, 1, CF.WeaponTypes.DIGGER, repBudget * 0)
-	local grenades = CF.MakeListOfMostPowerfulWeapons(gameState, 1, CF.WeaponTypes.GRENADE, repBudget)
+	local pistols = CF.MakeListOfMostPowerfulWeapons(playerFaction, CF.WeaponTypes.PISTOL, repBudget)
+	local rifles = CF.MakeListOfMostPowerfulWeapons(playerFaction, CF.WeaponTypes.RIFLE, repBudget * 2)
+	local shotguns = CF.MakeListOfMostPowerfulWeapons(playerFaction, CF.WeaponTypes.SHOTGUN, repBudget * 2)
+	local snipers = CF.MakeListOfMostPowerfulWeapons(playerFaction, CF.WeaponTypes.SNIPER, repBudget * 2)
+	local shields = CF.MakeListOfMostPowerfulWeapons(playerFaction, CF.WeaponTypes.SHIELD, repBudget)
+	local diggers = CF.MakeListOfMostPowerfulWeapons(playerFaction, CF.WeaponTypes.DIGGER, repBudget * 0)
+	local grenades = CF.MakeListOfMostPowerfulWeapons(playerFaction, CF.WeaponTypes.GRENADE, repBudget)
 
 	if not actors then
 		print("Pricy humans, alright.")
-		actors = CF.MakeListOfMostPowerfulActorsOfClass(gameState, 1, CF.ActorTypes.ANY, "AHuman", math.huge)
+		actors = CF.MakeListOfMostPowerfulActorsOfClass(playerFaction, CF.ActorTypes.ANY, "AHuman", math.huge)
 		if not actors then
 			print("No humans? That's cool. . .")
-			actors = CF.MakeListOfMostPowerfulActorsOfClass(gameState, 1, CF.ActorTypes.ANY, "ACrab", math.huge)
+			actors = CF.MakeListOfMostPowerfulActorsOfClass(playerFaction, CF.ActorTypes.ANY, "ACrab", math.huge)
 			if not actors then
 				print("No limbed actors??? That's hip!")
-				actors = CF.MakeListOfMostPowerfulActorsOfClass(gameState, 1, CF.ActorTypes.ANY, "Any", math.huge)
+				actors = CF.MakeListOfMostPowerfulActorsOfClass(playerFaction, CF.ActorTypes.ANY, "Any", math.huge)
 			end
 		end
 	end

@@ -132,8 +132,8 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					)
 
 					local bomb = CF.MakeItem(
-						self.BombPayload[self.BombingCount].Preset,
 						self.BombPayload[self.BombingCount].Class,
+						self.BombPayload[self.BombingCount].Preset,
 						self.BombPayload[self.BombingCount].Module
 					)
 					if bomb then
@@ -450,8 +450,8 @@ function VoidWanderers:ProcessLZControlPanelUI()
 											self.GS["Deployed" .. i .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
 											self.GS["Deployed" .. i .. "Name"] = actor:GetStringValue("VW_Name")
 										
-											for j = 1, #CF.LimbID do
-												self.GS["Deployed" .. i .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
+											for i, limbID in pairs(CF.HumanLimbID) do
+												self.GS["Deployed" .. deployedactor .. limbID] = CF.GetLimbData(actor, limbID)
 											end
 
 											for j = 1, #pre do
@@ -639,7 +639,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 	end
 
 	if self.GS["DeserializeDeployedTeam"] == "True" then
-		if self.missionData["stage"] ~= CF.MissionStages.COMPLETED then
+		if self.missionData["stage"] and self.missionData["stage"] ~= CF.MissionStages.COMPLETED then
 			self:GiveMissionPenalties()
 		end
 		-- Generate new missions
@@ -721,7 +721,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		self:LaunchScript(scene, "Tactics.lua")
 		self:DestroyLZControlPanelUI()
 
-		-- Destroy mission and ambient specific objects
+		-- Wrap it up
 		if self.AmbientDestroy ~= nil then
 			self:AmbientDestroy()
 		end

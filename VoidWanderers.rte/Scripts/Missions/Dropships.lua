@@ -235,7 +235,7 @@ function VoidWanderers:MissionUpdate()
 			modes[3] = Actor.AIMODE_PATROL
 
 			local f = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])
-			local ship = CF.MakeActor(CF.Crafts[f], CF.CraftClasses[f], CF.CraftModules[f])
+			local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
 			if ship then
 				local unitCount = enemyFunds
 							> (self.missionData["enemyBudget"] + self.missionData["enemyBudget"]) * 0.5

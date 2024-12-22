@@ -89,13 +89,13 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:ProcessCloneShopControlPanelUI()
-	local showidle = true;
+	local showIdle = true;
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		local act = self:GetControlledActor(player);
 
 		if act and MovableMan:IsActor(act) and act.PresetName == "Clone Shop Control Panel" then
-			showidle = false;
+			showIdle = false;
 			local pos = act.Pos;
 
 			local cont = act:GetController();
@@ -302,8 +302,8 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 			CF.DrawString(lowBarCenterText, pos + Vector(20, 78), 316, 11, nil, nil, 1, 1);
 		end
 	end
-
-	if showidle and MovableMan:ValidMO(self.CloneShopControlPanelActor) then
+	
+	if showIdle and MovableMan:ValidMO(self.CloneShopControlPanelActor) and self.CloneShopControlPanelActor.Team == Activity.TEAM_1 then
 		local player = Activity.PLAYER_NONE;
 		local pos = self.CloneShopControlPanelActor.Pos;
 		local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_CloneShop.png";

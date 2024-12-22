@@ -49,31 +49,14 @@ function VoidWanderers:MissionCreate()
 	end
 
 	-- Build random weapon lists
-	local rifles = CF.MakeListOfMostPowerfulWeapons(
-		self.GS,
-		self.missionData["missionContractor"],
-		CF.WeaponTypes.RIFLE,
-		CF.GetTechLevelFromDifficulty(self.GS, self.missionData["missionContractor"], self.missionData["difficulty"], CF.MaxDifficulty)
-	)
-	local snipers = CF.MakeListOfMostPowerfulWeapons(
-		self.GS,
-		self.missionData["missionContractor"],
-		CF.WeaponTypes.SNIPER,
-		CF.GetTechLevelFromDifficulty(self.GS, self.missionData["missionContractor"], self.missionData["difficulty"], CF.MaxDifficulty)
-	)
-	local pistols = CF.MakeListOfMostPowerfulWeapons(
-		self.GS,
-		self.missionData["missionContractor"],
-		CF.WeaponTypes.PISTOL,
-		CF.GetTechLevelFromDifficulty(self.GS, self.missionData["missionContractor"], self.missionData["difficulty"], CF.MaxDifficulty)
-	)
-	local grenades = CF.MakeListOfMostPowerfulWeapons(
-		self.GS,
-		self.missionData["missionContractor"],
-		CF.WeaponTypes.GRENADE,
-		CF.GetTechLevelFromDifficulty(self.GS, self.missionData["missionContractor"], self.missionData["difficulty"], CF.MaxDifficulty)
-	)
-	--local heavies = CF.MakeListOfMostPowerfulWeapons(self.GS, self.missionData["missionContractor"], CF.WeaponTypes.HEAVY , CF.GetTechLevelFromDifficulty(self.GS, self.missionData["missionContractor"], self.missionData["difficulty"], CF.MaxDifficulty))
+	local faction = CF.GetPlayerFaction(self.GS, self.missionData["missionContractor"]);
+	local techLevel = CF.GetTechLevelFromDifficulty(faction, self.missionData["difficulty"]);
+
+	local rifles = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.RIFLE, techLevel)
+	local snipers = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.SNIPER, techLevel)
+	local pistols = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.PISTOL, techLevel)
+	local grenades = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.GRENADE, techLevel)
+	--local heavies = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.HEAVY, techLevel)
 
 	self.missionData["weapons"] = {}
 
@@ -149,7 +132,7 @@ function VoidWanderers:MissionUpdate()
 					local i = self.missionData["weapons"][r1][r2]["Item"]
 					local f = self.missionData["weapons"][r1][r2]["Faction"]
 
-					local w = CF.MakeItem(CF.ItmPresets[f][i], CF.ItmClasses[f][i], CF.ItmModules[f][i])
+					local w = CF.MakeItem(CF.ItmClasses[f][i], CF.ItmPresets[f][i], CF.ItmModules[f][i])
 					if w ~= nil then
 						actor:AddInventoryItem(w)
 					end

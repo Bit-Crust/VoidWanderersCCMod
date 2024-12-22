@@ -68,38 +68,41 @@ function VoidWanderers:MissionCreate()
 	local cmndrpts = CF.GetPointsArray(self.Pts, "Assassinate", set, "Commander")
 	local cpos = cmndrpts[math.random(#cmndrpts)]
 
-	self.missionData["brain"] = CF.MakeBrain(self.GS, self.missionData["missionContractor"], CF.PlayerTeam, cpos, false)
+	local faction = CF.GetPlayerFaction(self.GS, self.missionData["missionContractor"]);
+	local brain = CF.MakeBrain(faction, false);
 
-	if self.missionData["brain"] then
-		MovableMan:AddActor(self.missionData["brain"])
-		CF.SetAlly(self.missionData["brain"], true)
-		self.missionData["brain"]:AddToGroup("MissionBrain")
-		self.missionData["brain"]:RemoveFromGroup("Brains")
+	if brain then
+		brain.Pos = cpos;
+		brain.Team = CF.PlayerTeam;
+		MovableMan:AddActor(brain);
+		CF.SetAlly(brain, true);
+		brain:AddToGroup("MissionBrain")
+		brain:RemoveFromGroup("Brains")
 
 		local weaps = CF.MakeListOfMostPowerfulWeapons(
-			self.GS,
-			self.missionData["missionContractor"],
+			faction,
 			CF.WeaponTypes.PISTOL,
 			CF.ReputationPerDifficulty * self.missionData["difficulty"]
 		)
 		if weaps then
 			local f = weaps[1]["Faction"]
 			local weapon = CF.MakeItem(
-				CF.ItmPresets[f][weaps[1]["Item"]],
 				CF.ItmClasses[f][weaps[1]["Item"]],
+				CF.ItmPresets[f][weaps[1]["Item"]],
 				CF.ItmModules[f][weaps[1]["Item"]]
 			)
 			if weapon then
-				self.missionData["brain"]:AddInventoryItem(weapon)
+				brain:AddInventoryItem(weapon)
 			end
 		end
 
-		self.missionData["brain"].AIMode = Actor.AIMODE_GOTO
+		brain.AIMode = Actor.AIMODE_GOTO
 		local lzs = CF.RandomSampleOfList(
 			CF.GetPointsArray(self.Pts, "Deploy", self.MissionDeploySet, "PlayerLZ"),
 			Activity.MAXPLAYERCOUNT
 		)
-		self.missionData["brain"]:AddAISceneWaypoint(lzs[math.random(#lzs)])
+		brain:AddAISceneWaypoint(lzs[math.random(#lzs)])
+		self.missionData["brain"] = brain;
 	else
 		error("Can't create brain")
 	end
@@ -181,7 +184,7 @@ function VoidWanderers:MissionUpdate()
 						) < 0
 					then
 						local f = CF.GetPlayerFaction(self.GS, self.missionData["missionContractor"])
-						self.missionData["craft"] = CF.MakeActor(CF.Crafts[f], CF.CraftClasses[f], CF.CraftModules[f])
+						self.missionData["craft"] = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
 							or CreateACDropShip("Dropship MK1", "Base.rte")
 						self.missionData["craft"].Pos = Vector(self.missionData["brain"].Pos.X, -10)
 						self.missionData["craft"].Team = self.missionData["brain"].Team
@@ -314,7 +317,7 @@ function VoidWanderers:MissionUpdate()
 						)
 						local f = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])
 
-						local ship = CF.MakeActor(CF.Crafts[f], CF.CraftClasses[f], CF.CraftModules[f])
+						local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
 						if ship then
 							for i = 1, count do
 								local actor = CF.SpawnAIUnit(self.GS, self.missionData["missionTarget"], CF.CPUTeam, nil, nil)

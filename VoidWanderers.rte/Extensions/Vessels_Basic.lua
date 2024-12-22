@@ -1,38 +1,4 @@
 -- Define Lynx vessel
-local id = "Lynx"
-CF.Vessel[#CF.Vessel + 1] = id
-CF.VesselPrice[id] = 30000
-CF.VesselName[id] = "Lynx"
-CF.VesselScene[id] = "Vessel Lynx"
-CF.VesselModule[id] = "VoidWanderers.rte"
-
-CF.VesselMaxClonesCapacity[id] = 16
-CF.VesselStartClonesCapacity[id] = 4
-
-CF.VesselMaxStorageCapacity[id] = 100
-CF.VesselStartStorageCapacity[id] = 40
-
-CF.VesselMaxLifeSupport[id] = 10
-CF.VesselStartLifeSupport[id] = 4
-
-CF.VesselMaxCommunication[id] = 10
-CF.VesselStartCommunication[id] = 4
-
-CF.VesselMaxSpeed[id] = 55
-CF.VesselStartSpeed[id] = 24
-
-CF.VesselMaxTurrets[id] = 2
-CF.VesselStartTurrets[id] = 0
-
-CF.VesselMaxTurretStorage[id] = 6
-CF.VesselStartTurretStorage[id] = 0
-
-CF.VesselMaxBombBays[id] = 1
-CF.VesselStartBombBays[id] = 0
-
-CF.VesselMaxBombStorage[id] = 15
-CF.VesselStartBombStorage[id] = 0
-
 local id = "Mule"
 CF.Vessel[#CF.Vessel + 1] = id
 CF.VesselPrice[id] = 10000
@@ -65,6 +31,40 @@ CF.VesselMaxBombBays[id] = 1
 CF.VesselStartBombBays[id] = 0
 
 CF.VesselMaxBombStorage[id] = 20
+CF.VesselStartBombStorage[id] = 0
+
+local id = "Lynx"
+CF.Vessel[#CF.Vessel + 1] = id
+CF.VesselPrice[id] = 30000
+CF.VesselName[id] = "Lynx"
+CF.VesselScene[id] = "Vessel Lynx"
+CF.VesselModule[id] = "VoidWanderers.rte"
+
+CF.VesselMaxClonesCapacity[id] = 16
+CF.VesselStartClonesCapacity[id] = 4
+
+CF.VesselMaxStorageCapacity[id] = 100
+CF.VesselStartStorageCapacity[id] = 40
+
+CF.VesselMaxLifeSupport[id] = 10
+CF.VesselStartLifeSupport[id] = 4
+
+CF.VesselMaxCommunication[id] = 10
+CF.VesselStartCommunication[id] = 4
+
+CF.VesselMaxSpeed[id] = 55
+CF.VesselStartSpeed[id] = 24
+
+CF.VesselMaxTurrets[id] = 2
+CF.VesselStartTurrets[id] = 0
+
+CF.VesselMaxTurretStorage[id] = 6
+CF.VesselStartTurretStorage[id] = 0
+
+CF.VesselMaxBombBays[id] = 1
+CF.VesselStartBombBays[id] = 0
+
+CF.VesselMaxBombStorage[id] = 15
 CF.VesselStartBombStorage[id] = 0
 
 local id = "Gryphon"
@@ -142,15 +142,12 @@ CF.LocationName[id] = "Abandoned Lynx Vessel"
 CF.LocationPos[id] = Vector(0, 0)
 CF.LocationSecurity[id] = 0
 CF.LocationGoldPresent[id] = false
-CF.LocationScenes[id] = { "Abandoned Lynx Vessel" }
+CF.LocationScenes[id] = { "Vessel Lynx" }
 CF.LocationScript[id] = {
 	"VoidWanderers.rte/Scripts/Missions/AbandonedVessel_Faction.lua",
 	"VoidWanderers.rte/Scripts/Missions/AbandonedVessel_Zombies.lua",
 	"VoidWanderers.rte/Scripts/Missions/AbandonedVessel_Firefight.lua",
 }
---CF.LocationScript[id] = {"VoidWanderers.rte/Scripts/Missions/AbandonedVessel_Faction.lua"} -- DEBUG
---CF.LocationScript[id] = {"VoidWanderers.rte/Scripts/Missions/AbandonedVessel_Zombies.lua"} -- DEBUG
---CF.LocationScript[id] = {"VoidWanderers.rte/Scripts/Missions/AbandonedVessel_Firefight.lua"} -- DEBUG
 CF.LocationAmbientScript[id] = "VoidWanderers.rte/Scripts/Ambience/Smokes.lua"
 CF.LocationPlanet[id] = ""
 CF.LocationPlayable[id] = true
@@ -169,7 +166,7 @@ CF.LocationName[id] = "Abandoned Gryphon Vessel"
 CF.LocationPos[id] = Vector(0, 0)
 CF.LocationSecurity[id] = 0
 CF.LocationGoldPresent[id] = false
-CF.LocationScenes[id] = { "Abandoned Gryphon Vessel" }
+CF.LocationScenes[id] = { "Vessel Gryphon" }
 CF.LocationScript[id] = {
 	"VoidWanderers.rte/Scripts/Missions/AbandonedVessel_Faction.lua",
 	"VoidWanderers.rte/Scripts/Missions/AbandonedVessel_Zombies.lua",
@@ -193,7 +190,7 @@ CF.LocationName[id] = "Abandoned Titan Vessel"
 CF.LocationPos[id] = Vector(0, 0)
 CF.LocationSecurity[id] = 0
 CF.LocationGoldPresent[id] = false
-CF.LocationScenes[id] = { "Abandoned Titan Vessel" }
+CF.LocationScenes[id] = { "Vessel Titan" }
 CF.LocationScript[id] = {
 	"VoidWanderers.rte/Scripts/Missions/AbandonedVessel_Faction.lua",
 	"VoidWanderers.rte/Scripts/Missions/AbandonedVessel_Zombies.lua",

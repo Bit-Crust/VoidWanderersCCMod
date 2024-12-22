@@ -9,11 +9,11 @@ function VoidWanderers:EncounterCreate()
 	local encounterData = self.encounterData;
 
 	encounterData["reaversAct"] = { "Reaver", "Bone Reaver" };
-	encounterData["reaversActMod"] = { "VoidWanderers.rte", "VoidWanderers.rte" };
+	encounterData["reaversActMod"] = { "MirandaZoneReavers.rte", "MirandaZoneReavers.rte" };
 	encounterData["reaversLight"] = { "JPL 10 Auto", "K-LDP 7.7mm" };
-	encounterData["reaversLightMod"] = { "VoidWanderers.rte", "VoidWanderers.rte" };
+	encounterData["reaversLightMod"] = { "MirandaZoneReavers.rte", "MirandaZoneReavers.rte" };
 	encounterData["reaversHeavy"] = { "K-HAR 10mm", "Shrike Mdl.G", "PBL Maw" };
-	encounterData["reaversHeavyMod"] = { "VoidWanderers.rte", "VoidWanderers.rte", "VoidWanderers.rte" };
+	encounterData["reaversHeavyMod"] = { "MirandaZoneReavers.rte", "MirandaZoneReavers.rte", "MirandaZoneReavers.rte" };
 	encounterData["reaversThrown"] = { "M67 Grenade", "M24 Potato Masher", "Molotov Cocktail", "Scrambler" };
 	encounterData["reaversThrownMod"] = { "Ronin.rte", "Ronin.rte", "Ronin.rte", "Ronin.rte" };
 	encounterData["reaversInterval"] = 8;
@@ -66,20 +66,20 @@ function VoidWanderers:EncounterCreate()
 	local scene = SceneMan.Scene;
 
 	-- Try generating if we don't have a reasonable right gate
-	if not scene:HasArea("RightGates") then
+	if not scene:HasArea("Vessel Right Gates") then
 		local screenRight = Vector(SceneMan.SceneWidth, SceneMan.SceneHeight / 2);
 		local path = Vector(-10000, 0);
 
 		local strike = Vector(0, 0);
 		SceneMan:CastStrengthRay(screenRight, path, 100, strike, 4, 0);
 
-		gates = Area("RightGates");
+		gates = Area("Vessel Right Gates");
 		gates:AddBox(Box(strike - Vector(50, 50), 100, 100));
 
 		scene:SetArea(gates);
 	end
 
-	local gates = scene:GetArea("RightGates");
+	local gates = scene:GetArea("Vessel Right Gates");
 
 	local centerGates = gates:GetCenterPoint();
 
@@ -117,7 +117,7 @@ function VoidWanderers:EncounterUpdate()
 
 	if encounterData["encounterStartTime"] > self.Time then
 		if self.Time % 2 == 0 then
-			self:MakeAlertSound(1 / math.max(encounterData["encounterStartTime"] - self.Time / 30, 1))
+			self:MakeAlertSound(1 / math.max((encounterData["encounterStartTime"] - self.Time) / 3, 1))
 		end
 	end
 

@@ -9,11 +9,11 @@ function VoidWanderers:MissionCreate()
 	
 	-- Mission difficulty settings
 	local diff = self.missionData["difficulty"]
-
+	CF.GetPlayerFaction()
 	CF.CreateAIUnitPresets(
 		self.GS,
 		self.missionData["missionTarget"],
-		CF.GetTechLevelFromDifficulty(self.GS, self.missionData["missionTarget"], CF.MaxDifficulty, CF.MaxDifficulty)
+		CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"]), CF.MaxDifficulty)
 	)
 
 	local squad = {
@@ -30,19 +30,23 @@ function VoidWanderers:MissionCreate()
 	-- Use generic enemy set
 	local set = CF.GetRandomMissionPointsSet(self.Pts, "Squad")
 	local troops = CF.GetPointsArray(self.Pts, "Squad", set, "Trooper")
-	local brain = CF.GetPointsArray(self.Pts, "Squad", set, "Commander")
+	local brainPoints = CF.GetPointsArray(self.Pts, "Squad", set, "Commander")
 	-- Hacky failsafe - probably doesn't even fix anything!
-	if set == nil or troops == nil or brain == nil then
+	if set == nil or troops == nil or brainPoints == nil then
 		set = CF.GetRandomMissionPointsSet(self.Pts, "Enemy")
 		troops = CF.GetPointsArray(self.Pts, "Assassinate", set, "Commander")
-		brain = CF.GetPointsArray(self.Pts, "Assassinate", set, "Commander")
+		brainPoints = CF.GetPointsArray(self.Pts, "Assassinate", set, "Commander")
 	end
 
 	-- Spawn commander
-	self.missionData["brain"] = CF.MakeRPGBrain(self.GS, self.missionData["missionTarget"], CF.CPUTeam, brain[1], self.missionData["difficulty"])
-	if self.missionData["brain"] then
-		MovableMan:AddActor(self.missionData["brain"])
-		self.missionData["brain"]:AddInventoryItem(CF.CreateBluePrint(self.GS, self.missionData["missionContractor"]))
+	local faction = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"]);
+	local brain = CF.MakeRPGBrain(faction, self.missionData["difficulty"], true)
+	if brain then
+		brain.Team = CF.CPUTeam;
+		brain.Pos = brainPoints[math.random(#brainPoints)];
+		MovableMan:AddActor(brain)
+		brain:AddInventoryItem(CF.CreateBluePrint(self.GS, self.missionData["missionContractor"]))
+		self.missionData["brain"] = brain;
 	end
 	self.missionData["sentryRadius"] = 100 + math.sqrt(FrameMan.PlayerScreenHeight ^ 2 + FrameMan.PlayerScreenWidth ^ 2) * 0.5
 

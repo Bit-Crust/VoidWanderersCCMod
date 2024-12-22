@@ -109,13 +109,13 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:ProcessClonesControlPanelUI()
-	local showidle = true;
+	local showIdle = true;
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		local act = self:GetControlledActor(player);
 
 		if act and MovableMan:IsActor(act) and act.PresetName == "Clones Control Panel" then
-			showidle = false;
+			showIdle = false;
 
 			local pos = Vector(act.Pos.X, act.Pos.Y);
 			local mode = self.ClonesControlMode;
@@ -491,13 +491,13 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 
 								local limbData = {};
 
-								for j = 1, #CF.LimbID do
-									limbData[j] = clone[CF.LimbID[j]];
+								for j = 1, #CF.HumanLimbID do
+									limbData[j] = clone[CF.HumanLimbID[j]];
 								end
 
 								local actor = CF.MakeActor(
-									clone.Preset,
 									clone.Class,
+									clone.Preset,
 									clone.Module,
 									clone.XP,
 									clone.Identity,
@@ -513,7 +513,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 
 									for i = 1, #clone.Items do
 										local item = clone.Items[i];
-										local item = CF.MakeItem(item.Preset, item.Class, item.Module);
+										local item = CF.MakeItem(item.Class, item.Preset, item.Module);
 
 										if item ~= nil then
 											if item:HasScript(CF.ModuleName .. "/Items/Limb.lua") and CF.AttemptReplaceLimb(actor, item) then
@@ -923,10 +923,10 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 			self.ClonesControlMode = mode;
 		end
 	end
-
-	if showidle and self.ClonesControlPanelPos ~= nil and self.ClonesControlPanelActor ~= nil then
+	
+	if showIdle and MovableMan:ValidMO(self.ClonesControlPanelActor) and self.ClonesControlPanelActor.Team == Activity.TEAM_1 then
 		local player = Activity.PLAYER_NONE;
-		local pos = self.ClonesControlPanelPos;
+		local pos = self.ClonesControlPanelActor.Pos;
 		local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Clones.png";
 		PrimitiveMan:DrawBitmapPrimitive(player, pos, path, 0, false, false);
 
@@ -998,8 +998,8 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 								self.Clones[c].Player = actor:GetNumberValue("VW_BrainOfPlayer")
 								self.Clones[c].Prestige = actor:GetNumberValue("VW_Prestige")
 								self.Clones[c].Name = actor:GetStringValue("VW_Name")
-								for j = 1, #CF.LimbID do
-									self.Clones[c][CF.LimbID[j]] = CF.GetLimbData(actor, j)
+								for i, limbID in pairs(CF.HumanLimbID) do
+									self.Clones[c][limbID] = CF.GetLimbData(actor, limbID)
 								end
 
 								-- Store inventory
@@ -1030,7 +1030,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 											-- Refresh storage items array and filters
 											self.StorageItems, self.StorageFilters = CF.GetStorageArray(self.GS, true)
 										else
-											local itm = CF.MakeItem(inv[i], cls[i], mdl[i])
+											local itm = CF.MakeItem(cls[i], inv[i], mdl[i])
 											if itm ~= nil then
 												itm.Pos = self.ClonesInputPos
 												MovableMan:AddItem(itm)
@@ -1065,7 +1065,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 				end
 			end
 
-			if showidle then
+			if showIdle then
 				if foundActor and self.ClonesLastDetectedBodyTime ~= nil then
 					text = "Store in " .. self.ClonesLastDetectedBodyTime + self.ClonesInputDelay - self.Time;
 					self:AddObjectivePoint(text, foundActor.EyePos + Vector(0, -10), CF.PlayerTeam, GameActivity.ARROWDOWN);

@@ -31,9 +31,9 @@ function VoidWanderers:MissionCreate()
 	end
 
 	p2 = selection[math.random(#selection)]
-
-	CF.CreateAIUnitPresets(self.GS, p1, CF.GetTechLevelFromDifficulty(self.GS, p1, diff, CF.MaxDifficulty))
-	CF.CreateAIUnitPresets(self.GS, p2, CF.GetTechLevelFromDifficulty(self.GS, p2, diff, CF.MaxDifficulty))
+	
+	CF.CreateAIUnitPresets(self.GS, p1, CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, p1), diff))
+	CF.CreateAIUnitPresets(self.GS, p2, CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, p2), diff))
 
 	self.missionData["CPUPlayers"] = {}
 	self.missionData["CPUTeams"] = {}
@@ -43,18 +43,12 @@ function VoidWanderers:MissionCreate()
 	self.missionData["allyPlayer"][2] = false
 
 	if self.GS["BrainsOnMission"] == "True" then
-		if
-			tonumber(self.GS["Player" .. p1 .. "Reputation"]) > 1500
-			and tonumber(self.GS["Player" .. p1 .. "Reputation"]) > tonumber(self.GS["Player" .. p2 .. "Reputation"])
+		if tonumber(self.GS["Player" .. p1 .. "Reputation"]) > tonumber(self.GS["Player" .. p2 .. "Reputation"])
 		then
 			self.missionData["allyPlayer"][1] = true
 		end
 
-		if
-			self.missionData["allyPlayer"][1] == false
-			and tonumber(self.GS["Player" .. p2 .. "Reputation"]) > 1500
-			and tonumber(self.GS["Player" .. p2 .. "Reputation"]) > tonumber(self.GS["Player" .. p1 .. "Reputation"])
-		then
+		if self.missionData["allyPlayer"][1] == false then
 			self.missionData["allyPlayer"][2] = true
 		end
 	end
@@ -89,26 +83,28 @@ function VoidWanderers:MissionCreate()
 			local count = math.random() < double and 2 or 1
 
 			for c = 1, count do
-				local pre = math.random(CF.PresetTypes.HEAVY2)
-				local nw = {}
-				nw["Preset"] = pre
-				nw["Team"] = tm
-				nw["Player"] = plr
-				nw["AIMode"] = math.random() < 0.5 and Actor.AIMODE_SENTRY or Actor.AIMODE_PATROL
-				nw["Pos"] = enmpos[t][i]
+				local pre = math.random(CF.PresetTypes.HEAVY2);
+				local nw = {};
+				nw["Preset"] = pre;
+				nw["Team"] = tm;
+				nw["Player"] = plr;
+				nw["AIMode"] = math.random() < 0.5 and Actor.AIMODE_SENTRY or Actor.AIMODE_PATROL;
+				nw["Pos"] = enmpos[t][i];
 
 				if self.missionData["allyPlayer"][t] then
-					nw["Ally"] = 1
-					if not leaderReady and math.random() < 0.3 then
-						nw["Name"] = CF.GenerateRandomName()
-						leaderReady = true
-					end
+					nw["Ally"] = 1;
 				end
 
-				self:SpawnViaTable(nw)
+				if not leaderReady and math.random() < 0.3 then
+					nw["Name"] = CF.GenerateRandomName();
+					leaderReady = true;
+				end
+
+				local actor = self:SpawnViaTable(nw);
 			end
 		end
 	end
+
 	for actor in MovableMan.Actors do
 		if actor.ClassName == "ADoor" and math.random() < 0.25 then
 			actor.GibSound = nil
@@ -117,7 +113,6 @@ function VoidWanderers:MissionCreate()
 	end
 
 	self.missionData["firefightEnded"] = false
-
 	self.missionData["showObjectiveTime"] = -100
 
 	if self.missionData["allyPlayer"][1] or self.missionData["allyPlayer"][2] then
@@ -190,11 +185,7 @@ function VoidWanderers:MissionUpdate()
 
 				for actor in MovableMan.Actors do
 					if CF.IsAlly(actor) then
-						if self.GS["BrainsOnMission"] == "True" then
-							CF.SetAlly(actor, false)
-						else
-							actor.AIMode = math.random() < 0.5 and Actor.AIMODE_SENTRY or Actor.AIMODE_PATROL
-						end
+						actor.AIMode = math.random() < 0.5 and Actor.AIMODE_SENTRY or Actor.AIMODE_PATROL
 					elseif actor.Team ~= CF.PlayerTeam then
 						actor.AIMode = math.random() < 0.5 and Actor.AIMODE_BRAINHUNT or Actor.AIMODE_PATROL
 					end

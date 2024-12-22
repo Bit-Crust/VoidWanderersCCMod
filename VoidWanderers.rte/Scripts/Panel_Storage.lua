@@ -119,7 +119,7 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:ProcessStorageControlPanelUI()
-	local showidle = true;
+	local showIdle = true;
 
 	if self.StorageControlPanelActor then
 		local pos = self.StorageControlPanelPos;
@@ -128,7 +128,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 			local act = self:GetControlledActor(player);
 
 			if act and act.PresetName == "Storage Control Panel" then
-				showidle = false;
+				showIdle = false;
 
 				local cont = act:GetController();
 				local up = false;
@@ -263,7 +263,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 									end
 								end
 
-								local item = CF.MakeItem(item.Preset, item.Class, item.Module);
+								local item = CF.MakeItem(item.Class, item.Preset, item.Module);
 
 								if item ~= nil then
 									if foundActor then
@@ -402,15 +402,15 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 			end
 		end
 	end
-
-	if showidle and self.StorageControlPanelPos ~= nil and self.StorageControlPanelActor ~= nil then
+	
+	if showIdle and MovableMan:ValidMO(self.StorageControlPanelActor) and self.StorageControlPanelActor.Team == Activity.TEAM_1 then
 		local player = Activity.PLAYER_NONE;
-		local pos = self.StorageControlPanelPos;
+		local pos = self.StorageControlPanelActor.Pos;
 		local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Storage.png";
 		PrimitiveMan:DrawBitmapPrimitive(player, pos, path, 0, false, false);
 
 		local text = "Capacity: " .. CF.CountUsedStorageInArray(self.StorageItems) .. " / " .. self.GS["PlayerVesselStorageCapacity"];
-		CF.DrawString(text, self.StorageControlPanelPos + Vector(0, -40), 100, 11, nil, nil, 1);
+		CF.DrawString(text, pos + Vector(0, -40), 100, 11, nil, nil, 1);
 	end
 
 	-- Process weapons input
@@ -446,7 +446,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 				
 				local timeLeft = (self.StorageLastDetectedItemTime + self.StorageInputDelay - self.Time);
 
-				if showidle then
+				if showIdle then
 					local text = "Store in " .. timeLeft;
 					self:AddObjectivePoint(text, foundItem.Pos + Vector(0, -40), CF.PlayerTeam, GameActivity.ARROWDOWN);
 				end
