@@ -24,14 +24,15 @@ function VoidWanderers:EncounterCreate()
 	self.vesselData["flightDisabled"] = true;
 	self.vesselData["flightAimless"] = true;
 
-	local message = "A dead vessel floats in an asteroid field. It might have been abandoned for years, although it does not mean that it is empty.";
+	local message = "A dead vessel floats in an asteroid field. It might have been abandoned for years, although that does not mean that it is empty.\n\nYou may deploy at will.";
 	local options = {
-		"Send away team immediately!",
 		"Just cut off everything valuable from the hull.",
-		"Leave it alone...",
+		"Leave it alone... we're going elsewhere.",
 	};
 
 	self:SendTransmission(message, options);
+	self:GiveFocusToBridge();
+	self.GS["Location"] = encounterData["location"];
 end
 -----------------------------------------------------------------------
 --
@@ -41,11 +42,6 @@ function VoidWanderers:EncounterUpdate()
 	local variant = self.vesselData["dialogOptionChosen"];
 
 	if variant == 1 then
-		self.GS["Location"] = encounterData["location"];
-		self:SendTransmission("Deploy your away team to the abandoned ship.", {});
-	end
-
-	if variant == 2 then
 		local devices = {
 			"a zrbite reactor",
 			"an elerium reactor",
@@ -175,24 +171,24 @@ function VoidWanderers:EncounterUpdate()
 				losstext = "and damaged our engine. We've lost some speed."
 			end
 
-			self.MissionReport = {}
-			self.MissionReport[#self.MissionReport + 1] = "We tried to cut off "
+			self.reportData = {}
+			self.reportData[#self.reportData + 1] = "We tried to cut off "
 				.. devices[math.random(#devices)]
 				.. ", but it exploded "
 				.. losstext
-			CF.SaveMissionReport(self.GS, self.MissionReport)
+			CF.SaveMissionReport(self.GS, self.reportData)
 		else
 			local gold = math.random(1000 - self.GS["Difficulty"] * 5)
-			CF.ChangeGold(self.GS, gold);
+			CF.ChangePlayerGold(self.GS, gold);
 
-			self.MissionReport = {}
-			self.MissionReport[#self.MissionReport + 1] = "We managed to find some intact parts of "
+			self.reportData = {}
+			self.reportData[#self.reportData + 1] = "We managed to find some intact parts of "
 				.. devices[math.random(#devices)]
 				.. " worth "
 				.. gold
 				.. " oz of gold.";
 
-			CF.SaveMissionReport(self.GS, self.MissionReport);
+			CF.SaveMissionReport(self.GS, self.reportData);
 		end
 
 		-- Finish encounter
@@ -203,10 +199,10 @@ function VoidWanderers:EncounterUpdate()
 		self:RemoveDeployedTurrets()
 	end
 
-	if variant == 3 then
-		self.MissionReport = {}
-		self.MissionReport[#self.MissionReport + 1] = "Farewell, silent wanderer of the void." --"Adios, lone nomad of the unknown."
-		CF.SaveMissionReport(self.GS, self.MissionReport)
+	if variant == 2 then
+		self.reportData = {}
+		self.reportData[#self.reportData + 1] = "Farewell, silent wanderer of the void." --"Adios, lone nomad of the unknown."
+		CF.SaveMissionReport(self.GS, self.reportData)
 
 		-- Finish encounter
 		encounterData["encounterConcluded"] = true

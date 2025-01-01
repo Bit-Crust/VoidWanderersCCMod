@@ -221,12 +221,13 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							self:SaveCurrentGameState();
 							self:DestroyConsoles();
 							FORM_TO_LOAD = BASE_PATH .. "FormSave.lua";
-							self:LaunchScript("Void Wanderers", "StrategyScreenMain.lua");
-							return;
+							self.sceneToLaunch = "Void Wanderers";
+							self.scriptToLaunch = "StrategyScreenMain.lua";
 						end
 					else
 						local lineOffset = topOfPage;
-						local offset = CF.DrawString(CF.SplitStringToFitWidth(self.vesselData.dialog.message, 276, false), pos + Vector(-138, lineOffset), 276, 135);
+						local message = CF.SplitStringToFitWidth(self.vesselData.dialog.message, 276, false);
+						local offset = CF.DrawString(message, pos + Vector(0, lineOffset), 276, 135, nil, nil, 1);
 
 						if self.vesselData.dialog.options and self.vesselData.dialogDefaultTimer:IsPastSimMS(1000) then
 							if up then
@@ -257,24 +258,13 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							else
 								self.FirePressed[player] = false;
 							end
+						end
 
-							for i = 1, #self.vesselData.dialog.options do
-								if self.vesselData.dialogOptionSelected == i then
-									offset = offset + CF.DrawString(
-										"> " .. self.vesselData.dialog.options[i],
-										pos + Vector(-137, -55) + offset,
-										252,
-										141
-									)
-								else
-									offset = offset + CF.DrawString(
-										self.vesselData.dialog.options[i],
-										pos + Vector(-137, -55) + offset,
-										262,
-										141
-									)
-								end
-							end
+						for i = 1, #self.vesselData.dialog.options do
+							prefix = self.vesselData.dialogOptionSelected == i and "> " or "";
+							message = prefix .. self.vesselData.dialog.options[i];
+							offset = offset + CF.DrawString(message, pos + Vector(-137, -55) + offset, 276, 135);
+							offset.Y = offset.Y + 5;
 						end
 
 						highBarCenterText = "INCOMING TRANSMISSION";
@@ -450,7 +440,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 						diff = msndiff;
 					else
-						diff = CF.GetLocationDifficulty(self.GS, selectedLocation);
+						diff = CF.NormalizeDifficulty(CF.GetLocationSecurity(self.GS, self.GS["Location"]) / 10);
 					end
 
 					-- As long as it isn't marked NOT playable, assume we can go.
@@ -610,12 +600,12 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						mission.Location = self.GS["Mission" .. i .. "Location"]
 						mission.Type = self.GS["Mission" .. i .. "Type"]
 
-						local rep = tonumber(self.GS["Player" .. mission.SourcePlayer .. "Reputation"])
+						local rep = math.floor(tonumber(self.GS["Player" .. mission.SourcePlayer .. "Reputation"]))
 						local srep = (rep > 0 and "+" or "") .. tostring(rep)
 						mission.SourceFactionReputation = srep
 						mission.SourceFaction = CF.FactionNames[CF.GetPlayerFaction(self.GS, mission.SourcePlayer)]
 
-						local rep = tonumber(self.GS["Player" .. mission.TargetPlayer .. "Reputation"])
+						local rep = math.floor(tonumber(self.GS["Player" .. mission.TargetPlayer .. "Reputation"]))
 						local srep = (rep > 0 and "+" or "") .. tostring(rep)
 						mission.TargetFactionRaputation = srep
 						mission.TargetFaction = CF.FactionNames[CF.GetPlayerFaction(self.GS, mission.TargetPlayer)]
@@ -692,7 +682,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					else
 						self.FirePressed[player] = false
 					end
-
+					
+					local mission = missions[missionSelected];
 					local listStart = missionSelected - (missionSelected - 1) % self.ShipControlMissionsPerPage;
 
 					-- Show faction list
@@ -715,26 +706,28 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					end
 
 					-- Show selected mission info
-					local lineOffset = topOfPage;
-					CF.DrawString("TARGET: " .. missions[missionSelected].TargetFaction, pos + Vector(3, lineOffset), 135, 11)
-					lineOffset = lineOffset + 11;
-					CF.DrawString("AT: " .. missions[missionSelected].Location, pos + Vector(3, lineOffset), 135, 11)
-					lineOffset = lineOffset + 11;
-					CF.DrawString("SECURITY: " .. CF.LocationDifficultyTexts[missions[missionSelected].Difficulty], pos + Vector(3, lineOffset), 135, 11)
-					lineOffset = lineOffset + 11;
+					if mission then
+						local lineOffset = topOfPage;
+						CF.DrawString("TARGET: " .. mission.TargetFaction, pos + Vector(3, lineOffset), 135, 11)
+						lineOffset = lineOffset + 11;
+						CF.DrawString("AT: " .. mission.Location, pos + Vector(3, lineOffset), 135, 11)
+						lineOffset = lineOffset + 11;
+						CF.DrawString("SECURITY: " .. CF.LocationDifficultyTexts[mission.Difficulty], pos + Vector(3, lineOffset), 135, 11)
+						lineOffset = lineOffset + 11;
 
-					CF.DrawString("GOLD: " .. missions[missionSelected].GoldReward .. " oz", pos + Vector(3, lineOffset), 135, 11)
-					lineOffset = lineOffset + 11;
-					CF.DrawString("REPUTATION: " .. missions[missionSelected].RepReward, pos + Vector(3, lineOffset), 135, 11)
-					lineOffset = lineOffset + 11;
+						CF.DrawString("GOLD: " .. mission.GoldReward .. " oz", pos + Vector(3, lineOffset), 135, 11)
+						lineOffset = lineOffset + 11;
+						CF.DrawString("REPUTATION: " .. mission.RepReward, pos + Vector(3, lineOffset), 135, 11)
+						lineOffset = lineOffset + 11;
 
-					local text = missions[missionSelected].Description;
-					text = CF.SplitStringToFitWidth(text, 115, false);
-					CF.DrawString(text, pos + Vector(70, (lineOffset + 68) / 2), 115, 66, nil, nil, 1, 1)
-					lineOffset = lineOffset + 11;
+						local text = mission.Description;
+						text = CF.SplitStringToFitWidth(text, 115, false);
+						CF.DrawString(text, pos + Vector(70, (lineOffset + 68) / 2), 115, 66, nil, nil, 1, 1)
+						lineOffset = lineOffset + 11;
+					end
 					
 					local page = math.ceil(missionSelected / self.ShipControlMissionsPerPage);
-					local maxPages = math.ceil(CF.MaxMissions / self.ShipControlMissionsPerPage);
+					local maxPages = math.ceil(#missions / self.ShipControlMissionsPerPage);
 					highBarLeftText = "AVAILABLE MISSIONS: ";
 					highBarRightText = page .. "/" .. maxPages;
 					lowBarCenterText = "U/D - Select mission, L/R - Mode, FIRE - Fly";
@@ -748,7 +741,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					for i = 1, tonumber(self.GS["ActiveCPUs"]) do
 						local faction = {};
 						faction.Faction = CF.FactionNames[CF.GetPlayerFaction(self.GS, i)];
-						faction.Reputation = tonumber(self.GS["Player" .. i .. "Reputation"]);
+						faction.Reputation = math.floor(tonumber(self.GS["Player" .. i .. "Reputation"]));
 						table.insert(factions, faction);
 					end
 
@@ -1074,7 +1067,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 							if current < maximum and price <= CF.GetPlayerGold(self.GS, 0) then
 								self.GS[upgrades[selectedUpgrade].Variable] = current + amount;
-								self:SetTeamFunds(CF.ChangeGold(self.GS, -price), CF.PlayerTeam);
+								CF.ChangePlayerGold(self.GS, -price);
 
 								-- Re-init turrets panels to add new turrets to ship
 								if selectedUpgrade == 6 then
@@ -1231,7 +1224,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 							if ok then
 								-- Pay
-								self:SetTeamFunds(CF.ChangeGold(self.GS, -total), CF.PlayerTeam)
+								CF.ChangePlayerGold(self.GS, -total)
 
 								-- Clear turrets pos
 								local count = tonumber(self.GS["PlayerVesselTurrets"])
@@ -1259,13 +1252,13 @@ function VoidWanderers:ProcessShipControlPanelUI()
 								self:SaveActors(true);
 								self.GS["DeserializeOnboard"] = "True";
 
-								self:SaveCurrentGameState()
-								self.EnableBrainSelection = false
-								self:DestroyConsoles()
+								self:SaveCurrentGameState();
+								self.EnableBrainSelection = false;
+								self:DestroyConsoles();
 
-								self:LoadCurrentGameState()
-								self:LaunchScript(self.GS["Scene"], "Tactics.lua")
-								return
+								self:LoadCurrentGameState();
+								self.sceneToLaunch = self.GS["Scene"];
+								self.scriptToLaunch = "Tactics.lua";
 							end
 						end
 					else

@@ -142,7 +142,7 @@ function VoidWanderers:FormLoad()
 	self.LastTypeElement = #self.UI
 
 	-- Load level data
-	self.SceneConfig = CF.ReadSceneConfigFile(self.ModuleName, SceneMan.Scene.PresetName .. ".dat")
+	self.SceneConfig = CF.ReadDataFile("Mods/" .. self.ModuleName .. "/Scenes/Data/" .. SceneMan.Scene.PresetName .. ".dat")
 
 	for k1 = 1, #self.Data do
 		local msntype = self.Data[k1]["Name"]
@@ -261,7 +261,7 @@ function VoidWanderers:Save_OnClick()
 		end
 	end
 
-	CF.WriteSceneConfigFile(self.SceneConfig, CF.ModuleName, SceneMan.Scene.PresetName .. ".dat")
+	CF.WriteDataFile(self.SceneConfig, "Mods/" .. CF.ModuleName .. "/Scenes/Data/" .. SceneMan.Scene.PresetName .. ".dat")
 end
 -----------------------------------------------------------------------
 --
@@ -483,7 +483,7 @@ function VoidWanderers:FormUpdate()
 				for k3, v3 in pairs(self.Pts[self.SelectedType][self.SelectedSet]) do
 					for k4, v4 in pairs(v3) do
 						--self:PutGlow("ControlPanel_Ship_LocationDot", v4)
-						if CF.DistUnder(v4, self.Mouse, 5) then
+						if CF.Dist(v4, self.Mouse) < 5 then
 							self.Pts[self.SelectedType][self.SelectedSet][k3][k4] = nil
 						end
 					end

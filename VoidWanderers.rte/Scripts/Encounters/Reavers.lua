@@ -183,10 +183,10 @@ function VoidWanderers:EncounterUpdate()
 				encounterData["fightSelected"] = true
 				encounterData["chaseTimer"] = Timer()
 			else
-				self.MissionReport = {}
-				self.MissionReport[#self.MissionReport + 1] = prob > 90 and "They must be blind..."
+				self.reportData = {}
+				self.reportData[#self.reportData + 1] = prob > 90 and "They must be blind..."
 					or "We tricked them. Lucky we are."
-				CF.SaveMissionReport(self.GS, self.MissionReport)
+				CF.SaveMissionReport(self.GS, self.reportData)
 
 				encounterData["encounterConcluded"] = true
 				self.vesselData["flightDisabled"] = false
@@ -234,9 +234,9 @@ function VoidWanderers:EncounterUpdate()
 					or encounterData["distance"] > encounterData["triggerDistance"] + 100
 					or encounterData["abortChase"]
 				then
-					self.MissionReport = {}
-					self.MissionReport[#self.MissionReport + 1] = "They stopped chasing us. Lucky we are."
-					CF.SaveMissionReport(self.GS, self.MissionReport)
+					self.reportData = {}
+					self.reportData[#self.reportData + 1] = "They stopped chasing us. Lucky we are."
+					CF.SaveMissionReport(self.GS, self.reportData)
 
 					encounterData["encounterConcluded"] = true
 					self.vesselData["flightDisabled"] = false
@@ -461,8 +461,8 @@ function VoidWanderers:EncounterUpdate()
 			and encounterData["Rocket"] == nil
 			and CF.CountActors(CF.CPUTeam) == 0
 		then
-			self.MissionReport = {}
-			self.MissionReport[#self.MissionReport + 1] = "Those were the last of them."
+			self.reportData = {}
+			self.reportData[#self.reportData + 1] = "Those were the last of them."
 
 			self:GiveRandomExperienceReward(encounterData["difficulty"])
 			
@@ -473,7 +473,7 @@ function VoidWanderers:EncounterUpdate()
 			self.vesselData["flightAimless"] = false
 			self.vesselData["dialog"] = nil
 			self:RemoveDeployedTurrets()
-			CF.SaveMissionReport(self.GS, self.MissionReport)
+			CF.SaveMissionReport(self.GS, self.reportData)
 			-- Rebuild destroyed consoles
 			self:InitStorageControlPanelUI()
 			--self:InitClonesControlPanelUI()

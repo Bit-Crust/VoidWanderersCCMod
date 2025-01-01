@@ -28,9 +28,11 @@ function Create(self)
 	if CF_Read(self, {"VW_TeleporterList"}) == nil then
 		CF_Write({"VW_TeleporterList"}, {})
 	end
+
 	if CF_Read(self, {"VW_TeleporterList", self.PresetName}) == nil then
 		CF_Write({"VW_TeleporterList", self.PresetName}, {})
 	end
+
 	--The number ID of this teleporter, used for communicating with other teleporters
 	self.listID = #CF_Read(self, {"VW_TeleporterList", self.PresetName}) + 1
 	CF_Write({"VW_TeleporterList", self.PresetName, self.listID}, self)
@@ -80,7 +82,7 @@ function Update(self)
 						if progress >= 1 then
 							local pos = { self.Pos, self.partner.Pos }
 							for i = 1, #pos do
-								local fx = CreateAEmitter("Teleporter Effect A")
+								local fx = CreateAEmitter("Teleporter Effect 1", "VoidWanderers.rte")
 								fx.Pos = pos[i]
 								MovableMan:AddParticle(fx)
 								local glow = CreateMOPixel("Teleporter Glow", "VoidWanderers.rte")

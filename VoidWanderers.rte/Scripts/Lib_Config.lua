@@ -36,14 +36,14 @@ CF.ReadFactionsList = function(filename, defaultpath)
 				local path = s .. "/FactionFiles/" .. file .. ".lua"
 
 				if PresetMan:GetModuleID(s) > -1 then
-					if CF.IsFilePathExists(path) then
+					if LuaMan:FileExists(path) then
 						-- Add found .lua file if it exists
 						config[#config + 1] = path
 					else
 						-- Check support folder for special cases popular mods
 						-- if lua file don't exist
 						local supportpath = "VoidWanderers.rte/Support/" .. file .. ".lua"
-						if CF.IsFilePathExists(supportpath) then
+						if LuaMan:FileExists(supportpath) then
 							print("SUPPORT " .. supportpath .. " FOUND, EXECUTING")
 							local paths
 							f = loadfile(supportpath)
@@ -99,7 +99,7 @@ CF.ReadExtensionsList = function(filename, defaultpath)
 			if CF.StringEnds(s, ".rte") then
 				--local fileName = string.sub(s, 1, #s - 4)
 				local supportpath = s .. "/Support/VoidWanderers.lua"
-				if CF.IsFilePathExists(supportpath) then
+				if LuaMan:FileExists(supportpath) then
 					print("EXTENSION SUPPORT " .. supportpath .. " FOUND, EXECUTING")
 					local paths
 					f = loadfile(supportpath)
@@ -155,76 +155,35 @@ end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-CF.ReadConfigFile = function(modulename, filename)
-	local config = {}
+function CF.ReadDataFile(filePath)
+	local config = {};
 
-	local f = LuaMan:FileOpen("Mods/" .. modulename .. "/CampaignData/" .. filename, "r")
+	if LuaMan:FileExists(filePath) then
+		local file = LuaMan:FileOpen(filePath, "r");
 
-	while not LuaMan:FileEOF(f) do
-		line = LuaMan:FileReadLine(f)
-		local param, value = CF.ParseLine(line)
-		if param ~= nil then
-			config[param] = value
-		end
-	end
+		while not LuaMan:FileEOF(file) do
+			local param, value = CF.ParseLine(LuaMan:FileReadLine(file));
 
-	LuaMan:FileClose(f)
-
-	return config
-end
------------------------------------------------------------------------
---
------------------------------------------------------------------------
-CF.ReadSceneConfigFile = function(modulename, filename)
-	local config = {}
-
-	local filepath = nil
-	if CF.IsFilePathExists("Mods/" .. modulename .. "/Scenes/Data/" .. filename) then
-		filepath = modulename .. "/Scenes/Data/" .. filename
-	elseif CF.IsFilePathExists("Mods/" .. CF.ModuleName .. "/Scenes/Data/" .. filename) then
-		filepath = CF.ModuleName .. "/Scenes/Data/" .. filename
-	end
-	if filepath then
-		local f = LuaMan:FileOpen(filepath, "r")
-
-		while not LuaMan:FileEOF(f) do
-			line = LuaMan:FileReadLine(f)
-			local param, value
-
-			param, value = CF.ParseLine(line)
-			if param ~= nil then
-				config[param] = value
+			if param then
+				config[param] = value;
 			end
 		end
-		LuaMan:FileClose(f)
+
+		LuaMan:FileClose(file);
 	end
 
-	return config
+	return config;
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-CF.WriteSceneConfigFile = function(config, modulename, filename)
-	local file = LuaMan:FileOpen(modulename .. "/Scenes/Data/" .. filename, "w")
+function CF.WriteDataFile(config, filePath)
+	local file = LuaMan:FileOpen(filePath, "w")
 
 	local sorted = CF.GetSortedListFromTable(config)
 
 	for i = 1, #sorted do
-		LuaMan:FileWriteLine(file, tostring(sorted[i]["Key"]) .. "=" .. tostring(sorted[i]["Value"]) .. "\n")
-	end
-
-	LuaMan:FileClose(file)
-end
------------------------------------------------------------------------
---
------------------------------------------------------------------------
-CF.WriteConfigFile = function(config, modulename, filename)
-	local file = LuaMan:FileOpen(modulename .. "/CampaignData/" .. filename, "w")
-
-	local sorted = CF.GetSortedListFromTable(config)
-
-	for i = 1, #sorted do
-		LuaMan:FileWriteLine(file, tostring(sorted[i]["Key"]) .. "=" .. tostring(sorted[i]["Value"]) .. "\n")
+		LuaMan:FileWriteLine(file, tostring(sorted[i].Key) .. "=" .. tostring(sorted[i].Value) .. "\n")
 	end
 
 	LuaMan:FileClose(file)
@@ -238,13 +197,13 @@ CF.GetSortedListFromTable = function(arr)
 	for key, value in pairs(arr) do
 		local i = #newarr + 1
 		newarr[i] = {}
-		newarr[i]["Key"] = key
-		newarr[i]["Value"] = value
+		newarr[i].Key = key
+		newarr[i].Value = value
 	end
 
 	for i = 1, #newarr do
 		for j = 1, #newarr - 1 do
-			if newarr[j]["Key"] > newarr[j + 1]["Key"] then
+			if newarr[j].Key > newarr[j + 1].Key then
 				local tmp = newarr[j]
 				newarr[j] = newarr[j + 1]
 				newarr[j + 1] = tmp
@@ -271,23 +230,6 @@ end
 -----------------------------------------------------------------------
 CF.IsFileExists = function(modulename, filename)
 	return LuaMan:FileExists(modulename .. "/CampaignData/" .. filename)
-	--[[ Old method:
-	local file = LuaMan:FileOpen(modulename.."/CampaignData/"..filename , "r")
-	
-	if file == -1 then
-		return false
-	end
-	
-	LuaMan:FileClose(file)
-	return true
-	]]
-	--
-end
------------------------------------------------------------------------
---
------------------------------------------------------------------------
-CF.IsFilePathExists = function(path)
-	return LuaMan:FileExists(path)
 end
 -----------------------------------------------------------------------
 --

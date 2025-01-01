@@ -35,45 +35,50 @@ function Create(self)
 	self.registeredActors = {};
 	self.registeredFlags = {};
 	
-	if not (self:HasStringValue("spawnPreset")) then
-		local weaponTypes = CF_Read(self, {"WeaponTypes"});
-		local factions = CF_Read(self, {"Factions"});
-		local factionPlayable = CF_Read(self, {"FactionPlayable"});
-		local artItmPresets = CF_Read(self, {"ArtItmPresets"});
-		local artItmClasses = CF_Read(self, {"ArtItmClasses"});
-		local artItmModules = CF_Read(self, {"ArtItmModules"});
-		local itmPresets = CF_Read(self, {"ItmPresets"});
-		local itmClasses = CF_Read(self, {"ItmClasses"});
-		local itmModules = CF_Read(self, {"ItmModules"});
-		local actorTypes = CF_Read(self, {"ActorTypes"});
-		
-		local artifactItemRate = 0.2;
-		local factionsPlayable = {};
+	if not self:HasStringValue("spawnPreset") then
+		local isUsingArtifacts = math.random() < 0.2;
 
-		for i, faction in ipairs(factions) do
-			if factionPlayable[faction] then
-				table.insert(factionsPlayable, i);
+		if not isUsingArtifacts then
+			local weaponTypes = CF_Read(self, {"WeaponTypes"});
+			local factions = CF_Read(self, {"Factions"});
+			local factionPlayable = CF_Read(self, {"FactionPlayable"});
+			local itmPresets = CF_Read(self, {"ItmPresets"});
+			local itmClasses = CF_Read(self, {"ItmClasses"});
+			local itmModules = CF_Read(self, {"ItmModules"});
+			local factionsPlayable = {};
+
+			for i, faction in ipairs(factions) do
+				if factionPlayable[faction] then
+					table.insert(factionsPlayable, i);
+				end
+			end
+
+			local faction = factions[factionsPlayable[math.random(#factionsPlayable)]];
+			local weapons = CF_Call(self, {"MakeListOfMostPowerfulWeapons"}, {faction, weaponTypes.ANY, math.huge})[1];
+			
+			if weapons == nil then
+				isUsingArtifacts = true;
+			else
+				local index = math.random(#weapons);
+				local spawnFaction = faction;
+				local spawnIndex = weapons[index].Item;
+
+				self:SetStringValue("spawnPreset", itmPresets[spawnFaction][spawnIndex]);
+				self:SetStringValue("spawnClass", itmClasses[spawnFaction][spawnIndex] or "HDFirearm");
+				self:SetStringValue("spawnModule", itmModules[spawnFaction][spawnIndex]);
 			end
 		end
 
-		local faction = factions[factionsPlayable[math.random(#factionsPlayable)] ];
-		local weapons = CF_Call(self, {"MakeListOfMostPowerfulWeapons"}, {faction, weaponTypes.ANY, math.huge})[1];
-		local isUsingArtifacts = math.random() < artifactItemRate or weapons == nil;
-
 		if isUsingArtifacts then
+			local artItmPresets = CF_Read(self, {"ArtItmPresets"});
+			local artItmClasses = CF_Read(self, {"ArtItmClasses"});
+			local artItmModules = CF_Read(self, {"ArtItmModules"});
+
 			local index = math.random(#artItmPresets);
 
 			self:SetStringValue("spawnPreset", artItmPresets[index]);
 			self:SetStringValue("spawnClass", artItmClasses[index]);
 			self:SetStringValue("spawnModule", artItmModules[index]);
-		else
-			local index = math.random(#weapons);
-			local spawnFaction = faction;
-			local spawnIndex = weapons[index].Item;
-
-			self:SetStringValue("spawnPreset", itmPresets[spawnFaction][spawnIndex]);
-			self:SetStringValue("spawnClass", itmClasses[spawnFaction][spawnIndex] or "HDFirearm");
-			self:SetStringValue("spawnModule", itmModules[spawnFaction][spawnIndex]);
 		end
 	end
 end
@@ -149,38 +154,36 @@ function Destroy(self)
 			actor.PieMenu:RemovePieSlicesByPresetName(self.pieSliceToAdd.PresetName);
 		end
 	end
-	
-	local item = nil;
 
 	if not self:HasNumberValue("VW_AttemptAccess") and math.random(50, 100) < ActivityMan:GetActivity().Difficulty then
 		for i = 1, math.random(3) do
-			item = CreateTDExplosive("Frag Grenade", "Base.rte");
+			local item = CreateTDExplosive("Frag Grenade", "Base.rte");
 			item.Pos = self.Pos;
 			item.Vel = Vector(math.random(-2, 2), math.random(-5, -3));
 			item:Activate();
 			MovableMan:AddItem(item);
 		end
 	else
-		item = CF_Call(self, {"MakeItem"}, {self:GetStringValue("spawnClass"), self:GetStringValue("spawnPreset"), self:GetStringValue("spawnModule")})[1]:Clone();
+		local item = ToHeldDevice(PresetMan:GetPreset(self:GetStringValue("spawnClass"), self:GetStringValue("spawnPreset"), self:GetStringValue("spawnModule"))):Clone();
 
 		if item then
 			item.AngularVel = 0;
 			item.Vel = Vector(0, -3);
 			item.Pos = self.Pos + Vector(0, -5);
 		end
-	end
 
-	if not item then
-		local sizes = { 10, 15, 24 };
-
-		for i = 30, math.random(30, 60) do
-			local item = CreateMOSRotating(sizes[math.random(#sizes)] .. "oz Gold Brick", "Base.rte");
-			item.Pos = self.Pos;
-			item.Vel = Vector(0, -3) + Vector(math.random(6), 0):RadRotate(math.pi * 2 * math.random());
-			item.AngularVel = math.random(-4, 4);
+		if item then
 			MovableMan:AddParticle(item);
+		else
+			local sizes = { 10, 15, 24 };
+
+			for i = 30, math.random(30, 60) do
+				local item = CreateMOSRotating(sizes[math.random(#sizes)] .. "oz Gold Brick", "Base.rte");
+				item.Pos = self.Pos;
+				item.Vel = Vector(0, -3) + Vector(math.random(6), 0):RadRotate(math.pi * 2 * math.random());
+				item.AngularVel = math.random(-4, 4);
+				MovableMan:AddParticle(item);
+			end
 		end
-	else
-		MovableMan:AddItem(item);
 	end
 end

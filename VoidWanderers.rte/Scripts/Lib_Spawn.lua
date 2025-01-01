@@ -1,64 +1,23 @@
 -----------------------------------------------------------------------
---
+-- Generate a specific brain, with or without weapons
 -----------------------------------------------------------------------
 function CF.MakeBrainWithPreset(faction, class, preset, module, giveWeapons)
 	local actor = CF.MakeActor(class, preset, module);
 
 	if actor ~= nil and giveWeapons then
 		local weapon = nil;
-		local weaponsgiven = 0;
 		local list = CF.PreferedBrainInventory[faction] or { CF.WeaponTypes.RIFLE, CF.WeaponTypes.DIGGER };
 
 		for i = 1, #list do
-			local weaps = CF.MakeListOfMostPowerfulWeapons(faction, list[i], 100000);
+			local weapons = CF.MakeListOfMostPowerfulWeapons(faction, list[i], math.huge);
 
-			if weaps ~= nil then
-				local wf = weaps[1]["Faction"];
-				weapon = CF.MakeItem(
-					CF.ItmClasses[wf][weaps[1]["Item"]],
-					CF.ItmPresets[wf][weaps[1]["Item"]],
-					CF.ItmModules[wf][weaps[1]["Item"]]
-				);
+			if weapons ~= nil then
+				local factionIndex = weapons[1].Faction;
+				local itemIndex = weapons[1].Item;
+				weapon = CF.MakeItemAtIndex(factionIndex, itemIndex);
+
 				if weapon ~= nil then
 					actor:AddInventoryItem(weapon);
-
-					if list[i] ~= CF.WeaponTypes.DIGGER and list[i] ~= CF.WeaponTypes.TOOL then
-						weaponsgiven = weaponsgiven + 1
-					end
-				end
-			end
-		end
-
-		if weaponsgiven == 0 then
-			-- If we didn't get any weapins try to give other weapons, rifles
-			if weaps == nil then
-				weaps = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.RIFLE, 100000)
-			end
-
-			-- Sniper rifles
-			if weaps == nil then
-				weaps = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.SNIPER, 100000)
-			end
-
-			-- No luck - heavies then
-			if weaps == nil then
-				weaps = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.HEAVY, 100000)
-			end
-
-			-- No luck - pistols then
-			if weaps == nil then
-				weaps = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.PISTOL, 100000)
-			end
-
-			if weaps ~= nil then
-				local wf = weaps[1]["Faction"]
-				weapon = CF.MakeItem(
-					CF.ItmClasses[wf][weaps[1]["Item"]],
-					CF.ItmPresets[wf][weaps[1]["Item"]],
-					CF.ItmModules[wf][weaps[1]["Item"]]
-				)
-				if weapon ~= nil then
-					actor:AddInventoryItem(weapon)
 				end
 			end
 		end
@@ -67,37 +26,48 @@ function CF.MakeBrainWithPreset(faction, class, preset, module, giveWeapons)
 	return actor;
 end
 -----------------------------------------------------------------------
---
+-- Generate an unremarkable brain unit, with or without weapons
 -----------------------------------------------------------------------
 function CF.MakeBrain(faction, giveWeapons)
 	return CF.MakeBrainWithPreset(faction, CF.BrainClasses[faction], CF.Brains[faction], CF.BrainModules[faction], giveWeapons ~= false);
 end
 -----------------------------------------------------------------------
---
+-- Generate a remarkable brain unit, with or without weapons, at specified level
 -----------------------------------------------------------------------
 function CF.MakeRPGBrain(faction, giveWeapons, level)
 	local brain = CF.MakeBrain(faction, giveWeapons ~= false);
 
 	if brain then
-		local skillset = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		local availableSkills = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+		local skillset = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+		local availableSkills = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+		local pointsAvailable = level;
 
-		for i = 1, level * 10 do
+		while pointsAvailable > 0 do
 			local index = math.random(#availableSkills);
+			local skillIndex = availableSkills[index];
+			local currentLevel = skillset[skillIndex];
+			local cost = (currentLevel + 1) * (skillIndex == 1 and 2 or 1);
 
-			if skillset[availableSkills[index]] < 5 then
-				skillset[availableSkills[index]] = skillset[availableSkills[index]] + 1;
-				
-				if skillset[availableSkills[index]] == 5 then
-					table.remove(availableSkills, index);
-				end
+			-- If we can buy the one we've picked, do so, record it, subtract the cost, then increment it
+			if currentLevel < 5 and pointsAvailable >= cost then
+				currentLevel = currentLevel + 1;
+				skillset[skillIndex] = currentLevel;
+				pointsAvailable = pointsAvailable - cost;
+				cost = (currentLevel + 1) * (skillIndex == 1 and 2 or 1);
 			end
 
+			-- If we couldn't buy it, or we can't anymore, forget about it going forward
+			if currentLevel >= 5 or pointsAvailable < cost then
+				table.remove(availableSkills, index);
+			end
+
+			-- We're done if everything's off the table
 			if #availableSkills == 0 then
 				break;
 			end
 		end
 		
+		-- We gotta communicate this somehow
 		brain:SetNumberValue("VW_PreassignedSkills", 1);
 		brain:SetNumberValue("VW_BrainLevel", level);
 		brain:SetNumberValue("VW_ToughSkill", skillset[1]);
@@ -111,21 +81,22 @@ function CF.MakeRPGBrain(faction, giveWeapons, level)
 		brain:SetNumberValue("VW_QuantumSkill", skillset[9]);
 	end
 
-	return brain
+	return brain;
 end
 -----------------------------------------------------------------------
 --	Spawns some random infantry of specified faction, tries to spawn AHuman
 -----------------------------------------------------------------------
-CF.SpawnRandomInfantry = function(team, pos, faction, aimode)
-	local actor = nil
-	local weapon = nil
-	local actorCandidateName = nil
-	local weaponCandidateName = nil
+function CF.SpawnRandomInfantry(team, pos, faction, aimode)
+	local actor = nil;
+	local weapon = nil;
+	local actorCandidateName = nil;
+	local weaponCandidateName = nil;
 
 	-- Emergency counter in case we don't have AHumans in factions
-	local counter = 0
+	local counter = 0;
+
 	while true do
-		actorCandidateName = #CF.ActNames[faction] > 0 and math.random(#CF.ActNames[faction]) or 0
+		actorCandidateName = #CF.ActNames[faction] > 0 and math.random(#CF.ActNames[faction]) or 0;
 
 		if
 			(CF.ActClasses[faction][actorCandidateName] == nil
@@ -193,18 +164,18 @@ CF.SpawnRandomInfantry = function(team, pos, faction, aimode)
 	if pos ~= nil then
 		actor.Pos = pos
 		MovableMan:AddActor(actor)
-		return actor
-	else
-		return actor
 	end
 
-	return nil
+	return actor
 end
 -----------------------------------------------------------------------
 -- Create list of weapons of a type sorted by their power.
 -----------------------------------------------------------------------
-CF.MakeListOfMostPowerfulWeapons = function(faction, weaponType, maxTech)
-	local weaps = {}
+function CF.MakeListOfMostPowerfulWeapons(faction, weaponType, maxTech)
+	local weapons, powers = {}, {};
+
+	faction = CF.ItmNames[faction] and faction or error("No faction existing by name " .. tostring(faction), 2);
+
 	-- Filter needed items
 	for i = 1, #CF.ItmNames[faction] do
 		if
@@ -212,109 +183,91 @@ CF.MakeListOfMostPowerfulWeapons = function(faction, weaponType, maxTech)
 			and CF.ItmUnlockData[faction][i] <= maxTech
 			and (CF.WeaponTypes.ANY == weaponType or CF.ItmTypes[faction][i] == weaponType)
 		then
-			local n = #weaps + 1
-			weaps[n] = {}
-			weaps[n]["Item"] = i
-			weaps[n]["Faction"] = faction
-			weaps[n]["Power"] = CF.ItmPowers[faction][i]
+			table.insert(weapons, { Item = i, Faction = faction });
+			table.insert(powers, CF.ItmPowers[faction][i]);
 		end
 	end
+
 	-- Sort them
-	for j = 1, #weaps - 1 do
-		for i = 1, #weaps - j do
-			if weaps[i]["Power"] < weaps[i + 1]["Power"] then
-				local temp = weaps[i]
-				weaps[i] = weaps[i + 1]
-				weaps[i + 1] = temp
+	for j = 1, #weapons - 1 do
+		for i = 1, #weapons - j do
+			if powers[i] < powers[i + 1] then
+				table.insert(weapons, i + 1, table.remove(weapons, i));
+				table.insert(powers, i + 1, table.remove(powers, i));
 			end
 		end
 	end
-	if #weaps == 0 then
-		weaps = nil
+
+	if #weapons == 0 then
+		weapons = nil;
 	end
-	return weaps
+
+	return weapons, powers;
 end
 -----------------------------------------------------------------------
 -- Create list of actors of a type sorted by their power.
 -----------------------------------------------------------------------
-CF.MakeListOfMostPowerfulActors = function(faction, actorType, maxTech)
-	local acts = {}
+function CF.MakeListOfMostPowerfulActors(faction, actorType, maxTech)
+	local actors, powers = {}, {};
+
 	for i = 1, #CF.ActNames[faction] do
 		if
 			CF.ActPowers[faction][i] > 0
 			and CF.ActUnlockData[faction][i] <= maxTech
 			and (CF.ActorTypes.ANY == actorType or CF.ActTypes[faction][i] == actorType)
 		then
-			local n = #acts + 1
-			acts[n] = {}
-			acts[n]["Actor"] = i
-			acts[n]["Faction"] = faction
-			acts[n]["Power"] = CF.ActPowers[faction][i]
+			local actor = { Actor = i, Faction = faction };
+			table.insert(actors, actor);
+			table.insert(powers, CF.ActPowers[faction][i]);
 		end
 	end
+
 	-- Sort them
-	for j = 1, #acts - 1 do
-		for i = 1, #acts - j do
-			if acts[i]["Power"] < acts[i + 1]["Power"] then
-				local temp = acts[i]
-				acts[i] = acts[i + 1]
-				acts[i + 1] = temp
+	for j = 1, #actors - 1 do
+		for i = 1, #actors - j do
+			if powers[i] < powers[i + 1] then
+				table.insert(actors, i + 1, table.remove(actors, i));
+				table.insert(powers, i + 1, table.remove(powers, i));
 			end
 		end
 	end
-	if #acts == 0 then
-		acts = nil
+
+	if #actors == 0 then
+		actors = nil;
 	end
-	return acts
+
+	return actors, powers;
 end
 -----------------------------------------------------------------------
 -- Create list of actors in faction of a type and class.
 -----------------------------------------------------------------------
-CF.MakeListOfMostPowerfulActorsOfClass = function(faction, actorType, actorClass, maxTech)
-	local acts = CF.MakeListOfMostPowerfulActors(faction, actorType, maxTech)
+function CF.MakeListOfMostPowerfulActorsOfClass(faction, actorType, actorClass, maxTech)
+	local actors = CF.MakeListOfMostPowerfulActors(faction, actorType, maxTech);
+	local factionColumn = CF.ActClasses[faction];
 
-	if acts then
-		-- Filter only of class
-		local tempActs = {}
+	if actors and factionColumn then
+		local offset = 0;
 
-		for i = 1, #acts do
-			local ind = acts[i]["Actor"]
+		for i = 1, #actors do
+			local index = actors[i - offset].Actor;
 
-			if "Any" == actorClass or CF.ActClasses[faction][ind] == actorClass or not CF.ActClasses[faction][ind] then
-				table.insert(tempActs, acts[i])
+			if "Any" ~= actorClass and (factionColumn[index] or "AHuman") ~= actorClass then
+				table.remove(actors, i - offset);
+				offset = offset + 1;
 			end
 		end
 
-		if #tempActs == 0 then
-			acts = nil
-		else
-			acts = tempActs
+		if #actors == 0 then
+			actors = nil;
 		end
 	end
 
-	return acts
+	return actors;
 end
 -----------------------------------------------------------------------
---	Creates units presets for specified AI where c - gameState, p - player, tech - max unlock data
+-- Creates units presets for specified AI where gameState - gameState, participant - player, maxTech - max unlock data
 -----------------------------------------------------------------------
-CF.CreateAIUnitPresets = function(c, p, tech)
-	--[[ Each ideal list refers to the ideal type of given item for the corresponding preset.
-	IE idealActors[5] is the first heavy unit variant's ideal unit type
-	while idealWeapons[9] is digger type for the engineer, preset 9
-	I wish I could make these constant, but declaring them outside the function kills it
-	CF.PresetTypes = {
-		INFANTRY1 = 1,
-		INFANTRY2 = 2,
-		SHOTGUN = 3,
-		SNIPER = 4,
-		HEAVY1 = 5,
-		HEAVY2 = 6,
-		ARMOR1 = 7,
-		ARMOR2 = 8,
-		ENGINEER = 9,
-		DEFENDER = 10,
-	}
-	]]
+function CF.CreateAIUnitPresets(gameState, participant, maxTech)
 	local idealPresetActorTypes = {
 		CF.ActorTypes.LIGHT,
 		CF.ActorTypes.HEAVY,
@@ -326,7 +279,7 @@ CF.CreateAIUnitPresets = function(c, p, tech)
 		CF.ActorTypes.HEAVY,
 		CF.ActorTypes.LIGHT,
 		CF.ActorTypes.TURRET,
-	}
+	};
 	local idealPresetWeaponTypes = {
 		CF.WeaponTypes.RIFLE,
 		CF.WeaponTypes.RIFLE,
@@ -338,7 +291,7 @@ CF.CreateAIUnitPresets = function(c, p, tech)
 		CF.WeaponTypes.SHIELD,
 		CF.WeaponTypes.DIGGER,
 		CF.WeaponTypes.SHOTGUN,
-	}
+	};
 	local idealPresetSecondaryTypes = {
 		CF.WeaponTypes.PISTOL,
 		CF.WeaponTypes.PISTOL,
@@ -350,7 +303,7 @@ CF.CreateAIUnitPresets = function(c, p, tech)
 		CF.WeaponTypes.PISTOL,
 		CF.WeaponTypes.RIFLE,
 		CF.WeaponTypes.GRENADE,
-	}
+	};
 	local idealPresetTertiaryTypes = {
 		CF.WeaponTypes.GRENADE,
 		CF.WeaponTypes.GRENADE,
@@ -362,10 +315,11 @@ CF.CreateAIUnitPresets = function(c, p, tech)
 		CF.WeaponTypes.GRENADE,
 		CF.WeaponTypes.GREANDE,
 		CF.WeaponTypes.GRENADE,
-	}
+	};
 
-	local faction = CF.GetPlayerFaction(c, p)
-	if CF.PreEquippedActors[faction] == true then
+	local faction = CF.GetPlayerFaction(gameState, participant);
+
+	if CF.PreEquippedActors[faction] then
 		-- Fill presets for pre-equipped faction
 		for presetType = 1, 10 do
 			-- Build a list of acceptable actor types from best to worst as backup
@@ -379,16 +333,18 @@ CF.CreateAIUnitPresets = function(c, p, tech)
 			
 			-- Select a suitable actor based on his equipment class
 			local match = nil
+
 			for _, actorType in ipairs(potentialActorTypes) do
-				local actors = CF.MakeListOfMostPowerfulActors(faction, actorType, tech)
+				local actors = CF.MakeListOfMostPowerfulActors(faction, actorType, maxTech)
 
 				if actors ~= nil then
 					for _, actor in ipairs(actors) do
-						if CF.EquipmentTypes[faction][actor["Actor"]] == idealPresetWeaponTypes[presetType] then
+						if CF.EquipmentTypes[faction][actor.Actor] == idealPresetWeaponTypes[presetType] then
 							match = actor
 							break
 						end
 					end
+
 					if match ~= nil then
 						break
 					end
@@ -396,128 +352,205 @@ CF.CreateAIUnitPresets = function(c, p, tech)
 			end
 
 			if match ~= nil then
-				c["Player" .. p .. "Preset" .. presetType .. "Actor"] = match["Actor"]
-				c["Player" .. p .. "Preset" .. presetType .. "Faction"] = match["Faction"]
+				gameState["Player" .. participant .. "Preset" .. presetType .. "Actor"] = match.Actor
+				gameState["Player" .. participant .. "Preset" .. presetType .. "Faction"] = match.Faction
 
 				--Reset all weapons
 				for j = 1, CF.MaxItemsPerPreset do
-					c["Player" .. p .. "Preset" .. presetType .. "Item" .. j] = nil
-					c["Player" .. p .. "Preset" .. presetType .. "ItemFaction" .. j] = nil
+					gameState["Player" .. participant .. "Preset" .. presetType .. "Item" .. j] = nil
+					gameState["Player" .. participant .. "Preset" .. presetType .. "ItemFaction" .. j] = nil
 				end
 
 				-- If we didn't find a suitable engineer unit then try give digger to engineer preset
 				if idealPresetWeaponTypes[presetType] == CF.WeaponTypes.DIGGER and presetType == CF.PresetTypes.ENGINEER then
-					local weapons1 = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.DIGGER, tech)
+					local weapons1 = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.DIGGER, maxTech)
 
 					if weapons1 ~= nil then
-						c["Player" .. p .. "Preset" .. presetType .. "Item" .. 1] = weapons1[1]["Item"]
-						c["Player" .. p .. "Preset" .. presetType .. "ItemFaction" .. 1] = weapons1[1]["Faction"]
+						gameState["Player" .. participant .. "Preset" .. presetType .. "Item" .. 1] = weapons1[1].Item
+						gameState["Player" .. participant .. "Preset" .. presetType .. "ItemFaction" .. 1] = weapons1[1].Faction
 					end
 				end
 			end
 		end
 	else
-		-- Fill presets for generic faction
-		for i = 1, 10 do
-			local actors
-			actors = CF.MakeListOfMostPowerfulActors(faction, idealPresetActorTypes[i], tech)
+		for preset = CF.PresetTypes.INFANTRY1, CF.PresetTypes.DEFENDER do
+			local actors, weights = CF.MakeListOfMostPowerfulActors(faction, idealPresetActorTypes[preset], maxTech);
 
-			if actors == nil then
-				actors = CF.MakeListOfMostPowerfulActors(faction, CF.ActorTypes.LIGHT, tech)
-			end
-			if actors == nil then
-				actors = CF.MakeListOfMostPowerfulActors(faction, CF.ActorTypes.HEAVY, tech)
-			end
-			if actors == nil then
-				actors = CF.MakeListOfMostPowerfulActors(faction, CF.ActorTypes.ARMOR, tech)
+			if not actors then
+				actors, weights = CF.MakeListOfMostPowerfulActors(faction, CF.ActorTypes.LIGHT, maxTech);
 			end
 
-			local weapons1
-			weapons1 = CF.MakeListOfMostPowerfulWeapons(faction, idealPresetWeaponTypes[i], tech)
-
-			if weapons1 == nil then
-				weapons1 = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.RIFLE, tech)
-			end
-			if weapons1 == nil then
-				weapons1 = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.SHOTGUN, tech)
-			end
-			if weapons1 == nil then
-				weapons1 = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.SNIPER, tech)
-			end
-			if weapons1 == nil then
-				weapons1 = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.HEAVY, tech)
-			end
-			if weapons1 == nil then
-				weapons1 = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.PISTOL, tech)
+			if not actors then
+				actors, weights = CF.MakeListOfMostPowerfulActors(faction, CF.ActorTypes.HEAVY, maxTech);
 			end
 
-			local weapons2
-			weapons2 = CF.MakeListOfMostPowerfulWeapons(faction, idealPresetSecondaryTypes[i], tech)
-
-			if weapons2 == nil then
-				weapons2 = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.PISTOL, tech)
+			if not actors then
+				actors, weights = CF.MakeListOfMostPowerfulActors(faction, CF.ActorTypes.ARMOR, maxTech);
 			end
-			if weapons2 == nil then
-				weapons2 = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.DIGGER, tech)
-			end
-
-			local weapons3
-			weapons3 = CF.MakeListOfMostPowerfulWeapons(faction, idealPresetTertiaryTypes[i], tech)
 
 			if actors ~= nil then
-				c["Player" .. p .. "Preset" .. i .. "Actor"] = actors[1]["Actor"]
-				c["Player" .. p .. "Preset" .. i .. "Faction"] = actors[1]["Faction"]
+				local actor = actors[CF.WeightedSelection(weights)];
+				gameState["Player" .. participant .. "Preset" .. preset .. "Actor"] = actor.Actor;
+				gameState["Player" .. participant .. "Preset" .. preset .. "Faction"] = actor.Faction;
 
-				local class = CF.ActClasses[actors[1]["Faction"]][actors[1]["Actor"]]
+				if CF.ActClasses[actor.Faction][actor.Actor] ~= "ACrab" then
+					local weapons1, weights1 = CF.MakeListOfMostPowerfulWeapons(faction, idealPresetWeaponTypes[preset], maxTech);
 
-				-- Don't give weapons to ACrabs
-				if class ~= "ACrab" then
-					local weap = 1
+					if not weapons1 then
+						weapons1, weights1 = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.RIFLE, maxTech);
+					end
+
+					if not weapons1 then
+						weapons1, weights1 = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.SHOTGUN, maxTech);
+					end
+
+					if not weapons1 then
+						weapons1, weights1 = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.SNIPER, maxTech);
+					end
+
+					if not weapons1 then
+						weapons1, weights1 = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.HEAVY, maxTech);
+					end
+
+					if not weapons1 then
+						weapons1, weights1 = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.PISTOL, maxTech);
+					end
+
+					local weapons2, weights2 = CF.MakeListOfMostPowerfulWeapons(faction, idealPresetSecondaryTypes[preset], maxTech);
+
+					if not weapons2 then
+						weapons2, weights2 = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.PISTOL, maxTech);
+					end
+
+					if not weapons2 then
+						weapons2, weights2 = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.DIGGER, maxTech);
+					end
+
+					local weapons3, weights3 = CF.MakeListOfMostPowerfulWeapons(faction, idealPresetTertiaryTypes[preset], maxTech);
+					local weap = 1;
 
 					if weapons1 ~= nil then
-						-- Add small random spread for primary weapons
-						local spread = math.min(#weapons1, 2)
-
-						local w = math.random(spread)
-						--print ("Selected weapon: "..w)
-
-						c["Player" .. p .. "Preset" .. i .. "Item" .. weap] = weapons1[w]["Item"]
-						c["Player" .. p .. "Preset" .. i .. "ItemFaction" .. weap] = weapons1[w]["Faction"]
-						weap = weap + 1
+						local weapon = weapons1[CF.WeightedSelection(weights1)];
+						gameState["Player" .. participant .. "Preset" .. preset .. "Item" .. weap] = weapon.Item;
+						gameState["Player" .. participant .. "Preset" .. preset .. "ItemFaction" .. weap] = weapon.Faction;
+						weap = weap + 1;
 					end
 
 					if weapons2 ~= nil then
-						-- Add small random spread for secondary weapons
-						local spread = math.min(#weapons2, 2)
-
-						local w = math.random(spread)
-						--print ("Selected sec weapon: "..w)
-
-						c["Player" .. p .. "Preset" .. i .. "Item" .. weap] = weapons2[w]["Item"]
-						c["Player" .. p .. "Preset" .. i .. "ItemFaction" .. weap] = weapons2[w]["Faction"]
-						weap = weap + 1
+						local weapon = weapons2[CF.WeightedSelection(weights2)];
+						gameState["Player" .. participant .. "Preset" .. preset .. "Item" .. weap] = weapon.Item;
+						gameState["Player" .. participant .. "Preset" .. preset .. "ItemFaction" .. weap] = weapon.Faction;
+						weap = weap + 1;
 					end
 
 					if weapons3 ~= nil then
-						-- Add small random spread for grenades
-						local spread = math.min(#weapons3, 2)
-
-						local w = math.random(spread)
-						--print ("Selected tri weapon: "..w)
-
-						c["Player" .. p .. "Preset" .. i .. "Item" .. weap] = weapons3[w]["Item"]
-						c["Player" .. p .. "Preset" .. i .. "ItemFaction" .. weap] = weapons3[w]["Faction"]
-						weap = weap + 1
+						local weapon = weapons3[CF.WeightedSelection(weights3)];
+						gameState["Player" .. participant .. "Preset" .. preset .. "Item" .. weap] = weapon.Item;
+						gameState["Player" .. participant .. "Preset" .. preset .. "ItemFaction" .. weap] = weapon.Faction;
+						weap = weap + 1;
 					end
 				end
 			end
 		end
-	end -- If preequipped
+	end
+end
+-----------------------------------------------------------------------
+-- Make item of specified preset, module and class
+-----------------------------------------------------------------------
+function CF.MakeItem(class, preset, module)
+	local item = nil;
+	class = class or "HDFirearm";
+
+	if class == "HeldDevice" then
+		item = module == nil and CreateHeldDevice(preset) or CreateHeldDevice(preset, module);
+	elseif class == "HDFirearm" then
+		item = module == nil and CreateHDFirearm(preset) or CreateHDFirearm(preset, module);
+	elseif class == "TDExplosive" then
+		item = module == nil and CreateTDExplosive(preset) or CreateTDExplosive(preset, module);
+	elseif class == "ThrownDevice" then
+		item = module == nil and CreateThrownDevice(preset) or CreateThrownDevice(preset, module);
+	end
+
+	return item;
+end
+-----------------------------------------------------------------------
+-- Make item of specified faction and index
+-----------------------------------------------------------------------
+function CF.MakeItemAtIndex(faction, index)
+	return CF.MakeItem(CF.ItmClasses[faction][index], CF.ItmPresets[faction][index], CF.ItmModules[faction][index]);
+end
+-----------------------------------------------------------------------
+-- Make actor of specified preset, class, module, rank, identity, and player, and prestige, name, and limbs, wow
+-----------------------------------------------------------------------
+function CF.MakeActor(class, preset, module, xp, identity, player, prestige, name, limbs)
+	local actor = nil;
+	class = class or "AHuman";
+	preset = preset or "Skeleton";
+
+	if class == "AHuman" then
+		actor = module == nil and CreateAHuman(preset) or CreateAHuman(preset, module);
+	elseif class == "ACrab" then
+		actor = module == nil and CreateACrab(preset) or CreateACrab(preset, module);
+	elseif class == "Actor" then
+		actor = module == nil and CreateActor(preset) or CreateActor(preset, module);
+	elseif class == "ACDropShip" then
+		actor = module == nil and CreateACDropShip(preset) or CreateACDropShip(preset, module);
+	elseif class == "ACRocket" then
+		actor = module == nil and CreateACRocket(preset) or CreateACRocket(preset, module);
+	end
+
+	if limbs then
+		CF.ReplaceLimbs(actor, limbs);
+	end
+
+	for item in actor.Inventory do
+		if item then
+			actor:RemoveInventoryItem(item.PresetName);
+		end
+	end
+
+	xp = tonumber(xp);
+
+	if actor then
+		actor.AngularVel = 0;
+
+		if identity then
+			actor:SetNumberValue("Identity", tonumber(identity));
+		end
+
+		if player then
+			actor:SetNumberValue("VW_BrainOfPlayer", tonumber(player));
+		end
+
+		if prestige then
+			actor:SetNumberValue("VW_Prestige", tonumber(prestige));
+		end
+
+		if name and name ~= "" then
+			actor:SetStringValue("VW_Name", name);
+		end
+
+		if xp then
+			actor:SetNumberValue("VW_XP", xp);
+			local rank = CF.GetRankFromXP(xp);
+			actor:SetNumberValue("VW_Rank", rank);
+			local prestige = actor:GetNumberValue("VW_Prestige");
+			CF.BuffActor(actor, 1 + (rank + math.sqrt(prestige)) * 0.1 * math.sqrt(prestige * 0.1 + 1));
+		end
+	end
+
+	return actor;
+end
+-----------------------------------------------------------------------
+-- Make actor of specified faction and index
+-----------------------------------------------------------------------
+function CF.MakeActorAtIndex(faction, index)
+	return CF.MakeActor(CF.ActClasses[faction][index], CF.ActPresets[faction][index], CF.ActModules[faction][index]);
 end
 -----------------------------------------------------------------------
 -- Create a generic text effect
 -----------------------------------------------------------------------
-CF.CreateTextEffect = function(text)
+function CF.CreateTextEffect(text)
 	local effect = CreateMOPixel("Text Effect", "VoidWanderers.rte");
 	
 	effect:SetStringValue("VW_Text", text);
@@ -532,25 +565,25 @@ end
 -----------------------------------------------------------------------
 -- Checks if a <preset> from <module> of type <class> has already been unlocked with a <kind>.
 -----------------------------------------------------------------------
-CF.IsEntityUnlocked = function(c, kind, class, preset, module)
-	return (not not c["Unlocked" .. kind .. "_" .. class .. "_" .. preset .. "_" .. module]);
+function CF.IsEntityUnlocked(gameState, kind, class, preset, module)
+	return (not not gameState["Unlocked" .. kind .. "_" .. class .. "_" .. preset .. "_" .. module]);
 end
 -----------------------------------------------------------------------
 -- Sets if a <preset> from <module> of type <class> has already been unlocked with a <kind>.
 -----------------------------------------------------------------------
-CF.SetEntityUnlocked = function(c, kind, class, preset, module, unlocked)
-	c["Unlocked" .. kind .. "_" .. class .. "_" .. preset .. "_" .. module] = unlocked;
+function CF.SetEntityUnlocked(gameState, kind, class, preset, module, unlocked)
+	gameState["Unlocked" .. kind .. "_" .. class .. "_" .. preset .. "_" .. module] = unlocked;
 end
 -----------------------------------------------------------------------
 -- Creates a blueprint for given <faction>.
 -- Returns the blueprint, and whether an unlock could be found.
 -----------------------------------------------------------------------
-CF.CreateBluePrint = function(c, faction)
+function CF.CreateBluePrint(gameState, faction)
 	local blueprint = CreateHeldDevice("Blueprint", CF.ModuleName);
 
 	-- Spec ops carries their own data, or your data, or someone's data, anyhow
-	local participant = faction or math.random(tonumber(c["ActiveCPUs"]));
-	local factionName = c["Player" .. participant .. "Faction"];
+	local participant = faction or math.random(tonumber(gameState["ActiveCPUs"]));
+	local factionName = gameState["Player" .. participant .. "Faction"];
 	local unlock = nil;
 
 	-- If we've got a faction, look for items or actors.
@@ -562,17 +595,17 @@ CF.CreateBluePrint = function(c, faction)
 		local contentIndex;
 
 		local classes, presets, modules;
-		local faction = CF.GetPlayerFaction(c, participant)
+		local faction = CF.GetPlayerFaction(gameState, participant)
 		-- Look for actors sometimes, but usually just items.
 		if math.random() < 0.25 then
-			itemList = CF.MakeListOfMostPowerfulActors(faction, CF.ActorTypes.ANY, math.abs(tonumber(c["Player" .. participant .. "Reputation"])));
+			itemList = CF.MakeListOfMostPowerfulActors(faction, CF.ActorTypes.ANY, math.abs(tonumber(gameState["Player" .. participant .. "Reputation"])));
 			contentIndex = "Actor";
 
 			classes = CF.ActClasses[factionName];
 			presets = CF.ActPresets[factionName];
 			modules = CF.ActModules[factionName];
 		else
-			itemList = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.ANY, math.abs(tonumber(c["Player" .. participant .. "Reputation"])));
+			itemList = CF.MakeListOfMostPowerfulWeapons(faction, CF.WeaponTypes.ANY, math.abs(tonumber(gameState["Player" .. participant .. "Reputation"])));
 			contentIndex = "Item";
 
 			classes = CF.ItmClasses[factionName];
@@ -588,7 +621,7 @@ CF.CreateBluePrint = function(c, faction)
 				local objectPreset = presets[potentialUnlock[contentIndex]];
 				local objectModule = modules[potentialUnlock[contentIndex]];
 				
-				if objectPreset and objectModule ~= "Base.rte" and not CF.IsEntityUnlocked(c, "Blueprint", objectClass, objectPreset, objectModule) then
+				if objectPreset and objectModule ~= "Base.rte" and not CF.IsEntityUnlocked(gameState, "Blueprint", objectClass, objectPreset, objectModule) then
 					unlock = { objectClass, objectPreset, objectModule };
 					break;
 				end
@@ -618,7 +651,7 @@ end
 -- Creates a blackprint.
 -- Returns the blackprint, and whether an unlock was found.
 -----------------------------------------------------------------------
-CF.CreateBlackPrint = function(c)
+function CF.CreateBlackPrint(gameState)
 	local blackprint = CreateHeldDevice("Blueprint", CF.ModuleName);
 	
 	local unlock = nil;
@@ -651,19 +684,20 @@ CF.CreateBlackPrint = function(c)
 	return blackprint;
 end
 -----------------------------------------------------------------------
---	Create actor from preset pre, where c - gameState, p - player, t - territory, pay gold is pay == true
--- 	returns actor or nil, also returns actor offset, value wich you must add to default actor position to
--- 	avoid actor hang in the air, used mainly for turrets
+-- Makes a unit of specified preset for participant faction specified using given gameState
 -----------------------------------------------------------------------
-CF.MakeUnitFromPreset = function(c, p, pre)
-	local actor = nil
-	local offset = Vector()
-	local weapon = nil
+function CF.MakeUnitWithPreset(gameState, participant, preset)
+	local actor = nil;
+	local offset = Vector();
+	local weapon = nil;
 
-	local a = tonumber(c["Player" .. p .. "Preset" .. pre .. "Actor"])
+	participant = participant or error("No faction of origin specified in CF.MakeUnitWithPreset.", 2);
+	preset = preset or error("No preset specified in CF.MakeUnitWithPreset.", 2);
+
+	local a = tonumber(gameState["Player" .. participant .. "Preset" .. preset .. "Actor"])
 	if a ~= nil then
-		local f = c["Player" .. p .. "Preset" .. pre .. "Faction"]
-		local reputation = c["Player" .. p .. "Reputation"]
+		local f = gameState["Player" .. participant .. "Preset" .. preset .. "Faction"]
+		local reputation = gameState["Player" .. participant .. "Reputation"]
 		local setRank = 0
 		if reputation then
 			reputation = math.abs(tonumber(reputation))
@@ -688,9 +722,9 @@ CF.MakeUnitFromPreset = function(c, p, pre)
 					end
 				end
 				for i = 1, math.ceil(CF.MaxItemsPerPreset * RangeRand(0.5, 1.0)) do
-					if c["Player" .. p .. "Preset" .. pre .. "Item" .. i] ~= nil then
-						local w = tonumber(c["Player" .. p .. "Preset" .. pre .. "Item" .. i])
-						local wf = c["Player" .. p .. "Preset" .. pre .. "ItemFaction" .. i]
+					if gameState["Player" .. participant .. "Preset" .. preset .. "Item" .. i] ~= nil then
+						local w = tonumber(gameState["Player" .. participant .. "Preset" .. preset .. "Item" .. i])
+						local wf = gameState["Player" .. participant .. "Preset" .. preset .. "ItemFaction" .. i]
 
 						weapon = CF.MakeItem(CF.ItmClasses[wf][w], CF.ItmPresets[wf][w], CF.ItmModules[wf][w])
 
@@ -706,56 +740,24 @@ CF.MakeUnitFromPreset = function(c, p, pre)
 			-- Set default AI mode
 			actor.AIMode = Actor.AIMODE_SENTRY
 		end
+	else
+		error("No preset " .. preset .. " for specified faction " .. participant .. " in CF.MakeUnitWithPreset", 2);
 	end
 
+	actor = actor or error("No actor produced in CF.MakeUnitWithPreset", 2);
 	return actor, offset
 end
 -----------------------------------------------------------------------
---
+-- Creates a unit of any variety from the participant faction specified
 -----------------------------------------------------------------------
-CF.SpawnAIUnitWithPreset = function(c, p, team, pos, aimode, pre)
-	local act = CF.MakeUnitFromPreset(c, p, pre)
-
-	if act ~= nil then
-		act.Team = team
-		if pos ~= nil then
-			act.Pos = pos
-		end
-
-		if aimode ~= nil then
-			act.AIMode = aimode
-		end
-	end
-
-	return act
+function CF.MakeUnit(gameState, participant)
+	local preset = math.random(CF.PresetTypes.ENGINEER);
+	return CF.MakeUnitWithPreset(gameState, participant, preset);
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-CF.SpawnAIUnit = function(c, p, team, pos, aimode)
-	local pre = math.random(CF.PresetTypes.ENGINEER) --The last two presets are ENGINEER and DEFENDER
-	local act = CF.MakeUnitFromPreset(c, p, pre)
-
-	if act ~= nil then
-		act.Team = team
-		if pos ~= nil then
-			act.Pos = pos
-		end
-
-		if aimode ~= nil then
-			act.AIMode = aimode
-		else
-			act.AIMode = math.random() < 0.5 and Actor.AIMODE_BRAINHUNT or Actor.AIMODE_PATROL
-		end
-	end
-
-	return act
-end
------------------------------------------------------------------------
---
------------------------------------------------------------------------
-CF.ReadPtsData = function(sceneName, sceneConfig)
-	-- 
+function CF.ReadPtsData(sceneName, sceneConfig)
 	local points = {}
 
 	for i = 1, CF.GenericMissionCount do
@@ -778,7 +780,7 @@ CF.ReadPtsData = function(sceneName, sceneConfig)
 			--print ("  "..setnum)
 
 			for k3 = 1, #CF.MissionRequiredData[msntype] do -- Enum Point types
-				local pttype = CF.MissionRequiredData[msntype][k3]["Name"]
+				local pttype = CF.MissionRequiredData[msntype][k3].Name
 
 				--print ("    "..pttype)
 
@@ -786,7 +788,7 @@ CF.ReadPtsData = function(sceneName, sceneConfig)
 				--print (msntype)
 				--print (pttype)
 
-				for k4 = 1, CF.MissionRequiredData[msntype][k3]["Max"] do -- Enum points
+				for k4 = 1, CF.MissionRequiredData[msntype][k3].Max do -- Enum points
 					local id = msntype .. tostring(setnum) .. pttype .. tostring(k4)
 
 					local x = sceneConfig[id .. "X"]
@@ -818,7 +820,7 @@ end
 -----------------------------------------------------------------------
 --	Returns available points set for specified mission from points array
 -----------------------------------------------------------------------
-CF.GetRandomMissionPointsSet = function(points, missionType)
+function CF.GetRandomMissionPointsSet(points, missionType)
 	local sets = {}
 
 	for k, v in pairs(points[missionType]) do
@@ -833,8 +835,8 @@ end
 --	Returns int indexed array of vectors with available points of specified
 --	mission type, points set and points type
 -----------------------------------------------------------------------
-CF.GetPointsArray = function(points, missionType, setIndex, pointsType)
-	local vectors = {}
+function CF.GetPointsArray(points, missionType, setIndex, pointsType)
+	local vectors = {};
 
 	--print (missionType)
 	--print (setIndex)
@@ -857,82 +859,105 @@ end
 -----------------------------------------------------------------------
 --	Returns array of n random elements from array list
 -----------------------------------------------------------------------
-CF.RandomSampleOfList = function(list, n)
-	local selection = {}
+function CF.RandomSampleOfList(list, n)
+	local selection = {};
 
 	-- If empty set or no elements requested, return empty selection
 	-- If need real number, properly grab a handful
 	if #list > 0 and n > 0 then
 		-- Make a list of indices not once picked
-		local remainder = {}
+		local remainder = {};
+
 		for i = 1, #list do
-			table.insert(remainder, i)
+			table.insert(remainder, i);
 		end
 
 		-- For as many as requested, or as many indices as there are, whichever is smaller, grab of remaining options
 		for i = 1, math.min(#list, n) do
-			local index = math.random(#remainder)
-			table.insert(selection, list[remainder[index]])
-			table.remove(remainder, index)
+			local index = math.random(#remainder);
+			table.insert(selection, list[remainder[index]]);
+			table.remove(remainder, index);
 		end
 
 		-- And if we need even more, pick randomly from there
 		if #list < n then
 			for i = 1, n - #list do
-				local index = math.random(#list)
-				table.insert(selection, list[index])
+				table.insert(selection, list[math.random(#list)]);
 			end
 		end
 	end
 
-	return selection
+	return selection;
 end
 -----------------------------------------------------------------------
--- Returns a weighted selection out of a list of options
+-- Returns a weighted selection out of a list of values
 -----------------------------------------------------------------------
-CF.WeightedSelection = function(list)
-	-- Build list of cumulative weights
-	local candidates = {}
-	local sum = 0
-	for i = 1, #list do
-		sum = sum + list[i]
-		table.insert(candidates, sum)
-	end
-	local pick = math.random() * sum
-	for i = 1, #candidates do
-		if pick <= candidates[i] then
-			return i
+function CF.WeightedSelection(list)
+	if list or error("No list passed to CF.WeightedSelection", 2) then
+		local candidates = {};
+		local sum = 0;
+
+		for i = 1, #list do
+			sum = sum + list[i];
+			table.insert(candidates, sum);
+		end
+
+		local pick = math.random() * sum;
+
+		for i = 1, #candidates do
+			if pick <= candidates[i] then
+				return i;
+			end
 		end
 	end
-	return nil
+	
+	return nil;
 end
 -----------------------------------------------------------------------
---
+-- Obtains the worst enemy of the player
 -----------------------------------------------------------------------
-CF.GetAngriestPlayer = function(gamestate)
-	local angriest
-	local reputation = 0
+function CF.GetAngriestPlayer(gameState)
+	local angriest;
+	local reputation = 0;
 
 	for i = 1, CF.MaxCPUPlayers do
-		if gamestate["Player" .. i .. "Active"] == "True" then
-			if tonumber(gamestate["Player" .. i .. "Reputation"]) < reputation then
-				angriest = i
-				reputation = tonumber(gamestate["Player" .. i .. "Reputation"])
+		if gameState["Player" .. i .. "Active"] == "True" then
+			if tonumber(gameState["Player" .. i .. "Reputation"]) < reputation then
+				angriest = i;
+				reputation = tonumber(gameState["Player" .. i .. "Reputation"]);
 			end
 		end
 	end
 
-	return angriest, reputation
+	return angriest, reputation;
 end
 -----------------------------------------------------------------------
---
+-- Obtains the best friend of the player
 -----------------------------------------------------------------------
-CF.GetLocationSecurity = function(gamestate, location)
+function CF.GetFriendliestPlayer(gameState)
+	local friendliest;
+	local reputation = 0;
+
+	for i = 1, CF.MaxCPUPlayers do
+		if gameState["Player" .. i .. "Active"] == "True" then
+			if tonumber(gameState["Player" .. i .. "Reputation"]) > reputation then
+				friendliest = i;
+				reputation = tonumber(gameState["Player" .. i .. "Reputation"]);
+			end
+		end
+	end
+
+	return friendliest, reputation;
+end
+-----------------------------------------------------------------------
+-- Gets the current security at a location
+-----------------------------------------------------------------------
+function CF.GetLocationSecurity(gameState, location)
 	local securityLevel = 0;
 
 	if location then
-		if gamestate["Security_" .. location] ~= nil then
-			securityLevel = tonumber(gamestate["Security_" .. location]);
+		if gameState["Security_" .. location] ~= nil then
+			securityLevel = tonumber(gameState["Security_" .. location]);
 		else
 			securityLevel = CF.LocationSecurity[location];
 		end
@@ -941,113 +966,131 @@ CF.GetLocationSecurity = function(gamestate, location)
 	return securityLevel;
 end
 -----------------------------------------------------------------------
---
+-- Sets the security of a location
 -----------------------------------------------------------------------
-CF.GetLocationDifficulty = function(gamestate, location)
-	return math.min(CF.MaxDifficulty, math.max(1, math.floor(CF.GetLocationSecurity(gamestate, location) / 10)))
+function CF.SetLocationSecurity(gameState, location, securityLevel)
+	gameState["Security_" .. location] = securityLevel;
 end
 -----------------------------------------------------------------------
---
+-- Change the security of a location
 -----------------------------------------------------------------------
-CF.GetFullMissionDifficulty = function(gamestate, location, missionID)
-	local locationDifficulty = CF.GetLocationDifficulty(gamestate, location)
-	local missionDifficulty = tonumber(gamestate["Mission" .. missionID .. "Difficulty"])
-	return math.min(CF.MaxDifficulty, math.max(1, locationDifficulty + missionDifficulty - 1))
+function CF.ChangeLocationSecurity(gameState, location, increment)
+	CF.SetLocationSecurity(gameState, location, CF.GetLocationSecurity(gameState, location) + increment);
 end
 -----------------------------------------------------------------------
---
+-- Puts a difficulty within the normal integer range (should be 1-6)
 -----------------------------------------------------------------------
-CF.SetLocationSecurity = function(gamestate, location, securityLevel)
-	gamestate["Security_" .. location] = securityLevel
+function CF.NormalizeDifficulty(difficulty)
+	return math.floor(math.min(CF.MaxDifficulty, math.max(1, difficulty)));
+end
+-----------------------------------------------------------------------
+-- 
+-----------------------------------------------------------------------
+function CF.GetFullMissionDifficulty(gameState, location, missionID)
+	local locationDifficulty = CF.GetLocationSecurity(gameState, location) / 10;
+	local missionDifficulty = tonumber(gameState["Mission" .. missionID .. "Difficulty"]);
+	return CF.NormalizeDifficulty(locationDifficulty + missionDifficulty - 1);
 end
 -----------------------------------------------------------------------
 -- Generate a random mission with ally/enemy/location overrides
 -----------------------------------------------------------------------
-CF.GenerateRandomMission = function(gamestate, ally, enemy, prohibitedLocations)
-	local cpus = tonumber(gamestate["ActiveCPUs"])
+function CF.GenerateRandomMission(gameState, ally, enemy, prohibitedLocations)
+	local cpus = tonumber(gameState["ActiveCPUs"]);
 
 	if not prohibitedLocations then
-		prohibitedLocations = {}
+		prohibitedLocations = {};
 	end
 
 	-- Determine for whom we're working
-	local contractor = ally
+	local contractor = ally;
+
 	if not contractor then
 		-- Build list of potential contractors' cumulative weights
-		local candidateContractors = {}
-		local sum = 0
+		local candidateContractors = {};
+		local sum = 0;
+
 		for id = 1, cpus do
-			local rep = tonumber(gamestate["Player" .. id .. "Reputation"])
-			local weight = 1 / math.max(1, 1 - rep / 1000)
-			sum = sum + weight
-			table.insert(candidateContractors, {sum, id})
+			local rep = tonumber(gameState["Player" .. id .. "Reputation"]);
+			local weight = 1 / math.max(1, 1 - rep / 1000);
+			sum = sum + weight;
+			table.insert(candidateContractors, {sum, id});
 		end
-		local pick = math.random() * sum
+
+		local pick = math.random() * sum;
+
 		for id = 1, #candidateContractors do
 			if pick <= candidateContractors[id][1] then
-				contractor = candidateContractors[id][2]
-				break
+				contractor = candidateContractors[id][2];
+				break;
 			end
 		end
 	end
 	
 	-- Determine for whom the bell tolls
-	local target = enemy
+	local target = enemy;
+
 	if not target then
 		-- Build list of potential targets' cumulative weights
-		local candidateTargets = {}
-		local sum = 0
+		local candidateTargets = {};
+		local sum = 0;
+
 		for id = 1, cpus do
 			if id ~= contractor then
-				local rep = tonumber(gamestate["Player" .. id .. "Reputation"])
-				local weight = 1 / math.max(1, 1 + rep / 1000)
-				sum = sum + weight
-				table.insert(candidateTargets, {sum, id})
+				local rep = tonumber(gameState["Player" .. id .. "Reputation"]);
+				local weight = 1 / math.max(1, 1 + rep / 1000);
+				sum = sum + weight;
+				table.insert(candidateTargets, {sum, id});
 			end
 		end
-		local pick = math.random() * sum
+
+		local pick = math.random() * sum;
+
 		for id = 1, #candidateTargets do
 			if pick <= candidateTargets[id][1] then
-				target = candidateTargets[id][2]
-				break
+				target = candidateTargets[id][2];
+				break;
 			end
 		end
 	end
 
 	-- Make list of valid mission types and where they can occur
-	local reputation = tonumber(gamestate["Player" .. contractor .. "Reputation"])
-	local validMissionTypes = {}
+	local reputation = tonumber(gameState["Player" .. contractor .. "Reputation"]);
+	local illReputation = tonumber(gameState["Player" .. target .. "Reputation"]);
+	local validMissionTypes = {};
+
 	for _, missionType in pairs(CF.Mission) do
 		if CF.MissionMinReputation[missionType] <= reputation then
-			local missionTypeCandidate = {}
-			missionTypeCandidate["MissionID"] = missionType
-			missionTypeCandidate["Scenes"] = {}
+			local missionTypeCandidate = {};
+			missionTypeCandidate.MissionID = missionType;
+			missionTypeCandidate.Scenes = {};
 
 			for _, locationName in pairs(CF.Location) do
-				local locationProhibited = false
+				local locationProhibited = false;
+
 				for _, prohibitedLocation in pairs(prohibitedLocations) do
 					if locationName == prohibitedLocation then
-						locationProhibited = true
-						break
+						locationProhibited = true;
+						break;
 					end
 				end
+
 				if
 					not locationProhibited
 					and CF.LocationPlayable[locationName] ~= false
-					and gamestate["Location"] ~= locationName
+					and gameState.Location ~= locationName
 					and not CF.IsLocationHasAttribute(locationName, CF.LocationAttributeTypes.NOTMISSIONASSIGNABLE)
 				then
 					for _, allowedType in pairs(CF.LocationMissions[locationName]) do
 						if missionType == allowedType then
-							table.insert(missionTypeCandidate["Scenes"], locationName)
-							break
+							table.insert(missionTypeCandidate.Scenes, locationName);
+							break;
 						end
 					end
 				end
 			end
 
-			if #missionTypeCandidate["Scenes"] > 0 then
-				table.insert(validMissionTypes, missionTypeCandidate)
+			if #missionTypeCandidate.Scenes > 0 then
+				table.insert(validMissionTypes, missionTypeCandidate);
 			end
 		end
 	end
@@ -1056,49 +1099,50 @@ CF.GenerateRandomMission = function(gamestate, ally, enemy, prohibitedLocations)
 	local randomMissionType = validMissionTypes[math.random(#validMissionTypes)];
 
 	-- Pick scene
-	local typeScenes = randomMissionType["Scenes"];
+	local typeScenes = randomMissionType.Scenes;
 	local randomMissionScene = typeScenes[math.random(#typeScenes)];
 
 	-- Return mission
 	local mission = {};
-	mission["SourcePlayer"] = contractor;
-	mission["TargetPlayer"] = target;
-	mission["Type"] = randomMissionType["MissionID"];
-	mission["Location"] = randomMissionScene;
-	mission["Difficulty"] = math.min(CF.MaxDifficulty, math.max(1, tonumber(gamestate["MissionDifficultyBonus"]) + math.random(3)));
+	mission.SourcePlayer = contractor;
+	mission.TargetPlayer = target;
+	mission.Type = randomMissionType.MissionID;
+	mission.Location = randomMissionScene;
+	mission.Difficulty = tonumber(gameState["MissionDifficultyBonus"]) + math.random(-1, 1) + math.max(math.abs(reputation), math.abs(illReputation)) / CF.ReputationPerDifficulty;
 
 	return mission;
 end
 -----------------------------------------------------------------------
 -- Generate a new set of missions
 -----------------------------------------------------------------------
-CF.GenerateRandomMissions = function(gamestate)
-	local missions = {}
-	local maxMissions = math.max(CF.MaxMissions, math.floor(tonumber(gamestate["ActiveCPUs"]) / 4))
-	local usedLocations = {}
+function CF.GenerateRandomMissions(gameState)
+	local missions = {};
+	local maxMissions = math.max(CF.MaxMissions, math.floor(tonumber(gameState["ActiveCPUs"]) / 4));
+	local usedLocations = {};
 
 	for i = 1, maxMissions do
-		missions[i] = CF.GenerateRandomMission(gamestate, nil, nil, usedLocations)
-		table.insert(usedLocations, missions[i]["Location"])
+		missions[i] = CF.GenerateRandomMission(gameState, nil, nil, usedLocations);
+		table.insert(usedLocations, missions[i].Location);
 	end
 
 	-- Put missions to gameState
 	for i = 1, #missions do
-		gamestate["Mission" .. i .. "SourcePlayer"] = missions[i]["SourcePlayer"]
-		gamestate["Mission" .. i .. "TargetPlayer"] = missions[i]["TargetPlayer"]
-		gamestate["Mission" .. i .. "Type"] = missions[i]["Type"]
-		gamestate["Mission" .. i .. "Location"] = missions[i]["Location"]
-		gamestate["Mission" .. i .. "Difficulty"] = missions[i]["Difficulty"]
+		gameState["Mission" .. i .. "SourcePlayer"] = missions[i].SourcePlayer;
+		gameState["Mission" .. i .. "TargetPlayer"] = missions[i].TargetPlayer;
+		gameState["Mission" .. i .. "Type"] = missions[i].Type;
+		gameState["Mission" .. i .. "Location"] = missions[i].Location;
+		gameState["Mission" .. i .. "Difficulty"] = missions[i].Difficulty;
 	end
 end
 -----------------------------------------------------------------------
---
+-- Sets whether an actor is an NPC on the player's team
 -----------------------------------------------------------------------
 function CF.SetAlly(actor, yes)
 	if yes then
 		actor:SetNumberValue("VW_Ally", 1);
 		actor.PlayerControllable = false;
 		actor.CanRevealUnseen = false;
+
 		if actor:HasScript("Mods/VoidWanderers.rte/Actors/Shared/Conscript.lua") then
 			actor:EnableScript("Mods/VoidWanderers.rte/Actors/Shared/Conscript.lua");
 		else
@@ -1109,6 +1153,7 @@ function CF.SetAlly(actor, yes)
 		actor.PlayerControllable = true;
 		actor.CanRevealUnseen = true;
 		actor:FlashWhite(50);
+
 		actor:DisableScript("Mods/VoidWanderers.rte/Actors/Shared/Conscript.lua");
 	end
 end
@@ -1119,24 +1164,25 @@ function CF.IsAlly(actor)
 	return actor:NumberValueExists("VW_Ally");
 end
 -----------------------------------------------------------------------
--- Whether an actor is a brain for anyone, counts cases and those with the script
+-- Whether an actor is a VW brain for anyone
 -----------------------------------------------------------------------
 function CF.IsBrain(actor)
-	return (actor.PresetName == "Brain Case" or actor:HasScript("VoidWanderers.rte/Actors/Shared/Brain.lua"))
+	return (MovableMan:ValidMO(actor) or error("Bad reference or nil value passed to CF::IsBrain!", 2))
+		and (actor.PresetName == "Brain Case" or actor:HasScript("VoidWanderers.rte/Actors/Shared/Brain.lua"));
 end
 -----------------------------------------------------------------------
 -- Whether an actor is the brain or otherwise prestigious
 -----------------------------------------------------------------------
 function CF.IsCommander(actor)
-	return (CF.IsBrain(actor) or actor:GetNumberValue("VW_Prestige") ~= 0)
+	return (CF.IsBrain(actor) or actor:GetNumberValue("VW_Prestige") ~= 0);
 end
 -----------------------------------------------------------------------
--- Whether an actor is a player-controllable, non-brain unit
+-- Whether an actor is a generic player usable unit
 -----------------------------------------------------------------------
 function CF.IsPlayerUnit(actor)
 	return (IsAHuman(actor) or IsACrab(actor))
 		and actor.Team == CF.PlayerTeam
-		and not (CF.IsBrain(actor) or CF.IsAlly(actor))
+		and not (CF.IsBrain(actor) or CF.IsAlly(actor));
 end
 -----------------------------------------------------------------------
 --

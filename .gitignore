@@ -1,10 +1,8 @@
-
 *.zip
-VoidWanderers.rte/CampaignData
 .vscode
-*.dat
 /.vs
 /*.rte
 !VoidWanderers.rte
+VoidWanderers.rte/CampaignData
 !MirandaZoneReavers.rte
 /Extensions

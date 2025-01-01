@@ -25,7 +25,7 @@ function VoidWanderers:FormLoad()
 		self.UI[#self.UI + 1] = el;
 
 		if CF.IsFileExists(self.ModuleName, "savegame" .. i .. ".dat") then
-			local config = CF.ReadConfigFile(self.ModuleName, "savegame" .. i .. ".dat");
+			local config = CF.ReadDataFile("Mods/" .. self.ModuleName .. "/CampaignData/" .. "savegame" .. i .. ".dat");
 
 			local isbroken = false;
 			local reason = "";
@@ -167,7 +167,7 @@ end
 -----------------------------------------------------------------------
 function VoidWanderers:SaveSlots_OnClick()
 	if not self.Slots[self.MouseOverElement].Empty then
-		self.GS = CF.ReadConfigFile(self.ModuleName, "savegame" .. self.MouseOverElement .. ".dat")
+		self.GS = CF.ReadDataFile("Mods/" .. self.ModuleName .. "/CampaignData/" .. "savegame" .. self.MouseOverElement .. ".dat")
 
 		-- Reset mission listing if they are not correct
 		for j = 1, CF.MaxMissions do
@@ -209,7 +209,8 @@ function VoidWanderers:SaveSlots_OnClick()
 		self:OnSave()
 		self:LoadSaveData()
 		self:FormClose()
-		self:LaunchScript(self.GS["Scene"], "Tactics.lua")
+		self.sceneToLaunch = self.GS["Scene"];
+		self.scriptToLaunch = "Tactics.lua";
 	end
 end
 -----------------------------------------------------------------------

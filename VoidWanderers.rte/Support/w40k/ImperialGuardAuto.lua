@@ -16,7 +16,7 @@ CF.FactionPlayable[factionid] = true
 CF.RequiredModules[factionid] = { "Base.rte", "w40k.rte" }
 
 -- Set faction nature - types are ORGANIC and SYNTHETIC
-CF.FactionNatures[factionid] = CF.FactionTypes.ORGANIC
+CF.FactionNatures[factionid] = CF.FactionNatureTypes.ORGANIC
 
 -- Define faction bonuses, in percents
 -- Scan price reduction

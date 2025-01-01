@@ -124,7 +124,7 @@ function VoidWanderers:MissionUpdate()
 						if
 							actor.Team == CF.CPUTeam
 							and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-							and CF.DistUnder(self.missionData["devices"][i].Pos, actor.Pos, self.missionData["alertRange"])
+							and CF.Dist(self.missionData["devices"][i].Pos, actor.Pos) < self.missionData["alertRange"]
 						then
 							CF.HuntForActors(actor, CF.PlayerTeam)
 						end
@@ -162,9 +162,10 @@ function VoidWanderers:MissionUpdate()
 				local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
 				if ship then
 					for i = 1, count do
-						local actor = CF.SpawnAIUnit(self.GS, self.missionData["missionTarget"], CF.CPUTeam, nil, nil)
+						local actor = CF.MakeUnit(self.GS, self.missionData["missionTarget"]);
 						if actor then
-							ship:AddInventoryItem(actor)
+							actor.Team = CF.CPUTeam;
+							ship:AddInventoryItem(actor);
 						end
 					end
 					ship.Team = CF.CPUTeam
@@ -185,9 +186,9 @@ function VoidWanderers:MissionUpdate()
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
 		self.missionData["missionStatus"] = "MISSION COMPLETED"
-		if not self.MissionEndMusicPlayed then
+		if not self.missionData["endMusicPlayed"] then
 			self:StartMusic(CF.MusicTypes.VICTORY)
-			self.MissionEndMusicPlayed = true
+			self.missionData["endMusicPlayed"] = true
 		end
 
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then

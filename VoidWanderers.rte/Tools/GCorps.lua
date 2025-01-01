@@ -13,7 +13,7 @@ CF.FactionPlayable[factionid] = true
 
 CF.RequiredModules[factionid] = { "G Corps.rte" }
 -- Available values ORGANIC, SYNTHETIC
-CF.FactionNatures[factionid] = CF.FactionTypes.ORGANIC
+CF.FactionNatures[factionid] = CF.FactionNatureTypes.ORGANIC
 
 -- Define faction bonuses, in percents
 -- Scan price reduction

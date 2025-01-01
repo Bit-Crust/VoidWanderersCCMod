@@ -192,9 +192,9 @@ CF.LocationSecurity[id] = 0
 CF.LocationGoldPresent[id] = false
 CF.LocationScenes[id] = { "Vessel Titan" }
 CF.LocationScript[id] = {
+	"VoidWanderers.rte/Scripts/Missions/AbandonedVessel_Firefight.lua",
 	"VoidWanderers.rte/Scripts/Missions/AbandonedVessel_Faction.lua",
 	"VoidWanderers.rte/Scripts/Missions/AbandonedVessel_Zombies.lua",
-	"VoidWanderers.rte/Scripts/Missions/AbandonedVessel_Firefight.lua",
 }
 CF.LocationAmbientScript[id] = "VoidWanderers.rte/Scripts/Ambience/Smokes.lua"
 CF.LocationPlanet[id] = ""
@@ -210,7 +210,7 @@ CF.LocationAttributes[id] = {
 --]]--
 
 -- Counterattack vessel scenes
-local id = "Vessel Lynx"
+local id = "Hostile Vessel Lynx"
 CF.Location[#CF.Location + 1] = id
 CF.LocationName[id] = "Lynx"
 CF.LocationPos[id] = Vector(0, 0)
@@ -232,7 +232,7 @@ CF.LocationAttributes[id] = {
 	CF.LocationAttributeTypes.NOBOMBS,
 }
 
-local id = "Vessel Gryphon"
+local id = "Hostile Vessel Gryphon"
 CF.Location[#CF.Location + 1] = id
 CF.LocationName[id] = "Gryphon"
 CF.LocationPos[id] = Vector(0, 0)
@@ -254,7 +254,7 @@ CF.LocationAttributes[id] = {
 	CF.LocationAttributeTypes.NOBOMBS,
 }
 
-local id = "Vessel Titan"
+local id = "Hostile Vessel Titan"
 CF.Location[#CF.Location + 1] = id
 CF.LocationName[id] = "Titan"
 CF.LocationPos[id] = Vector(0, 0)

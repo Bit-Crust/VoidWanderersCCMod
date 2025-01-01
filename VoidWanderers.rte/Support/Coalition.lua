@@ -14,7 +14,7 @@ do
 	-- Set true if faction is selectable by player or AI
 	CF.FactionPlayable[factionid] = true
 	-- Available values ORGANIC, SYNTHETIC: both are automatically mildly disliked by each other at the start of the game
-	CF.FactionNatures[factionid] = CF.FactionTypes.ORGANIC
+	CF.FactionNatures[factionid] = CF.FactionNatureTypes.ORGANIC
 
 	-- Modules needed for this faction
 	CF.RequiredModules[factionid] = { "Base.rte", "Coalition.rte" }

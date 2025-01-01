@@ -16,50 +16,27 @@ local actorGroups = {
 	{ "Actors - Light", CF.ActorTypes.LIGHT },
 	{ "Actors - Heavy", CF.ActorTypes.HEAVY },
 	{ "Actors - Mecha", CF.ActorTypes.ARMOR },
-	{ "Actors - Turrets", CF.ActorTypes.TURRET },
+	{ "Actors - Turrets", CF.ActorTypes.TURRET }
 }
 
-local baseItems = {}
-baseItems[#baseItems + 1] = { presetName = "Remote Explosive", class = "TDExplosive", unlockData = 500, itemPowers = 1 }
-baseItems[#baseItems + 1] = {
-	presetName = "Anti Personnel Mine",
-	class = "TDExplosive",
-	unlockData = 1000,
-	itemPowers = 0,
+local baseItems = {
+	{ presetName = "Remote Explosive", class = "TDExplosive", unlockData = 500, itemPowers = 1 },
+	{ presetName = "Anti Personnel Mine", class = "TDExplosive", unlockData = 1000, itemPowers = 0 },
+	{ presetName = "Light Digger", class = "HDFirearm", unlockData = 0, itemPowers = 1, weaponType = CF.WeaponTypes.DIGGER },
+	{ presetName = "Medium Digger", class = "HDFirearm", unlockData = 600, itemPowers = 3, weaponType = CF.WeaponTypes.DIGGER },
+	{ presetName = "Heavy Digger", class = "HDFirearm", unlockData = 1200, itemPowers = 5, weaponType = CF.WeaponTypes.DIGGER },
+	{ presetName = "Detonator", class = "HDFirearm", unlockData = 500, itemPowers = 0 },
+	{ presetName = "Grapple Gun", class = "HDFirearm", unlockData = 800, itemPowers = 0 },
+	{ presetName = "Medikit", class = "HDFirearm", unlockData = 700, itemPowers = 3 },
+	{ presetName = "Disarmer", class = "HDFirearm", unlockData = 900, itemPowers = 0 },
+	{ presetName = "Constructor", class = "HDFirearm", unlockData = 1000, itemPowers = 0 },
+	{ presetName = "Scanner", class = "HDFirearm", unlockData = 800, itemPowers = 0 },
+	{ presetName = "Riot Shield", class = "HeldDevice", unlockData = 500, itemPowers = 1 }
 }
 
-baseItems[#baseItems + 1] = {
-	presetName = "Light Digger",
-	class = "HDFirearm",
-	unlockData = 0,
-	itemPowers = 1,
-	weaponType = CF.WeaponTypes.DIGGER,
+local baseActors = {
+	{ presetName = "Medic Drone", class = "ACrab", unlockData = 1300, actorPowers = 0 }
 }
-baseItems[#baseItems + 1] = {
-	presetName = "Medium Digger",
-	class = "HDFirearm",
-	unlockData = 600,
-	itemPowers = 3,
-	weaponType = CF.WeaponTypes.DIGGER,
-}
-baseItems[#baseItems + 1] = {
-	presetName = "Heavy Digger",
-	class = "HDFirearm",
-	unlockData = 1200,
-	itemPowers = 5,
-	weaponType = CF.WeaponTypes.DIGGER,
-}
-baseItems[#baseItems + 1] = { presetName = "Detonator", class = "HDFirearm", unlockData = 500, itemPowers = 0 }
-baseItems[#baseItems + 1] = { presetName = "Grapple Gun", class = "HDFirearm", unlockData = 800, itemPowers = 0 }
-baseItems[#baseItems + 1] = { presetName = "Medikit", class = "HDFirearm", unlockData = 700, itemPowers = 3 }
-baseItems[#baseItems + 1] = { presetName = "Disarmer", class = "HDFirearm", unlockData = 900, itemPowers = 0 }
-baseItems[#baseItems + 1] = { presetName = "Constructor", class = "HDFirearm", unlockData = 1000, itemPowers = 0 }
-baseItems[#baseItems + 1] = { presetName = "Scanner", class = "HDFirearm", unlockData = 800, itemPowers = 0 }
-baseItems[#baseItems + 1] = { presetName = "Riot Shield", class = "HeldDevice", unlockData = 500, itemPowers = 1 }
-
-local baseActors = {}
-baseActors[#baseActors + 1] = { presetName = "Medic Drone", class = "ACrab", unlockData = 1300, actorPowers = 0 }
-baseActors[#baseActors + 1] = { presetName = "Green Dummy", class = "AHuman", unlockData = 750, actorPowers = 0 }
 
 for module in PresetMan.Modules do
 	if
@@ -72,10 +49,10 @@ for module in PresetMan.Modules do
 		-- Find faction files in either the module or VoidWanderers support folder
 		local pathNative = module.FileName .. "/FactionFiles/" .. string.gsub(module.FileName, ".rte", ".lua")
 		local pathSupport = CF.ModuleName .. "/Support/" .. string.gsub(module.FileName, ".rte", ".lua")
-		if CF.IsFilePathExists(pathNative) then
+		if LuaMan:FileExists(pathNative) then
 			print("Loading native faction file: " .. factionid)
 			dofile(pathNative)
-		elseif CF.IsFilePathExists(pathSupport) then
+		elseif LuaMan:FileExists(pathSupport) then
 			print("Loading supported faction file: " .. factionid)
 			dofile(pathSupport)
 		elseif module.FileName ~= CF.ModuleName and module.IsFaction then
@@ -88,7 +65,7 @@ for module in PresetMan.Modules do
 			CF.FactionPlayable[factionid] = true
 			CF.RequiredModules[factionid] = { "Base.rte", module.FileName }
 			-- Available values ORGANIC, SYNTHETIC
-			CF.FactionNatures[factionid] = CF.FactionTypes.SYNTHETIC
+			CF.FactionNatures[factionid] = CF.FactionNatureTypes.SYNTHETIC
 			-- Percentage of troops sent to brainhunt or attack player LZ when AI is defending (default - CF.DefaultBrainHuntRatio)
 			-- If this value is less then default then faction is marked as Defensive if it's more, then as Offensive
 			CF.BrainHuntRatios[factionid] = 40
@@ -362,7 +339,7 @@ for module in PresetMan.Modules do
 								and ToAHuman(entity).Head
 								and string.find(ToAHuman(entity).Head.Material.PresetName, "Flesh")
 							then
-								CF.FactionNatures[factionid] = CF.FactionTypes.ORGANIC
+								CF.FactionNatures[factionid] = CF.FactionNatureTypes.ORGANIC
 							end
 						end
 					end

@@ -243,16 +243,12 @@ function VoidWanderers:MissionUpdate()
 					or 1
 				for i = 1, unitCount do
 					local pre = math.random(#presets)
-					local actor = CF.SpawnAIUnitWithPreset(
-						self.GS,
-						self.missionData["missionTarget"],
-						CF.CPUTeam,
-						nil,
-						modes[pre],
-						presets[pre]
-					)
+					local actor = CF.MakeUnitWithPreset(self.GS, self.missionData["missionTarget"], presets[pre]);
+
 					if actor then
-						ship:AddInventoryItem(actor)
+						actor.Team = CF.CPUTeam;
+						actor.AIMode = modes[pre];
+						ship:AddInventoryItem(actor);
 					end
 				end
 				ship.Team = CF.CPUTeam
@@ -264,9 +260,9 @@ function VoidWanderers:MissionUpdate()
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
 		self.missionData["missionStatus"] = "MISSION COMPLETED"
-		if not self.MissionEndMusicPlayed then
+		if not self.missionData["endMusicPlayed"] then
 			self:StartMusic(CF.MusicTypes.VICTORY)
-			self.MissionEndMusicPlayed = true
+			self.missionData["endMusicPlayed"] = true
 		end
 
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
@@ -277,9 +273,9 @@ function VoidWanderers:MissionUpdate()
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.FAILED then
 		self.missionData["missionStatus"] = "MISSION FAILED"
-		if not self.MissionEndMusicPlayed then
+		if not self.missionData["endMusicPlayed"] then
 			self:StartMusic(CF.MusicTypes.DEFEAT)
-			self.MissionEndMusicPlayed = true
+			self.missionData["endMusicPlayed"] = true
 		end
 
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then

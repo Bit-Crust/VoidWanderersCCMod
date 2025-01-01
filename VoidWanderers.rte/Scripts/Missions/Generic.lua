@@ -16,33 +16,38 @@
 --
 -----------------------------------------------------------------------
 function VoidWanderers:MissionCreate()
-	print("GENERIC CREATE")
+	print("GENERIC CREATE");
 
 	-- Enumerated constant
-	self.missionData["defaultHostilities"] = { Activity.TEAM_1, Activity.TEAM_4, Activity.TEAM_3 }
+	self.missionData["defaultHostilities"] = { Activity.TEAM_1, Activity.TEAM_4, Activity.TEAM_3 };
 
 	-- Load some positional data
-	local pointSetIndex = CF.GetRandomMissionPointsSet(self.Pts, "Deploy")
-	local ambientEnemyLocations = CF.GetPointsArray(self.Pts, "Deploy", pointSetIndex, "AmbientEnemy")
-	self.missionData["enemyLandingZones"] = CF.GetPointsArray(self.Pts, "Deploy", pointSetIndex, "EnemyLZ")
-	local ambientEnemyQuantity = math.ceil(CF.AmbientEnemyRate * #ambientEnemyLocations)
-	local ambientEnemyPositions = CF.RandomSampleOfList(ambientEnemyLocations, ambientEnemyQuantity)
+	local pointSetIndex = CF.GetRandomMissionPointsSet(self.Pts, "Deploy");
+	local ambientEnemyLocations = CF.GetPointsArray(self.Pts, "Deploy", pointSetIndex, "AmbientEnemy");
+	self.missionData["enemyLandingZones"] = CF.GetPointsArray(self.Pts, "Deploy", pointSetIndex, "EnemyLZ");
+	local ambientEnemyQuantity = math.ceil(CF.AmbientEnemyRate * #ambientEnemyLocations);
+	local ambientEnemyPositions = CF.RandomSampleOfList(ambientEnemyLocations, ambientEnemyQuantity);
+
+	local team1Player = 1;
 		
 	-- Find player's enemies
-	local selection = {}
-	for i = 1, tonumber(self.GS["ActiveCPUs"]) do
-		table.insert(selection, i)
+	local activeCPUs = tonumber(self.GS["ActiveCPUs"]);
+	local team2Player = CF.GetAngriestPlayer(self.GS);
+	local team3Player = math.random(2, activeCPUs);
+	local team4Player = math.random(2, activeCPUs - 1);
+	
+	if team4Player >= team3Player then
+		team4Player = team4Player + 1;
 	end
 
-	local team1Player = 1
-	local team2Player = CF.GetAngriestPlayer(self.GS)
-	local team3Player = selection[math.random(#selection)]
-	local team4Player = selection[math.random(#selection)]
-	self.missionData["CPUPlayers"] = { team2Player, team3Player, team4Player }
+	self.missionData["teamParticipants"] = { team2Player, team3Player, team4Player };
 	
-	CF.CreateAIUnitPresets(self.GS, team2Player, CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, team2Player), self.missionData["difficulty"]))
-	CF.CreateAIUnitPresets(self.GS, team3Player, CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, team3Player), self.missionData["difficulty"]))
-	CF.CreateAIUnitPresets(self.GS, team4Player, CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, team4Player), self.missionData["difficulty"]))
+	for i = Activity.TEAM_2, Activity.MAXTEAMCOUNT - 1 do
+		local teamParticipant = self.missionData["teamParticipants"][i];
+		local faction = CF.GetPlayerFaction(self.GS, teamParticipant);
+		local techLevel = CF.GetTechLevelFromDifficulty(faction, self.missionData["difficulty"]);
+		CF.CreateAIUnitPresets(self.GS, teamParticipant, techLevel);
+	end
 
 	-- Place some ambient randos
 	for i = 1, #ambientEnemyPositions do
@@ -128,20 +133,16 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["missionNextDropShip"] = self.Time + CF.AmbientReinforcementsInterval + math.random(15)
 			self.missionData["dropShipCount"] = self.missionData["dropShipCount"] + 1
 			local count = math.random(math.ceil(math.max(1, math.min(CF.MaxDifficulty, self.missionData["difficulty"] / 2))))
-			local f = CF.GetPlayerFaction(self.GS, self.missionData["CPUPlayers"][team])
+			local f = CF.GetPlayerFaction(self.GS, self.missionData["teamParticipants"][team])
 			local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
 
 			if ship then
 				for i = 1, count do
-					local actor = CF.SpawnAIUnit(
-						self.GS,
-						self.missionData["CPUPlayers"][team],
-						team,
-						nil,
-						math.random() < 0.5 and Actor.AIMODE_SENTRY or Actor.AIMODE_PATROL
-					)
+					local actor = CF.MakeUnit(self.GS, self.missionData["teamParticipants"][team]);
 
 					if actor then
+						actor.Team = team;
+						actor.AIMode = math.random() < 0.5 and Actor.AIMODE_SENTRY or Actor.AIMODE_PATROL;
 						ship:AddInventoryItem(actor)
 					end
 				end
@@ -157,21 +158,23 @@ function VoidWanderers:MissionUpdate()
 	-- Spawn green team dropship
 	if
 		self.missionData["difficulty"] >= 2
-		and self.missionData["CPUPlayers"][Activity.TEAM_2] ~= nil
+		and self.missionData["teamParticipants"][Activity.TEAM_2] ~= nil
 		and self.Time > self.missionData["missionNextIntervention"]
 		and #self.missionData["enemyLandingZones"] > 0
 	then
 		self.missionData["missionNextIntervention"] = self.Time + CF.AmbientReinforcementsInterval + math.random(30)
 		local team = Activity.TEAM_2
 		local count = 3
-		local f = CF.GetPlayerFaction(self.GS, self.missionData["CPUPlayers"][team])
+		local f = CF.GetPlayerFaction(self.GS, self.missionData["teamParticipants"][team])
 		local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
 
 		if ship then
 			for i = 1, count do
-				local actor = CF.SpawnAIUnit(self.GS, self.missionData["CPUPlayers"][team], team, nil, nil)
+				local actor = CF.MakeUnit(self.GS, self.missionData["teamParticipants"][team]);
 
 				if actor then
+					actor.Team = team;
+					
 					if math.random(100) <= self.missionData["difficulty"] then
 						actor:AddInventoryItem(
 							CreateHeldDevice((math.random() < 0.25 and "Black" or "Blue") .. "print", CF.ModuleName)
@@ -211,7 +214,7 @@ function VoidWanderers:MissionUpdate()
 
 				for _, actor in ipairs(activeUnits[team]) do
 					local assignable = true
-					local unassignables = CF.UnassignableUnits[CF.GetPlayerFaction(self.GS, self.missionData["CPUPlayers"][team])]
+					local unassignables = CF.UnassignableUnits[CF.GetPlayerFaction(self.GS, self.missionData["teamParticipants"][team])]
 
 					if unassignables then
 						for i = 1, #unassignables do

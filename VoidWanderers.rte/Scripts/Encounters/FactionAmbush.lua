@@ -8,219 +8,183 @@
 function VoidWanderers:EncounterCreate()
 	print("FACTION AMBUSH CREATE")
 
-	self.encounterData["assaultDelay"] = 30
-	self.vesselData["flightDisabled"] = true
+	self.encounterData["assaultDelay"] = 15;
+	self.encounterData["assaultStartTime"] = self.Time + self.encounterData["assaultDelay"];
+	self.vesselData["flightDisabled"] = true;
+	self.vesselData["flightAimless"] = true;
+	self.vesselData["lifeSupportEnabled"] = false;
 
 	-- Select random assault CPU based on how angry they are
-	local angry = {}
-	local anger = {}
+	local angry = {};
+	local anger = {};
 
 	for i = 1, tonumber(self.GS["ActiveCPUs"]) do
-		local rep = tonumber(self.GS["Player" .. i .. "Reputation"])
+		local rep = tonumber(self.GS["Player" .. i .. "Reputation"]);
 		if rep <= CF.ReputationHuntThreshold then
-			angry[#angry + 1] = i
-			anger[#anger + 1] = math.min(CF.MaxDifficulty, math.max(1, math.floor(-rep / CF.ReputationPerDifficulty)))
+			angry[#angry + 1] = i;
+			anger[#anger + 1] = math.min(CF.MaxDifficulty, math.max(1, math.floor(-rep / CF.ReputationPerDifficulty)));
 		end
 	end
 
 	if #angry > 0 then
-		local antagonist = CF.WeightedSelection(anger)
+		local antagonist = CF.WeightedSelection(anger);
 
-		self.encounterData["ambushAssailant"] = angry[antagonist]
-		self.encounterData["ambushDifficulty"] = anger[antagonist]
+		self.encounterData["ambushAssailant"] = angry[antagonist];
+		self.encounterData["difficulty"] = anger[antagonist];
 	end
 
-	self:SendTransmission("Help, it's the " .. self.GS["Player" .. self.encounterData["ambushAssailant"] .. "Faction"], {"Ack!", "Ulp!"})
-	self:StartMusic(CF.MusicTypes.SHIP_INTENSE)
+	local difficulty = self.encounterData["difficulty"];
 
-	self.encounterData["enemiesToSpawn"] = CF.AssaultDifficultyUnitCount[self.encounterData["ambushDifficulty"]]
-	self.encounterData["nextSpawnTime"] = self.encounterData["encounterStartTime"] + CF.AssaultDifficultySpawnInterval[self.encounterData["ambushDifficulty"]] + 1
+	local locations = {};
+
+	for i = 1, #CF.Location do
+		local id = CF.Location[i];
+
+		if CF.IsLocationHasAttribute(id, CF.AssaultDifficultyVesselClass[difficulty]) then
+			locations[#locations + 1] = id;
+		end
+	end
+
+	self.encounterData["counterattackLocation"] = locations[math.random(#locations)];
+
+	local message = CF.GetPlayerFaction(self.GS, self.encounterData["ambushAssailant"]) .. " "
+		.. CF.AssaultDifficultyTexts[difficulty] .. " approaching."
+		.. "\n" .. "BATTLE STATIONS!";
+	self:SendTransmission(message, {});
+	self:GiveFocusToBridge();
+	self:StartMusic(CF.MusicTypes.SHIP_INTENSE);
+
+	self.encounterData["enemiesToSpawn"] = CF.AssaultDifficultyUnitCount[difficulty];
+	self.encounterData["nextSpawnTime"] = self.encounterData["assaultStartTime"];
 	self.encounterData["assaultSpawn"] = SceneMan.Scene:GetArea("Vessel Assault Spawn");
 	self.encounterData["nextSpawnPos"] = self.encounterData["assaultSpawn"] and self.encounterData["assaultSpawn"]:GetRandomPoint() or self.EnemySpawn[math.random(#self.EnemySpawn)];
-	self.encounterData["ambushWarningTime"] = 6 - math.floor(self.encounterData["ambushDifficulty"] * 0.5 + 0.5)
+	self.encounterData["ambushWarningPeriod"] = 6 - math.floor(difficulty * 0.5 + 0.5);
 
 	-- Create attacker's unit presets
-	CF.CreateAIUnitPresets(
-		self.GS,
-		self.encounterData["ambushAssailant"],
-		CF.GetTechLevelFromDifficulty(
-			CF.GetPlayerFaction(self.GS, self.encounterData["ambushAssailant"])
-			self.encounterData["ambushDifficulty"]
-		)
-	)
+	local factionAttacking = CF.GetPlayerFaction(self.GS, self.encounterData["ambushAssailant"]);
+	local techLevel = CF.GetTechLevelFromDifficulty(factionAttacking, difficulty);
+	CF.CreateAIUnitPresets(self.GS, self.encounterData["ambushAssailant"], techLevel);
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function VoidWanderers:EncounterUpdate()
-	if self.vesselData["dialogOptionChosen"] ~= 0 then
-		self.encounterData["encounterConcluded"] = true
-		self.vesselData["flightDisabled"] = false
-		self.vesselData["dialog"] = nil
-		self:RemoveDeployedTurrets()
-	end
+	FrameMan:ClearScreenText(0);
+	
+	local difficulty = self.encounterData["difficulty"];
+	local timeLeft = self.encounterData["assaultStartTime"] - self.Time;
 
-	if self.encounterData["encounterStartTime"] > self.Time then
+	if timeLeft > 0 then
 		if self.Time % 2 == 0 then
-			self:MakeAlertSound(1 / math.max(self.encounterData["encounterStartTime"] - self.Time / 30, 1))
+			self:MakeAlertSound(1 / math.max(timeLeft / 3, 1))
 		end
-	end
-	--[[
-	if self.Time < self.AssaultTime then
-		FrameMan:ClearScreenText(0)
-		FrameMan:SetScreenText(
-			CF.GetPlayerFaction(self.GS, tonumber(self.AssaultEnemyPlayer))
-				.. " "
-				.. CF.AssaultDifficultyTexts[self.AssaultDifficulty]
-				.. " approaching in T-"
-				.. self.AssaultTime - self.Time
-				.. "\nBATTLE STATIONS!",
-			0,
-			0,
-			1000,
-			true
-		)
+
+		local message = CF.GetPlayerFaction(self.GS, self.encounterData["ambushAssailant"]) .. " "
+			.. CF.AssaultDifficultyTexts[self.encounterData["difficulty"]] .. " approaching in T-" .. timeLeft .. "."
+			.. "\n" .. "BATTLE STATIONS!";
+		self:SendTransmission(message, {});
+		FrameMan:SetScreenText(message, 0, 0, 1000, true);
 	end
 
-	-- Launch defense activity
-	if self.AssaultTime == self.Time then
-		self:DeployTurrets()
+	if timeLeft == self.Time then
+		self:DestroyBeamControlPanelUI();
 
-		-- Remove control actors
-		self:DestroyBeamControlPanelUI()
+		self:DestroyItemShopControlPanelUI();
+		self:DestroyCloneShopControlPanelUI();
 
-		self:DestroyItemShopControlPanelUI()
-		self:DestroyCloneShopControlPanelUI()
-
-		self:DestroyTurretsControlPanelUI()
-
-		self:StartMusic(CF.MusicTypes.SHIP_INTENSE)
+		self:DestroyTurretsControlPanelUI();
 	end
-	self:ProcessClonesControlPanelUI()
+
 	-- Show enemies count
-	if self.Time % 10 == 0 and self.AssaultEnemiesToSpawn > 0 then
-		FrameMan:SetScreenText("Remaining assault bots: " .. self.AssaultEnemiesToSpawn, 0, 0, 1500, true)
+	if self.Time % 10 == 0 and self.encounterData["enemiesToSpawn"] > 0 then
+		FrameMan:SetScreenText("Remaining assault bots: " .. self.encounterData["enemiesToSpawn"], 0, 0, 1000, true);
 	end
 
-	if self.AssaultEnemiesToSpawn > 0 and self.AssaultNextSpawnTime - self.Time < self.AssaultWarningTime then
-		self:AddObjectivePoint("INTRUDER\nALERT", self.AssaultNextSpawnPos, CF.PlayerTeam, GameActivity.ARROWDOWN)
+	local unitsPresent = CF.CountActors(Activity.TEAM_2) > 0;
+	local unitsRemaining = self.encounterData["enemiesToSpawn"] > 0;
+
+	if unitsRemaining and self.Time > self.encounterData["nextSpawnTime"] - self.encounterData["ambushWarningPeriod"] then
+		self:AddObjectivePoint("INTRUDER\nALERT", self.encounterData["nextSpawnPos"], CF.PlayerTeam, GameActivity.ARROWDOWN);
 
 		if self.TeleportEffectTimer:IsPastSimMS(50) then
-			local p = CreateMOSParticle("Tiny Blue Glow", self.ModuleName)
-			p.Pos = self.AssaultNextSpawnPos + Vector(math.random(-20, 20), math.random(10, 30))
-			MovableMan:AddParticle(p)
-			self.TeleportEffectTimer:Reset()
+			local p = CreateMOSParticle("Tiny Blue Glow", "VoidWanderers.rte");
+			p.Pos = self.encounterData["nextSpawnPos"] + Vector(math.random(-20, 20), math.random(10, 30));
+			MovableMan:AddParticle(p);
+			self.TeleportEffectTimer:Reset();
 		end
 	end
-	if self.Time % 2 == 0 then
-		self:MakeAlertSound(1 / 4 + 3 / 4 / math.max((self.Time - self.AssaultTime) / 3, 1))
-	end
 
-	-- Spawn enemies
-	if self.AssaultNextSpawnTime == self.Time then
-		-- Check end of assault conditions
-		if CF.CountActors(CF.CPUTeam) == 0 and self.AssaultEnemiesToSpawn == 0 then
-			-- End of assault
-			self.GS["Mode"] = "Vessel"
+	if self.encounterData["nextSpawnTime"] == self.Time and unitsRemaining then
+		self.encounterData["nextSpawnTime"] = self.Time + CF.AssaultDifficultySpawnInterval[difficulty];
+		local defaultCount = CF.AssaultDifficultySpawnBurst[difficulty];
+		local cnt = math.random(math.ceil(defaultCount * 0.5), defaultCount);
+		local engineer = false;
 
-			-- Give some exp
-			if self.MissionReport == nil then
-				self.MissionReport = {}
-			end
-			self.MissionReport[#self.MissionReport + 1] = "We survived this assault."
-			self:GiveRandomExperienceReward(self.AssaultDifficulty)
+		for i = 1, cnt do
+			if self.encounterData["enemiesToSpawn"] > 0 then
+				local actor = CF.MakeUnit(self.GS, self.encounterData["ambushAssailant"]);
 
-			-- Remove turrets
-			self:RemoveDeployedTurrets()
-
-			-- Re-init consoles
-			self:InitConsoles()
-
-			-- Launch ship assault encounter
-			local id = "COUNTERATTACK"
-			self.RandomEncounterID = id
-
-			self.vesselData["dialogDefaultTimer"] = Timer()
-			self.RandomEncounterText = ""
-			self.RandomEncounterVariants = { "Blood for Ba'al!!", "Let them leave." }
-			self.RandomEncounterVariantsInterval = 12
-			self.vesselData["dialogOptionChosen"] = 0
-			self.RandomEncounterIsInitialized = false
-			self.vesselData["dialogOptionSelected"] = 1
-
-			-- Set the availability of the next assault so that they don't happen back-to-back
-			self.encounterEnableTime = self.Time + CF.ShipAssaultCooldown
-
-			-- Switch to ship panel
-			local bridgeempty = true
-			local plrtoswitch = -1
-
-			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-				local act = self:GetControlledActor(player)
-
-				if act and MovableMan:IsActor(act) then
-					if act.PresetName ~= "Ship Control Panel" and plrtoswitch == -1 then
-						plrtoswitch = player
+				if actor then
+					actor.Team = CF.CPUTeam;
+					actor.Pos = self.encounterData["nextSpawnPos"] + Vector(math.random(-4, 4), math.random(-2, 2));
+					actor.AIMode = Actor.AIMODE_BRAINHUNT;
+					actor.HFlipped = cnt == 1 and math.random() < 0.5 or i % 2 == 0;
+					MovableMan:AddActor(actor);
+					actor:FlashWhite(math.random(200, 300));
+						
+					if not engineer and math.random() < 0.1 then
+						actor:AddInventoryItem(math.random() < 0.5 and CreateHDFirearm("Heavy Digger", "Base.rte") or CreateTDExplosive("Timed Explosive", "Coalition.rte"))
+						engineer = true;
 					end
 
-					if act.PresetName == "Ship Control Panel" then
-						bridgeempty = false
-					end
-				end
-			end
-
-			if plrtoswitch > -1 and bridgeempty and MovableMan:IsActor(self.ShipControlPanelActor) then
-				self:SwitchToActor(self.ShipControlPanelActor, plrtoswitch, CF.PlayerTeam)
-			end
-			self.ShipControlMode = self.ShipControlPanelModes.REPORT
-		end
-
-		--print ("Spawn")
-		self.AssaultNextSpawnTime = self.Time + CF.AssaultDifficultySpawnInterval[self.AssaultDifficulty]
-
-		local cnt = math.random(
-			math.ceil(CF.AssaultDifficultySpawnBurst[self.AssaultDifficulty] * 0.5),
-			CF.AssaultDifficultySpawnBurst[self.AssaultDifficulty]
-		)
-		local engineer = false
-		for j = 1, cnt do
-			if self.AssaultEnemiesToSpawn > 0 then
-				local act = CF.SpawnAIUnitWithPreset(
-					self.GS,
-					self.AssaultEnemyPlayer,
-					CF.CPUTeam,
-					self.AssaultNextSpawnPos + Vector(math.random(-4, 4), math.random(-2, 2)),
-					Actor.AIMODE_BRAINHUNT,
-					math.random(self.AssaultDifficulty)
-				)
-
-				if act then
-					self.AssaultEnemiesToSpawn = self.AssaultEnemiesToSpawn - 1
-					if not engineer and math.random() < self.AssaultDifficulty / CF.MaxDifficulty then
-						act:AddInventoryItem(
-							(
-									math.random() < 0.5 and CreateHDFirearm("Heavy Digger", "Base.rte")
-									or CreateTDExplosive("Timed Explosive", "Coalition.rte")
-								)
-						)
-						engineer = true
-					end
-					act.HFlipped = cnt == 1 and math.random() < 0.5 or j % 2 == 0
-					MovableMan:AddActor(act)
-
-					act:FlashWhite(math.random(200, 300))
+					self.encounterData["enemiesToSpawn"] = self.encounterData["enemiesToSpawn"] - 1;
 				end
 			end
 		end
-		local sfx = CreateAEmitter("Teleporter Effect A")
-		sfx.Pos = self.AssaultNextSpawnPos
-		MovableMan:AddParticle(sfx)
 
-		self.AssaultWarningTime = 6 - math.floor(self.AssaultDifficulty * 0.5 + 0.5)
-		self.AssaultNextSpawnPos = self.encounterData["assaultSpawn"] and self.encounterData["assaultSpawn"]:GetRandomPoint()
-			or self.EnemySpawn[math.random(#self.EnemySpawn)]
+		local sfx = CreateAEmitter("Teleporter Effect 1", "VoidWanderers.rte");
+		sfx.Pos = self.encounterData["nextSpawnPos"];
+		MovableMan:AddParticle(sfx);
+
+		self.encounterData["nextSpawnPos"] = self.encounterData["assaultSpawn"]:GetRandomPoint();
 	end
-	--]]
+	
+	if not (unitsPresent or unitsRemaining) then
+		if not self.encounterData["counterAttackNotified"] then
+			self:GiveRandomExperienceReward(difficulty);
+			self.encounterData["counterattackExpiration"] = self.Time + 15;
+			self.encounterData["counterAttackNotified"] = true;
+			self.GS["Location"] = self.encounterData["counterattackLocation"];
+			self.GS["LocationInhabitants"] = self.encounterData["ambushAssailant"];
+			CF.SetLocationSecurity(self.GS, self.GS["Location"], self.encounterData["difficulty"] * 10);
+		end
+
+		local timeLeft = (self.encounterData["counterattackExpiration"] - self.Time);
+		local message = "";
+
+		message = "Enemy will charge its FTL drive in T-" .. timeLeft .. ", we can counterattack!"
+			.. "\n" .. "Deploy your away team to the enemy ship!";
+
+		self:SendTransmission(message, {});
+
+		message = "Enemy will charge its FTL drive in T-" .. timeLeft .. ".";
+		FrameMan:SetScreenText(message, 0, 0, 1000, true);
+
+		if self.Time > self.encounterData["counterattackExpiration"] then
+			self.reportData = {};
+			self.reportData[#self.reportData + 1] = "We survived this assault.";
+			CF.SaveMissionReport(self.GS, self.reportData);
+
+			self.encounterData["encounterConcluded"] = true;
+			self.GS["Location"] = nil;
+			self.GS["LocationInhabitants"] = nil;
+			self.vesselData["flightDisabled"] = false;
+			self.vesselData["flightAimless"] = false;
+			self.vesselData["lifeSupportEnabled"] = true;
+			self.vesselData["dialog"] = nil;
+			self:RemoveDeployedTurrets();
+		end
+	end
 end
 -----------------------------------------------------------------------
 --

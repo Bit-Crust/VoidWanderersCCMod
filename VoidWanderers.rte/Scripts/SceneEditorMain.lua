@@ -1,9 +1,9 @@
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
--- Start Activity
+-- Start Scene Process
 -----------------------------------------------------------------------
-function VoidWanderers:StartActivity()
-	print("VoidWanderers:StrategyScreen:StartActivity")
+function VoidWanderers:StartSceneProcess()
+	print("VoidWanderers:StrategyScreen:StartSceneProcess");
 
 	self.MenuNavigationSchemes = { KEYBOARD = 0, MOUSE = 1, GAMEPAD = 2 }
 	self.MenuNavigationScheme = self.MenuNavigationSchemes.KEYBOARD
@@ -100,222 +100,12 @@ function VoidWanderers:StartActivity()
 	self.IsInitialized = true
 end
 -----------------------------------------------------------------------
--- Pause Activity
+-- Update Scene Process
 -----------------------------------------------------------------------
-function VoidWanderers:PauseActivity(pause) end
------------------------------------------------------------------------
--- Create actors used by scene editor
------------------------------------------------------------------------
-function VoidWanderers:CreateActors()
-	--Make an invisible brain.
-	if MovableMan:IsActor(self.brain) then
-		self.brain.ToDelete = true
-		self.brain = nil
-	end
-
-	self.brain = CreateActor("Brain Case")
-	self.brain.Scale = 0
-	self.brain.Team = Activity.TEAM_1
-	self.brain.Pos = self.Mid
-	self.brain.HitsMOs = false
-	self.brain.GetsHitByMOs = false
-	MovableMan:AddActor(self.brain)
-	self:SetPlayerBrain(self.brain, Activity.TEAM_1)
-	self:SwitchToActor(self.brain, Activity.PLAYER_1, Activity.TEAM_1)
-	CameraMan:SetScroll(self.Mid, self:ScreenOfPlayer(Activity.PLAYER_1))
-
-	--[[if MovableMan:IsActor(G_CursorActor) then
-		G_CursorActor.ToDelete = true
-		G_CursorActor = nil
-	end--]]
-	--
-
-	G_CursorActor = CreateActor("VW_Cursor")
-	if G_CursorActor then
-		G_CursorActor.Team = CF.PlayerTeam
-		local curactor = self:GetControlledActor(Activity.PLAYER_1)
-
-		if act and MovableMan:IsActor(curactor) then
-			G_CursorActor.Pos = curactor.Pos
-		else
-			local curactor = self:GetPlayerBrain(0)
-			if MovableMan:IsActor(curactor) then
-				G_CursorActor.Pos = curactor.Pos
-			else
-				G_CursorActor.Pos = Vector()
-			end
-		end
-
-		MovableMan:AddActor(G_CursorActor)
-		ActivityMan:GetActivity():SwitchToActor(G_CursorActor, Activity.PLAYER_1, Activity.TEAM_1)
-	end
-end
------------------------------------------------------------------------
---
------------------------------------------------------------------------
-function VoidWanderers:ClearMessages()
-	self.Messages = {}
-end
------------------------------------------------------------------------
---
------------------------------------------------------------------------
-function VoidWanderers:LoadCurrentGameState()
-	if CF.IsFileExists(self.ModuleName, STATE_CONFIG_FILE) then
-		self.GS = CF.ReadConfigFile(self.ModuleName, STATE_CONFIG_FILE)
-	end
-end
------------------------------------------------------------------------
---
------------------------------------------------------------------------
-function VoidWanderers:SaveCurrentGameState()
-	CF.WriteConfigFile(self.GS, self.ModuleName, STATE_CONFIG_FILE)
-end
------------------------------------------------------------------------
---
------------------------------------------------------------------------
-function VoidWanderers:DrawMouseCursor()
-	--for i = 1, self.CURSOR_REDRAW_COUNT do
-	local pix = CreateMOPixel("Cursor")
-	pix.Pos = self.Mouse + Vector(6, 6)
-	MovableMan:AddParticle(pix)
-	--end
-end
------------------------------------------------------------------------
--- Draw label element
------------------------------------------------------------------------
-function VoidWanderers:DrawLabel(el, state)
-	-- Labels can ommit presets or texts
-	if el["Preset"] then
-		local pix = CreateMOPixel(el["Preset"])
-		pix.Pos = el.Pos
-		MovableMan:AddParticle(pix)
-	end
-
-	if el["Text"] then
-		local centered = true
-
-		if el["Centered"] ~= nil and el["Centered"] == false then
-			centered = false
-		end
-
-		if centered then
-			CF.DrawString(
-				el["Text"],
-				Vector(el.Pos.X - (CF.GetStringPixelWidth(el["Text"]) / 2) + 2, el.Pos.Y),
-				el["Width"] - 8,
-				el["Height"]
-			)
-		else
-			CF.DrawString(el["Text"], el.Pos, el["Width"], el["Height"])
-		end
-	end
-end
------------------------------------------------------------------------
--- Draw button element
------------------------------------------------------------------------
-function VoidWanderers:DrawButton(el, state)
-	local isvisible = true
-
-	if el["Visible"] ~= nil then
-		if el["Visible"] == false then
-			isvisible = false
-		end
-	end
-
-	if isvisible then
-		local pix = CreateMOPixel(el["Presets"][state])
-		pix.Pos = el.Pos
-		MovableMan:AddParticle(pix)
-
-		if el["Text"] then
-			CF.DrawString(
-				el["Text"],
-				Vector(el.Pos.X - (CF.GetStringPixelWidth(el["Text"]) / 2) + 2, el.Pos.Y),
-				el["Width"] - 8,
-				el["Height"]
-			)
-		end
-	end
-end
------------------------------------------------------------------------
--- Check if pos is within button area
------------------------------------------------------------------------
-function VoidWanderers:IsWithinButton(el, pos)
-	local isvisible = true
-
-	if el["Visible"] ~= nil then
-		if el["Visible"] == false then
-			isvisible = false
-		end
-	end
-
-	if isvisible then
-		local elpos = el["Pos"]
-		local wx = el["Width"]
-		local wy = el["Height"]
-
-		if
-			pos.X > elpos.X - (wx / 2)
-			and pos.X < elpos.X + (wx / 2)
-			and pos.Y > elpos.Y - (wy / 2)
-			and pos.Y < elpos.Y + (wy / 2)
-		then
-			return true
-		end
-	end
-
-	return false
-end
------------------------------------------------------------------------
--- Redraw non-custom elements
------------------------------------------------------------------------
-function VoidWanderers:RedrawKnownFormElements()
-	for i = 1, #self.UI do
-		-- Redraw button
-		if self.UI[i]["Type"] == CF.ElementTypes.BUTTON then
-			local state = CF.ElementStates.IDLE
-
-			if i == self.MouseOverElement then
-				state = CF.ElementStates.MOUSE_OVER
-			end
-
-			if i == self.MousePressedElement then
-				state = CF.ElementStates.PRESSED
-			end
-
-			CF.DrawButton(self.UI[i], state, true)
-		end
-
-		if self.UI[i]["Type"] == CF.ElementTypes.LABEL then
-			CF.DrawLabel(self.UI[i], nil)
-		end
-	end
-end
------------------------------------------------------------------------
--- Get element id above whicj mouse currently is
------------------------------------------------------------------------
-function VoidWanderers:GetMouseOverKnownFormElements()
-	for i = 1, #self.UI do
-		if self.UI[i]["Type"] == CF.ElementTypes.BUTTON then
-			if self:IsWithinButton(self.UI[i], self.Mouse) then
-				return i
-			end
-		end
-	end
-
-	return nil
-end
------------------------------------------------------------------------
--- Update Activity
------------------------------------------------------------------------
-function VoidWanderers:UpdateActivity()
+function VoidWanderers:UpdateSceneProcess()
 	-- Just check for intialization flags in update loop to avoid unnecessary function calls during all the mission
 	if self.IsInitialized == nil then
 		self.IsInitialized = false
-	end
-
-	if not self.IsInitialized then
-		self:StartActivity()
 	end
 
 	-- Set the screen of disabled 4-th player when we're playing in 3-player mode
@@ -485,6 +275,212 @@ function VoidWanderers:UpdateActivity()
 	self:RedrawKnownFormElements()
 	self:FormUpdate()
 	self:FormDraw()
+end
+-----------------------------------------------------------------------
+-- Pause Activity
+-----------------------------------------------------------------------
+function VoidWanderers:PauseActivity(pause) end
+-----------------------------------------------------------------------
+-- Create actors used by scene editor
+-----------------------------------------------------------------------
+function VoidWanderers:CreateActors()
+	--Make an invisible brain.
+	if MovableMan:IsActor(self.brain) then
+		self.brain.ToDelete = true
+		self.brain = nil
+	end
+
+	self.brain = CreateActor("Brain Case")
+	self.brain.Scale = 0
+	self.brain.Team = Activity.TEAM_1
+	self.brain.Pos = self.Mid
+	self.brain.HitsMOs = false
+	self.brain.GetsHitByMOs = false
+	MovableMan:AddActor(self.brain)
+	self:SetPlayerBrain(self.brain, Activity.TEAM_1)
+	self:SwitchToActor(self.brain, Activity.PLAYER_1, Activity.TEAM_1)
+	CameraMan:SetScroll(self.Mid, self:ScreenOfPlayer(Activity.PLAYER_1))
+
+	--[[if MovableMan:IsActor(G_CursorActor) then
+		G_CursorActor.ToDelete = true
+		G_CursorActor = nil
+	end--]]
+	--
+
+	G_CursorActor = CreateActor("VW_Cursor")
+	if G_CursorActor then
+		G_CursorActor.Team = CF.PlayerTeam
+		local curactor = self:GetControlledActor(Activity.PLAYER_1)
+
+		if act and MovableMan:IsActor(curactor) then
+			G_CursorActor.Pos = curactor.Pos
+		else
+			local curactor = self:GetPlayerBrain(0)
+			if MovableMan:IsActor(curactor) then
+				G_CursorActor.Pos = curactor.Pos
+			else
+				G_CursorActor.Pos = Vector()
+			end
+		end
+
+		MovableMan:AddActor(G_CursorActor)
+		ActivityMan:GetActivity():SwitchToActor(G_CursorActor, Activity.PLAYER_1, Activity.TEAM_1)
+	end
+end
+-----------------------------------------------------------------------
+--
+-----------------------------------------------------------------------
+function VoidWanderers:ClearMessages()
+	self.Messages = {}
+end
+-----------------------------------------------------------------------
+--
+-----------------------------------------------------------------------
+function VoidWanderers:LoadCurrentGameState()
+	if CF.IsFileExists(self.ModuleName, STATE_CONFIG_FILE) then
+		self.GS = CF.ReadDataFile("Mods/" .. self.ModuleName .. "/CampaignData/" .. STATE_CONFIG_FILE)
+	end
+end
+-----------------------------------------------------------------------
+--
+-----------------------------------------------------------------------
+function VoidWanderers:SaveCurrentGameState()
+	CF.WriteDataFile(self.GS, "Mods/" .. self.ModuleName .. "/CampaignData/" .. STATE_CONFIG_FILE)
+end
+-----------------------------------------------------------------------
+--
+-----------------------------------------------------------------------
+function VoidWanderers:DrawMouseCursor()
+	--for i = 1, self.CURSOR_REDRAW_COUNT do
+	local pix = CreateMOPixel("Cursor")
+	pix.Pos = self.Mouse + Vector(6, 6)
+	MovableMan:AddParticle(pix)
+	--end
+end
+-----------------------------------------------------------------------
+-- Draw label element
+-----------------------------------------------------------------------
+function VoidWanderers:DrawLabel(el, state)
+	-- Labels can ommit presets or texts
+	if el["Preset"] then
+		local pix = CreateMOPixel(el["Preset"])
+		pix.Pos = el.Pos
+		MovableMan:AddParticle(pix)
+	end
+
+	if el["Text"] then
+		local centered = true
+
+		if el["Centered"] ~= nil and el["Centered"] == false then
+			centered = false
+		end
+
+		if centered then
+			CF.DrawString(
+				el["Text"],
+				Vector(el.Pos.X - (CF.GetStringPixelWidth(el["Text"]) / 2) + 2, el.Pos.Y),
+				el["Width"] - 8,
+				el["Height"]
+			)
+		else
+			CF.DrawString(el["Text"], el.Pos, el["Width"], el["Height"])
+		end
+	end
+end
+-----------------------------------------------------------------------
+-- Draw button element
+-----------------------------------------------------------------------
+function VoidWanderers:DrawButton(el, state)
+	local isvisible = true
+
+	if el["Visible"] ~= nil then
+		if el["Visible"] == false then
+			isvisible = false
+		end
+	end
+
+	if isvisible then
+		local pix = CreateMOPixel(el["Presets"][state])
+		pix.Pos = el.Pos
+		MovableMan:AddParticle(pix)
+
+		if el["Text"] then
+			CF.DrawString(
+				el["Text"],
+				Vector(el.Pos.X - (CF.GetStringPixelWidth(el["Text"]) / 2) + 2, el.Pos.Y),
+				el["Width"] - 8,
+				el["Height"]
+			)
+		end
+	end
+end
+-----------------------------------------------------------------------
+-- Check if pos is within button area
+-----------------------------------------------------------------------
+function VoidWanderers:IsWithinButton(el, pos)
+	local isvisible = true
+
+	if el["Visible"] ~= nil then
+		if el["Visible"] == false then
+			isvisible = false
+		end
+	end
+
+	if isvisible then
+		local elpos = el["Pos"]
+		local wx = el["Width"]
+		local wy = el["Height"]
+
+		if
+			pos.X > elpos.X - (wx / 2)
+			and pos.X < elpos.X + (wx / 2)
+			and pos.Y > elpos.Y - (wy / 2)
+			and pos.Y < elpos.Y + (wy / 2)
+		then
+			return true
+		end
+	end
+
+	return false
+end
+-----------------------------------------------------------------------
+-- Redraw non-custom elements
+-----------------------------------------------------------------------
+function VoidWanderers:RedrawKnownFormElements()
+	for i = 1, #self.UI do
+		-- Redraw button
+		if self.UI[i]["Type"] == CF.ElementTypes.BUTTON then
+			local state = CF.ElementStates.IDLE
+
+			if i == self.MouseOverElement then
+				state = CF.ElementStates.MOUSE_OVER
+			end
+
+			if i == self.MousePressedElement then
+				state = CF.ElementStates.PRESSED
+			end
+
+			CF.DrawButton(self.UI[i], state, true)
+		end
+
+		if self.UI[i]["Type"] == CF.ElementTypes.LABEL then
+			CF.DrawLabel(self.UI[i], nil)
+		end
+	end
+end
+-----------------------------------------------------------------------
+-- Get element id above whicj mouse currently is
+-----------------------------------------------------------------------
+function VoidWanderers:GetMouseOverKnownFormElements()
+	for i = 1, #self.UI do
+		if self.UI[i]["Type"] == CF.ElementTypes.BUTTON then
+			if self:IsWithinButton(self.UI[i], self.Mouse) then
+				return i
+			end
+		end
+	end
+
+	return nil
 end
 -----------------------------------------------------------------------
 -- Thats all folks!!!

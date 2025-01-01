@@ -50,13 +50,6 @@ function VoidWanderers:MissionCreate()
 	-- Get LZs
 	self.missionData["landingZones"] = CF.GetPointsArray(self.Pts, "Enemy", set, "LZ")
 
-	-- We're going to alter ally presets, ally units may be tougher or weaker then enemy units
-	CF.CreateAIUnitPresets(
-		self.GS,
-		self.missionData["missionContractor"],
-		self.GS["Player" .. self.missionData["missionContractor"] .. "Reputation"] * 0.5
-	)
-
 	-- Get base
 	self:ObtainBaseBoxes("Enemy", set)
 
@@ -182,15 +175,11 @@ function VoidWanderers:MissionUpdate()
 				local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
 				if ship then
 					for i = 1, count do
-						local actor = CF.SpawnAIUnit(
-							self.GS,
-							self.missionData["missionTarget"],
-							CF.CPUTeam,
-							nil,
-							Actor.AIMODE_SENTRY
-						)
+						local actor = CF.MakeUnit(self.GS, self.missionData["missionTarget"]);
 						if actor then
-							ship:AddInventoryItem(actor)
+							actor.Team = CF.CPUTeam;
+							actor.AIMode = Actor.AIMODE_SENTRY;
+							ship:AddInventoryItem(actor);
 						end
 					end
 					ship.Team = CF.CPUTeam
@@ -218,9 +207,9 @@ function VoidWanderers:MissionUpdate()
 		end]]
 	elseif self.missionData["stage"] == CF.MissionStages.FAILED then
 		self.missionData["missionStatus"] = "MISSION FAILED"
-		if not self.MissionEndMusicPlayed then
+		if not self.missionData["endMusicPlayed"] then
 			self:StartMusic(CF.MusicTypes.DEFEAT)
-			self.MissionEndMusicPlayed = true
+			self.missionData["endMusicPlayed"] = true
 		end
 
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
@@ -232,9 +221,9 @@ function VoidWanderers:MissionUpdate()
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
 		self.missionData["missionStatus"] = "MISSION COMPLETED"
-		if not self.MissionEndMusicPlayed then
+		if not self.missionData["endMusicPlayed"] then
 			self:StartMusic(CF.MusicTypes.VICTORY)
-			self.MissionEndMusicPlayed = true
+			self.missionData["endMusicPlayed"] = true
 		end
 
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then

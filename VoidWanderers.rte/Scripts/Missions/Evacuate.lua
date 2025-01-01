@@ -37,13 +37,6 @@ function VoidWanderers:MissionCreate()
 		self.missionData["interval"] = 16
 	end
 
-	-- We're going to alter ally presets, ally units may be tougher or weaker then enemy units
-	CF.CreateAIUnitPresets(
-		self.GS,
-		self.missionData["missionContractor"],
-		self.GS["Player" .. self.missionData["missionContractor"] .. "Reputation"] * 0.5
-	)
-
 	for actor in MovableMan.Actors do
 		if actor.ClassName == "ADoor" then
 			actor.Team = CF.PlayerTeam
@@ -214,11 +207,7 @@ function VoidWanderers:MissionUpdate()
 						local savior = self:GetControlledActor(player) -- or MovableMan:GetClosestTeamActor(self.missionData["brain"].Team, player, self.missionData["brain"].Pos, 20 + self.missionData["brain"].IndividualRadius, Vector(), self.missionData["brain"])
 						if
 							savior
-							and CF.DistUnder(
-								savior.Pos,
-								self.missionData["brain"].Pos,
-								1 + self.missionData["brain"].IndividualRadius + savior.IndividualRadius
-							)
+							and CF.Dist(savior.Pos, self.missionData["brain"].Pos) < 1 + self.missionData["brain"].IndividualRadius + savior.IndividualRadius
 							and CF.IsCommander(savior)
 						then
 							print("Sir, we must hurry! The enemy are increasing their reinforcements...")
@@ -320,16 +309,21 @@ function VoidWanderers:MissionUpdate()
 						local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
 						if ship then
 							for i = 1, count do
-								local actor = CF.SpawnAIUnit(self.GS, self.missionData["missionTarget"], CF.CPUTeam, nil, nil)
+								local actor = CF.MakeUnit(self.GS, self.missionData["missionTarget"]);
+
 								if actor then
+									actor.Team = CF.CPUTeam;
+
 									if actor.AIMode == Actor.AIMODE_BRAINHUNT then
-										CF.Hunt(actor, { self.missionData["brain"] })
+										CF.Hunt(actor, { self.missionData["brain"] });
 									end
+
 									if i == self.missionData["spawnUnitCount"] and math.random() < 0.5 then
-										actor:AddInventoryItem(CreateTDExplosive("Timed Explosive"))
+										actor:AddInventoryItem(CreateTDExplosive("Timed Explosive"));
 									end
-									actorCount[CF.CPUTeam] = actorCount[CF.CPUTeam] + 1
-									ship:AddInventoryItem(actor)
+
+									actorCount[CF.CPUTeam] = actorCount[CF.CPUTeam] + 1;
+									ship:AddInventoryItem(actor);
 								end
 							end
 							ship.Team = CF.CPUTeam
@@ -351,9 +345,9 @@ function VoidWanderers:MissionUpdate()
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.FAILED then
 		self.missionData["missionStatus"] = "MISSION FAILED"
-		if not self.MissionEndMusicPlayed then
+		if not self.missionData["endMusicPlayed"] then
 			self:StartMusic(CF.MusicTypes.DEFEAT)
-			self.MissionEndMusicPlayed = true
+			self.missionData["endMusicPlayed"] = true
 		end
 
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
@@ -364,9 +358,9 @@ function VoidWanderers:MissionUpdate()
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
 		self.missionData["missionStatus"] = "MISSION COMPLETED"
-		if not self.MissionEndMusicPlayed then
+		if not self.missionData["endMusicPlayed"] then
 			self:StartMusic(CF.MusicTypes.VICTORY)
-			self.MissionEndMusicPlayed = true
+			self.missionData["endMusicPlayed"] = true
 		end
 
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then

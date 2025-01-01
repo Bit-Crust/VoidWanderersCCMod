@@ -11,44 +11,51 @@ function VoidWanderers:MissionCreate()
 	print("COUNTERATTACK CREATE")
 
 	-- Mission difficulty settings
-	local diff = self.missionData["difficulty"]
+	self.missionData["advanceMissions"] = false;
+	self.missionData["missionContractor"] = self.GS["LocationInhabitants"];
+	local diff = self.missionData["difficulty"];
 	
 	if diff == 1 then
-		self.missionData["spawnRate"] = 0.60
-		self.missionData["reinforcements"] = 3
-		self.missionData["interval"] = 20
-		self.missionData["counterAttackDelay"] = 30
+		self.missionData["spawnRate"] = 0.60;
+		self.missionData["reinforcements"] = 3;
+		self.missionData["interval"] = 20;
+		self.missionData["counterAttackDelay"] = 30;
 	elseif diff == 2 then
-		self.missionData["spawnRate"] = 0.60
-		self.missionData["reinforcements"] = 5
-		self.missionData["interval"] = 20
-		self.missionData["counterAttackDelay"] = 25
+		self.missionData["spawnRate"] = 0.60;
+		self.missionData["reinforcements"] = 5;
+		self.missionData["interval"] = 20;
+		self.missionData["counterAttackDelay"] = 25;
 	elseif diff == 3 then
-		self.missionData["spawnRate"] = 0.70
-		self.missionData["reinforcements"] = 7
-		self.missionData["interval"] = 20
-		self.missionData["counterAttackDelay"] = 20
+		self.missionData["spawnRate"] = 0.70;
+		self.missionData["reinforcements"] = 7;
+		self.missionData["interval"] = 20;
+		self.missionData["counterAttackDelay"] = 20;
 	elseif diff == 4 then
-		self.missionData["spawnRate"] = 0.80
-		self.missionData["reinforcements"] = 10
-		self.missionData["interval"] = 20
-		self.missionData["counterAttackDelay"] = 16
+		self.missionData["spawnRate"] = 0.80;
+		self.missionData["reinforcements"] = 10;
+		self.missionData["interval"] = 20;
+		self.missionData["counterAttackDelay"] = 16;
 	elseif diff == 5 then
-		self.missionData["spawnRate"] = 0.90
-		self.missionData["reinforcements"] = 13
-		self.missionData["interval"] = 20
-		self.missionData["counterAttackDelay"] = 12
+		self.missionData["spawnRate"] = 0.90;
+		self.missionData["reinforcements"] = 13;
+		self.missionData["interval"] = 20;
+		self.missionData["counterAttackDelay"] = 12;
 	elseif diff == 6 then
-		self.missionData["spawnRate"] = 1
-		self.missionData["reinforcements"] = 16
-		self.missionData["interval"] = 20
-		self.missionData["counterAttackDelay"] = 10
+		self.missionData["spawnRate"] = 1;
+		self.missionData["reinforcements"] = 16;
+		self.missionData["interval"] = 20;
+		self.missionData["counterAttackDelay"] = 10;
 	end
 
-	self.missionData["missionContractor"] = self.AssaultEnemyPlayer
-
 	-- Use generic enemy set
-	local set = CF.GetRandomMissionPointsSet(self.Pts, "Enemy")
+	self.missionData["cloneSpawn"] = Vector(0, 0);
+	local x = tonumber(self.SceneConfig["ClonesInputX"]);
+	local y = tonumber(self.SceneConfig["ClonesInputY"]);
+	if x and y then
+		self.missionData["cloneSpawn"] = Vector(x, y);
+	end
+
+	local set = CF.GetRandomMissionPointsSet(self.Pts, "Enemy");
 
 	self:DeployGenericMissionEnemies(
 		set,
@@ -56,18 +63,19 @@ function VoidWanderers:MissionCreate()
 		self.missionData["missionContractor"],
 		CF.CPUTeam,
 		self.missionData["spawnRate"]
-	)
+	);
 
 	-- Spawn commander
 	local cmndrpts = CF.GetPointsArray(self.Pts, "Assassinate", set, "Commander")
 	local cpos = cmndrpts[math.random(#cmndrpts)]
 
 	local faction = CF.GetPlayerFaction(self.GS, self.missionData["missionContractor"]);
-	local brain = CF.MakeBrain(faction, true)
+	local brain = CF.MakeRPGBrain(faction, true, math.floor((diff + math.random()) * 10));
 
 	if brain then
 		brain.Team = Activity.TEAM_2;
 		brain.Pos = cpos;
+		brain.AIMode = Actor.AIMODE_SENTRY;
 		MovableMan:AddActor(brain);
 		if math.random(CF.MaxDifficulty) <= self.missionData["difficulty"] then
 			brain:AddInventoryItem(CF.CreateBluePrint(self.GS, faction));
@@ -84,12 +92,16 @@ function VoidWanderers:MissionCreate()
 	self.missionData["reinforcementsTriggered"] = true
 	self.missionData["reinforcementsLast"] = self.Time
 	self.missionData["counterAttackTriggered"] = false
+	
+	self.encounterData = {};
+	self.EncounterUpdate = nil;
+	self.EncounterCreate = nil;
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
-	if self.MissionStage == CF.MissionStages.ACTIVE then
+	if self.missionData["stage"] == CF.MissionStages.ACTIVE then
 		local count = 0
 
 		-- Start checking for victory only when all units were spawned
@@ -132,14 +144,14 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["reputationReward"] = CF.CalculateReward(
 				CF.ReputationPerDifficulty * 0.5,
 				self.missionData["difficulty"]
-			)
-			self.missionData["goldReward"] = 0
-			self:GiveMissionRewards(true)
-			self.MissionStage = CF.MissionStages.COMPLETED
+			) * (0.9 + 0.2 * math.random());
 
-			-- Remember when we started showing misison status message
-			self.MissionStatusShowStart = self.Time
-			self.MissionEnd = self.Time
+			self.missionData["goldReward"] = 0;
+			self:GiveMissionRewards(true);
+			self.missionData["stage"] = CF.MissionStages.COMPLETED;
+
+			self.missionData["statusShowStart"] = self.Time;
+			self.missionData["missionEndTime"] = self.Time;
 		end
 
 		-- Trigger reinforcements
@@ -171,7 +183,7 @@ function VoidWanderers:MissionUpdate()
 		-- Send reinforcements if available
 		if
 			self.missionData["reinforcementsTriggered"]
-			and #self.MissionLZs > 0
+			and self.missionData["cloneSpawn"]
 			and self.missionData["reinforcements"] > 0
 			and self.Time >= self.missionData["reinforcementsLast"] + self.missionData["interval"]
 		then
@@ -181,15 +193,13 @@ function VoidWanderers:MissionUpdate()
 				local count = math.min(math.random(2), self.missionData["reinforcements"])
 				for i = 1, count do
 					self.missionData["reinforcements"] = self.missionData["reinforcements"] - 1
-					local actor = CF.SpawnAIUnit(
-						self.GS,
-						self.AssaultEnemyPlayer,
-						CF.CPUTeam,
-						self.MissionLZs[math.random(#self.MissionLZs)],
-						Actor.AIMODE_BRAINHUNT
-					)
+					local actor = CF.MakeUnit(self.GS, self.missionData["missionContractor"])
+					
 					if actor then
-						MovableMan:AddActor(actor)
+						actor.Team = CF.CPUTeam;
+						actor.Pos = self.missionData["cloneSpawn"];
+						actor.AIMode = Actor.AIMODE_BRAINHUNT;
+						MovableMan:AddActor(actor);
 					end
 				end
 			end
@@ -211,14 +221,15 @@ function VoidWanderers:MissionUpdate()
 				end
 			end
 		end
-	elseif self.MissionStage == CF.MissionStages.COMPLETED then
+	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
 		self.missionData["missionStatus"] = "MISSION COMPLETED"
-		if not self.MissionEndMusicPlayed then
+
+		if not self.missionData["endMusicPlayed"] then
 			self:StartMusic(CF.MusicTypes.VICTORY)
-			self.MissionEndMusicPlayed = true
+			self.missionData["endMusicPlayed"] = true
 		end
 
-		if self.Time < self.MissionStatusShowStart + CF.MissionResultShowInterval then
+		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)
@@ -230,8 +241,11 @@ function VoidWanderers:MissionUpdate()
 				if actor.AIMode == Actor.AIMODE_SENTRY then
 					actor.AIMode = Actor.AIMODE_PATROL
 				end
+
 				actor.Health = actor.Health - 0.1
+
 				local cont = actor:GetController()
+
 				if cont then
 					cont:SetState(Controller.WEAPON_FIRE, not cont:IsState(Controller.WEAPON_FIRE))
 				end

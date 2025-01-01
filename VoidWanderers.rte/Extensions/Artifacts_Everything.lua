@@ -23,7 +23,7 @@ do
 								CF.BombPrices[n] = mosr:GetGoldValue(0, 1, 1);
 								CF.BombDescriptions[n] = mosr.Description;
 								CF.BombOwnerFactions[n] = {};
-								CF.BombUnlockData[n] = 0;
+								CF.BombUnlockData[n] = CF.BombPrices[n] * 10;
 							else
 								id = #CF.ArtItmPresets + 1;
 								CF.ArtItmPresets[id] = mosr.PresetName;

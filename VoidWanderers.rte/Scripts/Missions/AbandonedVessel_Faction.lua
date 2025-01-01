@@ -3,7 +3,9 @@
 
 -----------------------------------------------------------------------
 function VoidWanderers:MissionCreate()
-	print("ABANDONED VESSEL FACTION CREATE")
+	print("ABANDONED VESSEL FACTION CREATE");
+
+	self.missionData["advanceMissions"] = false;
 
 	-- Spawn random wandering enemies
 	local set = CF.GetRandomMissionPointsSet(self.Pts, "Deploy")
@@ -15,8 +17,8 @@ function VoidWanderers:MissionCreate()
 	self.missionData["landingZones"] = CF.GetPointsArray(self.Pts, "Deploy", set, "EnemyLZ")
 
 	self.missionData["selectedFaction"] = CF.GetPlayerFaction(self.GS, math.random(tonumber(self.GS["ActiveCPUs"])));
-	local diff = CF.GetLocationDifficulty(self.GS, self.GS["Location"])
-	self.missionData["difficulty"] = diff
+	
+	difficulty = self.missionData["difficulty"];
 
 	-- Create fake player for this random faction
 	self.missionData["fakePlayer"] = CF.MaxCPUPlayers + 1
@@ -24,10 +26,8 @@ function VoidWanderers:MissionCreate()
 	CF.CreateAIUnitPresets(
 		self.GS,
 		self.missionData["fakePlayer"],
-		CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, self.missionData["fakePlayer"]), diff)
+		CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, self.missionData["fakePlayer"]), difficulty)
 	)
-
-	--print ("DIFF: "..self.missionData["difficulty"])
 
 	for i = 1, #enmpos do
 		local plr, tm
@@ -80,9 +80,21 @@ function VoidWanderers:MissionCreate()
 	end
 
 	for actor in MovableMan.Actors do
-		if actor.ClassName == "ADoor" and math.random() < 0.33 then
-			actor.GibSound = nil
-			actor:GibThis()
+		if actor.ClassName == "ADoor" then
+			actor.Team = Activity.NOTEAM;
+
+			if math.random() < 0.33 then
+				for attachable in actor.Attachables do
+					actor:RemoveAttachable(attachable, false, false);
+				end
+				
+				actor.BodyHitSound = nil;
+				actor.AlarmSound = nil;
+				actor.PainSound = nil;
+				actor.DeathSound = nil;
+				actor.GibSound = nil;
+				actor:GibThis();
+			end
 		end
 	end
 

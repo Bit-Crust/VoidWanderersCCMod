@@ -17,7 +17,7 @@ CF.FactionPlayable[factionid] = true
 CF.RequiredModules[factionid] = { "Base.rte", "Wehrmacht.rte" }
 
 -- Set faction nature
-CF.FactionNatures[factionid] = CF.FactionTypes.ORGANIC
+CF.FactionNatures[factionid] = CF.FactionNatureTypes.ORGANIC
 
 -- Define brain unit
 CF.Brains[factionid] = "Brain Robot"

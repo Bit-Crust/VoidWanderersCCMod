@@ -65,6 +65,7 @@ function VoidWanderers:FormLoad()
 
 	self.UI[#self.UI + 1] = el;
 	self.LblHeader = el;
+	self.Bound.Corner = self.LblHeader.Pos + Vector(0, 155);
 
 	el = {};
 	el.Type = CF.ElementTypes.LABEL;
@@ -93,11 +94,11 @@ function VoidWanderers:FormLoad()
 	el = {};
 	el.Type = CF.ElementTypes.LABEL;
 	el.Preset = nil;
-	el.Pos = self.Mid + Vector(-190, -self.Rows * self.TileH - largestFactionDescriptionHeight + 40);
-	el.Text = " - ";
+	el.Pos = self.Mid + Vector(0, -self.Rows * self.TileH - largestFactionDescriptionHeight + 70);
+	el.Text = "";
 	el.Width = 400;
 	el.Height = 100;
-	el.Centered = false;
+	el.Centered = true;
 
 	self.UI[#self.UI + 1] = el;
 	self.LblFactionDescription = el;
@@ -117,7 +118,7 @@ function VoidWanderers:FormLoad()
 
 	el = {};
 	el.Type = CF.ElementTypes.BUTTON;
-	el.Pos = self.Mid + Vector(self.Res.X / 2 - 70 - 20, - self.Res.Y / 2 + 20 + 20);
+	el.Pos = Vector(self.Mid.X + self.Res.X / 2 - 70 - 20, self.Bound.Corner.Y - self.Res.Y / 2 + 20 + 20);
 	el.Text = "Back";
 	el.Width = 140;
 	el.Height = 40;
@@ -152,12 +153,7 @@ function VoidWanderers:FormLoad()
 			ytile = ytile + 1;
 		end
 
-		local actor = CF.SpawnRandomInfantry(
-			-1,
-			self.FactionButtons[i].Pos,
-			self.FactionButtons[i].FactionId,
-			Actor.AIMODE_SENTRY
-		);
+		local actor = CF.SpawnRandomInfantry(-1, self.FactionButtons[i].Pos, self.FactionButtons[i].FactionId, Actor.AIMODE_SENTRY);
 
 		if actor ~= nil then
 			actor:EnableOrDisableAllScripts(false);
@@ -249,28 +245,31 @@ end
 -----------------------------------------------------------------------
 function VoidWanderers:BtnOk_OnClick()
 	-- Create new game file
-	local player = self.FactionButtons[self.SelectedPlayerFaction].FactionId
+	local player = self.FactionButtons[self.SelectedPlayerFaction].FactionId;
+
 	for i = 1, self.MaxCPUPlayersSelectable do
 		if (self.SelectedCPUFactions[i] == 0) then
-			table.remove(self.SelectedCPUFactions, i)
-			self.SelectedCPUFactions[self.MaxCPUPlayersSelectable] = 0
-			i = i - 1
+			table.remove(self.SelectedCPUFactions, i);
+			self.SelectedCPUFactions[self.MaxCPUPlayersSelectable] = 0;
+			i = i - 1;
 		end
 	end
 	
-	local cpu = {player}
+	local cpu = { player };
+
 	for i = 1, self.MaxCPUPlayersSelectable do
 		if self.SelectedCPUFactions[i] ~= 0 then
-			cpu[i + 1] = self.FactionButtons[self.SelectedCPUFactions[i]].FactionId
+			cpu[i + 1] = self.FactionButtons[self.SelectedCPUFactions[i]].FactionId;
 		end
 	end
 
 	-- Create new game state
-	self.GS = CF.MakeFreshGameState(player, cpu, self)
-	self:OnSave()
-	self:LoadSaveData()
-	self:FormClose()
-	self:LaunchScript(self.GS["Scene"], "Tactics.lua")
+	self.GS = CF.MakeFreshGameState(player, cpu, self);
+	self:OnSave();
+	self:LoadSaveData();
+	self:FormClose();
+	self.sceneToLaunch = self.GS["Scene"];
+	self.scriptToLaunch = "Tactics.lua";
 end
 -----------------------------------------------------------------------
 --
@@ -332,12 +331,7 @@ function VoidWanderers:FormClick()
 
 		if not (isPlayerFaction or removeIndex > 0) then
 			-- If we're clear, add a unit and a faction to the list
-			local actor = CF.SpawnRandomInfantry(
-				-1,
-				self.participantSlots[self.Phase + 1].Pos,
-				self.FactionButtons[f].FactionId,
-				Actor.AIMODE_SENTRY
-			)
+			local actor = CF.SpawnRandomInfantry(-1, self.participantSlots[self.Phase + 1].Pos, self.FactionButtons[f].FactionId, Actor.AIMODE_SENTRY)
 
 			if not actor then
 				self.NoMOIDPlaceholders[self.Phase] = true
@@ -386,14 +380,15 @@ function VoidWanderers:FormClick()
 		
 		if self.SelectedPlayerFaction ~= 0 then
 			for i = 1, #self.Phases do
-				self.Phase = self.Phase + 1
+				self.Phase = self.Phase + 1;
+
 				if self.SelectedCPUFactions[i] == 0 then
-					break
+					break;
 				end
 			end
 		end
 		
-		self.LblPhase["Text"] = (self.Phase == #self.Phases) and "ALL FACTIONS SELECTED, REARRANGE OR CONTINUE" or ("SELECT " .. (self.Phase > 0 and ("CPU " .. self.Phase) or "STARTING") .. " FACTION")
+		self.LblPhase["Text"] = (self.Phase == #self.Phases - 1) and "ALL FACTIONS SELECTED, REARRANGE OR CONTINUE" or ("SELECT " .. (self.Phase > 0 and ("CPU " .. self.Phase) or "STARTING") .. " FACTION")
 
 		-- Allow continuing only with at least 5 factions selected, and only if player faction is selected
 		local validFactions = 0

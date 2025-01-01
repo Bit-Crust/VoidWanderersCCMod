@@ -20,7 +20,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 
 				if cont:IsState(Controller.PRESS_DOWN) then
 					local faction = self.GS["PlayerFaction"];
-					local brain = CF.MakeBrain(faction, false);
+					local brain = CF. MakeBrain(faction, false);
 
 					if brain then
 						brain.Pos = actor.Pos + Vector(0, 20);
@@ -72,7 +72,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 				local readytoattach = actor.Pos.X > self.BrainPos[player + 1].X - 10
 					and actor.Pos.X < self.BrainPos[player + 1].X + 10
 					and actor.Pos.Y > self.BrainPos[player + 1].Y
-					and CF.DistUnder(actor.Pos, self.BrainPos[player + 1], 100);
+					and CF.Dist(actor.Pos, self.BrainPos[player + 1]) < 100;
 					
 				local cont = self:GetPlayerController(player);
 
@@ -99,32 +99,23 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 						end
 						self.GS["Brain" .. player .. "Detached"] = "False"
 						self.createdBrainCases[player] = brain
+
 						if actor.GoldCarried > 0 then
-							self:SetTeamFunds(CF.ChangeGold(self.GS, actor.GoldCarried), CF.PlayerTeam)
+							CF.ChangePlayerGold(self.GS, actor.GoldCarried);
 						end
 
 						if self.GS["Brain" .. player .. "Identity"] == nil then
-							self.GS["Brain" .. player .. "Identity"] = actor:GetNumberValue("Identity")
+							self.GS["Brain" .. player .. "Identity"] = actor:GetNumberValue("Identity");
 						end
 
-						actor.ToDelete = true
+						actor = MovableMan:RemoveActor(actor);
+						if actor then
+							DeleteEntity(actor);
+						end
 
-						MovableMan:AddActor(brain)
-
-						--[[local reference = CF.MakeBrain(self.GS, 0, CF.PlayerTeam, actor.Pos + Vector(0, 20), false)
-						if not reference:IsOrganic() and IsAHuman(reference) then
-							local decoHead = CreateAttachable(reference.Head.PresetName)
-							decoHead.RotAngle = math.pi
-							decoHead.HFlipped = true
-							decoHead.IgnoreTerrain = true
-							decoHead:EnableDeepCheck(false)
-							brain.IgnoreTerrain = true
-							brain.Scale = 0
-							brain:AddAttachable(decoHead, Vector(0, decoHead:GetSpriteHeight()/2))
-						end]]
-
-						self:SwitchToActor(brain, player, CF.PlayerTeam)
-						self:SetPlayerBrain(brain, player)
+						MovableMan:AddActor(brain);
+						self:SwitchToActor(brain, player, CF.PlayerTeam);
+						self:SetPlayerBrain(brain, player);
 					end
 				end
 			end

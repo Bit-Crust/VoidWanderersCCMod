@@ -35,13 +35,14 @@ function VoidWanderers:InitClonesControlPanelUI()
 		self:LocateClonesControlPanelActor();
 
 		if not MovableMan:IsActor(self.ClonesControlPanelActor) then
-			self.ClonesControlPanelActor = CreateActor("Clones Control Panel");
+			if self.ClonesControlPanelActor == nil then
+				self.ClonesControlPanelActor = CreateActor("Clones Control Panel");
 
-			if self.ClonesControlPanelActor ~= nil then
 				self.ClonesControlPanelActor.Pos = self.ClonesControlPanelPos;
 				self.ClonesControlPanelActor.Team = CF.PlayerTeam;
-				MovableMan:AddActor(self.ClonesControlPanelActor);
 			end
+
+			MovableMan:AddActor(self.ClonesControlPanelActor);
 		end
 	end
 
@@ -286,7 +287,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 
 						if cloneSelected ~= 0 then
 							if isSelling then
-								self:SetTeamFunds(CF.ChangeGold(self.GS, cloneValues[cloneSelected]), CF.PlayerTeam);
+								CF.ChangePlayerGold(self.GS, cloneValues[cloneSelected]);
 							end
 
 							table.remove(self.Clones, cloneSelected);
@@ -358,11 +359,11 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 						itemSelected = 1;
 					end
 
-					local head = clone.HEAD ~= "Null";
-					local fgArm = clone.FG1 ~= "Null";
-					local bgArm = clone.BG1 ~= "Null";
-					local fgLeg = clone.FG2 ~= "Null";
-					local bgLeg = clone.BG2 ~= "Null";
+					local head = clone.Head ~= "Null";
+					local fgArm = clone.FGArm ~= "Null";
+					local bgArm = clone.BGArm ~= "Null";
+					local fgLeg = clone.FGLeg ~= "Null";
+					local bgLeg = clone.BGLeg ~= "Null";
 					local xp = tonumber(clone.XP) or 0;
 					local prestige = tonumber(clone.Prestige) or 0;
 					local name = clone.Name ~= "" and clone.Name or clone.Preset;
@@ -491,8 +492,8 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 
 								local limbData = {};
 
-								for j = 1, #CF.HumanLimbID do
-									limbData[j] = clone[CF.HumanLimbID[j]];
+								for _, limbName in ipairs(CF.LimbIDs[clone.Class]) do
+									limbData[limbName] = clone[limbName];
 								end
 
 								local actor = CF.MakeActor(
@@ -611,11 +612,11 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 						itemSelected = 1;
 					end
 
-					local head = clone.HEAD ~= "Null";
-					local fgArm = clone.FG1 ~= "Null";
-					local bgArm = clone.BG1 ~= "Null";
-					local fgLeg = clone.FG2 ~= "Null";
-					local bgLeg = clone.BG2 ~= "Null";
+					local head = clone.Head ~= "Null";
+					local fgArm = clone.FGArm ~= "Null";
+					local bgArm = clone.BGArm ~= "Null";
+					local fgLeg = clone.FGLeg ~= "Null";
+					local bgLeg = clone.BGLeg ~= "Null";
 					local xp = tonumber(clone.XP) or 0;
 					local prestige = tonumber(clone.Prestige) or 0;
 					local name = clone.Name ~= "" and clone.Name or clone.Preset;
@@ -950,27 +951,30 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 			-- Search for body and put it in storage
 			for actor in MovableMan:GetMOsInRadius(self.ClonesInputPos, self.ClonesInputRange, Activity.NOTEAM, true) do
 				if IsActor(actor) and actor.Team == CF.PlayerTeam then
-					actor = ToActor(actor)
-					local controller = actor:GetController()
+					actor = ToActor(actor);
+					local controller = actor:GetController();
 					local moving = controller:IsState(Controller.MOVE_LEFT)
 						or controller:IsState(Controller.MOVE_RIGHT)
 						or controller:IsState(Controller.BODY_JUMP)
-						or controller:IsState(Controller.BODY_CROUCH)
+						or controller:IsState(Controller.BODY_CROUCH);
 
-					local actorDead = actor.Status == Actor.DEAD
+					local actorDead = actor.Status == Actor.DEAD;
 					if actorDead then
 						if IsACrab(actor) then
-							local crab = ToACrab(actor)
+							local crab = ToACrab(actor);
+
 							if crab.Jetpack then 
-								crab.Jetpack:EnableEmission(false)
+								crab.Jetpack:EnableEmission(false);
 							end
 						elseif IsAHuman(actor) then
-							local human = ToAHuman(actor)
+							local human = ToAHuman(actor);
+
 							if human.Jetpack then 
-								human.Jetpack:EnableEmission(false)
+								human.Jetpack:EnableEmission(false);
 							end
 						end
-						moving = false
+
+						moving = false;
 					end
 
 					if not moving and actor.PresetName ~= "Clones Control Panel" and not CF.IsBrain(actor) then
@@ -987,33 +991,34 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 								and CF.CountUsedClonesInArray(self.Clones)
 									< tonumber(self.GS["PlayerVesselClonesCapacity"])
 							then
-								local c = #self.Clones + 1
+								local c = #self.Clones + 1;
 
-								self.Clones[c] = {}
-								self.Clones[c].Preset = actor.PresetName
-								self.Clones[c].Class = actor.ClassName
-								self.Clones[c].Module = actor.ModuleName
-								self.Clones[c].XP = actor:GetNumberValue("VW_XP")
-								self.Clones[c].Identity = actor:GetNumberValue("Identity")
-								self.Clones[c].Player = actor:GetNumberValue("VW_BrainOfPlayer")
-								self.Clones[c].Prestige = actor:GetNumberValue("VW_Prestige")
-								self.Clones[c].Name = actor:GetStringValue("VW_Name")
-								for i, limbID in pairs(CF.HumanLimbID) do
-									self.Clones[c][limbID] = CF.GetLimbData(actor, limbID)
+								clone = {};
+								clone.Preset = actor.PresetName;
+								clone.Class = actor.ClassName;
+								clone.Module = actor.ModuleName;
+								clone.XP = actor:GetNumberValue("VW_XP");
+								clone.Identity = actor:GetNumberValue("Identity");
+								clone.Player = actor:GetNumberValue("VW_BrainOfPlayer");
+								clone.Prestige = actor:GetNumberValue("VW_Prestige");
+								clone.Name = actor:GetStringValue("VW_Name");
+
+								for _, limbName in ipairs(CF.LimbIDs[clone.Class]) do
+									clone[limbName] = CF.GetLimbData(actor, limbName);
 								end
 
 								-- Store inventory
 								local inv, cls, mdl = CF.GetInventory(actor)
 
-								self.Clones[c].Items = {}
+								clone.Items = {}
 
 								for i = 1, #inv do
 									-- First store items in clone storage
 									if i <= CF.MaxStoredActorInventory then
-										self.Clones[c].Items[i] = {}
-										self.Clones[c].Items[i].Preset = inv[i]
-										self.Clones[c].Items[i].Class = cls[i]
-										self.Clones[c].Items[i].Module = mdl[i]
+										clone.Items[i] = {}
+										clone.Items[i].Preset = inv[i]
+										clone.Items[i].Class = cls[i]
+										clone.Items[i].Module = mdl[i]
 									else
 										-- Try to store other items in items storage
 										-- If we have free space add items to storage, spawn nearby otherwise
@@ -1039,27 +1044,29 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 									end
 								end
 
+								table.insert(self.Clones, clone);
+
 								if actor:IsPlayerControlled() then
-									self:SwitchToActor(self.ClonesControlPanelActor, controller.Player, CF.PlayerTeam)
+									self:SwitchToActor(self.ClonesControlPanelActor, controller.Player, CF.PlayerTeam);
 								end
 								if actor.GoldCarried > 0 then
-									self:SetTeamFunds(CF.ChangeGold(self.GS, actor.GoldCarried), CF.PlayerTeam)
+									CF.ChangePlayerGold(self.GS, actor.GoldCarried);
 								end
 
-								actor.ToDelete = true
+								actor.ToDelete = true;
 
 								-- Store everything
-								CF.SetClonesArray(self.GS, self.Clones)
+								CF.SetClonesArray(self.GS, self.Clones);
 
 								-- Refresh storage items array and filters
-								self.Clones = CF.GetClonesArray(self.GS)
+								self.Clones = CF.GetClonesArray(self.GS);
 
-								self.ClonesLastDetectedBodyTime = nil
+								self.ClonesLastDetectedBodyTime = nil;
 							end
 
-							foundActor = actor
+							foundActor = actor;
 						else
-							self.ClonesLastDetectedBodyTime = self.Time
+							self.ClonesLastDetectedBodyTime = self.Time;
 						end
 					end
 				end

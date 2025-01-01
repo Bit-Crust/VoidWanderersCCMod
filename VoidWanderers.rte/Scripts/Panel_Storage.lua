@@ -255,7 +255,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 								local foundActor = nil;
 
 								for actor in MovableMan.Actors do
-									local closeEnough = CF.DistUnder(actor.Pos, self.StorageInputBox.Center, self.StorageInputRange);
+									local closeEnough = CF.Dist(actor.Pos, self.StorageInputBox.Center) < self.StorageInputRange;
 
 									if closeEnough and actor.ClassName == "AHuman" then
 										foundActor = actor;
@@ -286,7 +286,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 										price = math.floor(CF.UnknownItemPrice * sellCoeff);
 									end
 									
-									self:SetTeamFunds(CF.ChangeGold(self.GS, price), CF.PlayerTeam);
+									CF.ChangePlayerGold(self.GS, price);
 								end
 							end
 

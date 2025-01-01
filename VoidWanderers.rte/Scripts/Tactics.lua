@@ -1,9 +1,11 @@
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
--- Start Activity
+-- Start Scene Process
 -----------------------------------------------------------------------
-function VoidWanderers:StartActivity(isNewGame)
-	print("VoidWanderers:Tactics:StartActivity");
+function VoidWanderers:StartSceneProcess(isNewGame)
+	print("VoidWanderers:Tactics:StartSceneProcess");
+
+	isNewGame = (isNewGame == nil) and true or isNewGame;
 	
 	CF.GS = self.GS;
 
@@ -11,10 +13,6 @@ function VoidWanderers:StartActivity(isNewGame)
 	self.missionData = {};
 	self.ambientData = {};
 	self.encounterData = {};
-
-	if self.IsInitialized then
-		return
-	end
 
 	self.PlayersWithBrains = {};
 	self.HoldTimer = {};
@@ -51,7 +49,7 @@ function VoidWanderers:StartActivity(isNewGame)
 	self.PlayerFaction = self.GS["PlayerFaction"]
 	
 	-- Load generic level data
-	self.SceneConfig = CF.ReadSceneConfigFile(SceneMan.Scene.ModuleName, SceneMan.Scene.PresetName .. ".dat")
+	self.SceneConfig = CF.ReadDataFile("Mods/" .. "VoidWanderers.rte" .. "/Scenes/Data/" .. SceneMan.Scene.PresetName .. ".dat")
 	local vesselArea = SceneMan.Scene:GetArea("Vessel");
 	
 	if vesselArea then
@@ -67,6 +65,7 @@ function VoidWanderers:StartActivity(isNewGame)
 			self.vesselData["flightDisabled"] = false;
 			self.vesselData["flightAimless"] = false;
 			self.vesselData["throttle"] = self.vesselData["team"] == 0 and 1 or 0;
+			self.vesselData["lifeSupportEnabled"] = true;
 
 			self.vesselData["dialogDefaultTimer"] = Timer();
 
@@ -97,8 +96,11 @@ function VoidWanderers:StartActivity(isNewGame)
 		end
 	end
 
+	self.vesselData["spaceDeck"] = SceneMan.Scene:GetArea("Vessel Spacedeck") or Area("Vessel Spacedeck");
+
 	-- Load pre-spawned enemy locations. These locations also used during assaults to place teleported units
 	self.EnemySpawn = {}
+
 	for i = 1, 32 do
 		local x, y
 		x = tonumber(self.SceneConfig["EnemySpawn" .. i .. "X"])
@@ -112,28 +114,18 @@ function VoidWanderers:StartActivity(isNewGame)
 	end
 	
 	-- Display gold like normal since the buy menu is disabled
-	self:SetTeamFunds(CF.GetPlayerGold(self.GS), CF.PlayerTeam)
-	
-	do
-		local playerSkill = tonumber(self.GS["AISkillPlayer"]);
-		if playerSkill then
-			self:SetTeamAISkill(CF.PlayerTeam, playerSkill);
-		end
-	end
+	self:SetTeamFunds(CF.GetPlayerGold(self.GS), CF.PlayerTeam);
+	self.FogOfWarEnabled = self.GS["FogOfWar"] == "True";
 
+	self:SetTeamAISkill(CF.PlayerTeam, tonumber(self.GS["AISkillPlayer"]) or 50);
+	self.Difficulty = tonumber(self.GS["Difficulty"]) or 50;
+	
 	do
 		local cpuSkill = tonumber(self.GS["AISkillCPU"]);
 		if cpuSkill then
 			for team = Activity.TEAM_1 + 1, Activity.MAXTEAMCOUNT - 1 do
 				self:SetTeamAISkill(team, cpuSkill);
 			end
-		end
-	end
-	
-	do
-		local difficulty = tonumber(self.GS["Difficulty"]);
-		if difficulty then
-			self.Difficulty = difficulty;
 		end
 	end
 
@@ -209,9 +201,11 @@ function VoidWanderers:StartActivity(isNewGame)
 					MovableMan:AddActor(actor);
 				elseif self.GS["Actor" .. i .. "Preset"] then
 					local limbData = {}
-					for j = 1, #CF.HumanLimbID do
-						limbData[j] = self.GS["Actor" .. i .. CF.HumanLimbID[j]]
+
+					for _, limbName in ipairs(CF.LimbIDs[self.GS["Actor" .. i .. "Class"]]) do
+						limbData[limbName] = self.GS["Actor" .. i .. limbName];
 					end
+
 					local actor = CF.MakeActor(
 						self.GS["Actor" .. i .. "Class"],
 						self.GS["Actor" .. i .. "Preset"],
@@ -223,6 +217,7 @@ function VoidWanderers:StartActivity(isNewGame)
 						self.GS["Actor" .. i .. "Name"],
 						limbData
 					)
+
 					if actor then
 						actor.AIMode = Actor.AIMODE_SENTRY
 						actor:ClearAIWaypoints()
@@ -306,9 +301,11 @@ function VoidWanderers:StartActivity(isNewGame)
 					MovableMan:AddActor(actor)
 				elseif self.GS["Deployed" .. i .. "Preset"] then
 					local limbData = {}
-					for j = 1, #CF.HumanLimbID do
-						limbData[j] = self.GS["Deployed" .. i .. CF.HumanLimbID[j]]
+
+					for _, limbName in ipairs(CF.LimbIDs[self.GS["Deployed" .. i .. "Class"]]) do
+						limbData[limbName] = self.GS["Deployed" .. i .. limbName];
 					end
+
 					local actor = CF.MakeActor(
 						self.GS["Deployed" .. i .. "Class"],
 						self.GS["Deployed" .. i .. "Preset"],
@@ -320,6 +317,7 @@ function VoidWanderers:StartActivity(isNewGame)
 						self.GS["Deployed" .. i .. "Name"],
 						limbData
 					)
+
 					if actor then
 						actor.AIMode = Actor.AIMODE_SENTRY
 						actor:ClearAIWaypoints()
@@ -387,22 +385,25 @@ function VoidWanderers:StartActivity(isNewGame)
 			end
 		end
 
-		self:InitConsoles()
+		self:InitConsoles();
 
 		-- If we're on temp-location then cancel this location
 		if (isNewGame) and CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.TEMPLOCATION) then
 			self.GS["Location"] = nil
 		end
 	end
+
+	if not isNewGame then
+		self.reportData = self.saveLoadHandler:ReadSavedStringAsTable("reportData");
+	else
+		self.reportData = {};
+	end
 	
 	if self.GS["Mode"] == "Mission" then
 		print("VoidWanderers:Tactics:StartActivity:Mission")
 		self:StartMusic(CF.MusicTypes.MISSION_CALM)
 
-		-- All mission related final message will be accumulated in mission report list
-		local scene = SceneMan.Scene.PresetName
-
-		self.Pts = CF.ReadPtsData(scene, self.SceneConfig)
+		self.Pts = CF.ReadPtsData(self.GS["Location"], self.SceneConfig)
 		self.MissionDeploySet = CF.GetRandomMissionPointsSet(self.Pts, "Deploy")
 
 		-- Init LZs
@@ -446,10 +447,12 @@ function VoidWanderers:StartActivity(isNewGame)
 					MovableMan:AddActor(actor);
 					self.GS["MissionDeployedTroops"] = tonumber(self.GS["MissionDeployedTroops"]) + 1;
 				elseif self.GS["Deployed" .. i .. "Preset"] then
-					local limbData = {}
-					for j = 1, #CF.HumanLimbID do
-						limbData[j] = self.GS["Deployed" .. i .. CF.HumanLimbID[j]]
+					local limbData = {};
+
+					for _, limbName in ipairs(CF.LimbIDs[self.GS["Deployed" .. i .. "Class"]]) do
+						limbData[limbName] = self.GS["Deployed" .. i .. limbName];
 					end
+
 					local actor = CF.MakeActor(
 						self.GS["Deployed" .. i .. "Class"],
 						self.GS["Deployed" .. i .. "Preset"],
@@ -513,7 +516,6 @@ function VoidWanderers:StartActivity(isNewGame)
 		
 		self:LocatePlayerBrains(isNewGame, true)
 
-		self.MissionReport = {}
 
 		-- Clear previous script functions
 		self.MissionCreate = nil
@@ -523,100 +525,99 @@ function VoidWanderers:StartActivity(isNewGame)
 		self.AmbientCreate = nil
 		self.AmbientUpdate = nil
 		self.AmbientDestroy = nil
+		
+		if isNewGame then
+			for actor in MovableMan.Actors do
+				if actor.ClassName == "ADoor" then
+					actor.Team = Activity.TEAM_2;
+				end
+			end
+		end
 
 		-- Load ambience and mission data if possible
 		if not isNewGame then
-			self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData")
+			self.missionData = self.saveLoadHandler:ReadSavedStringAsTable("missionData");
+
 			if self.missionData["initialized"] then
-				dofile(self.missionData["scriptPath"])
+				dofile(self.missionData["scriptPath"]);
 			end
-			self.ambientData = self.saveLoadHandler:ReadSavedStringAsTable("ambientData")
+
+			self.ambientData = self.saveLoadHandler:ReadSavedStringAsTable("ambientData");
+
 			if self.ambientData["initialized"] then
-				dofile(self.ambientData["scriptPath"])
+				dofile(self.ambientData["scriptPath"]);
 			end
 		else
 			-- Generic mission data, some may be overwritten
-			self.missionData = {}
+			self.missionData = {};
+			self.missionData["initialized"] = true;
 			self.missionData["endMusicPlayed"] = false;
-			self.missionData["initialized"] = true
 			self.missionData["missionStartTime"] = self.Time;
 			self.missionData["stage"] = CF.MissionStages.ACTIVE;
+			self.missionData["advanceMissions"] = true;
 			self.missionData["missionStatus"] = "";
-			self.missionData["difficulty"] = CF.GetLocationDifficulty(self.GS, self.GS["Location"]);
+			self.missionData["difficulty"] = CF.NormalizeDifficulty(CF.GetLocationSecurity(self.GS, self.GS["Location"]) / 10);
 			self.missionData["reputationReward"] = 0;
 			self.missionData["goldReward"] = 0;
 
-			local securityIncrement = CF.SecurityIncrementPerDeployment
 			-- Find available mission
-			for m = 1, CF.MaxMissions do
-				if self.GS["Location"] == self.GS["Mission" .. m .. "Location"] then
-					local missionType = self.GS["Mission" .. m .. "Type"]
+			for mission = 1, CF.MaxMissions do
+				if self.GS["Location"] == self.GS["Mission" .. mission .. "Location"] then
+					local missionType = self.GS["Mission" .. mission .. "Type"];
 
-					self.missionData["difficulty"] = CF.GetFullMissionDifficulty(self.GS, self.GS["Location"], m)
-					self.missionData["missionContractor"] = tonumber(self.GS["Mission" .. m .. "SourcePlayer"])
-					self.missionData["missionTarget"] = tonumber(self.GS["Mission" .. m .. "TargetPlayer"])
-					self.missionData["scriptPath"] = CF.MissionScript[missionType]
+					self.missionData["difficulty"] = CF.GetFullMissionDifficulty(self.GS, self.GS["Location"], mission);
+					self.missionData["scriptPath"] = CF.MissionScript[missionType];
 
-					self.missionData["goldReward"] = CF.CalculateReward(
-						CF.MissionGoldRewardPerDifficulty[missionType],
-						self.missionData["difficulty"]
-					)
-					self.missionData["reputationReward"] = CF.CalculateReward(
-						CF.MissionReputationRewardPerDifficulty[missionType],
-						self.missionData["difficulty"]
-					)
+					local goldBase = CF.MissionGoldRewardPerDifficulty[missionType];
+					self.missionData["goldReward"] = CF.CalculateReward(goldBase, self.missionData["difficulty"]);
+					local reputationBase = CF.MissionReputationRewardPerDifficulty[missionType];
+					self.missionData["reputationReward"] = CF.CalculateReward(reputationBase, self.missionData["difficulty"]);
 
-					-- Create unit presets
-					CF.CreateAIUnitPresets(
-						self.GS,
-						self.missionData["missionContractor"],
-						CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, self.missionData["missionContractor"]), self.missionData["difficulty"])
-					)
-					CF.CreateAIUnitPresets(
-						self.GS,
-						self.missionData["missionTarget"],
-						CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"]),
-							self.missionData["difficulty"]
-						)
-					)
+					self.missionData["missionContractor"] = tonumber(self.GS["Mission" .. mission .. "SourcePlayer"]);
+					local contractorFaction = CF.GetPlayerFaction(self.GS, self.missionData["missionContractor"]);
+					local contractorTech = CF.GetTechLevelFromDifficulty(contractorFaction, self.missionData["difficulty"]);
+					CF.CreateAIUnitPresets(self.GS, self.missionData["missionContractor"], contractorTech);
 
-					securityIncrement = CF.SecurityIncrementPerMission
+					self.missionData["missionTarget"] = tonumber(self.GS["Mission" .. mission .. "TargetPlayer"]);
+					local targetFaction = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"]);
+					local targetTech = CF.GetTechLevelFromDifficulty(targetFaction, self.missionData["difficulty"]);
+					CF.CreateAIUnitPresets(self.GS, self.missionData["missionTarget"], targetTech);
 
-					break
-				end -- GAMEPLAY
+					break;
+				end
 			end
 
 			-- Increase location security every time deployment happens
-			CF.SetLocationSecurity(self.GS, self.GS["Location"], CF.GetLocationSecurity(self.GS, self.GS["Location"]) + securityIncrement)
+			CF.ChangeLocationSecurity(self.GS, self.GS["Location"], CF.SecurityIncrementPerDeployment);
 
 			-- Backup mission script
 			if self.missionData["scriptPath"] == nil then
-				local defaultScripts = CF.LocationScript[self.GS["Location"]]
+				local defaultScripts = CF.LocationScript[self.GS["Location"]];
+
 				if defaultScripts then
-					self.missionData["scriptPath"] = defaultScripts[math.random(#defaultScripts)]
+					self.missionData["scriptPath"] = defaultScripts[math.random(#defaultScripts)];
 				else
-					self.missionData["scriptPath"] = "VoidWanderers.rte/Scripts/Missions/Generic.lua"
+					self.missionData["scriptPath"] = "VoidWanderers.rte/Scripts/Missions/Generic.lua";
 				end
 			end
 
 			-- Generic ambient bits, I don't think they're ever used
-			self.ambientData = {}
-			self.ambientData["scriptPath"] = CF.LocationAmbientScript[self.GS["Location"]]
-			self.ambientData["initialized"] = true
+			self.ambientData = {};
+			self.ambientData["scriptPath"] = CF.LocationAmbientScript[self.GS["Location"]];
+			self.ambientData["initialized"] = true;
 			
 			if self.ambientData["scriptPath"] == nil then
-				self.ambientData["scriptPath"] = "VoidWanderers.rte/Scripts/Ambience/Generic.lua"
+				self.ambientData["scriptPath"] = "VoidWanderers.rte/Scripts/Ambience/Generic.lua";
 			end
 
-			dofile(self.missionData["scriptPath"])
-			dofile(self.ambientData["scriptPath"])
-			self:MissionCreate()
-			self:AmbientCreate()
+			dofile(self.missionData["scriptPath"]);
+			dofile(self.ambientData["scriptPath"]);
+			self:MissionCreate();
+			self:AmbientCreate();
 		end
 
 		if isNewGame then
 			-- Spawn crates
-			local hiddenRate = fowEnabled and 0.25 or 0.5
 			local crts = CF.GetPointsArray(self.Pts, "Deploy", self.MissionDeploySet, "Crates")
 			local amount = math.min(math.ceil(CF.CratesRate * #crts), #crts)
 			local crtspos = CF.RandomSampleOfList(crts, amount)
@@ -633,50 +634,47 @@ function VoidWanderers:StartActivity(isNewGame)
 				end
 
 				if cache then
+					cache.Pos = crtspos[i] + Vector(math.random(-10, 10), math.random(-3, 3));
+					cache.RotAngle = math.random() * 0.6 - 0.3;
+
 					if math.random() < CF.CrateRandomLocationsRate then
-						-- Try to spawn a crate at a totally random location
-						local materialThreshold = 100 -- The average strength of the terrain surrounding the crate has to be below this
-						local surroundingStrength = 0
-						local potentialPos = Vector(
-							(
-									SceneMan.SceneWrapsX and math.random(SceneMan.SceneWidth)
-									or math.random(50, SceneMan.SceneWidth - 50)
-								),
-							math.random(50, SceneMan.SceneHeight - 50)
-						)
-						local attempts = 0
-						while attempts < 2 do
-							local terrCheck = SceneMan:GetTerrMatter(potentialPos.X, potentialPos.Y)
-							if terrCheck ~= rte.airID then
-								surroundingStrength = surroundingStrength
-									+ SceneMan:GetMaterialFromID(terrCheck).StructuralIntegrity
-								local radius = cache.Radius
-								local dots = 5
-								for i = 1, dots do
-									local checkPos = potentialPos + Vector(radius, 0):RadRotate((math.pi * 2) * (i / dots))
-									local terrCheck2 = SceneMan:GetTerrMatter(checkPos.X, checkPos.Y)
-									-- Treat air as a bad surrounding material
-									surroundingStrength = surroundingStrength
-										+ (
-											terrCheck2 ~= rte.airID
-												and SceneMan:GetMaterialFromID(terrCheck2).StructuralIntegrity
-											or materialThreshold
-										)
-								end
-								if surroundingStrength < materialThreshold * (1 + dots) then
-									cache.Pos = potentialPos
-									cache.RotAngle = math.random() * math.pi * 2;
-									ok = true
-								end
-							else
-								potentialPos = SceneMan:MovePointToGround(Vector(math.random(SceneMan.SceneWidth), 0), 0, 1)
-								potentialPos.Y = math.random(potentialPos.Y, SceneMan.SceneHeight - 50)
-							end
-							attempts = attempts + 1
+						local materialThreshold = 100;
+						local airPenalty = 50;
+						local surroundingStrength = 0;
+						local paddingX = SceneMan.SceneWrapsX and 0 or 50;
+						local paddingY = SceneMan.SceneWrapsY and 0 or 50;
+						local potentialX = math.random(paddingX, SceneMan.SceneWidth - paddingX);
+						local potentialY = math.random(paddingY, SceneMan.SceneHeight - paddingY);
+						local terrCheck = SceneMan:GetTerrMatter(potentialX, potentialY);
+
+						if terrCheck == rte.airID then
+							potentialY = potentialY + SceneMan:FindAltitude(Vector(potentialX, potentialY), 0, 0);
+							potentialY = math.random(potentialY, SceneMan.SceneHeight - 50);
+							terrCheck = SceneMan:GetTerrMatter(potentialX, potentialY);
 						end
-					else
-						cache.Pos = crtspos[i] + Vector(math.random(-10, 10), math.random(-3, 3));
-						cache.RotAngle = math.random() * 0.6 - 0.3;
+
+						if terrCheck ~= rte.airID then
+							surroundingStrength = surroundingStrength + SceneMan:GetMaterialFromID(terrCheck).StructuralIntegrity
+							local radius = cache.Radius;
+							local dots = 5;
+
+							for i = 1, dots do
+								local theta = (math.pi * 2) * (i / dots);
+								local checkX = potentialX + radius * math.cos(theta);
+								local checkY = potentialY + radius * math.sin(theta);
+								terrCheck = SceneMan:GetTerrMatter(checkX, checkY);
+								surroundingStrength = surroundingStrength + SceneMan:GetMaterialFromID(terrCheck).StructuralIntegrity;
+
+								if terrCheck == rte.airID then
+									surroundingStrength = surroundingStrength + airPenalty;
+								end
+							end
+
+							if surroundingStrength < materialThreshold * (1 + dots) then
+								cache.Pos = Vector(potentialX, potentialY);
+								cache.RotAngle = math.random() * math.pi * 2;
+							end
+						end
 					end
 
 					cache.PinStrength = cache.GibImpulseLimit * 0.1;
@@ -686,7 +684,7 @@ function VoidWanderers:StartActivity(isNewGame)
 			end
 
 			-- Set unseen
-			if self.GS["FogOfWar"] then
+			if self.FogOfWarEnabled then
 				SceneMan:MakeAllUnseen(Vector(CF.FogOfWarResolution, CF.FogOfWarResolution), CF.CPUTeam)
 				SceneMan:MakeAllUnseen(Vector(CF.FogOfWarResolution, CF.FogOfWarResolution), CF.PlayerTeam)
 
@@ -750,11 +748,13 @@ function VoidWanderers:StartActivity(isNewGame)
 	end
 
 	if not isNewGame then
-		local previouslyControlledActors = self.saveLoadHandler:ReadSavedStringAsTable("controlledActors")
+		local previouslyControlledActors = self.saveLoadHandler:ReadSavedStringAsTable("controlledActors");
+
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-			local actor = previouslyControlledActors[player + 1]
-			if IsActor(actor) then
-				self:SwitchToActor(actor, player, CF.PlayerTeam)
+			local actor = previouslyControlledActors[player + 1];
+
+			if type(actor) == "userdata" and IsActor(actor) then
+				self:SwitchToActor(actor, player, CF.PlayerTeam);
 			end
 		end
 	end
@@ -864,38 +864,42 @@ function VoidWanderers:StartActivity(isNewGame)
 	self.actorList = {}
 	self.killClaimRange = 50 + (FrameMan.PlayerScreenWidth + FrameMan.PlayerScreenHeight) * 0.3
 	
-	self.IsInitialized = true
 	self.BrainsAtStake = true
+
+	if not isNewGame then
+		local currentMusicType = tonumber(self.GS["CurrentMusicType"]);
+
+		if currentMusicType then
+			self:StartMusic(self.GS["CurrentMusicType"]);
+		end
+	end
+
+	local player = 0;
+	local guy = self:GetControlledActor(player);
+
+	if guy and guy:IsPlayerControlled() then
+		local screen = self:ScreenOfPlayer(player);
+		CameraMan:SetScroll(guy.Pos, screen);
+	end
 end
 -----------------------------------------------------------------------
--- Update Activity
+-- Update Scene Process
 -----------------------------------------------------------------------
-function VoidWanderers:UpdateActivity()
-	if not self.IsInitialized then
-		--Init mission
-		print("Void Wanderers: Start activity via update.")
-		self:StartActivity(true)
-	end
+function VoidWanderers:UpdateSceneProcess()
+	self:ClearObjectivePoints();
 
-	self:ClearObjectivePoints()
-
-	-- Add any gold gained in-game
-	local realGold = self:GetTeamFunds(CF.PlayerTeam)
-	if realGold ~= CF.GetPlayerGold(self.GS) then
-		CF.SetPlayerGold(self.GS, realGold)
-	end
+	CF.ChangePlayerGold(self.GS, 0);
 
 	for i = 1, #self.actorList do
-		local victim = self.actorList[i]
-		if victim and not MovableMan:IsActor(victim.Pointer) then
-			--print(victim.Value .. " of value dead at (" .. math.floor(victim.ViewPoint.X + 0.5) .. ", " .. math.floor(victim.ViewPoint.Y + 0.5) .. ")!")
+		local hit = self.actorList[i]
+		if hit and not MovableMan:IsActor(hit.Victim) then
 			local dist = Vector()
-			local gain = victim.Team == -1 and 0 or 1
+			local gain = hit.Team == -1 and 0 or 1
 			-- Give automatic reward to the first actor up-close to the enemy
-			local killer = MovableMan:GetClosestEnemyActor(victim.Team, victim.ViewPoint, 50, dist)
+			local killer = MovableMan:GetClosestEnemyActor(hit.Team, hit.ViewPoint, 50, dist)
 			if killer and CF.IsPlayerUnit(killer) then
 				gain = gain
-					+ victim.Value
+					+ hit.Value
 						/ (10 + math.abs(killer:GetGoldValue(0, 0.2, 0.2)))
 						* (3 - math.min(
 							killer.Health / killer.MaxHealth + dist.Magnitude / self.killClaimRange,
@@ -907,12 +911,12 @@ function VoidWanderers:UpdateActivity()
 				local killerCandidates = {}
 				for actor in MovableMan.Actors do
 					if CF.IsPlayerUnit(actor) then
-						dist = SceneMan:ShortestDistance(actor.ViewPoint, victim.ViewPoint, SceneMan.SceneWrapsX)
+						dist = SceneMan:ShortestDistance(actor.ViewPoint, hit.ViewPoint, SceneMan.SceneWrapsX)
 						if dist:MagnitudeIsLessThan(self.killClaimRange) then
 							-- Check for some possible terrain obstructances that will diminish the probability of claiming a kill
 							local obstructionTotal = 0
 							if dist:MagnitudeIsGreaterThan(actor.Radius) then
-								local checkPos = { actor.ViewPoint + dist * 0.2, victim.ViewPoint - dist * 0.2 }
+								local checkPos = { actor.ViewPoint + dist * 0.2, hit.ViewPoint - dist * 0.2 }
 								for i = 1, #checkPos do
 									obstructionTotal = obstructionTotal
 										+ math.floor(
@@ -932,7 +936,7 @@ function VoidWanderers:UpdateActivity()
 				for _, actor in pairs(killerCandidates) do
 					local sharedGain = gain
 						+ (
-								victim.Value
+								hit.Value
 								/ (10 + math.abs(actor.killer:GetGoldValue(0, 0.2, 0.2)))
 								* (
 									3
@@ -970,7 +974,7 @@ function VoidWanderers:UpdateActivity()
 					end
 				end
 				self.actorList[#self.actorList + 1] = {
-					Pointer = actor,
+					Victim = actor,
 					Team = actor.Team,
 					Value = actor:GetNumberValue("VW_FragValue"),
 					ViewPoint = Vector(actor.ViewPoint.X, actor.ViewPoint.Y),
@@ -1181,16 +1185,25 @@ function VoidWanderers:UpdateActivity()
 			end
 		end
 
+		self:LevelUp(actor);
+
 		-- Enable prestige where needed
-		local actorMaxxed = actor:GetNumberValue("VW_XP") >= CF.Ranks[#CF.Ranks];
-		if actorMaxxed or actor:GetNumberValue("VW_Prestige") >= 1 then
-			local pie = actor.PieMenu:GetFirstPieSliceByPresetName(CF.PrestigeSlice.PresetName);
-			if not pie then
-				actor.PieMenu:AddPieSliceIfPresetNameIsUnique(CF.PrestigeSlice:Clone(), self);
-				pie = actor.PieMenu:GetFirstPieSliceByPresetName(CF.PrestigeSlice.PresetName);
+		local actorMaxxed = actor:GetNumberValue("VW_Rank") >= #CF.Ranks;
+		local pie = actor.PieMenu:GetFirstPieSliceByPresetName(CF.PrestigeSlice.PresetName);
+
+		if actorMaxxed and not pie then
+			pie = CF.PrestigeSlice:Clone();
+
+			if not actor.PieMenu:AddPieSliceIfPresetNameIsUnique(pie, self) then
+				pie = nil;
 			end
-			if pie then
-				pie.Enabled = actorMaxxed;
+		end
+
+		if pie then
+			pie.Enabled = actorMaxxed;
+			
+			if not actorMaxxed then
+				actor.PieMenu:RemovePieSlice(pie);
 			end
 		end
 
@@ -1200,23 +1213,27 @@ function VoidWanderers:UpdateActivity()
 			actor:RemoveWounds(actor.WoundCount);
 			actor.Health = actor.MaxHealth;
 
-			CF.UnBuffActor(actor, actor:GetNumberValue("VW_Rank"), actor:GetNumberValue("VW_Prestige"));
+			local prestige = actor:GetNumberValue("VW_Prestige");
+			local oldRank = actor:GetNumberValue("VW_Rank");
+			CF.BuffActor(actor, 1 / (1 + (oldRank + math.sqrt(prestige)) * 0.1 * math.sqrt(prestige * 0.1 + 1)));
+
+			local prestige = prestige + 1;
 			actor:SetNumberValue("VW_XP", 0);
 			actor:SetNumberValue("VW_Rank", 0);
-			actor:SetNumberValue("VW_Prestige", actor:GetNumberValue("VW_Prestige") + 1);
+			actor:SetNumberValue("VW_Prestige", prestige);
+			CF.BuffActor(actor, 1 + (rank + math.sqrt(prestige)) * 0.1 * math.sqrt(prestige * 0.1 + 1));
 			CF.BuffActor(actor, actor:GetNumberValue("VW_Rank"), actor:GetNumberValue("VW_Prestige"));
+
 			local cont = actor:GetController();
+
 			if cont:IsMouseControlled() or cont:IsKeyboardOnlyControlled() then
 				CF.SetNamingActor(actor, cont.Player);
 			end
 		end
-
-		self:LevelUp(actor);
 	end
 
 	if self.encounterData["initialized"] then
 		self:EncounterUpdate()
-		-- If encounter was finished then remove turrets
 		if self.encounterData["encounterConcluded"] == true then
 			self.encounterData = {}
 			self.EncounterUpdate = nil
@@ -1234,84 +1251,62 @@ function VoidWanderers:UpdateActivity()
 		if self.MissionUpdate ~= nil then
 			self:MissionUpdate()
 		end
+	end
 
-		-- Make actors glitch if there are too many of them
-		local count = 0
-		local braincount = 0
-		local actorList = {}
-		for actor in MovableMan.Actors do
-			table.insert(actorList, actor)
-		end
-		for actor in MovableMan.AddedActors do
-			table.insert(actorList, actor)
-		end
-		for _, actor in ipairs(actorList) do
-			if
-				actor.Team == CF.PlayerTeam
-				and actor.ClassName ~= "Actor"
-				and actor.ClassName ~= "ADoor"
-				and not CF.IsAlly(actor)
-			then
-				count = count + 1
+	-- Make actors glitch if there are too many of them
+	local count = 0;
+	local braincount = 0;
+	for _, set in ipairs{MovableMan.Actors, MovableMan.AddedActors} do for actor in set do
+		if actor.Team == CF.PlayerTeam and not CF.IsAlly(actor) then
+			if CF.IsBrain(actor) then
+				braincount = braincount + 1;
+			end
 
-				if
-					self.GS["BrainsOnMission"] ~= "True"
-					and self.Time % 4 == 0
-					and count > tonumber(self.GS["PlayerVesselCommunication"])
-					and actor:GetNumberValue("VW_Prestige") == 0
-				then
-					local cont = actor:GetController()
-					--[[
-					if math.random() < 0.1 then
-						if cont:IsState(Controller.WEAPON_FIRE) then
-							cont:SetState(Controller.WEAPON_FIRE, false)
-						else
-							cont:SetState(Controller.WEAPON_FIRE, true)
+			if CF.IsPlayerUnit(actor) then
+				if self.GS["BrainsOnMission"] ~= "True" and actor:GetNumberValue("VW_Prestige") == 0 then
+					count = count + 1;
+
+					if count > tonumber(self.GS["PlayerVesselCommunication"]) and self.Time % 4 == 0 then
+						local cont = actor:GetController();
+
+						if cont:IsState(Controller.BODY_JUMP) then
+							cont:SetState(Controller.BODY_JUMP, false);
+							cont:SetState(Controller.BODY_JUMPSTART, false);
+							cont:SetState(Controller.BODY_CROUCH, true);
+						elseif cont:IsState(Controller.BODY_CROUCH) then
+							cont:SetState(Controller.BODY_JUMP, true);
+							cont:SetState(Controller.BODY_CROUCH, false);
 						end
-					end
-					]]
-					--
-					if cont:IsState(Controller.BODY_JUMP) then
-						cont:SetState(Controller.BODY_JUMP, false)
-						cont:SetState(Controller.BODY_JUMPSTART, false)
-						cont:SetState(Controller.BODY_CROUCH, true)
-					elseif cont:IsState(Controller.BODY_CROUCH) then
-						cont:SetState(Controller.BODY_JUMP, true)
-						cont:SetState(Controller.BODY_CROUCH, false)
-					end
-					if cont:IsState(Controller.MOVE_LEFT) then
-						cont:SetState(Controller.MOVE_LEFT, false)
-						cont:SetState(Controller.MOVE_RIGHT, true)
-					elseif cont:IsState(Controller.MOVE_RIGHT) then
-						cont:SetState(Controller.MOVE_RIGHT, false)
-						cont:SetState(Controller.MOVE_LEFT, true)
-					end
-					if cont:IsState(Controller.WEAPON_PICKUP) then
-						cont:SetState(Controller.WEAPON_PICKUP, false)
-						cont:SetState(Controller.WEAPON_DROP, true)
-					elseif cont:IsState(Controller.WEAPON_DROP) then
-						cont:SetState(Controller.WEAPON_DROP, false)
-						cont:SetState(Controller.WEAPON_PICKUP, true)
-					end
 
-					self:AddObjectivePoint("CONNECTION LOST", actor.AboveHUDPos, CF.PlayerTeam, GameActivity.ARROWUP)
-				end
-				if (actor:GetNumberValue("VW_BrainOfPlayer") - 1) ~= Activity.PLAYER_NONE then
-					braincount = braincount + 1
+						if cont:IsState(Controller.MOVE_LEFT) then
+							cont:SetState(Controller.MOVE_LEFT, false)
+							cont:SetState(Controller.MOVE_RIGHT, true);
+						elseif cont:IsState(Controller.MOVE_RIGHT) then
+							cont:SetState(Controller.MOVE_RIGHT, false);
+							cont:SetState(Controller.MOVE_LEFT, true);
+						end
+
+						if cont:IsState(Controller.WEAPON_PICKUP) then
+							cont:SetState(Controller.WEAPON_PICKUP, false);
+							cont:SetState(Controller.WEAPON_DROP, true);
+						elseif cont:IsState(Controller.WEAPON_DROP) then
+							cont:SetState(Controller.WEAPON_DROP, false);
+							cont:SetState(Controller.WEAPON_PICKUP, true);
+						end
+
+						self:AddObjectivePoint("CONNECTION LOST", actor.AboveHUDPos, CF.PlayerTeam, GameActivity.ARROWUP);
+					end
 				end
 			end
 		end
+	end end
 
-		-- Check losing conditions
-		if self.GS["BrainsOnMission"] == "True" and self.BrainsAtStake and self.ActivityState ~= Activity.OVER then
-			if
-				braincount < self.PlayerCount
-				and self.Time > self.missionData["missionStartTime"] + 1
-			then
-				self.WinnerTeam = CF.CPUTeam
-				ActivityMan:EndActivity()
-				self:StartMusic(CF.MusicTypes.DEFEAT)
-			end
+	-- Check losing conditions
+	if self.BrainsAtStake and self.ActivityState ~= Activity.OVER then
+		if braincount < self.PlayerCount then
+			self.WinnerTeam = CF.CPUTeam;
+			ActivityMan:EndActivity();
+			self:StartMusic(CF.MusicTypes.DEFEAT);
 		end
 	end
 
@@ -1346,10 +1341,10 @@ function VoidWanderers:UpdateActivity()
 			local sx = tonumber(self.GS["ShipX"])
 			local sy = tonumber(self.GS["ShipY"])
 
-			local d = CF.Dist(Vector(sx, sy), Vector(dx, dy))
-			self.GS["Distance"] = d
+			local i = CF.Dist(Vector(sx, sy), Vector(dx, dy))
+			self.GS["Distance"] = i
 
-			if d <= 0.5 then
+			if i <= 0.5 then
 				self.GS["Location"] = self.GS["Destination"]
 				self.GS["Destination"] = nil
 
@@ -1364,8 +1359,8 @@ function VoidWanderers:UpdateActivity()
 				if not self.vesselData["flightAimless"] then
 					self:AttemptRandomEncounter()
 
-					self.GS["ShipX"] = sx + (dx - sx) / d * (flightSpeed / CF.KmPerPixel)
-					self.GS["ShipY"] = sy + (dy - sy) / d * (flightSpeed / CF.KmPerPixel)
+					self.GS["ShipX"] = sx + (dx - sx) / i * (flightSpeed / CF.KmPerPixel)
+					self.GS["ShipY"] = sy + (dy - sy) / i * (flightSpeed / CF.KmPerPixel)
 				end
 			end
 		end
@@ -1446,7 +1441,7 @@ function VoidWanderers:UpdateActivity()
 						self.flyPhase[#self.flyPhase] = { actor }
 					end
 				else
-					if actor.Health > 0 and actor.Health < actor.MaxHealth and ourTeam and isUserVessel then
+					if actor.Health > 0 and actor.Health < actor.MaxHealth and ourTeam and isUserVessel and self.vesselData["lifeSupportEnabled"] then
 						actor.Health = math.min(actor.Health + 0.1, actor.MaxHealth)
 					end
 				end
@@ -1728,15 +1723,14 @@ function VoidWanderers:UpdateActivity()
 		if _ == 1 and actor:NumberValueExists("VW_Passable") then 
 			actor.IgnoresActorHits = actor:GetNumberValue("VW_Passable") == 1;
 			actor:RemoveNumberValue("VW_Passable");
-			print("We're here, at least")
-			print(actor.Team)
-			print(Activity.TEAM_1)
 
-			if actor.Team > Activity.TEAM_1 then
+			-- Had this fun idea that if you revive an actor, you may conscript them for a hefty fee
+			-- However, this goes poorly if your team is not the one to revive them, as they start shooting their own
+			--[[if false and actor.Team > Activity.TEAM_1 then
 				actor.Team = Activity.TEAM_1;
 				actor:SetNumberValue("VW_ConscriptPrice", math.ceil(actor:GetTotalValue(0, 1, 1) * (8 + 2 * math.random())));
 				CF.SetAlly(actor, true);
-			end
+			end]]
 		end
 		-- No dead unit settles immediately and all can carry others, though most can't use it
 		if IsAHuman(actor) or IsACrab(actor) then
@@ -1801,12 +1795,14 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:InitConsoles()
-	self:InitShipControlPanelUI()
-	self:InitStorageControlPanelUI()
-	self:InitClonesControlPanelUI()
-	self:InitBeamControlPanelUI()
+	print("Init consoles.");
+	
+	self:InitShipControlPanelUI();
+	self:InitStorageControlPanelUI();
+	self:InitClonesControlPanelUI();
+	self:InitBeamControlPanelUI();
 
-	self:InitTurretsControlPanelUI()
+	self:InitTurretsControlPanelUI();
 end
 -----------------------------------------------------------------------
 --
@@ -1953,21 +1949,25 @@ function VoidWanderers:LevelUp(actor)
 	if actor then
 		local experience = actor:GetNumberValue("VW_XP");
 		local rank = actor:GetNumberValue("VW_Rank");
-		local levelup = false;
+		local levelup = 0;
 		local nextRank = CF.Ranks[rank + 1];
 
 		while nextRank and experience >= nextRank do
-			levelup = true;
+			levelup = levelup + 1;
 			rank = rank + 1;
 			nextRank = CF.Ranks[rank + 1];
 		end
 
-		if levelup then
+		if levelup > 0 then
 			if not self.levelUpSound:IsBeingPlayed() then
 				self.levelUpSound:Play(actor.Pos);
 			end
-
+			
+			local prestige = actor:GetNumberValue("VW_Prestige");
+			local oldRank = actor:GetNumberValue("VW_Rank");
+			CF.BuffActor(actor, 1 / (1 + (oldRank + math.sqrt(prestige)) * 0.1 * math.sqrt(prestige * 0.1 + 1)));
 			actor:SetNumberValue("VW_Rank", rank);
+			CF.BuffActor(actor, 1 + (rank + math.sqrt(prestige)) * 0.1 * math.sqrt(prestige * 0.1 + 1));
 			actor:FlashWhite(50);
 			actor.Health = math.min(actor.Health * 1.5, actor.MaxHealth);
 			return true;
@@ -2098,66 +2098,70 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:GiveFocusToBridge()
-	local bridgeempty = true
-	local plrtoswitch = Activity.PLAYER_NONE
+	local bridgeEmpty = true;
+	local playerCandidate = Activity.PLAYER_NONE;
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		local act = self:GetControlledActor(player)
+		local actor = self:GetControlledActor(player);
 
-		if act and MovableMan:IsActor(act) then
-			if act.PresetName ~= "Ship Control Panel" and plrtoswitch == -1 then
-				plrtoswitch = player
+		if actor and MovableMan:IsActor(actor) then
+			if actor.PresetName ~= "Ship Control Panel" and playerCandidate == Activity.PLAYER_NONE then
+				playerCandidate = player;
 			end
 
-			if act.PresetName == "Ship Control Panel" then
-				bridgeempty = false
+			if actor.PresetName == "Ship Control Panel" then
+				bridgeEmpty = false;
 			end
 		end
 	end
 
-	if plrtoswitch ~= Activity.PLAYER_NONE and bridgeempty and MovableMan:IsActor(self.ShipControlPanelActor) then
-		self:SwitchToActor(self.ShipControlPanelActor, plrtoswitch, CF.PlayerTeam)
+	if playerCandidate ~= Activity.PLAYER_NONE and bridgeEmpty and MovableMan:IsActor(self.ShipControlPanelActor) then
+		self:SwitchToActor(self.ShipControlPanelActor, playerCandidate, CF.PlayerTeam);
 	end
-	self.ShipControlMode = self.ShipControlPanelModes.REPORT
+
+	self.ShipControlMode = self.ShipControlPanelModes.REPORT;
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function VoidWanderers:SendTransmission(message, options)
-	self.vesselData["dialog"] = { message=message, options=options }
-	self.vesselData["dialogDefaultTimer"]:Reset()
-	self.vesselData["dialogOptionSelected"] = 1
-	self.vesselData["dialogOptionChosen"] = 0
-	
-	self:GiveFocusToBridge()
+	self.vesselData["dialog"] = { message=message, options=options };
+	self.vesselData["dialogDefaultTimer"]:Reset();
+	self.vesselData["dialogOptionSelected"] = 1;
+	self.vesselData["dialogOptionChosen"] = 0;
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function VoidWanderers:SpawnViaTable(nm)
-	local actor = CF.SpawnAIUnitWithPreset(
-		self.GS,
-		nm.Player,
-		nm.Team,
-		nm.Pos,
-		nm.AIMode,
-		nm.Preset
-	)
+	local actor = CF.MakeUnitWithPreset(self.GS, nm.Player, nm.Preset)
 
 	if actor then
+		if nm.Team then
+			actor.Team = nm.Team;
+		end
+
+		if nm.Pos then
+			actor.Pos = nm.Pos;
+		end
+
+		if nm.AIMode then
+			actor.AIMode = nm.AIMode;
+		end
+
 		if nm.Name then
-			actor:SetStringValue("VW_Name", nm.Name)
+			actor:SetStringValue("VW_Name", nm.Name);
 		end
 
 		if nm.Ally then
-			CF.SetAlly(actor, true)
+			CF.SetAlly(actor, true);
 		end
 
-		actor.HFlipped = math.random() < 0.5
-		MovableMan:AddActor(actor)
+		actor.HFlipped = math.random() < 0.5;
+		MovableMan:AddActor(actor);
 	end
 
-	return actor
+	return actor;
 end
 -----------------------------------------------------------------------
 --
@@ -2176,9 +2180,11 @@ function VoidWanderers:ClearActors()
 		self.GS["Actor" .. i .. "Player"] = nil;
 		self.GS["Actor" .. i .. "Prestige"] = nil;
 		self.GS["Actor" .. i .. "Name"] = nil;
-
-		for j = 1, #CF.HumanLimbID do
-			self.GS["Actor" .. i .. CF.HumanLimbID[j]] = nil;
+		
+		for _, classLimbs in pairs(CF.LimbIDs) do
+			for _, limbName in ipairs(classLimbs) do
+				self.GS["Actor" .. i .. limbName] = nil;
+			end
 		end
 
 		for j = 1, CF.MaxSavedItemsPerActor do
@@ -2210,8 +2216,8 @@ function VoidWanderers:SaveActors(clearpos)
 			self.GS["Actor" .. savedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige");
 			self.GS["Actor" .. savedactor .. "Name"] = actor:GetStringValue("VW_Name");
 
-			for i, limbID in pairs(CF.HumanLimbID) do
-				self.GS["Actor" .. savedactor .. limbID] = CF.GetLimbData(actor, limbID)
+			for _, limbName in ipairs(CF.LimbIDs[actor.ClassName]) do
+				self.GS["Actor" .. savedactor .. limbName] = CF.GetLimbData(actor, limbName);
 			end
 
 			if not clearpos then
@@ -2250,9 +2256,11 @@ function VoidWanderers:ClearDeployed()
 		self.GS["Deployed" .. i .. "Player"] = nil
 		self.GS["Deployed" .. i .. "Prestige"] = nil
 		self.GS["Deployed" .. i .. "Name"] = nil
-
-		for j = 1, #CF.HumanLimbID do
-			self.GS["Deployed" .. i .. CF.HumanLimbID[j]] = nil
+		
+		for _, classLimbs in pairs(CF.LimbIDs) do
+			for _, limbName in ipairs(classLimbs) do
+				self.GS["Deployed" .. i .. limbName] = nil;
+			end
 		end
 
 		for j = 1, CF.MaxSavedItemsPerActor do
@@ -2285,8 +2293,9 @@ end
 			self.GS["Deployed" .. saveddeployed .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
 			self.GS["Deployed" .. saveddeployed .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
 			self.GS["Deployed" .. saveddeployed .. "Name"] = actor:GetStringValue("VW_Name")
-			for j = 1, #CF.HumanLimbID do
-				self.GS["Deployed" .. saveddeployed .. CF.HumanLimbID[j] ] = CF.GetLimbData(actor, j)
+			
+			for _, limbName in ipairs(CF.LimbIDs[actor.ClassName]) do
+				self.GS["Deployed" .. savedactor .. limbName] = CF.GetLimbData(actor, limbName);
 			end
 
 			if clearpos then
@@ -2345,8 +2354,8 @@ function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 					self.GS["Deployed" .. i .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
 					self.GS["Deployed" .. i .. "Name"] = actor:GetStringValue("VW_Name")
 					
-					for i, limbID in pairs(CF.HumanLimbID) do
-						self.GS["Deployed" .. i .. limbID] = CF.GetLimbData(actor, limbID)
+					for _, limbName in ipairs(CF.LimbIDs[actor.ClassName]) do
+						self.GS["Deployed" .. savedactor .. limbName] = CF.GetLimbData(actor, limbName);
 					end
 
 					for j = 1, #pre do
@@ -2372,20 +2381,24 @@ function VoidWanderers:LocatePlayerBrains(swapToBrains, initPieMenu)
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
 			for actor in MovableMan.AddedActors do
 				if actor:GetNumberValue("VW_BrainOfPlayer") - 1 == player then
-					self:SetPlayerBrain(actor, player)
+					self:SetPlayerBrain(actor, player);
+					self.PlayersWithBrains[player + 1] = true;
+
 					if swapToBrains then
-						self:SwitchToActor(actor, player, CF.PlayerTeam)
+						self:SwitchToActor(actor, player, CF.PlayerTeam);
 					end
-					self.PlayersWithBrains[player + 1] = true
+
 					if initPieMenu then
-						actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
+						actor.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil);
+
 						if actor:HasScript("VoidWanderers.rte/Actors/Shared/Brain.lua") then
-							actor:EnableScript("VoidWanderers.rte/Actors/Shared/Brain.lua")
+							actor:EnableScript("VoidWanderers.rte/Actors/Shared/Brain.lua");
 						else
-							actor:AddScript("VoidWanderers.rte/Actors/Shared/Brain.lua")
+							actor:AddScript("VoidWanderers.rte/Actors/Shared/Brain.lua");
 						end
 					end
-					self:GetBanner(GUIBanner.RED, player):ClearText()
+
+					self:GetBanner(GUIBanner.RED, player):ClearText();
 				end
 			end
 		end
@@ -2417,17 +2430,17 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:DrawDottedLine(x1, y1, x2, y2, player, interval)
-	local d = CF.Dist(Vector(x1, y1), Vector(x2, y2))
+	local i = CF.Dist(Vector(x1, y1), Vector(x2, y2))
 
-	local ax = (x2 - x1) / d * interval
-	local ay = (y2 - y1) / d * interval
+	local ax = (x2 - x1) / i * interval
+	local ay = (y2 - y1) / i * interval
 
 	local x = x1
 	local y = y1
 
-	d = math.floor(d)
+	i = math.floor(i)
 
-	for i = 1, d, interval do
+	for i = 1, i, interval do
 		path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Ship_RouteDot.png";
 		PrimitiveMan:DrawBitmapPrimitive(player, Vector(x, y), path, 0, false, false);
 
@@ -2439,7 +2452,7 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:DrawWanderingDottedLine(x1, y1, x2, y2, player, interval, w, p, scale)
-	local d = CF.Dist(Vector(x1, y1), Vector(x2, y2))
+	local i = CF.Dist(Vector(x1, y1), Vector(x2, y2))
 	local t = 0
 
 	local startOffsetX, startOffsetY = -math.cos(p) * scale, -math.sin(p) * scale
@@ -2457,100 +2470,41 @@ function VoidWanderers:DrawWanderingDottedLine(x1, y1, x2, y2, player, interval,
 		t = t + interval / math.min(math.abs(math.sqrt(
 			((x2 - x1) + (endOffsetX - startOffsetX) - math.sin(p + w * t) * w * scale) ^ 2 +
 			((y2 - y1) + (endOffsetY - startOffsetY) + math.cos(p + w * t) * w * scale) ^ 2
-		)), d)
+		)), i)
 	end
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function VoidWanderers:DeployGenericMissionEnemies(setnumber, setname, plr, team, spawnrate)
-	-- Define spawn queue
-	local dq = {}
-	-- Defenders aka turrets if any
-	dq[1] = {}
-	dq[1]["Preset"] = CF.PresetTypes.DEFENDER
-	dq[1]["PointName"] = "Defender"
+	local deployments = {};
+	
+	table.insert(deployments, { PointName = "Defender", Presets = { CF.PresetTypes.DEFENDER } });
+	table.insert(deployments, { PointName = "Sniper", Presets = { CF.PresetTypes.SNIPER } });
+	table.insert(deployments, { PointName = "Heavy", Presets = { CF.PresetTypes.HEAVY1, CF.PresetTypes.HEAVY2 } });
+	table.insert(deployments, { PointName = "Shotgun", Presets = { CF.PresetTypes.SHOTGUN } });
+	table.insert(deployments, { PointName = "Armor", Presets = { CF.PresetTypes.ARMOR1, CF.PresetTypes.ARMOR2 } });
+	table.insert(deployments, { PointName = "Rifle", Presets = { CF.PresetTypes.INFANTRY1, CF.PresetTypes.INFANTRY2 } });
+	table.insert(deployments, { PointName = "Any", Presets = nil });
 
-	-- Snipers
-	dq[2] = {}
-	dq[2]["Preset"] = CF.PresetTypes.SNIPER
-	dq[2]["PointName"] = "Sniper"
+	for i = 1, #deployments do
+		local deployment = deployments[i];
 
-	-- Heavies
-	dq[3] = {}
-	dq[3]["Preset"] = math.random() < 0.5 and CF.PresetTypes.HEAVY1 or CF.PresetTypes.HEAVY2
-	dq[3]["PointName"] = "Heavy"
+		local usablePositions = CF.GetPointsArray(self.Pts, setname, setnumber, deployment.PointName);
+		local count = math.max(math.floor(spawnrate * #usablePositions), 1);
+		local positions = CF.RandomSampleOfList(usablePositions, count);
 
-	-- Shotguns
-	dq[4] = {}
-	dq[4]["Preset"] = CF.PresetTypes.SHOTGUN
-	dq[4]["PointName"] = "Shotgun"
+		for j = 1, #positions do
+			local newUnit = {};
 
-	-- Armored
-	dq[5] = {}
-	dq[5]["Preset"] = math.random() < 0.5 and CF.PresetTypes.ARMOR1 or CF.PresetTypes.ARMOR2
-	dq[5]["PointName"] = "Armor"
+			newUnit.Preset = deployment.Presets and deployment.Presets[math.random(#deployment.Presets)] or math.random(CF.PresetTypes.ARMOR2);
+			newUnit.Team = team;
+			newUnit.Player = plr;
+			newUnit.Pos = positions[j];
+			newUnit.Ally = team == CF.PlayerTeam;
+			newUnit.AIMode = (not SceneMan:CastStrengthRay(positions[j] + Vector(-50, 0), Vector(100, 0), 40, Vector(), 10, rte.grassID, true)) and Actor.AIMODE_PATROL or Actor.AIMODE_SENTRY;
 
-	-- Riflemen
-	dq[6] = {}
-	dq[6]["Preset"] = math.random() < 0.5 and CF.PresetTypes.INFANTRY1 or CF.PresetTypes.INFANTRY2
-	dq[6]["PointName"] = "Rifle"
-
-	-- Random
-	dq[7] = {}
-	dq[7]["Preset"] = nil
-	dq[7]["PointName"] = "Any"
-
-	-- Spawn everything
-	for d = 1, #dq do
-		local fullenmpos = CF.GetPointsArray(self.Pts, setname, setnumber, dq[d]["PointName"])
-		local count = math.max(math.floor(spawnrate * #fullenmpos), 1)
-
-		local enmpos = CF.RandomSampleOfList(fullenmpos, count)
-
-		--print (dq[d]["PointName"].." - "..#enmpos.." / ".. #fullenmpos .." - "..spawnrate)
-
-		for i = 1, #enmpos do
-			local nw = {}
-			if dq[d]["Preset"] == nil then
-				nw["Preset"] = math.random(CF.PresetTypes.ARMOR2)
-			else
-				nw["Preset"] = dq[d]["Preset"]
-			end
-			nw["Team"] = team
-			nw["Player"] = plr
-			nw["Pos"] = enmpos[i]
-			nw["AIMode"] = Actor.AIMODE_SENTRY
-			-- If spawning as player's team then they are allies
-			if team == CF.PlayerTeam then
-				nw["Ally"] = 1
-				-- Set to patrol if there's enough room
-			elseif
-				SceneMan:CastStrengthRay(
-						enmpos[i],
-						Vector(50, 0),
-						10,
-						Vector(),
-						10,
-						rte.grassID,
-						SceneMan.SceneWrapsX
-					)
-					== false
-				and SceneMan:CastStrengthRay(
-						enmpos[i],
-						Vector(-50, 0),
-						10,
-						Vector(),
-						10,
-						rte.grassID,
-						SceneMan.SceneWrapsX
-					)
-					== false
-			then
-				nw["AIMode"] = Actor.AIMODE_PATROL
-			end
-
-			self:SpawnViaTable(nw)
+			self:SpawnViaTable(newUnit);
 		end
 	end
 end
@@ -2558,61 +2512,58 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:ObtainBaseBoxes(setname, setnumber)
-	-- Get base box
 	if self.missionData["initialized"] then
-		local bp = CF.GetPointsArray(self.Pts, setname, setnumber, "Base")
-		self.missionData["missionBase"] = {}
+		local boxes = {};
+		local corners = CF.GetPointsArray(self.Pts, setname, setnumber, "Base");
 
-		for i = 1, #bp, 2 do
-			if bp[i + 1] == nil then
-				print("OUT OF BOUNDS WHEN BUILDING BASE BOX")
-				break
-			end
+		for i = 1, #corners, 2 do
+			local c1, c2 = corners[i], corners[i + 1];
 
-			-- Split the box if we're crossing the seam
-			if bp[i].X > bp[i + 1].X then
-				local nxt = #self.missionData["missionBase"] + 1
-				self.missionData["missionBase"][nxt] = Box(bp[i].X, bp[i].Y, SceneMan.Scene.Width, bp[i + 1].Y)
-
-				local nxt = #self.missionData["missionBase"] + 1
-				self.missionData["missionBase"][nxt] = Box(0, bp[i].Y, bp[i + 1].X, bp[i + 1].Y)
+			if c1.X > c2.X then
+				if c1.Y > c2.Y then
+					table.insert(boxes, Box(c1.X, c1.Y, SceneMan.Scene.Width, SceneMan.Scene.Height));
+					table.insert(boxes, Box(0, c1.Y, c2.X, SceneMan.Scene.Height));
+					table.insert(boxes, Box(c1.X, 0, SceneMan.Scene.Width, c2.Y));
+					table.insert(boxes, Box(0, 0, c2.X, c2.Y));
+				else
+					table.insert(boxes, Box(c1.X, c1.Y, SceneMan.Scene.Width, c2.Y));
+					table.insert(boxes, Box(0, c1.Y, c2.X, c2.Y));
+				end
 			else
-				local nxt = #self.missionData["missionBase"] + 1
-				self.missionData["missionBase"][nxt] = Box(bp[i].X, bp[i].Y, bp[i + 1].X, bp[i + 1].Y)
+				if c1.Y > c2.Y then
+					table.insert(boxes, Box(c1.X, c1.Y, c2.X, SceneMan.Scene.Height));
+					table.insert(boxes, Box(c1.X, 0, c2.X, c2.Y));
+				else
+					table.insert(boxes, Box(c1.X, c1.Y, c2.X, c2.Y));
+				end
 			end
 		end
+
+		self.missionData["missionBase"] = boxes;
 	end
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function VoidWanderers:DeployInfantryMines(team, rate)
-	local points = {}
+	local points = {};
 
 	for actor in MovableMan.AddedActors do
 		if actor.Team == team and IsAHuman(actor) then
-			table.insert(points, actor.Pos)
+			table.insert(points, actor.Pos);
 		end
 	end
 
-	if false and #points == 0 then
-		for _, spawn in pairs(self.SpawnTable) do
-			if spawn["Team"] and spawn["Team"] == team and spawn["Pos"] then
-				table.insert(points, spawn["Pos"])
-			end
-		end
-	end
-
-	local randomPoints = CF.RandomSampleOfList(points, math.floor(#points * rate + 0.5))
+	local randomPoints = CF.RandomSampleOfList(points, math.floor(#points * rate));
 
 	for _, pos in pairs(randomPoints) do
-		local mine = CreateMOSRotating("Anti Personnel Mine Active", "Base.rte")
-		mine.Pos = pos
-		mine.Team = team
-		mine.Sharpness = team
-		mine.IgnoresTeamHits = true
-		mine.Vel = Vector(0, 10):RadRotate(RangeRand(-2, 2))
-		MovableMan:AddParticle(mine)
+		local mine = CreateMOSRotating("Anti Personnel Mine Active", "Base.rte");
+		mine.Pos = pos;
+		mine.Team = team;
+		mine.Sharpness = team;
+		mine.IgnoresTeamHits = true;
+		mine.Vel = Vector(0, 10):RadRotate(RangeRand(-2, 2));
+		MovableMan:AddParticle(mine);
 	end
 end
 -----------------------------------------------------------------------
@@ -2628,7 +2579,8 @@ function VoidWanderers:GiveMissionRewards(disablepenalties)
 			self.GS["Player" .. self.missionData["missionTarget"] .. "Reputation"]
 		) - math.ceil(self.missionData["reputationReward"] * CF.ReputationPenaltyRatio)
 	end
-	self:SetTeamFunds(CF.ChangeGold(self.GS, self.missionData["goldReward"]), CF.PlayerTeam)
+
+	CF.ChangePlayerGold(self.GS, self.missionData["goldReward"])
 
 	-- Refresh Black Market listing after every completed mission
 	self.GS["BlackMarket" .. "Station Ypsilon-2" .. "LastRefresh"] = nil
@@ -2640,9 +2592,9 @@ function VoidWanderers:GiveMissionRewards(disablepenalties)
 		end
 	end
 
-	self.MissionReport[#self.MissionReport + 1] = "MISSION COMPLETED"
+	self.reportData[#self.reportData + 1] = "MISSION COMPLETED"
 	if self.missionData["goldReward"] > 0 then
-		self.MissionReport[#self.MissionReport + 1] = tostring(self.missionData["goldReward"]) .. "oz of gold received"
+		self.reportData[#self.reportData + 1] = tostring(self.missionData["goldReward"]) .. "oz of gold received"
 	end
 
 	local exppts = math.floor((self.missionData["reputationReward"] + self.missionData["goldReward"]) / 8)
@@ -2652,14 +2604,14 @@ function VoidWanderers:GiveMissionRewards(disablepenalties)
 	if self.GS["BrainsOnMission"] == "True" then
 		levelup = CF.GiveExp(self.GS, exppts)
 
-		self.MissionReport[#self.MissionReport + 1] = tostring(exppts) .. " exp received"
+		self.reportData[#self.reportData + 1] = tostring(exppts) .. " exp received"
 		if levelup then
 			local s = ""
 			if self.PlayerCount > 1 then
 				s = "s"
 			end
 
-			self.MissionReport[#self.MissionReport + 1] = "Brain" .. s .. " leveled up!"
+			self.reportData[#self.reportData + 1] = "Brain" .. s .. " leveled up!"
 		end
 	end
 
@@ -2678,20 +2630,20 @@ function VoidWanderers:GiveMissionRewards(disablepenalties)
 		end
 	end
 	if self.missionData["reputationReward"] > 0 then
-		self.MissionReport[#self.MissionReport + 1] = "+"
+		self.reportData[#self.reportData + 1] = "+"
 			.. self.missionData["reputationReward"]
 			.. " "
 			.. CF.FactionNames[CF.GetPlayerFaction(self.GS, self.missionData["missionContractor"])]
 			.. " reputation"
 		if not disablepenalties then
-			self.MissionReport[#self.MissionReport + 1] = "-"
+			self.reportData[#self.reportData + 1] = "-"
 				.. math.ceil(self.missionData["reputationReward"] * CF.ReputationPenaltyRatio)
 				.. " "
 				.. CF.FactionNames[CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])]
 				.. " reputation"
 		end
 		if CF.MissionCombo > 1 then
-			self.MissionReport[#self.MissionReport + 1] = "Completion streak: "
+			self.reportData[#self.reportData + 1] = "Completion streak: "
 				.. CF.MissionCombo
 				.. " / XP multiplier: "
 				.. math.floor(comboMult * 10 + 0.5) * 0.1
@@ -2715,7 +2667,7 @@ function VoidWanderers:GiveMissionPenalties()
 		) - math.ceil(self.missionData["reputationReward"] * CF.MissionFailedReputationPenaltyRatio)
 	end
 
-	self.MissionReport[#self.MissionReport + 1] = "MISSION FAILED"
+	self.reportData[#self.reportData + 1] = "MISSION FAILED"
 
 	CF.MissionCombo = 0
 	local loss = math.floor((self.missionData["reputationReward"] + self.missionData["goldReward"]) * 0.005)
@@ -2725,12 +2677,12 @@ function VoidWanderers:GiveMissionPenalties()
 		end
 	end
 	if self.missionData["reputationReward"] > 0 then
-		self.MissionReport[#self.MissionReport + 1] = "-"
+		self.reportData[#self.reportData + 1] = "-"
 			.. math.ceil(self.missionData["reputationReward"] * CF.MissionFailedReputationPenaltyRatio)
 			.. " "
 			.. CF.FactionNames[CF.GetPlayerFaction(self.GS, self.missionData["missionContractor"])]
 			.. " reputation"
-		self.MissionReport[#self.MissionReport + 1] = "-"
+		self.reportData[#self.reportData + 1] = "-"
 			.. math.ceil(self.missionData["reputationReward"] * CF.MissionFailedReputationPenaltyRatio)
 			.. " "
 			.. CF.FactionNames[CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])]
@@ -2778,7 +2730,7 @@ function VoidWanderers:ProcessExplorationPoints()
 		if not self.missionData["explorationRecovered"] then
 			-- Send all units to brainhunt
 			for actor in MovableMan.Actors do
-				if actor.Team == CF.PlayerTeam and CF.DistUnder(actor.Pos, self.missionData["explorationPoint"], 25) then
+				if actor.Team == CF.PlayerTeam and CF.Dist(actor.Pos, self.missionData["explorationPoint"]) < 25 then
 					if CF.IsCommander(actor) then
 						self.missionData["explorationText"] = self:GiveRandomExplorationReward();
 						self.missionData["explorationRecovered"] = true;
@@ -2832,7 +2784,7 @@ function VoidWanderers:GiveRandomExplorationReward()
 	if r == rewards.gold then
 		local amount = math.floor(math.random(self.missionData["difficulty"] * 250, self.missionData["difficulty"] * 500))
 
-		self:SetTeamFunds(CF.ChangeGold(self.GS, amount), CF.PlayerTeam)
+		CF.ChangePlayerGold(self.GS, amount)
 		text = {}
 		text[1] = "Bank account access codes found.\n" .. tostring(amount) .. "oz of gold received."
 	elseif r == rewards.experience then
@@ -2865,13 +2817,15 @@ function VoidWanderers:GiveRandomExplorationReward()
 		text = { CF.QuantumItmPresets[id] .. " quantum scheme found." }
 	end
 
-	if self.MissionReport == nil then
-		self.MissionReport = {}
+	if self.reportData == nil then
+		self.reportData = {}
 	end
+
 	for i = 1, #text do
-		self.MissionReport[#self.MissionReport + 1] = text[i]
+		self.reportData[#self.reportData + 1] = text[i]
 	end
-	CF.SaveMissionReport(self.GS, self.MissionReport)
+
+	CF.SaveMissionReport(self.GS, self.reportData)
 
 	return text
 end
@@ -2899,13 +2853,7 @@ function VoidWanderers:GiveRandomExperienceReward(diff)
 		text[2] = "Brain" .. s .. " leveled up!"
 	end
 
-	if self.MissionReport == nil then
-		self.MissionReport = {}
-	end
-	for i = 1, #text do
-		self.MissionReport[#self.MissionReport + 1] = text[i]
-	end
-	CF.SaveMissionReport(self.GS, self.MissionReport)
+	CF.SaveMissionReport(self.GS, self.reportData)
 end
 -----------------------------------------------------------------------
 --
@@ -2944,6 +2892,7 @@ function VoidWanderers:StartMusic(musictype)
 
 	MusicMan:ResetMusicState()
 	MusicMan:PlayDynamicSong(CF.Music[musictype], "Default", true, false, false)
+	self.GS["CurrentMusicType"] = musictype;
 
 	self.LastMusicType = musictype
 	self.LastMusicTrack = track
@@ -2952,7 +2901,110 @@ end
 -- Message handling.
 -----------------------------------------------------------------------
 function VoidWanderers:OnMessage(message, context)
-	VWHandleMessage(message, context)
+	if message == "read_from_CF" then
+		local temp = CF;
+		local flag = false;
+		
+		-- Run down the path, flag for failure and break if something before the last step is nil or we run into a function
+		for i = 1, #context[2] do
+			temp = temp[context[2][i]];
+
+			if (not temp and i ~= #context[2]) then
+				flag = -1;
+				break;
+			elseif type(temp) == "function" then
+				flag = -2;
+				break;
+			end
+		end
+
+		if flag then
+			local message = "Default CF read error, this shouldn't be possible to encounter.";
+
+			if flag == -1 then
+				message = "Malformed path on CF read.";
+			end
+
+			if flag == -2 then
+				message = "Trying to read function value on CF read, try call_in_CF instead.";
+			end
+
+			error(message);
+			return;
+		end
+		
+		ToMOSRotating(context[1]):SendMessage("return_from_activity", temp);
+	elseif message == "write_to_CF" then
+		local temp = CF;
+		local flag = false;
+		local printConcat = "";
+		
+		for i = 1, #context[1] - 1 do
+			temp = temp[context[1][i]];
+
+			if (not temp) then
+				flag = -1
+				break
+			elseif type(temp) == "function" then
+				flag = -2
+				break
+			end
+		end
+
+		if flag then
+			local message = "Default CF write error, this shouldn't be possible to encounter.";
+
+			if flag == -1 then
+				message = "Malformed path on CF write.";
+			end
+
+			if flag == -2 then
+				message = "Trying to overwrite function with value on CF write.";
+			end
+
+			error(message);
+			return;
+		end
+		
+		temp[context[1][#context[1]]] = context[2];
+	elseif message == "call_in_CF" then
+		local temp = CF;
+		local flag = false;
+		
+		for i = 1, #context[2] do
+			temp = temp[context[2][i]];
+
+			if (not temp) then
+				flag = -1;
+				break;
+			elseif type(temp) ~= "function" then
+				flag = -2;
+				break;
+			end
+		end
+
+		if flag then
+			local message = "Default CF call error, this shouldn't be possible to encounter.";
+
+			if flag == -1 then
+				message = "Malformed path on CF remote call.";
+			end
+
+			if flag == -2 then
+				message = "Trying to execute non-function value on CF remote call.";
+			end
+
+			error(message);
+			return;
+		end
+		
+		local target = context[1];
+		local result = { temp(unpack(context[3])) };
+
+		if target and target.ClassName and IsMovableObject(target) then
+			ToMovableObject(target):SendMessage("return_from_activity", result);
+		end
+	end
 end
 -----------------------------------------------------------------------
 -- That's all folks!!!

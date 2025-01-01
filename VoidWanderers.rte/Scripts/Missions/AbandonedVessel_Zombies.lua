@@ -5,6 +5,8 @@
 function VoidWanderers:MissionCreate()
 	print("ABANDONED VESSEL ZOMBIES CREATE")
 
+	self.missionData["advanceMissions"] = false;
+
 	-- Spawn random wandering enemies
 	local set = CF.GetRandomMissionPointsSet(self.Pts, "Deploy")
 	local difficulty = self.missionData["difficulty"];
@@ -18,8 +20,7 @@ function VoidWanderers:MissionCreate()
 	self.missionData["selectedFaction"] = CF.GetPlayerFaction(self.GS, math.random(tonumber(self.GS["ActiveCPUs"])));
 	local faction = self.missionData["selectedFaction"];
 
-	local diff = CF.GetLocationDifficulty(self.GS, self.GS["Location"])
-	difficulty = diff
+	difficulty = self.missionData["difficulty"];
 
 	self.missionData["zombieRespawnInterval"] = 9 - difficulty
 	self.missionData["zombieRespawnTime"] = self.Time
@@ -100,9 +101,21 @@ function VoidWanderers:MissionCreate()
 	end
 
 	for actor in MovableMan.Actors do
-		if actor.ClassName == "ADoor" and math.random() < 0.50 then
-			actor.GibSound = nil
-			actor:GibThis()
+		if actor.ClassName == "ADoor" then
+			actor.Team = Activity.NOTEAM;
+
+			if math.random() < 0.50 then
+				for attachable in actor.Attachables do
+					actor:RemoveAttachable(attachable, false, false);
+				end
+				
+				actor.BodyHitSound = nil;
+				actor.AlarmSound = nil;
+				actor.PainSound = nil;
+				actor.DeathSound = nil;
+				actor.GibSound = nil;
+				actor:GibThis();
+			end
 		end
 	end
 

@@ -1,9 +1,9 @@
 function Create(self)
 	self.activity = ActivityMan:GetActivity();
+
 	if self:NumberValueExists("pickedUpObjectID") then
 		self.pickedUpObject = MovableMan:GetMOFromID(self:GetNumberValue("pickedUpObjectID"));
 		self.pickedUpObjectName = self:GetStringValue("pickedUpObjectName");
-		
 		self.EquippedItem.SharpStanceOffset = Vector((self.FGArm or self.BGArm).MaxLength * 0.75, 1);
 		self.EquippedItem.Lifetime = -1;
 		self.EquippedItem.SharpLength = 1;
@@ -32,12 +32,13 @@ end
 
 function Update(self)
 	local armToUse = self.FGArm or self.BGArm;
+
 	if
 		self.pickedUpObject
 		and IsMOSRotating(self.pickedUpObject)
 		and self.Status == Actor.STABLE
 		and armToUse
-		and self.EquippedItem
+		and self.EquippedItem and IsThrownDevice(self.EquippedItem)
 		and (self.EquippedItem.PresetName == self.pickedUpObjectName or self.EquippedItem:GetStringValue("ModdedPresetName") == self.pickedUpObjectName)
 		and (not IsActor(self.pickedUpObject) or (IsACrab(self.pickedUpObject) or (IsAHuman(self.pickedUpObject) and (not ToAHuman(self.pickedUpObject).FGLeg) and (not ToAHuman(self.pickedUpObject).BGLeg) or self.pickedUpObject.Status ~= Actor.STABLE)))
 	then
@@ -47,12 +48,17 @@ function Update(self)
 		self.pickedUpObject.RotAngle = math.sin(armToUse.RotAngle) * (1 - self.SharpAimProgress);
 		self.pickedUpObject.AngularVel = self.AngularVel;
 		self.pickedUpObject.Vel = self.Vel;
+		self.pickedUpObject.HFlipped = self.HFlipped;
 		self.EquippedItem.Mass = self.pickedUpObject.Mass;
 		self.pickedUpObject:SetWhichMOToNotHit(self, 10);
 		self:SetWhichMOToNotHit(self.pickedUpObject, 10);
 
-		if self:GetController():IsState(Controller.WEAPON_DROP) then
-
+		if self:GetController():IsState(Controller.WEAPON_FIRE) then
+			self.tempItem = ToThrownDevice(self.EquippedItem);
+			self.tempObject = self.pickedUpObject;
+			self.maxThrowVel = self.tempItem:GetCalculatedMaxThrowVelIncludingArmThrowStrength();
+			self.minThrowVel = self.tempItem.MinThrowVel ~= 0 and self.tempItem.MinThrowVel or (self.maxThrowVel / 5);
+			self.tossVec = Vector(self.minThrowVel + (self.maxThrowVel - self.minThrowVel) * self.ThrowProgress, 0.5 * NormalRand()):RadRotate(self:GetAimAngle(true));
 		end
 
 		if self:GetController():IsState(Controller.WEAPON_DROP) then
@@ -76,10 +82,13 @@ function Update(self)
 			if self.pickedUpObject and IsMOSRotating(self.pickedUpObject) then
 				self.pickedUpObject.Team = self.pickedUpObject:GetNumberValue("VW_CarryingTeam");
 			end
+
 			self:RemoveInventoryItem(self.pickedUpObjectName);
+
 			if self.EquippedItem and self.EquippedItem.PresetName == self.pickedUpObjectName then
 				self.EquippedItem.ToDelete = true;
 			end
+
 			self.pickedUpObjectName = nil;
 			self:SetWhichMOToNotHit(nil, -1);
 		end
@@ -189,9 +198,14 @@ function Update(self)
 
 							if actor then
 								local controller = actor:GetController();
-								local blankController = Controller();
-								blankController.ControlledActor = actor;
-								controller:Override(blankController);
+
+								if controller then
+									local blankController = Controller();
+									blankController.ControlledActor = controller.ControlledActor;
+									blankController.Player = Activity.PLAYER_NONE;
+									blankController.InputMode = Controller.CIM_AI;
+									controller:Override(blankController);
+								end
 
 								local jetpack = actor.Jetpack;
 
@@ -260,6 +274,18 @@ function Update(self)
 					end
 				end
 			end
+		end
+	end
+
+	if self.tempItem and IsHeldDevice(self.tempItem) then
+		self.tempItem = ToHeldDevice(self.tempItem);
+		
+		if not self.tempItem:IsBeingHeld() and self.tempItem:IsActivated() then
+			self.tempObject.Vel = self.Vel * 0.5 + self.tossVec;
+			self.tempObject.AngularVel = self.AngularVel + RangeRand(-5, 2.5) * self.FlipFactor;
+			self.tempObject.Pos = armToUse.HandPos + self.tossVec;
+
+			armToUse.HandPos = self.tempObject.Pos;
 		end
 	end
 end

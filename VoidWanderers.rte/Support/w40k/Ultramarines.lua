@@ -16,7 +16,7 @@ CF.FactionPlayable[factionid] = true
 CF.RequiredModules[factionid] = { "Base.rte", "w40k.rte" }
 
 -- Set faction nature - types are ORGANIC and SYNTHETIC
-CF.FactionNatures[factionid] = CF.FactionTypes.ORGANIC
+CF.FactionNatures[factionid] = CF.FactionNatureTypes.ORGANIC
 
 -- Prefered brain inventory items. Brain gets the best available items of the classes specified in list for free.
 -- Default - {CF.WeaponTypes.DIGGER, CF.WeaponTypes.RIFLE}

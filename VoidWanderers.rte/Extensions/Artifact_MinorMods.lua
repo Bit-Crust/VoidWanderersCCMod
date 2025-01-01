@@ -141,22 +141,22 @@ if PresetMan:GetModuleID("Khandari.rte") ~= -1 then
 
 	-- Add pirates only if pirate encounters are loaded
 	if CF.RandomEncountersInitialTexts["PIRATE_GENERIC"] ~= nil then
-		local pid = #CF.RandomEncounterPirates + 1
-		CF.RandomEncounterPirates[pid] = {}
-		CF.RandomEncounterPirates[pid]["Captain"] = "Major"
-		CF.RandomEncounterPirates[pid]["Ship"] = "Jizzrah"
-		CF.RandomEncounterPirates[pid]["Org"] = "The Continent-Republic of Khandastar"
-		CF.RandomEncounterPirates[pid]["FeeInc"] = 650
+		local pid = #CF.PirateBands + 1
+		CF.PirateBands[pid] = {}
+		CF.PirateBands[pid]["Captain"] = "Major"
+		CF.PirateBands[pid]["Ship"] = "Jizzrah"
+		CF.PirateBands[pid]["Org"] = "The Continent-Republic of Khandastar"
+		CF.PirateBands[pid]["FeeInc"] = 650
 
-		CF.RandomEncounterPirates[pid]["Act"] = { "Khandastar Medium Infantry" }
-		CF.RandomEncounterPirates[pid]["ActMod"] = { "Khandari.rte" }
+		CF.PirateBands[pid]["Act"] = { "Khandastar Medium Infantry" }
+		CF.PirateBands[pid]["ActMod"] = { "Khandari.rte" }
 
-		CF.RandomEncounterPirates[pid]["Itm"] = { "RAM T98", "Talon KV" }
-		CF.RandomEncounterPirates[pid]["ItmMod"] = { "Khandari.rte", "Khandari.rte" }
+		CF.PirateBands[pid]["Itm"] = { "RAM T98", "Talon KV" }
+		CF.PirateBands[pid]["ItmMod"] = { "Khandari.rte", "Khandari.rte" }
 
-		CF.RandomEncounterPirates[pid]["Units"] = 5
-		CF.RandomEncounterPirates[pid]["Burst"] = 1
-		CF.RandomEncounterPirates[pid]["Interval"] = 16
+		CF.PirateBands[pid]["Units"] = 5
+		CF.PirateBands[pid]["Burst"] = 1
+		CF.PirateBands[pid]["Interval"] = 16
 	end
 end
 

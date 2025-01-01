@@ -25,7 +25,7 @@ function VoidWanderers:FormLoad()
 		self.UI[#self.UI + 1] = el;
 
 		if CF.IsFileExists(self.ModuleName, "savegame" .. i .. ".dat") then
-			local config = CF.ReadConfigFile(self.ModuleName, "savegame" .. i .. ".dat");
+			local config = CF.ReadDataFile("Mods/" .. self.ModuleName .. "/CampaignData/" .. "savegame" .. i .. ".dat");
 
 			local isbroken = false;
 			local reason = "";
@@ -169,11 +169,12 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:SaveSlots_OnClick()
-	CF.WriteConfigFile(self.GS, self.ModuleName, "savegame" .. self.MouseOverElement .. ".dat")
+	CF.WriteDataFile(self.GS, "Mods/" .. self.ModuleName .. "/CampaignData/" .. "savegame" .. self.MouseOverElement .. ".dat")
 
 	self:FormClose()
 	self:LoadCurrentGameState()
-	self:LaunchScript(self.GS["Scene"], "Tactics.lua")
+	self.sceneToLaunch = self.GS["Scene"];
+	self.scriptToLaunch = "Tactics.lua";
 end
 -----------------------------------------------------------------------
 --
@@ -181,7 +182,8 @@ end
 function VoidWanderers:BtnBack_OnClick()
 	self:FormClose()
 	self:LoadCurrentGameState()
-	self:LaunchScript(self.GS["Scene"], "Tactics.lua")
+	self.sceneToLaunch = self.GS["Scene"];
+	self.scriptToLaunch = "Tactics.lua";
 end
 -----------------------------------------------------------------------
 --

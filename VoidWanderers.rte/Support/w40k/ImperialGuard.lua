@@ -20,7 +20,7 @@ CF.RequiredModules[factionid] = { "Base.rte", "w40k.rte" }
 CF.PreferedBrainInventory[factionid] = { CF.WeaponTypes.HEAVY, CF.WeaponTypes.RIFLE }
 
 -- Set faction nature - types are ORGANIC and SYNTHETIC
-CF.FactionNatures[factionid] = CF.FactionTypes.ORGANIC
+CF.FactionNatures[factionid] = CF.FactionNatureTypes.ORGANIC
 
 -- Define brain unit
 CF.Brains[factionid] = "Elysian Commissar"

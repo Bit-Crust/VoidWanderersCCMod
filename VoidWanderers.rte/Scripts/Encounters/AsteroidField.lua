@@ -15,6 +15,7 @@ function VoidWanderers:EncounterCreate()
 	local message = "We are intersecting a dense asteroid field! Advancing at current pace may damage the ship.";
 	local options = { "Let's slow down.", "Full speed ahead!" };
 	self:SendTransmission(message, options);
+	self:GiveFocusToBridge();
 
 	self.vesselData["flightDisabled"] = true;
 	self.vesselData["flightAimless"] = true;
@@ -83,9 +84,9 @@ function VoidWanderers:EncounterUpdate()
 					self.encounterData["asteroidCount"] = self.encounterData["asteroidCount"] - 1
 				end
 			elseif self.vesselData["dialogDefaultTimer"]:IsPastSimMS(5000) then
-				self.MissionReport = {}
-				self.MissionReport[#self.MissionReport + 1] = "Looks like we've made it through."
-				CF.SaveMissionReport(self.GS, self.MissionReport)
+				self.reportData = {}
+				self.reportData[#self.reportData + 1] = "Looks like we've made it through."
+				CF.SaveMissionReport(self.GS, self.reportData)
 
 				self.encounterData["encounterConcluded"] = true
 				self.vesselData["flightDisabled"] = false

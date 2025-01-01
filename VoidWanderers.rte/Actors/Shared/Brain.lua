@@ -1120,7 +1120,7 @@ function do_rpgbrain_pda(self)
 				if
 					actor.Team == self.Team
 					and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-					and (self.activeMenu[self.selectedMenuItem].AffectsBrains == CF.IsBrain(actor))
+					and (self.activeMenu[self.selectedMenuItem].AffectsBrains == CF_Call(self, {"IsBrain"}, {actor}))
 					and detectionRange >= SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX).Magnitude
 				then
 					self.SkillTargetActors[#self.SkillTargetActors + 1] = actor

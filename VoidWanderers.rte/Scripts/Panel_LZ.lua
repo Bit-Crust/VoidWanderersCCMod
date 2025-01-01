@@ -155,7 +155,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 							and actor.AIMode == Actor.AIMODE_SENTRY
 							and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 						then
-							if CF.DistUnder(actor.Pos, self.LastKnownBombingPosition, self.BombingRange * 1.5) then
+							if CF.Dist(actor.Pos, self.LastKnownBombingPosition) < self.BombingRange * 1.5 then
 								actor.AIMode = Actor.AIMODE_PATROL
 							end
 						end
@@ -367,14 +367,6 @@ function VoidWanderers:ProcessLZControlPanelUI()
 				end
 
 				local text = "";
-				if #unsafeUnits > 0 and not isSafe then
-					if brainUnsafe > 0 then
-						text = text .. "CAN'T ABANDON BRAIN";
-					else
-						text = text .. "AND ABANDON " .. #unsafeUnits .. " UNIT" .. (#unsafeUnits > 1 and "S" or "");
-					end
-					text = text .. "\n";
-				end
 
 				if brainUnsafe <= 0 or isSafe then
 					if cont:IsState(Controller.WEAPON_FIRE) then
@@ -438,20 +430,18 @@ function VoidWanderers:ProcessLZControlPanelUI()
 									if actor.Team == CF.PlayerTeam and IsActor(actor) then
 										actor = ToActor(actor)
 
-										if
-											assignable and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-										then
-											self.GS["Deployed" .. i .. "Preset"] = actor.PresetName
-											self.GS["Deployed" .. i .. "Class"] = actor.ClassName
-											self.GS["Deployed" .. i .. "Module"] = actor.ModuleName
-											self.GS["Deployed" .. i .. "XP"] = actor:GetNumberValue("VW_XP")
-											self.GS["Deployed" .. i .. "Identity"] = actor:GetNumberValue("Identity")
-											self.GS["Deployed" .. i .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
-											self.GS["Deployed" .. i .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
-											self.GS["Deployed" .. i .. "Name"] = actor:GetStringValue("VW_Name")
+										if assignable and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
+											self.GS["Deployed" .. i .. "Preset"] = actor.PresetName;
+											self.GS["Deployed" .. i .. "Class"] = actor.ClassName;
+											self.GS["Deployed" .. i .. "Module"] = actor.ModuleName;
+											self.GS["Deployed" .. i .. "XP"] = actor:GetNumberValue("VW_XP");
+											self.GS["Deployed" .. i .. "Identity"] = actor:GetNumberValue("Identity");
+											self.GS["Deployed" .. i .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer");
+											self.GS["Deployed" .. i .. "Prestige"] = actor:GetNumberValue("VW_Prestige");
+											self.GS["Deployed" .. i .. "Name"] = actor:GetStringValue("VW_Name");
 										
-											for i, limbID in pairs(CF.HumanLimbID) do
-												self.GS["Deployed" .. deployedactor .. limbID] = CF.GetLimbData(actor, limbID)
+											for _, limbName in ipairs(CF.LimbIDs[actor.ClassName]) do
+												self.GS["Deployed" .. i .. limbName] = CF.GetLimbData(actor, limbName);
 											end
 
 											for j = 1, #pre do
@@ -484,6 +474,15 @@ function VoidWanderers:ProcessLZControlPanelUI()
 						self.ControlPanelLZPressTimes[player + 1] = nil;
 					end
 
+					text = text .. "\n";
+				end
+
+				if #unsafeUnits > 0 and not isSafe then
+					if brainUnsafe > 0 then
+						text = text .. "CAN'T ABANDON BRAIN";
+					else
+						text = text .. "AND ABANDON " .. #unsafeUnits .. " UNIT" .. (#unsafeUnits > 1 and "S" or "");
+					end
 					text = text .. "\n";
 				end
 
@@ -642,8 +641,11 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		if self.missionData["stage"] and self.missionData["stage"] ~= CF.MissionStages.COMPLETED then
 			self:GiveMissionPenalties()
 		end
+
 		-- Generate new missions
-		CF.GenerateRandomMissions(self.GS)
+		if self.missionData["advanceMissions"] and self.missionData["advanceMissions"] == true then
+			CF.GenerateRandomMissions(self.GS);
+		end
 
 		-- Update casualties report
 		if tonumber(self.GS["MissionDeployedTroops"]) > tonumber(self.GS["MissionReturningTroops"]) then
@@ -651,23 +653,23 @@ function VoidWanderers:ProcessLZControlPanelUI()
 			local lost = tonumber(self.GS["MissionDeployedTroops"]) - tonumber(self.GS["MissionReturningTroops"])
 
 			if tonumber(self.GS["MissionReturningTroops"]) == 0 then
-				self.MissionReport[#self.MissionReport + 1] = "ALL UNITS LOST"
+				self.reportData[#self.reportData + 1] = "ALL UNITS LOST"
 			elseif lost > 1 then
-				self.MissionReport[#self.MissionReport + 1] = lost .. " UNITS LOST"
+				self.reportData[#self.reportData + 1] = lost .. " UNITS LOST"
 			else
-				self.MissionReport[#self.MissionReport + 1] = "1 UNIT LOST"
+				self.reportData[#self.reportData + 1] = "1 UNIT LOST"
 			end
 		elseif tonumber(self.GS["MissionDeployedTroops"]) < tonumber(self.GS["MissionReturningTroops"]) then
 			local s = ""
 			local recruited = tonumber(self.GS["MissionReturningTroops"]) - tonumber(self.GS["MissionDeployedTroops"])
 
 			if recruited > 1 then
-				self.MissionReport[#self.MissionReport + 1] = recruited .. " UNITS GAINED"
+				self.reportData[#self.reportData + 1] = recruited .. " UNITS GAINED"
 			else
-				self.MissionReport[#self.MissionReport + 1] = "1 UNIT GAINED"
+				self.reportData[#self.reportData + 1] = "1 UNIT GAINED"
 			end
 		else
-			self.MissionReport[#self.MissionReport + 1] = "NO CASUALTIES"
+			self.reportData[#self.reportData + 1] = "NO CASUALTIES"
 		end
 
 		-- Collect items
@@ -694,57 +696,58 @@ function VoidWanderers:ProcessLZControlPanelUI()
 			CF.SetStorageArray(self.GS, storage)
 
 			if #items > 0 then
-				self.MissionReport[#self.MissionReport + 1] = tostring(#items)
+				self.reportData[#self.reportData + 1] = tostring(#items)
 					.. " item"
 					.. (#items > 1 and "s" or "")
 					.. " collected"
 			end
 		end
+
 		if totalGoldCarried > 0 then
-			self.MissionReport[#self.MissionReport + 1] = totalGoldCarried .. " oz of gold collected"
-			self:SetTeamFunds(CF.ChangeGold(self.GS, totalGoldCarried), CF.PlayerTeam)
+			self.reportData[#self.reportData + 1] = totalGoldCarried .. " oz of gold collected.";
+			CF.ChangePlayerGold(self.GS, totalGoldCarried);
 		end
 
 		-- Dump mission report to config to be saved
-		CF.SaveMissionReport(self.GS, self.MissionReport)
+		CF.SaveMissionReport(self.GS, self.reportData);
 
-		local scene = CF.VesselScene[self.GS["PlayerVessel"]]
+		local scene = CF.VesselScene[self.GS["PlayerVessel"]];
 		-- Set new operating mode
-		self.GS["Mode"] = "Vessel"
-		self.GS["Scene"] = scene
-		self.GS["DeserializeDeployedTeam"] = "True"
-		self.GS["DeserializeOnboard"] = "True"
-		self.GS["MissionInitiated"] = "False"
+		self.GS["Mode"] = "Vessel";
+		self.GS["Scene"] = scene;
+		self.GS["DeserializeDeployedTeam"] = "True";
+		self.GS["DeserializeOnboard"] = "True";
+		self.GS["MissionInitiated"] = "False";
 		
-		self:SaveCurrentGameState()
-
-		self:LaunchScript(scene, "Tactics.lua")
-		self:DestroyLZControlPanelUI()
+		self:SaveCurrentGameState();
+		
+		self.sceneToLaunch = self.GS["Scene"];
+		self.scriptToLaunch = "Tactics.lua";
 
 		-- Wrap it up
 		if self.AmbientDestroy ~= nil then
-			self:AmbientDestroy()
+			self:AmbientDestroy();
 		end
 
 		if self.MissionDestroy ~= nil then
-			self:MissionDestroy()
+			self:MissionDestroy();
 		end
 
 		-- Clean everything
-		self.MissionCreate = nil
-		self.MissionUpdate = nil
-		self.MissionDestroy = nil
-		self.missionData = {}
+		self.MissionCreate = nil;
+		self.MissionUpdate = nil;
+		self.MissionDestroy = nil;
+		self.missionData = {};
 
-		self.AmbientCreate = nil
-		self.AmbientUpdate = nil
-		self.AmbientDestroy = nil
+		self.AmbientCreate = nil;
+		self.AmbientUpdate = nil;
+		self.AmbientDestroy = nil;
+		self.ambientData = {};
 		
-		self.BrainsAtStake = false
+		self.BrainsAtStake = false;
 
-		print(collectgarbage('count'))
-		collectgarbage("collect")
-		print(collectgarbage('count'))
-		return true
+		--print(collectgarbage('count'));
+		collectgarbage("collect");
+		--print(collectgarbage('count'));
 	end
 end

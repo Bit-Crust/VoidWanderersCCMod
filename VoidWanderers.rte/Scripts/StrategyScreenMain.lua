@@ -1,8 +1,8 @@
 -----------------------------------------------------------------------
--- Initialize menu screen systems.
+-- Start Scene Process.
 -----------------------------------------------------------------------
-function VoidWanderers:StartActivity(isNewGame)
-	print("VoidWanderers:StrategyScreen:StartActivity");
+function VoidWanderers:StartSceneProcess()
+	print("VoidWanderers:StrategyScreen:StartSceneProcess");
 
 	self.AllowsUserSaving = false;
 
@@ -39,11 +39,10 @@ function VoidWanderers:StartActivity(isNewGame)
 	-- Cursor is selection in space
 	self.Cursor = self.Mouse + self.Scroll; 
 
-	self.ScrollTriggerThickness = Vector(50, 50);
-	self.ScrollingScreen = { X = true, Y = true };
+	self.ScrollingScreen = { X = false, Y = false };
 
 	self.Screen = Box(-self.Res.X / 2, -self.Res.Y / 2, self.Res.X / 2, self.Res.Y / 2);
-	self.Bound = Box(self.Mid.X, -200 + self.Mid.Y, self.Mid.X, 300 + self.Mid.Y);
+	self.Bound = Box(self.Mid.X, self.Res.Y / 2, self.Mid.X, SceneMan.Scene.Height - self.Res.Y / 2);
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		self:SetPlayerBrain(nil, player);
@@ -73,14 +72,9 @@ function VoidWanderers:StartActivity(isNewGame)
 	self.IsInitialized = true;
 end
 -----------------------------------------------------------------------
--- Update Activity
+-- Update Scene Process
 -----------------------------------------------------------------------
-function VoidWanderers:UpdateActivity()
-	if not self.IsInitialized then
-		print("*");
-		self:StartActivity(true);
-	end
-	
+function VoidWanderers:UpdateSceneProcess()
 	local cont = self:GetPlayerController(self.MenuNavigatingPlayer);
 
 	if cont:IsMouseControlled() then

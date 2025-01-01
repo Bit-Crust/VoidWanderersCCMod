@@ -8,13 +8,7 @@ function VoidWanderers:MissionCreate()
 	print("SQUAD CREATE")
 	
 	-- Mission difficulty settings
-	local diff = self.missionData["difficulty"]
-	CF.GetPlayerFaction()
-	CF.CreateAIUnitPresets(
-		self.GS,
-		self.missionData["missionTarget"],
-		CF.GetTechLevelFromDifficulty(CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"]), CF.MaxDifficulty)
-	)
+	local diff = self.missionData["difficulty"];
 
 	local squad = {
 		CF.PresetTypes.INFANTRY1,
@@ -25,33 +19,30 @@ function VoidWanderers:MissionCreate()
 		CF.PresetTypes.HEAVY2,
 		CF.PresetTypes.SHOTGUN,
 		CF.PresetTypes.SHOTGUN,
-	}
+	};
 
 	-- Use generic enemy set
 	local set = CF.GetRandomMissionPointsSet(self.Pts, "Squad")
 	local troops = CF.GetPointsArray(self.Pts, "Squad", set, "Trooper")
 	local brainPoints = CF.GetPointsArray(self.Pts, "Squad", set, "Commander")
-	-- Hacky failsafe - probably doesn't even fix anything!
-	if set == nil or troops == nil or brainPoints == nil then
-		set = CF.GetRandomMissionPointsSet(self.Pts, "Enemy")
-		troops = CF.GetPointsArray(self.Pts, "Assassinate", set, "Commander")
-		brainPoints = CF.GetPointsArray(self.Pts, "Assassinate", set, "Commander")
-	end
 
 	-- Spawn commander
 	local faction = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"]);
-	local brain = CF.MakeRPGBrain(faction, self.missionData["difficulty"], true)
+	local brain = CF.MakeRPGBrain(faction, true, math.floor((diff + math.random()) * 21));
+
 	if brain then
 		brain.Team = CF.CPUTeam;
 		brain.Pos = brainPoints[math.random(#brainPoints)];
 		MovableMan:AddActor(brain)
-		brain:AddInventoryItem(CF.CreateBluePrint(self.GS, self.missionData["missionContractor"]))
+		brain:AddInventoryItem(CF.CreateBluePrint(self.GS, self.missionData["missionContractor"]));
 		self.missionData["brain"] = brain;
 	end
-	self.missionData["sentryRadius"] = 100 + math.sqrt(FrameMan.PlayerScreenHeight ^ 2 + FrameMan.PlayerScreenWidth ^ 2) * 0.5
 
-	-- Spawn troops
-	self.missionData["squad"] = {}
+	self.missionData["sentryRadius"] = 100 + math.sqrt(FrameMan.PlayerScreenHeight ^ 2 + FrameMan.PlayerScreenWidth ^ 2) * 0.5;
+	self.missionData["squad"] = {};
+	self.missionData["brainHuntTriggered"] = false;
+	self.missionData["assaultWaitTime"] = self.Time;
+
 	for i = 1, diff + 2 do
 		local actor = self:SpawnViaTable{
 			Preset = squad[math.random(#squad)],
@@ -59,14 +50,11 @@ function VoidWanderers:MissionCreate()
 			Player = self.missionData["missionTarget"],
 			AIMode = Actor.AIMODE_GOTO,
 			Pos = troops[(i - 1) % #troops + 1]
-		}
-		actor:AddAIMOWaypoint(self.missionData["brain"])
+		};
+		actor:AddAIMOWaypoint(self.missionData["brain"]);
 
-		table.insert(self.missionData["squad"], { Actor = actor, Abandoned = self.Time })
+		table.insert(self.missionData["squad"], { Actor = actor, Abandoned = self.Time });
 	end
-
-	self.missionData["brainHuntTriggered"] = false
-	self.missionData["assaultWaitTime"] = self.Time
 end
 -----------------------------------------------------------------------
 --
@@ -138,7 +126,7 @@ function VoidWanderers:MissionUpdate()
 
 				for i = 1, #self.missionData["squad"] do
 					if MovableMan:IsActor(self.missionData["squad"][i]["Actor"]) then
-						if CF.DistUnder(self.missionData["brain"].Pos, self.missionData["squad"][i]["Actor"].Pos, 200) then
+						if CF.Dist(self.missionData["brain"].Pos, self.missionData["squad"][i]["Actor"].Pos) < 200 then
 							self.missionData["squad"][i]["Abandoned"] = self.Time
 						else
 							abandoned = abandoned + 1
@@ -204,9 +192,9 @@ function VoidWanderers:MissionUpdate()
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
 		self.missionData["missionStatus"] = "MISSION COMPLETED"
-		if not self.MissionEndMusicPlayed then
+		if not self.missionData["endMusicPlayed"] then
 			self:StartMusic(CF.MusicTypes.VICTORY)
-			self.MissionEndMusicPlayed = true
+			self.missionData["endMusicPlayed"] = true
 		end
 
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then

@@ -79,8 +79,5 @@ end
 -- Update Activity
 -----------------------------------------------------------------------
 function VoidWanderers:UpdateActivity()
-	--print("VoidWanderers::Mission launcher - Update Once!")
-	if TRANSFER_IN_PROGRESS then
-		self:StartActivity()
-	end
+
 end

@@ -224,7 +224,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 									CF.SetClonesArray(self.GS, self.Clones);
 								end
 
-								self:SetTeamFunds(CF.ChangeGold(self.GS, -clone.Price), CF.PlayerTeam);
+								CF.ChangePlayerGold(self.GS, -clone.Price);
 							else
 								self.ClonesShopControlMessageTime = self.Time;
 								self.ClonesShopControlMessageText = "No space within clone storage.";
@@ -271,19 +271,21 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 
 			local lineOffset = topOfPage;
 
-			-- Print item name
-			local text = clone.Preset;
-			CF.DrawString(text, pos + Vector(90, lineOffset), 175, 11, false, nil, 1);
-			lineOffset = lineOffset + 14;
+			if clone then
+				-- Print item name
+				local text = clone.Preset;
+				CF.DrawString(text, pos + Vector(90, lineOffset), 175, 11, false, nil, 1);
+				lineOffset = lineOffset + 14;
 
-			-- Print manufacturer
-			local text = "Manufacturer: " .. (CF.FactionNames[clone.Faction] or "Unknown");
-			CF.DrawString(text, pos + Vector(90, lineOffset), 175, 11, true, nil, 1);
-			lineOffset = lineOffset + 8;
+				-- Print manufacturer
+				local text = "Manufacturer: " .. (CF.FactionNames[clone.Faction] or "Unknown");
+				CF.DrawString(text, pos + Vector(90, lineOffset), 175, 11, true, nil, 1);
+				lineOffset = lineOffset + 8;
 
-			-- Print description
-			local text = CF.SplitStringToFitWidth(clone.Description, 155, false);
-			CF.DrawString(text, pos + Vector(12, lineOffset), 155, 110, nil, nil, 0, 0);
+				-- Print description
+				local text = CF.SplitStringToFitWidth(clone.Description, 155, false);
+				CF.DrawString(text, pos + Vector(12, lineOffset), 155, 110, nil, nil, 0, 0);
+			end
 
 			if self.ClonesShopControlMessageText then
 				if self.Time <= self.ClonesShopControlMessageTime + self.ClonesShopControlMessagePeriod then

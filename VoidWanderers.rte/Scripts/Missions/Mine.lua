@@ -185,7 +185,7 @@ function VoidWanderers:MissionUpdate()
 
 			for actor in MovableMan.Actors do
 				if CF.IsAlly(actor) and actor.GoldCarried > 0 then
-					self:SetTeamFunds(CF.ChangeGold(self.GS, actor.GoldCarried), CF.PlayerTeam)
+					CF.ChangePlayerGold(self.GS, actor.GoldCarried)
 					actor.GoldCarried = 0
 				end
 			end
@@ -241,14 +241,9 @@ function VoidWanderers:MissionUpdate()
 				for i = 1, math.random(2) do
 					local actor
 					if i == 1 then
-						actor = CF.SpawnAIUnitWithPreset(
-							self.GS,
-							self.missionData["missionContractor"],
-							CF.PlayerTeam,
-							nil,
-							Actor.AIMODE_GOLDDIG,
-							CF.PresetTypes.ENGINEER
-						)
+						actor = CF.MakeUnitWithPreset(self.GS, self.missionData["missionContractor"], CF.PresetTypes.ENGINEER)
+						actor.Team = CF.PlayerTeam;
+						actor.AIMode = Actor.AIMODE_GOLDDIG;
 					else
 						actor = CF.SpawnRandomInfantry(CF.PlayerTeam, nil, f, Actor.AIMODE_GOLDDIG)
 						if actor then
@@ -272,9 +267,9 @@ function VoidWanderers:MissionUpdate()
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
 		self.missionData["missionStatus"] = "MISSION COMPLETED"
-		if not self.MissionEndMusicPlayed then
+		if not self.missionData["endMusicPlayed"] then
 			self:StartMusic(CF.MusicTypes.VICTORY)
-			self.MissionEndMusicPlayed = true
+			self.missionData["endMusicPlayed"] = true
 		end
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -284,9 +279,9 @@ function VoidWanderers:MissionUpdate()
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.FAILED then
 		self.missionData["missionStatus"] = "MISSION FAILED"
-		if not self.MissionEndMusicPlayed then
+		if not self.missionData["endMusicPlayed"] then
 			self:StartMusic(CF.MusicTypes.DEFEAT)
-			self.MissionEndMusicPlayed = true
+			self.missionData["endMusicPlayed"] = true
 		end
 
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
@@ -317,18 +312,16 @@ function VoidWanderers:MissionUpdate()
 					ship:SetGoldValue(0)
 				end
 				for i = 1, count do
-					local actor = CF.SpawnAIUnitWithPreset(
-						self.GS,
-						self.missionData["missionTarget"],
-						CF.CPUTeam,
-						nil,
-						Actor.AIMODE_SENTRY,
-						math.random(CF.PresetTypes.HEAVY2)
-					)
+					local actor = CF.MakeUnitWithPreset(self.GS, self.missionData["missionTarget"], math.random(CF.PresetTypes.HEAVY2));
+
 					if actor then
+						actor.Team = CF.CPUTeam;
+						actor.AIMode = Actor.AIMODE_SENTRY;
+
 						if self.missionData["stage"] ~= CF.MissionStages.ACTIVE then
-							actor:SetGoldValue(0)
+							actor:SetGoldValue(0);
 						end
+
 						ship:AddInventoryItem(actor)
 					end
 				end

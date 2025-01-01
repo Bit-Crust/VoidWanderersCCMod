@@ -11,42 +11,41 @@ function VoidWanderers:MissionCreate()
 	
 	-- Mission difficulty settings
 	local diff = self.missionData["difficulty"];
-	local target = self.missionData["missionTarget"];
-	local target = self.missionData["missionTarget"];
 
 	if diff == 1 then
 		self.missionData["spawnRate"] = 0.20;
-		self.missionData["reinforcements"] = 0;
-		self.missionData["interval"] = 10;
+		self.missionData["reinforcements"] = 0; 
+		self.missionData["interval"] = 45;
 		self.missionData["counterAttackDelay"] = 0;
 	elseif diff == 2 then
 		self.missionData["spawnRate"] = 0.35;
 		self.missionData["reinforcements"] = 0;
-		self.missionData["interval"] = 10;
-		self.missionData["counterAttackDelay"] = 0;
+		self.missionData["interval"] = 45;
+		self.missionData["counterAttackDelay"] = 300;
 	elseif diff == 3 then
 		self.missionData["spawnRate"] = 0.50;
 		self.missionData["reinforcements"] = 1;
-		self.missionData["interval"] = 20;
-		self.missionData["counterAttackDelay"] = 300;
+		self.missionData["interval"] = 45;
+		self.missionData["counterAttackDelay"] = 260;
 	elseif diff == 4 then
 		self.missionData["spawnRate"] = 0.65;
 		self.missionData["reinforcements"] = 2;
-		self.missionData["interval"] = 26;
-		self.missionData["counterAttackDelay"] = 260;
+		self.missionData["interval"] = 45;
+		self.missionData["counterAttackDelay"] = 190;
 	elseif diff == 5 then
 		self.missionData["spawnRate"] = 0.80;
 		self.missionData["reinforcements"] = 3;
-		self.missionData["interval"] = 24;
-		self.missionData["counterAttackDelay"] = 220;
+		self.missionData["interval"] = 40;
+		self.missionData["counterAttackDelay"] = 130;
 	elseif diff == 6 then
 		self.missionData["spawnRate"] = 0.90;
 		self.missionData["reinforcements"] = 4;
-		self.missionData["interval"] = 22;
-		self.missionData["counterAttackDelay"] = 180;
+		self.missionData["interval"] = 35;
+		self.missionData["counterAttackDelay"] = 90;
 	end
 
 	-- Use generic enemy set
+	local target = self.missionData["missionTarget"];
 	local set = CF.GetRandomMissionPointsSet(self.Pts, "Enemy");
 
 	-- Get enemies placed
@@ -67,6 +66,7 @@ function VoidWanderers:MissionCreate()
 
 	self.missionData["reinforcementsTriggered"] = false;
 	self.missionData["reinforcementsLast"] = 0;
+	self.missionData["reinforcementsFirst"] = 0;
 	self.missionData["counterAttackTriggered"] = false;
 end
 -----------------------------------------------------------------------
@@ -74,113 +74,107 @@ end
 -----------------------------------------------------------------------
 function VoidWanderers:MissionUpdate()
 	if self.missionData["stage"] == CF.MissionStages.ACTIVE then
-		local count = 0
+		local count = 0;
 		
 		for actor in MovableMan.Actors do
 			if actor.Team == CF.CPUTeam and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
-				local inside = false
+				local inside = false;
+				count = count + 1;
 
 				for i = 1, #self.missionData["missionBase"] do
 					if self.missionData["missionBase"][i]:IsWithinBox(actor.Pos) then
-						--actor:FlashWhite(250)
-						count = count + 1
-						inside = true
-						break
+						inside = true;
+						break;
 					end
-				end
-				
-				if inside and SceneMan:IsUnseen(actor.Pos.X, actor.Pos.Y, CF.PlayerTeam) and self.Time % 4 == 0 then
-					self:AddObjectivePoint("KILL", actor.AboveHUDPos, CF.PlayerTeam, GameActivity.ARROWDOWN)
 				end
 
 				if not self.missionData["reinforcementsTriggered"] then
 					if actor.Health > 0 and math.random(100) > actor.Health then
-						self.missionData["reinforcementsTriggered"] = true
-
-						self.missionData["reinforcementsLast"] = self.Time
+						self.missionData["reinforcementsTriggered"] = true;
+						self.missionData["reinforcementsLast"] = self.Time;
+						self.missionData["reinforcementsFirst"] = self.Time;
+					end
+				elseif self.missionData["counterAttackTriggered"] then
+					if count % 3 == 0 then
+						CF.HuntForActors(actor, CF.PlayerTeam);
 					end
 				end
 			end
 		end
 
-		self.missionData["missionStatus"] = "Enemies left: " .. tostring(count)
+		self.missionData["missionStatus"] = "Enemies left: " .. tostring(count);
 
 		-- Start checking for victory only when all units were spawned
 		if count == 0 and not MovableMan.AddedActors() then
-			self:GiveMissionRewards()
-			self.missionData["stage"] = CF.MissionStages.COMPLETED
+			self:GiveMissionRewards();
+			self.missionData["stage"] = CF.MissionStages.COMPLETED;
 
 			-- Remember when we started showing misison status message
-			self.missionData["statusShowStart"] = self.Time
-			self.missionData["missionEndTime"] = self.Time
+			self.missionData["statusShowStart"] = self.Time;
+			self.missionData["missionEndTime"] = self.Time;
 		end
 
 		-- Send reinforcements if available
-		if
-			self.missionData["reinforcementsTriggered"]
-			and self.Time >= self.missionData["reinforcementsLast"] + self.missionData["interval"]
-		then
-			self.missionData["reinforcementsLast"] = self.Time
-			if
-				#self.missionData["landingZones"] > 0
-				and self.missionData["reinforcements"] > 0
-				and MovableMan:GetMOIDCount() < CF.MOIDLimit
-			then
-				self.missionData["reinforcements"] = self.missionData["reinforcements"] - 1
+		if self.missionData["reinforcementsTriggered"] and self.Time >= self.missionData["reinforcementsLast"] + self.missionData["interval"] then
+			if #self.missionData["landingZones"] > 0 and self.missionData["reinforcements"] > 0 then
+				local count = math.random(2);
+				local faction = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"]);
+				local ship = CF.MakeActor(CF.CraftClasses[faction], CF.Crafts[faction], CF.CraftModules[faction]);
 
-				local count = math.random(2)
-				local f = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])
-				local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
 				if ship then
 					for i = 1, count do
-						local actor = CF.SpawnAIUnit(self.GS, self.missionData["missionTarget"], CF.CPUTeam, nil, nil)
+						local actor = CF.MakeUnit(self.GS, self.missionData["missionTarget"]);
+
 						if actor then
-							ship:AddInventoryItem(actor)
+							actor.Team = CF.CPUTeam;
+							actor.AIMode = math.random() < 0.5 and Actor.AIMODE_PATROL or Actor.AIMODE_BRAINHUNT;
+							ship:AddInventoryItem(actor);
 						end
 					end
-					ship.Team = CF.CPUTeam
-					ship.Pos = Vector(self.missionData["landingZones"][math.random(#self.missionData["landingZones"])].X, -10)
-					ship.AIMode = Actor.AIMODE_DELIVER
-					MovableMan:AddActor(ship)
+
+					if ship.Inventory() then
+						ship.Team = CF.CPUTeam;
+						ship.Pos = Vector(self.missionData["landingZones"][math.random(#self.missionData["landingZones"])].X, -20);
+						ship.Vel = Vector(0, 3);
+						ship.AIMode = Actor.AIMODE_DELIVER;
+						MovableMan:AddActor(ship);
+
+						if self.missionData["reinforcementsLast"] == self.missionData["reinforcementsFirst"] then
+							self:StartMusic(CF.MusicTypes.MISSION_INTENSE);
+						end
+
+						self.missionData["reinforcements"] = self.missionData["reinforcements"] - 1;
+					end
 				end
 			end
+
+			self.missionData["reinforcementsLast"] = self.Time;
 		end
 
 		-- Trigger 'counterattack', send every third actor to attack player troops
 		if
-			not self.missionData["counterAttackTriggered"]
+			self.missionData["reinforcementsTriggered"]
+			and not self.missionData["counterAttackTriggered"]
 			and self.missionData["counterAttackDelay"] > 0
-			and self.Time >= self.missionData["missionStartTime"] + self.missionData["counterAttackDelay"]
+			and self.Time >= self.missionData["reinforcementsFirst"] + self.missionData["counterAttackDelay"]
 		then
-			self.missionData["counterAttackTriggered"] = true
-			self:StartMusic(CF.MusicTypes.MISSION_INTENSE)
-
-			local count = 0
-
-			for actor in MovableMan.Actors do
-				if actor.Team == CF.CPUTeam then
-					count = count + 1
-
-					if count % 3 == 0 then
-						CF.HuntForActors(actor, CF.PlayerTeam)
-					end
-				end
-			end
+			self.missionData["reinforcementsTriggered"] = true
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
-		if not self.MissionEndMusicPlayed then
-			self:StartMusic(CF.MusicTypes.VICTORY)
-			self.MissionEndMusicPlayed = true
+		self.missionData["missionStatus"] = "MISSION COMPLETED";
+
+		if not self.missionData["endMusicPlayed"] then
+			self:StartMusic(CF.MusicTypes.VICTORY);
+			self.missionData["endMusicPlayed"] = true;
 		end
-		self.missionData["missionStatus"] = "MISSION COMPLETED"
 
 		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-				FrameMan:ClearScreenText(player)
-				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)
+				FrameMan:ClearScreenText(player);
+				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true);
 			end
 		end
-	end --]]--
+	end
 end
 -----------------------------------------------------------------------
 --

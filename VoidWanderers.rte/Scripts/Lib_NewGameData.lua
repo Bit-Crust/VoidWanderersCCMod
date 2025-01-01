@@ -8,10 +8,10 @@ CF.MakeFreshGameState = function(playerFaction, cpus, activity)
 	-- Init game time
 	gameState["Time"] = tostring(0)
 
-	gameState["Difficulty"] = tostring(difficulty)
-	gameState["FogOfWar"] = activity:GetFogOfWarEnabled() and "True" or "False"
-	gameState["AISkillPlayer"] = tostring(activity:GetTeamAISkill(Activity.TEAM_1))
-	gameState["AISkillCPU"] = tostring(activity:GetTeamAISkill(Activity.TEAM_2))
+	gameState["Difficulty"] = tostring(difficulty);
+	gameState["FogOfWar"] = activity.FogOfWarEnabled and "True" or "False";
+	gameState["AISkillPlayer"] = tostring(activity:GetTeamAISkill(Activity.TEAM_1));
+	gameState["AISkillCPU"] = tostring(activity:GetTeamAISkill(Activity.TEAM_2));
 
 	-- Difficulty related variables
 	if difficulty <= GameActivity.CAKEDIFFICULTY then
@@ -64,11 +64,24 @@ CF.MakeFreshGameState = function(playerFaction, cpus, activity)
 			gameState["Player" .. i .. "Active"] = "True"
 			gameState["Player" .. i .. "Type"] = "CPU"
 
-			gameState["Player" .. i .. "Reputation"] = 0
 			if cpus[i] == playerFaction then
 				gameState["Player" .. i .. "Reputation"] = 500
-			elseif CF.FactionNatures[playerFaction] ~= CF.FactionNatures[cpus[i]] then
-				gameState["Player" .. i .. "Reputation"] = CF.ReputationHuntThreshold * (difficulty / 100)
+			else
+				computedReputation = 0;
+
+				if CF.FactionNatures[playerFaction] ~= CF.FactionNatures[cpus[i]] then
+					computedReputation = computedReputation + CF.ReputationHuntThreshold * (difficulty / 100);
+				end
+
+				if CF.FactionAlignments[playerFaction] ~= CF.FactionAlignments[cpus[i]] then
+					computedReputation = computedReputation + CF.ReputationHuntThreshold * (difficulty / 100);
+				end
+
+				if CF.FactionIngroupPreference[cpus[i]] then
+					computedReputation = computedReputation + CF.ReputationHuntThreshold * (difficulty / 100) * 2;
+				end
+
+				gameState["Player" .. i .. "Reputation"] = math.floor(computedReputation * (0.9 + 0.2 * math.random()));
 			end
 
 			activecpus = activecpus + 1
@@ -92,13 +105,13 @@ CF.MakeFreshGameState = function(playerFaction, cpus, activity)
 	local grenades = CF.MakeListOfMostPowerfulWeapons(playerFaction, CF.WeaponTypes.GRENADE, repBudget)
 
 	if not actors then
-		print("Pricy humans, alright.")
+		-- Pricy humans, alright.
 		actors = CF.MakeListOfMostPowerfulActorsOfClass(playerFaction, CF.ActorTypes.ANY, "AHuman", math.huge)
 		if not actors then
-			print("No humans? That's cool. . .")
+			-- No humans? That's cool...
 			actors = CF.MakeListOfMostPowerfulActorsOfClass(playerFaction, CF.ActorTypes.ANY, "ACrab", math.huge)
 			if not actors then
-				print("No limbed actors??? That's hip!")
+				-- No limbed actors??? That's hip!
 				actors = CF.MakeListOfMostPowerfulActorsOfClass(playerFaction, CF.ActorTypes.ANY, "Any", math.huge)
 			end
 		end
@@ -116,9 +129,6 @@ CF.MakeFreshGameState = function(playerFaction, cpus, activity)
 	if actorPrefix == "Actor" or cloneCapacity < 4 then
 		cloneCapacity = 4;
 	end
-	
-	print(actorPrefix)
-	print(cloneCapacity)
 
 	for i = 1, cloneCapacity do
 		local chosenActor = actors[math.random(#actors)]
@@ -218,56 +228,26 @@ CF.MakeFreshGameState = function(playerFaction, cpus, activity)
 	end
 
 	-- Give the starting brains some small arms
-	for i = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		local item = nil
-		local slt = 1
-		local list = nil
-		local count = 1 
+	if CF.BrainClasses[playerFaction] ~= "ACrab" then
+		for i = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+			local list = CF.PreferedBrainInventory[playerFaction] or { CF.WeaponTypes.PISTOL, CF.WeaponTypes.PISTOL, CF.WeaponTypes.TOOL };
 
-		::insert::
-		if list then
-			if count <= 1 then
-				item = list[math.random(#list)]
-				gameState["Brain" .. i .. "Item" .. slt .. "Preset"] = CF.ItmPresets[playerFaction][item["Item"]]
-				gameState["Brain" .. i .. "Item" .. slt .. "Class"] = CF.ItmClasses[playerFaction][item["Item"]]
-				gameState["Brain" .. i .. "Item" .. slt .. "Module"] = CF.ItmModules[playerFaction][item["Item"]]
-				slt = slt + 1
-			else
-				gameState["Brain" .. i .. "Item" .. slt .. "Preset"] = CF.ItmPresets[playerFaction][item["Item"]]
-				gameState["Brain" .. i .. "Item" .. slt .. "Class"] = CF.ItmClasses[playerFaction][item["Item"]]
-				gameState["Brain" .. i .. "Item" .. slt .. "Module"] = CF.ItmModules[playerFaction][item["Item"]]
-				count = count - 1
-				goto insert
+			for j = 1, #list do
+				local weapons = CF.MakeListOfMostPowerfulWeapons(playerFaction, list[j], math.huge);
+
+				if weapons ~= nil then
+					local factionIndex = weapons[1].Faction;
+					local itemIndex = weapons[1].Item;
+					
+					gameState["Brain" .. i .. "Item" .. j .. "Preset"] = CF.ItmPresets[playerFaction][itemIndex]
+					gameState["Brain" .. i .. "Item" .. j .. "Class"] = CF.ItmClasses[playerFaction][itemIndex]
+					gameState["Brain" .. i .. "Item" .. j .. "Module"] = CF.ItmModules[playerFaction][itemIndex]
+				end
 			end
-		end
-		
-		if slt == 1 then
-			if pistols then
-				list = pistols
-				goto insert
-			else
-				slt = 2
-			end
-		end
-		if slt == 2 then
-			if pistols and (math.random(2) == 1) then
-				list = { item }
-				goto insert
-			elseif shields then
-				list = shields
-				goto insert
-			else
-				slt = 3
-			end
-		end
-		if slt == 3 then
-			gameState["Brain" .. i .. "Item" .. slt .. "Preset"] = "Medikit"
-			gameState["Brain" .. i .. "Item" .. slt .. "Class"] = "HDFirearm"
-			gameState["Brain" .. i .. "Item" .. slt .. "Module"] = "Base.rte"
 		end
 	end
 
-	return gameState
+	return gameState;
 end
 -----------------------------------------------------------------------
 --

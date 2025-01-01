@@ -149,10 +149,8 @@ function Destroy(self)
 		end
 	end
 
-	local actor = nil;
-
 	if not self:HasNumberValue("VW_AttemptAccess") and math.random(50, 100) < ActivityMan:GetActivity().Difficulty then
-		actor = CreateACrab("Crab", "Base.rte");
+		local actor = CreateACrab("Crab", "Base.rte");
 		actor.Pos = self.Pos;
 		actor.Vel = Vector(0, -5);
 		actor.Team = Activity.NOTEAM;
@@ -164,14 +162,16 @@ function Destroy(self)
 			actor:AddInventoryItem(item);
 		else
 			for i = 1, 3 do
-				item = CreateMOSRotating("Anti Personnel Mine Active");
+				local item = CreateMOSRotating("Anti Personnel Mine Active");
 				item.Pos = self.Pos;
 				item.Vel = Vector(math.random(5, 10), 0):RadRotate(RangeRand(-math.pi, math.pi));
 				MovableMan:AddParticle(item);
 			end
 		end
+
+		MovableMan:AddActor(actor);
 	else
-		actor = CF_Call(self, {"MakeActor"}, {self:GetStringValue("spawnClass"), self:GetStringValue("spawnPreset"), self:GetStringValue("spawnModule")})[1]:Clone();
+		local actor = ToActor(PresetMan:GetPreset(self:GetStringValue("spawnClass"), self:GetStringValue("spawnPreset"), self:GetStringValue("spawnModule"))):Clone();
 
 		if actor then
 			actor.AngularVel = 0;
@@ -180,19 +180,19 @@ function Destroy(self)
 			actor.Team = Activity.PLAYER_1;
 			actor.AIMode = Actor.AIMODE_SENTRY;
 		end
-	end
 
-	if not actor then
-		local sizes = { 10, 15, 24 };
+		if not actor then
+			local sizes = { 10, 15, 24 };
 
-		for i = 30, math.random(30, 60) do
-			local item = CreateMOSRotating(sizes[math.random(#sizes)] .. "oz Gold Brick", "Base.rte");
-			item.Pos = self.Pos;
-			item.Vel = Vector(0, -3) + Vector(math.random(6), 0):RadRotate(math.pi * 2 * math.random());
-			item.AngularVel = math.random(-4, 4);
-			MovableMan:AddParticle(item);
+			for i = 30, math.random(30, 60) do
+				local item = CreateMOSRotating(sizes[math.random(#sizes)] .. "oz Gold Brick", "Base.rte");
+				item.Pos = self.Pos;
+				item.Vel = Vector(0, -3) + Vector(math.random(6), 0):RadRotate(math.pi * 2 * math.random());
+				item.AngularVel = math.random(-4, 4);
+				MovableMan:AddParticle(item);
+			end
+		else
+			MovableMan:AddActor(actor);
 		end
-	else
-		MovableMan:AddActor(actor);
 	end
 end

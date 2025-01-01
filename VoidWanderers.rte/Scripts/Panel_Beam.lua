@@ -191,13 +191,11 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 						-- Save actors to config and transfer them to scene
 						for _, set in pairs{MovableMan.Actors, MovableMan.Particles} do
 							for actor in set do
-								if IsActor(actor) then
-									actor = ToActor(actor)
-								end
 								if
 									actor.GetsHitByMOs
 									and actor.PresetName ~= "Brain Case"
 									and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
+									and actor.Team == Activity.TEAM_1
 								then
 									local pre, cls, mdl = CF.GetInventory(actor)
 
@@ -212,8 +210,8 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 										self.GS["Deployed" .. deployedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
 										self.GS["Deployed" .. deployedactor .. "Name"] = actor:GetStringValue("VW_Name")
 
-										for i, limbID in pairs(CF.HumanLimbID) do
-											self.GS["Deployed" .. deployedactor .. limbID] = CF.GetLimbData(actor, limbID)
+										for _, limbName in ipairs(CF.LimbIDs[actor.ClassName]) do
+											self.GS["Deployed" .. deployedactor .. limbName] = CF.GetLimbData(actor, limbName);
 										end
 
 										for j = 1, #pre do
@@ -237,8 +235,8 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 										self.GS["Actor" .. savedactor .. "X"] = math.floor(actor.Pos.X)
 										self.GS["Actor" .. savedactor .. "Y"] = math.floor(actor.Pos.Y)
 										
-										for i, limbID in pairs(CF.HumanLimbID) do
-											self.GS["Actor" .. deployedactor .. limbID] = CF.GetLimbData(actor, limbID)
+										for _, limbName in ipairs(CF.LimbIDs[actor.ClassName]) do
+											self.GS["Actor" .. deployedactor .. limbName] = CF.GetLimbData(actor, limbName)
 										end
 
 										for j = 1, #pre do
@@ -267,6 +265,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 						else
 							self.GS["BrainsOnMission"] = "False"
 						end
+
 						self.BrainsAtStake = false
 
 						-- Prepare for transfer
@@ -280,10 +279,9 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 						self.GS["Mode"] = "Mission"
 						self.GS["Scene"] = scene
 						self:SaveCurrentGameState()
-
-						self:LaunchScript(scene, "Tactics.lua")
-						self:DestroyConsoles()
-						return true
+						
+						self.sceneToLaunch = self.GS["Scene"];
+						self.scriptToLaunch = "Tactics.lua";
 					end
 				else
 					self.FirePressed[player] = false

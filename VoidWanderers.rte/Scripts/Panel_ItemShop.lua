@@ -230,7 +230,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 									self.StorageItems, self.StorageFilters = CF.GetStorageArray(self.GS, true);
 								end
 
-								self:SetTeamFunds(CF.ChangeGold(self.GS, -item.Price), CF.PlayerTeam);
+								CF.ChangePlayerGold(self.GS, -item.Price);
 							else
 								self.ClonesShopControlMessageTime = self.Time;
 								self.ClonesShopControlMessageText = "No space within item storage.";

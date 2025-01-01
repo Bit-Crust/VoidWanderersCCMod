@@ -46,9 +46,10 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:BtnContinueGame_OnClick()
-	self:FormClose()
-	self:LoadCurrentGameState()
-	self:LaunchScript(self.GS["Scene"], "Tactics.lua")
+	self:FormClose();
+	self:LoadCurrentGameState();
+	self.sceneToLaunch = self.GS["Scene"];
+	self.scriptToLaunch = "Tactics.lua";
 end
 -----------------------------------------------------------------------
 --
@@ -86,7 +87,6 @@ function VoidWanderers:FormDraw() end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-
 function VoidWanderers:FormClose() end
 -----------------------------------------------------------------------
 --
