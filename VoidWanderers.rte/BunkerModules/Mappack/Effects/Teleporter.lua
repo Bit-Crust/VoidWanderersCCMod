@@ -26,31 +26,31 @@ end
 
 function Create(self)
 	if CF_Read(self, {"VW_TeleporterList"}) == nil then
-		CF_Write({"VW_TeleporterList"}, {})
+		CF_Write({"VW_TeleporterList"}, {});
 	end
 
 	if CF_Read(self, {"VW_TeleporterList", self.PresetName}) == nil then
-		CF_Write({"VW_TeleporterList", self.PresetName}, {})
+		CF_Write({"VW_TeleporterList", self.PresetName}, {});
 	end
 
 	--The number ID of this teleporter, used for communicating with other teleporters
-	self.listID = #CF_Read(self, {"VW_TeleporterList", self.PresetName}) + 1
-	CF_Write({"VW_TeleporterList", self.PresetName, self.listID}, self)
+	self.listID = #CF_Read(self, {"VW_TeleporterList", self.PresetName}) + 1;
+	CF_Write({"VW_TeleporterList", self.PresetName, self.listID}, self);
 
-	self.portTime = 2000
-	self.portTimer = Timer()
-	self.cooldown = Timer()
-	self.coolTime = self.portTime
+	self.portTime = 2000;
+	self.portTimer = Timer();
+	self.cooldown = Timer();
+	self.coolTime = self.portTime;
 
-	self.flashTimer = Timer()
-	self.flashTime = self.portTime * 0.25
+	self.flashTimer = Timer();
+	self.flashTime = self.portTime * 0.25;
 
-	self.particleTimer = Timer()
-	self.particleTimer:SetSimTimeLimitMS(50)
+	self.particleTimer = Timer();
+	self.particleTimer:SetSimTimeLimitMS(50);
 
-	self.radius = Vector(self:GetSpriteWidth() * 0.4, self:GetSpriteHeight() * 0.4)
+	self.radius = Vector(self:GetSpriteWidth() * 0.4, self:GetSpriteHeight() * 0.4);
 
-	self.activity = ActivityMan:GetActivity()
+	self.activity = ActivityMan:GetActivity();
 end
 
 function Update(self)

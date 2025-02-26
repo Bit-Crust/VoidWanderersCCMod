@@ -43,6 +43,12 @@ function VoidWanderers:MissionCreate()
 		self.missionData["interval"] = 30
 	end
 
+	for actor in MovableMan.AddedActors do
+		if actor.ClassName == "ADoor" then
+			actor.Team = CF.CPUTeam;
+		end
+	end
+
 	-- Spawn enemies
 	local enmset = CF.GetRandomMissionPointsSet(self.Pts, "Deploy")
 	local enm = CF.GetPointsArray(self.Pts, "Deploy", enmset, "AmbientEnemy")

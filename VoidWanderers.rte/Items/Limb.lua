@@ -1,9 +1,7 @@
 require("Scripts/Lib_Generic")
 
 function Create(self)
-	self.attachSound = CreateSoundContainer(
-		self:StringValueExists("AttachSound") and self:GetStringValue("AttachSound") or "Robot Stride"
-	)
+	self.attachSound = CreateSoundContainer(self:StringValueExists("AttachSound") and self:GetStringValue("AttachSound") or "Robot Stride")
 	self.errorSound = CreateSoundContainer("Error")
 end
 

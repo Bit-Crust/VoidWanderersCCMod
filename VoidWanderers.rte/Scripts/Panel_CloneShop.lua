@@ -20,14 +20,10 @@ function VoidWanderers:InitCloneShopControlPanelUI()
 		if not MovableMan:ValidMO(self.CloneShopControlPanelActor) then
 			self.CloneShopControlPanelActor = CreateActor("Clone Shop Control Panel");
 
-			if self.CloneShopControlPanelActor ~= nil then
-				self.CloneShopControlPanelActor.Pos = self.CloneShopControlPanelPos;
-				self.CloneShopControlPanelActor.Team = CF.PlayerTeam;
-				MovableMan:AddActor(self.CloneShopControlPanelActor);
-			end
-		else
-		
-	print(self.CloneShopControlPanelActor)
+			self.CloneShopControlPanelActor.Pos = self.CloneShopControlPanelPos;
+			self.CloneShopControlPanelActor.Team = CF.PlayerTeam;
+
+			MovableMan:AddActor(self.CloneShopControlPanelActor);
 		end
 	end
 
@@ -78,12 +74,11 @@ end
 function VoidWanderers:DestroyCloneShopControlPanelUI()
 	for _, set in ipairs{ MovableMan.Actors, MovableMan.AddedActors } do for actor in set do
 		if actor.PresetName == "Clone Shop Control Panel" then
-			local actor = MovableMan:RemoveActor(actor);
-			DeleteEntity(actor);
-			actor = nil;
-			self.CloneShopControlPanelActor = nil;
+			actor.ToDelete = true;
 		end
 	end end
+	
+	self.CloneShopControlPanelActor = nil;
 end
 -----------------------------------------------------------------------
 --
@@ -259,12 +254,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 				if clone then
 					local prefix = i == itemSelected and "> " or "";
 					CF.DrawString(prefix .. clone.Preset, pos + Vector(-138, lineOffset), 90, 11, nil, nil, 0);
-
-					local price = clone.Price;
-					local digits = math.ceil(math.log10(price)) - 3;
-					price = math.floor(price / math.pow(10, digits)) * math.pow(10, digits);
-					price = math.ceil(price) .. (price >= 1000 and "k" or "");
-					CF.DrawString("\198 " .. price .. " oz", pos + Vector(-2, lineOffset), 135, 11, nil, nil, 2);
+					CF.DrawString("\198 " .. CF.FormatLargeQuantity(clone.Price) .. " oz", pos + Vector(-2, lineOffset), 135, 11, nil, nil, 2);
 					lineOffset = lineOffset + 11;
 				end
 			end

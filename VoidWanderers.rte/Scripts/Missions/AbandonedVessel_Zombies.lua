@@ -22,6 +22,25 @@ function VoidWanderers:MissionCreate()
 
 	difficulty = self.missionData["difficulty"];
 
+	for actor in MovableMan.Actors do
+		if actor.ClassName == "ADoor" then
+			actor.Team = Activity.NOTEAM;
+
+			if math.random() < 0.50 then
+				for attachable in actor.Attachables do
+					actor:RemoveAttachable(attachable, false, false);
+				end
+				
+				actor.BodyHitSound = nil;
+				actor.AlarmSound = nil;
+				actor.PainSound = nil;
+				actor.DeathSound = nil;
+				actor.GibSound = nil;
+				actor:GibThis();
+			end
+		end
+	end
+
 	self.missionData["zombieRespawnInterval"] = 9 - difficulty
 	self.missionData["zombieRespawnTime"] = self.Time
 	self.missionData["zombieCount"] = math.random(15, 20) + difficulty
@@ -97,25 +116,6 @@ function VoidWanderers:MissionCreate()
 
 			MovableMan:AddActor(zombie)
 			CF.HuntForActors(zombie, Activity.TEAM_1)
-		end
-	end
-
-	for actor in MovableMan.Actors do
-		if actor.ClassName == "ADoor" then
-			actor.Team = Activity.NOTEAM;
-
-			if math.random() < 0.50 then
-				for attachable in actor.Attachables do
-					actor:RemoveAttachable(attachable, false, false);
-				end
-				
-				actor.BodyHitSound = nil;
-				actor.AlarmSound = nil;
-				actor.PainSound = nil;
-				actor.DeathSound = nil;
-				actor.GibSound = nil;
-				actor:GibThis();
-			end
 		end
 	end
 

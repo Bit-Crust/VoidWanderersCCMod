@@ -16,11 +16,11 @@ function VoidWanderers:InitBeamControlPanelUI()
 		self:LocateBeamControlPanelActor();
 		if not MovableMan:IsActor(self.BeamControlPanelActor) then
 			self.BeamControlPanelActor = CreateActor("Beam Control Panel");
-			if self.BeamControlPanelActor ~= nil then
-				self.BeamControlPanelActor.Pos = self.BeamControlPanelPos;
-				self.BeamControlPanelActor.Team = CF.PlayerTeam;
-				MovableMan:AddActor(self.BeamControlPanelActor);
-			end
+
+			self.BeamControlPanelActor.Pos = self.BeamControlPanelPos;
+			self.BeamControlPanelActor.Team = CF.PlayerTeam;
+
+			MovableMan:AddActor(self.BeamControlPanelActor);
 		end
 	end
 
@@ -42,21 +42,24 @@ end
 -- Find and assign appropriate actors
 -----------------------------------------------------------------------
 function VoidWanderers:LocateBeamControlPanelActor()
-	for actor in MovableMan.AddedActors do
+	for _, set in ipairs{ MovableMan.Actors, MovableMan.AddedActors } do for actor in set do
 		if actor.PresetName == "Beam Control Panel" then
 			self.BeamControlPanelActor = actor;
 			break;
 		end
-	end
+	end end
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function VoidWanderers:DestroyBeamControlPanelUI()
-	if self.BeamControlPanelActor ~= nil then
-		self.BeamControlPanelActor.ToDelete = true;
-		self.BeamControlPanelActor = nil;
-	end
+	for _, set in ipairs{ MovableMan.Actors, MovableMan.AddedActors } do for actor in set do
+		if actor.PresetName == "Beam Control Panel" then
+			actor.ToDelete = true;
+		end
+	end end
+	
+	self.BeamControlPanelActor = nil;
 end
 -----------------------------------------------------------------------
 --
@@ -77,7 +80,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 				local canbeam = false;
 				local beamText = "";
 
-				local braincount = 0;
+				local brainCount = 0;
 
 				local count = 0;
 				for actor in MovableMan.Actors do
@@ -92,7 +95,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 						count = count + 1;
 
 						if CF.IsBrain(actor) then
-							braincount = braincount + 1;
+							brainCount = brainCount + 1;
 						end
 					end
 				end
@@ -121,7 +124,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 
 				local limit = tonumber(self.GS["PlayerVesselCommunication"]);
 
-				if braincount > 0 and braincount < self.PlayerCount then
+				if brainCount > 0 and brainCount < self.PlayerCount then
 					beamText = "All brains must be on the landing deck";
 					canbeam = false;
 				else
@@ -156,37 +159,30 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 				-- Deploy units
 				if cont:IsState(Controller.WEAPON_FIRE) and canbeam then
 					if not self.FirePressed[player] then
-						self.FirePressed[player] = true
+						self.FirePressed[player] = true;
 
 						-- Save ground items
-						storageCapacity = tonumber(self.GS["PlayerVesselStorageCapacity"])
+						storageCapacity = tonumber(self.GS["PlayerVesselStorageCapacity"]);
 						for item in MovableMan.Items do
 							if IsHeldDevice(item) and not ToHeldDevice(item).UnPickupable then
-								local count = CF.CountUsedStorageInArray(self.StorageItems)
+								local count = CF.CountUsedStorageInArray(self.StorageItems);
 
 								if count < storageCapacity then
-									CF.PutItemToStorageArray(
-										self.StorageItems,
-										item.PresetName,
-										item.ClassName,
-										item.ModuleName
-									)
+									CF.PutItemToStorageArray(self.StorageItems, item.PresetName, item.ClassName, item.ModuleName);
 								else
-									break
+									break;
 								end
 							end
 						end
 
-						CF.SetStorageArray(self.GS, self.StorageItems)
+						CF.SetStorageArray(self.GS, self.StorageItems);
 
 						-- Clean previously saved actors and inventories in config
-						self:ClearDeployed()
-						self.deployedActors = {}
-						local deployedactor = 1
-					
-						self:ClearActors()
-						self.onboardActors = {}
-						local savedactor = 1
+						CF.ClearDeployed(self.GS);
+						CF.ClearOnboard(self.GS);
+
+						local deployed = {};
+						local onboard = {};
 
 						-- Save actors to config and transfer them to scene
 						for _, set in pairs{MovableMan.Actors, MovableMan.Particles} do
@@ -197,88 +193,26 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 									and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 									and actor.Team == Activity.TEAM_1
 								then
-									local pre, cls, mdl = CF.GetInventory(actor)
-
 									if self.BeamControlPanelBox:IsWithinBox(actor.Pos) then
-										-- Save actors to deployment config
-										self.GS["Deployed" .. deployedactor .. "Preset"] = actor.PresetName
-										self.GS["Deployed" .. deployedactor .. "Class"] = actor.ClassName
-										self.GS["Deployed" .. deployedactor .. "Module"] = actor.ModuleName
-										self.GS["Deployed" .. deployedactor .. "XP"] = actor:GetNumberValue("VW_XP")
-										self.GS["Deployed" .. deployedactor .. "Identity"] = actor:GetNumberValue("Identity")
-										self.GS["Deployed" .. deployedactor .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
-										self.GS["Deployed" .. deployedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
-										self.GS["Deployed" .. deployedactor .. "Name"] = actor:GetStringValue("VW_Name")
-
-										for _, limbName in ipairs(CF.LimbIDs[actor.ClassName]) do
-											self.GS["Deployed" .. deployedactor .. limbName] = CF.GetLimbData(actor, limbName);
-										end
-
-										for j = 1, #pre do
-											self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Preset"] = pre[j]
-											self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Class"] = cls[j]
-											self.GS["Deployed" .. deployedactor .. "Item" .. j .. "Module"] = mdl[j]
-										end
-
-										self.deployedActors[deployedactor] = actor
-										deployedactor = deployedactor + 1
+										table.insert(deployed, actor);
 									else
-										-- Save actors to onboard config
-										self.GS["Actor" .. savedactor .. "Preset"] = actor.PresetName
-										self.GS["Actor" .. savedactor .. "Class"] = actor.ClassName
-										self.GS["Actor" .. savedactor .. "Module"] = actor.ModuleName
-										self.GS["Actor" .. savedactor .. "XP"] = actor:GetNumberValue("VW_XP")
-										self.GS["Actor" .. savedactor .. "Identity"] = actor:GetNumberValue("Identity")
-										self.GS["Actor" .. savedactor .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
-										self.GS["Actor" .. savedactor .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
-										self.GS["Actor" .. savedactor .. "Name"] = actor:GetStringValue("VW_Name")
-										self.GS["Actor" .. savedactor .. "X"] = math.floor(actor.Pos.X)
-										self.GS["Actor" .. savedactor .. "Y"] = math.floor(actor.Pos.Y)
-										
-										for _, limbName in ipairs(CF.LimbIDs[actor.ClassName]) do
-											self.GS["Actor" .. deployedactor .. limbName] = CF.GetLimbData(actor, limbName)
-										end
-
-										for j = 1, #pre do
-											self.GS["Actor" .. savedactor .. "Item" .. j .. "Preset"] = pre[j]
-											self.GS["Actor" .. savedactor .. "Item" .. j .. "Class"] = cls[j]
-											self.GS["Actor" .. savedactor .. "Item" .. j .. "Module"] = mdl[j]
-										end
-								
-										self.onboardActors[savedactor] = actor
-										savedactor = savedactor + 1
+										table.insert(onboard, actor);
 									end
 								end
 							end
 						end
 
-						for _, actor in pairs(self.deployedActors) do
-							self.deployedActors[_] = MovableMan:RemoveActor(actor)
-						end
-
-						for _, actor in pairs(self.onboardActors) do
-							self.onboardActors[_] = MovableMan:RemoveActor(actor)
-						end
-
-						if braincount == self.PlayerCount then
-							self.GS["BrainsOnMission"] = "True"
-						else
-							self.GS["BrainsOnMission"] = "False"
-						end
-
-						self.BrainsAtStake = false
-
-						-- Prepare for transfer
-						-- Select scene
-						local locationScenes = CF.LocationScenes[locationID]
-						local scene = locationScenes[math.random(#locationScenes)]
+						self.deploymentToSerialize = deployed;
+						self.onboardToSerialize = onboard;
+						local locationScenes = CF.LocationScenes[locationID];
+						local scene = locationScenes[math.random(#locationScenes)];
 
 						-- Set new operating mode
-						self.GS["DeserializeDeployedTeam"] = "True"
-						self.GS["DeserializeOnboard"] = "True"
-						self.GS["Mode"] = "Mission"
-						self.GS["Scene"] = scene
-						self:SaveCurrentGameState()
+						self.GS["BrainsOnMission"] = brainCount == self.PlayerCount and "True" or "False";
+						self.GS["Mode"] = "Mission";
+						self.GS["Scene"] = scene;
+						self:SaveCurrentGameState();
+						self:DestroyConsoles();
 						
 						self.sceneToLaunch = self.GS["Scene"];
 						self.scriptToLaunch = "Tactics.lua";

@@ -264,7 +264,7 @@ function VoidWanderers:BtnOk_OnClick()
 	end
 
 	-- Create new game state
-	self.GS = CF.MakeFreshGameState(player, cpu, self);
+	self.GS = self:MakeFreshGameState(player, cpu);
 	self:OnSave();
 	self:LoadSaveData();
 	self:FormClose();

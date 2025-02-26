@@ -30,11 +30,10 @@ function VoidWanderers:InitStorageControlPanelUI()
 		if not MovableMan:IsActor(self.StorageControlPanelActor) then
 			self.StorageControlPanelActor = CreateActor("Storage Control Panel");
 
-			if self.StorageControlPanelActor ~= nil then
-				self.StorageControlPanelActor.Pos = self.StorageControlPanelPos;
-				self.StorageControlPanelActor.Team = CF.PlayerTeam;
-				MovableMan:AddActor(self.StorageControlPanelActor);
-			end
+			self.StorageControlPanelActor.Pos = self.StorageControlPanelPos;
+			self.StorageControlPanelActor.Team = CF.PlayerTeam;
+
+			MovableMan:AddActor(self.StorageControlPanelActor);
 		end
 	end
 
@@ -99,21 +98,24 @@ end
 -- Find and assign appropriate actors
 -----------------------------------------------------------------------
 function VoidWanderers:LocateStorageControlPanelActor()
-	for actor in MovableMan.AddedActors do
+	for _, set in ipairs{ MovableMan.Actors, MovableMan.AddedActors } do for actor in set do
 		if actor.PresetName == "Storage Control Panel" then
-			self.StorageControlPanelActor = actor
-			break
+			self.StorageControlPanelActor = actor;
+			break;
 		end
-	end
+	end end
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function VoidWanderers:DestroyStorageControlPanelUI()
-	if self.StorageControlPanelActor ~= nil then
-		self.StorageControlPanelActor.ToDelete = true
-		self.StorageControlPanelActor = nil
-	end
+	for _, set in ipairs{ MovableMan.Actors, MovableMan.AddedActors } do for actor in set do
+		if actor.PresetName == "Storage Control Panel" then
+			actor.ToDelete = true;
+		end
+	end end
+	
+	self.StorageControlPanelActor = nil;
 end
 -----------------------------------------------------------------------
 --

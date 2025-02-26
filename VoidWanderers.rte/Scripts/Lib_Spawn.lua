@@ -79,6 +79,8 @@ function CF.MakeRPGBrain(faction, giveWeapons, level)
 		brain:SetNumberValue("VW_ScannerSkill", skillset[7]);
 		brain:SetNumberValue("VW_SplitterSkill", skillset[8]);
 		brain:SetNumberValue("VW_QuantumSkill", skillset[9]);
+
+		CF.SetBrain(brain, true);
 	end
 
 	return brain;
@@ -243,15 +245,18 @@ end
 -----------------------------------------------------------------------
 function CF.MakeListOfMostPowerfulActorsOfClass(faction, actorType, actorClass, maxTech)
 	local actors = CF.MakeListOfMostPowerfulActors(faction, actorType, maxTech);
-	local factionColumn = CF.ActClasses[faction];
+	local factionClasses = CF.ActClasses[faction];
 
-	if actors and factionColumn then
+	if actors and factionClasses then
 		local offset = 0;
 
 		for i = 1, #actors do
 			local index = actors[i - offset].Actor;
 
-			if "Any" ~= actorClass and (factionColumn[index] or "AHuman") ~= actorClass then
+			print(CF.ActPresets[faction][index]);
+			print(factionClasses[index]);
+
+			if "Any" ~= actorClass and (factionClasses[index] or "AHuman") ~= actorClass then
 				table.remove(actors, i - offset);
 				offset = offset + 1;
 			end
@@ -260,6 +265,13 @@ function CF.MakeListOfMostPowerfulActorsOfClass(faction, actorType, actorClass, 
 		if #actors == 0 then
 			actors = nil;
 		end
+	end
+	
+	for i = 1, #actors do
+		local index = actors[i].Actor;
+
+		print(CF.ActPresets[faction][index]);
+		print(factionClasses[index]);
 	end
 
 	return actors;
@@ -701,10 +713,7 @@ function CF.MakeUnitWithPreset(gameState, participant, preset)
 		local setRank = 0
 		if reputation then
 			reputation = math.abs(tonumber(reputation))
-			setRank = math.min(
-				math.random(0, math.floor(#CF.Ranks * reputation / (#CF.Ranks * CF.ReputationPerDifficulty))),
-				#CF.Ranks
-			)
+			setRank = math.min(#CF.Ranks, math.random(0, math.floor(#CF.Ranks * reputation / (#CF.Ranks * CF.ReputationPerDifficulty))))
 		end
 
 		actor = CF.MakeActor(CF.ActClasses[f][a], CF.ActPresets[f][a], CF.ActModules[f][a], CF.Ranks[setRank])
@@ -1156,6 +1165,10 @@ function CF.SetAlly(actor, yes)
 
 		actor:DisableScript("Mods/VoidWanderers.rte/Actors/Shared/Conscript.lua");
 	end
+
+	if CF.IsBrain(actor) then
+		actor:DisableScript("Mods/VoidWanderers.rte/Actors/Shared/Conscript.lua");
+	end
 end
 -----------------------------------------------------------------------
 -- Whether an actor is an NPC on the player's team
@@ -1164,11 +1177,28 @@ function CF.IsAlly(actor)
 	return actor:NumberValueExists("VW_Ally");
 end
 -----------------------------------------------------------------------
+-- Sets whether an actor is a VW brain for anyone
+-----------------------------------------------------------------------
+function CF.SetBrain(actor, yes)
+	if yes then
+		actor:SetNumberValue("VW_Brain", 1);
+
+		if actor:HasScript("Mods/VoidWanderers.rte/Actors/Shared/Brain.lua") then
+			actor:EnableScript("Mods/VoidWanderers.rte/Actors/Shared/Brain.lua");
+		else
+			actor:AddScript("Mods/VoidWanderers.rte/Actors/Shared/Brain.lua");
+		end
+	else
+		actor:RemoveNumberValue("VW_Brain");
+
+		actor:DisableScript("Mods/VoidWanderers.rte/Actors/Shared/Brain.lua");
+	end
+end
+-----------------------------------------------------------------------
 -- Whether an actor is a VW brain for anyone
 -----------------------------------------------------------------------
 function CF.IsBrain(actor)
-	return (MovableMan:ValidMO(actor) or error("Bad reference or nil value passed to CF::IsBrain!", 2))
-		and (actor.PresetName == "Brain Case" or actor:HasScript("VoidWanderers.rte/Actors/Shared/Brain.lua"));
+	return actor:NumberValueExists("VW_Brain");
 end
 -----------------------------------------------------------------------
 -- Whether an actor is the brain or otherwise prestigious
@@ -1177,12 +1207,10 @@ function CF.IsCommander(actor)
 	return (CF.IsBrain(actor) or actor:GetNumberValue("VW_Prestige") ~= 0);
 end
 -----------------------------------------------------------------------
--- Whether an actor is a generic player usable unit
+-- Whether an actor is a generic unit
 -----------------------------------------------------------------------
-function CF.IsPlayerUnit(actor)
-	return (IsAHuman(actor) or IsACrab(actor))
-		and actor.Team == CF.PlayerTeam
-		and not (CF.IsBrain(actor) or CF.IsAlly(actor));
+function CF.IsCommonUnit(actor)
+	return (IsAHuman(actor) or IsACrab(actor)) and not (CF.IsBrain(actor) or CF.IsAlly(actor));
 end
 -----------------------------------------------------------------------
 --

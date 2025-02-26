@@ -659,8 +659,8 @@ function CF.GetItemBlackMarketArray(gameState, makefilters)
 				item.Module = module;
 				item.Description = tempEntity.Description or "DESCRIPTION UNAVAILABLE";
 				local multiplier = CF.IsEntityUnlocked(gameState, "Blackprint", class, preset, module) and 0.5 or 1;
-				local truncatedPrice = CF.TruncateNumber(tempEntity:GetGoldValue(0, 1, 1) + fundFactor);
-				actor.Price = math.floor(math.max(truncatedPrice, CF.UnknownItemPrice) * multiplier);
+				local truncatedPrice = CF.TruncateNumber(tempEntity:GetGoldValue(0, 1, 1) + fundFactor, 1);
+				item.Price = math.floor(math.max(truncatedPrice, CF.UnknownItemPrice) * multiplier);
 				item.Type = CF.WeaponTypes.TOOL;
 
 				table.insert(items, item);
@@ -758,7 +758,7 @@ function CF.GetCloneBlackMarketArray(gameState, makefilters)
 				actor["Module"] = module;
 				actor["Description"] = tempEntity.Description or "DESCRIPTION UNAVAILABLE";
 				local multiplier = CF.IsEntityUnlocked(gameState, "Blackprint", class, preset, module) and 0.5 or 1;
-				local truncatedPrice = CF.TruncateNumber(tempEntity:GetGoldValue(0, 1, 1) + fundFactor);
+				local truncatedPrice = CF.TruncateNumber(tempEntity:GetGoldValue(0, 1, 1) + fundFactor, 1);
 				actor["Price"] = math.floor(math.max(truncatedPrice, CF.UnknownActorPrice) * multiplier);
 				--actor["Type"] = CF.ActorTypes.ANY;
 
@@ -806,17 +806,17 @@ end
 --	Counts used storage units in storage array
 -----------------------------------------------------------------------
 function CF.CountUsedStorageInArray(arr)
-	local count = 0
+	local count = 0;
 
 	for i = 1, #arr do
-		if arr[i].Class ~= "TDExplosive" then
-			count = count + arr[i].Count
+		if arr[i].Class == "TDExplosive" then
+			count = count + math.floor(arr[i].Count / 10);
 		else
-			count = count + math.floor(arr[i].Count / 10)
+			count = count + arr[i].Count;
 		end
 	end
 
-	return count
+	return count;
 end
 -----------------------------------------------------------------------
 --	Searches for given item in all faction files and returns it's factions and index if found
@@ -841,6 +841,30 @@ function CF.FindItemInFactions(preset, class, module)
 	end
 
 	return nil, nil
+end
+-----------------------------------------------------------------------
+--	Searches for given actor in all faction files and returns it's factions and index if found
+-----------------------------------------------------------------------
+function CF.FindActorInFactions(preset, class, module)
+	for fact = 1, #CF.Factions do
+		local f = CF.Factions[fact];
+
+		for i = 1, #CF.ActNames[f] do
+			if preset == CF.ActPresets[f][i] then
+				if class == (CF.ActClasses[f][i] or "AHuman") then
+					if module ~= nil then
+						if module == CF.ActModules[f][i] then
+							return f, i;
+						end
+					else
+						return f, i;
+					end
+				end
+			end
+		end
+	end
+
+	return nil, nil;
 end
 -----------------------------------------------------------------------
 --	Put item to storage array. You still need to update filters array if this is a new item.
@@ -874,30 +898,6 @@ function CF.PutItemToStorageArray(arr, preset, class, module)
 	end
 
 	return isnew
-end
------------------------------------------------------------------------
---	Searches for given actor in all faction files and returns it's factions and index if found
------------------------------------------------------------------------
-function CF.FindActorInFactions(preset, class, module)
-	for fact = 1, #CF.Factions do
-		local f = CF.Factions[fact]
-
-		for i = 1, #CF.ActNames[f] do
-			if preset == CF.ActPresets[f][i] then
-				if class == CF.ActClasses[f][i] or (class == "AHuman" and CF.ActClasses[f][i] == nil) then
-					if module ~= nil then
-						if module == CF.ActModules[f][i] then
-							return f, i
-						end
-					else
-						return f, i
-					end
-				end
-			end
-		end
-	end
-
-	return nil, nil
 end
 -----------------------------------------------------------------------
 --	Returns sorted array of stored items from game state. If makefilters is true, then
@@ -1015,6 +1015,72 @@ function CF.SetClonesArray(gameState, clones)
 	end
 end
 -----------------------------------------------------------------------
+--
+-----------------------------------------------------------------------
+function CF.ClearOnboard(gameState)
+	for i = 1, tonumber(gameState["Onboard#"]) or CF.MaxSavedActors do
+		gameState["Onboard" .. i .. "Preset"] = nil;
+		gameState["Onboard" .. i .. "Class"] = nil;
+		gameState["Onboard" .. i .. "Module"] = nil;
+		gameState["Onboard" .. i .. "X"] = nil;
+		gameState["Onboard" .. i .. "Y"] = nil;
+		gameState["Onboard" .. i .. "XP"] = nil;
+		gameState["Onboard" .. i .. "Identity"] = nil;
+		gameState["Onboard" .. i .. "Player"] = nil;
+		gameState["Onboard" .. i .. "Prestige"] = nil;
+		gameState["Onboard" .. i .. "Name"] = nil;
+		
+		for _, classLimbs in pairs(CF.LimbIDs) do
+			for _, limbName in ipairs(classLimbs) do
+				gameState["Onboard" .. i .. limbName] = nil;
+			end
+		end
+
+		for j = 1, tonumber(gameState["Onboard" .. i .. "Item#"]) or CF.MaxSavedItemsPerActor do
+			gameState["Onboard" .. i .. "Item" .. j .. "Preset"] = nil;
+			gameState["Onboard" .. i .. "Item" .. j .. "Class"] = nil;
+			gameState["Onboard" .. i .. "Item" .. j .. "Module"] = nil;
+		end
+
+		gameState["Onboard" .. i .. "Item#"] = nil;
+	end
+
+	gameState["Onboard#"] = nil;
+end
+-----------------------------------------------------------------------
+--
+-----------------------------------------------------------------------
+function CF.ClearDeployed(gameState)
+	for i = 1, tonumber(gameState["Deployed#"]) or CF.MaxSavedActors do
+		gameState["Deployed" .. i .. "Preset"] = nil;
+		gameState["Deployed" .. i .. "Class"] = nil;
+		gameState["Deployed" .. i .. "Module"] = nil;
+		gameState["Deployed" .. i .. "X"] = nil;
+		gameState["Deployed" .. i .. "Y"] = nil;
+		gameState["Deployed" .. i .. "XP"] = nil;
+		gameState["Deployed" .. i .. "Identity"] = nil;
+		gameState["Deployed" .. i .. "Player"] = nil;
+		gameState["Deployed" .. i .. "Prestige"] = nil;
+		gameState["Deployed" .. i .. "Name"] = nil;
+		
+		for _, classLimbs in pairs(CF.LimbIDs) do
+			for _, limbName in ipairs(classLimbs) do
+				gameState["Deployed" .. i .. limbName] = nil;
+			end
+		end
+
+		for j = 1, tonumber(gameState["Deployed" .. i .. "Item#"]) or CF.MaxSavedItemsPerActor do
+			gameState["Deployed" .. i .. "Item" .. j .. "Preset"] = nil;
+			gameState["Deployed" .. i .. "Item" .. j .. "Class"] = nil;
+			gameState["Deployed" .. i .. "Item" .. j .. "Module"] = nil;
+		end
+
+		gameState["Deployed" .. i .. "Item#"] = nil;
+	end
+
+	gameState["Deployed#"] = nil;
+end
+-----------------------------------------------------------------------
 --	
 -----------------------------------------------------------------------
 function CF.PutTurretToStorageArray(arr, preset, class, module)
@@ -1047,7 +1113,6 @@ function CF.PutTurretToStorageArray(arr, preset, class, module)
 end
 -----------------------------------------------------------------------
 --
---
 -----------------------------------------------------------------------
 function CF.GetTurretsArray(gameState)
 	local arr = {}
@@ -1078,7 +1143,6 @@ function CF.GetTurretsArray(gameState)
 
 	return arr
 end
-
 -----------------------------------------------------------------------
 --	Counts used clones in clone array
 -----------------------------------------------------------------------
@@ -1113,16 +1177,9 @@ function CF.SetTurretsArray(gameState, arr)
 			gameState["TurretsStorage" .. i .. "Module"] = arr[i].Module
 			gameState["TurretsStorage" .. i .. "Count"] = arr[i].Count
 		end
-
-		--print (tostring(i).." "..arr[i].Preset)
-		--print (tostring(i).." "..arr[i].Class)
 	end
 end
 -----------------------------------------------------------------------
---
------------------------------------------------------------------------
------------------------------------------------------------------------
---
 --
 -----------------------------------------------------------------------
 function CF.PutBombToStorageArray(arr, preset, class, module)
@@ -1156,7 +1213,6 @@ function CF.PutBombToStorageArray(arr, preset, class, module)
 end
 -----------------------------------------------------------------------
 --
---
 -----------------------------------------------------------------------
 function CF.GetBombsArray(gameState)
 	local arr = {}
@@ -1187,7 +1243,6 @@ function CF.GetBombsArray(gameState)
 
 	return arr
 end
-
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------

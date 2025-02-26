@@ -1,12 +1,10 @@
 -----------------------------------------------------------------------
---	Objective: 	Kill all invading troops.
---	Events: 	Depending on mission difficulty AI might send dropships with up to 2 actorTable and
---	 			launch one counterattack when it will try to kill player actorTable with
---				1/3 of it's actorTable. Initial spawn rate varies based on mission difficulty
+--	Objective: 	Do not die, optionally investigate.
+--	Events: 	This is gonna mess you up.
 --
 -----------------------------------------------------------------------
 function VoidWanderers:EncounterCreate()
-	print("PIRATE ENCOUNTER CREATE")
+	print("HOSTILE DRONE ENCOUNTER CREATE");
 
 	local encounterData = self.encounterData;
 	encounterData["droneAlerted"] = false;
@@ -21,9 +19,10 @@ function VoidWanderers:EncounterCreate()
 	encounterData["droneTargetAngle"] = nil;
 	encounterData["droneTargetImpactZone"] = nil;
 	encounterData["droneNextShot"] = 0;
+	encounterData["encounterStage"] = 0;
 
-	local message = "A pre-historic assault drone is floating nearby. We don't know if it is dead or not.";
-	local options = {"Initiate evade maneuvers and fire countermeasures!", "Just ignore the damn thing."};
+	local message = "We have detected a pre-historic assault drone is floating nearby. We don't know if it is dead or not.";
+	local options = {"Initiate evasive maneuvers!", "Just ignore the damn thing.", "Get closer. Why not?"};
 	self:SendTransmission(message, options);
 	self:GiveFocusToBridge();
 end
@@ -31,37 +30,49 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:EncounterUpdate()
-	local variant = self.vesselData["dialogOptionChosen"];
 	local encounterData = self.encounterData;
 	local concludeEncounter = false;
 	local conclusionMessage = "";
 
-	if variant == 1 then
-		if math.random(50) < tonumber(self.GS["PlayerVesselSpeed"]) then
-			concludeEncounter = true;
-			conclusionMessage = "Got away safely!";
-		elseif math.random(2) == 1 then
-			concludeEncounter = true;
-			conclusionMessage = "Looks like it was dead after all.";
-		else
-			local message = "The drone is charging its' weapons, move units deeper inside the ship!";
-			self:SendTransmission(message, {});
-			encounterData["droneAlerted"] = true;
-			encounterData["droneNextShot"] = self.Time + 18;
+	if encounterData["encounterStage"] == 0 then
+		local variant = self.vesselData["dialogOptionChosen"];
+
+		if variant == 1 then
+			if math.random(50) < tonumber(self.GS["PlayerVesselSpeed"]) then
+				concludeEncounter = true;
+				conclusionMessage = "Got away safely!";
+			elseif math.random(2) == 1 then
+				local message = "The drone is charging its weapons, move units deeper inside the ship!";
+				self:SendTransmission(message, {});
+				encounterData["droneAlerted"] = true;
+				encounterData["droneNextShot"] = self.Time + 18;
+			else
+				concludeEncounter = true;
+				conclusionMessage = "Looks like it was dead after all.";
+			end
 		end
-	end
 	
-	if variant == 2 then
-		if math.random(2) == 1 then
-			local message = "Shit, it's readying the Ceasefire! INCOMING!";
+		if variant == 2 then
+			if math.random(2) == 1 then
+				local message = "Shit, its readying its weapons! Move deeper inside the ship! INCOMING!";
+				self:SendTransmission(message, {});
+			
+				encounterData["droneAlerted"] = true;
+				encounterData["droneNextShot"] = self.Time + 6;
+				encounterData["droneCharges"] = encounterData["droneCharges"] + 1;
+			else
+				concludeEncounter = true;
+				conclusionMessage = "Looks like it could not detect us. Phew...";
+			end
+		end
+	
+		if variant == 3 then
+			local message = "Really done it now! Its readying its weapons! Move deeper inside the ship!";
 			self:SendTransmission(message, {});
 			
-			encounterData["droneAlerted"] = true
-			encounterData["droneNextShot"] = self.Time + 6
-			encounterData["droneCharges"] = encounterData["droneCharges"] + 1
-		else
-			concludeEncounter = true;
-			conclusionMessage = "Looks like it could not detect us. Phew...";
+			encounterData["droneAlerted"] = true;
+			encounterData["droneNextShot"] = self.Time + 4;
+			encounterData["droneCharges"] = encounterData["droneCharges"] + 4;
 		end
 	end
 	
@@ -69,7 +80,7 @@ function VoidWanderers:EncounterUpdate()
 		local actorTable = {};
 		
 		for actor in MovableMan.Actors do
-			if CF.IsPlayerUnit(actor) then
+			if CF.IsCommonUnit(actor) and actor.Team == CF.PlayerTeam then
 				table.insert(actorTable, actor);
 			end
 		end
@@ -161,6 +172,7 @@ function VoidWanderers:EncounterUpdate()
 		self.vesselData["flightAimless"] = false;
 		self.vesselData["lifeSupportEnabled"] = true;
 		self.vesselData["dialog"] = nil;
+		self.vesselData["beamEnabled"] = true;
 		self:RemoveDeployedTurrets();
 	end
 end

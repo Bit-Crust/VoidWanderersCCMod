@@ -68,6 +68,25 @@ function VoidWanderers:MissionCreate()
 		end
 	end
 
+	for actor in MovableMan.Actors do
+		if actor.ClassName == "ADoor" then
+			actor.Team = Activity.NOTEAM;
+
+			if math.random() < 0.50 then
+				for attachable in actor.Attachables do
+					actor:RemoveAttachable(attachable, false, false);
+				end
+				
+				actor.BodyHitSound = nil;
+				actor.AlarmSound = nil;
+				actor.PainSound = nil;
+				actor.DeathSound = nil;
+				actor.GibSound = nil;
+				actor:GibThis();
+			end
+		end
+	end
+
 	-- Data
 	self.missionData["dropShipCount"] = 0
 	self.missionData["missionNextDropShip"] = self.Time + CF.AmbientReinforcementsInterval

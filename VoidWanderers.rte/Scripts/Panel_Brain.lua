@@ -51,10 +51,9 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 						MovableMan:AddActor(brain);
 
 						-- Then switch
-						brain:AddScript("VoidWanderers.rte/Actors/Shared/Brain.lua");
-						brain:EnableScript("VoidWanderers.rte/Actors/Shared/Brain.lua");
 						self:SwitchToActor(brain, player, CF.PlayerTeam);
 						self:SetPlayerBrain(brain, player);
+						CF.SetBrain(brain, true);
 
 						-- Then record
 						self.GS["Brain" .. player .. "Detached"] = "True";
@@ -108,11 +107,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 							self.GS["Brain" .. player .. "Identity"] = actor:GetNumberValue("Identity");
 						end
 
-						actor = MovableMan:RemoveActor(actor);
-						if actor then
-							DeleteEntity(actor);
-						end
-
+						actor.ToDelete = true;
 						MovableMan:AddActor(brain);
 						self:SwitchToActor(brain, player, CF.PlayerTeam);
 						self:SetPlayerBrain(brain, player);

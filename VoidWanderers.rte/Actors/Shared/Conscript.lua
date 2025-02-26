@@ -25,7 +25,7 @@ do
 end
 
 function Create(self)
-	if not self:HasNumberValue("VW_ConscriptPrice") then
+	if not self:NumberValueExists("VW_ConscriptPrice") then
 		self:SetNumberValue("VW_ConscriptPrice", math.ceil(self:GetTotalValue(0, 1, 1) * (1 + math.random())));
 	end
 
@@ -81,7 +81,7 @@ function Update(self)
 			end
 
 			if distance < self.interactDist + actor.IndividualRadius + 3 then
-				if actor:HasNumberValue("VW_AttemptAccess") then
+				if actor:NumberValueExists("VW_AttemptAccess") then
 					if actor.GoldCarried >= self.cost then
 						actor.GoldCarried = actor.GoldCarried - self.cost;
 					else

@@ -8,72 +8,65 @@
 --
 -----------------------------------------------------------------------
 function VoidWanderers:MissionCreate()
-	print("DEFEND CREATE")
+	print("DEFEND CREATE");
 	
 	-- Mission difficulty settings
-	local diff = self.missionData["difficulty"]
+	local diff = self.missionData["difficulty"];
 	
 	if diff == 1 then
-		self.missionData["spawnRate"] = 0.40
-		self.missionData["enemyDropShips"] = 3
-		self.missionData["interval"] = 28
-		self.missionData["troopCount"] = 2
+		self.missionData["spawnRate"] = 0.40;
+		self.missionData["enemyDropShips"] = 3;
+		self.missionData["interval"] = 28;
+		self.missionData["troopCount"] = 2;
 	elseif diff == 2 then
-		self.missionData["spawnRate"] = 0.40
-		self.missionData["enemyDropShips"] = 3
-		self.missionData["interval"] = 26
-		self.missionData["troopCount"] = 2
+		self.missionData["spawnRate"] = 0.40;
+		self.missionData["enemyDropShips"] = 3;
+		self.missionData["interval"] = 26;
+		self.missionData["troopCount"] = 2;
 	elseif diff == 3 then
-		self.missionData["spawnRate"] = 0.35
-		self.missionData["enemyDropShips"] = 4
-		self.missionData["interval"] = 24
-		self.missionData["troopCount"] = 2
+		self.missionData["spawnRate"] = 0.35;
+		self.missionData["enemyDropShips"] = 4;
+		self.missionData["interval"] = 24;
+		self.missionData["troopCount"] = 2;
 	elseif diff == 4 then
-		self.missionData["spawnRate"] = 0.35
-		self.missionData["enemyDropShips"] = 4
-		self.missionData["interval"] = 22
-		self.missionData["troopCount"] = 3
+		self.missionData["spawnRate"] = 0.35;
+		self.missionData["enemyDropShips"] = 4;
+		self.missionData["interval"] = 22;
+		self.missionData["troopCount"] = 3;
 	elseif diff == 5 then
-		self.missionData["spawnRate"] = 0.30
-		self.missionData["enemyDropShips"] = 4
-		self.missionData["interval"] = 21
-		self.missionData["troopCount"] = 3
+		self.missionData["spawnRate"] = 0.30;
+		self.missionData["enemyDropShips"] = 4;
+		self.missionData["interval"] = 21;
+		self.missionData["troopCount"] = 3;
 	elseif diff == 6 then
-		self.missionData["spawnRate"] = 0.30
-		self.missionData["enemyDropShips"] = 5
-		self.missionData["interval"] = 20
-		self.missionData["troopCount"] = 3
+		self.missionData["spawnRate"] = 0.30;
+		self.missionData["enemyDropShips"] = 5;
+		self.missionData["interval"] = 20;
+		self.missionData["troopCount"] = 3;
+	end
+	
+	for actor in MovableMan.AddedActors do
+		if actor.ClassName == "ADoor" then
+			actor.Team = CF.PlayerTeam;
+		end
 	end
 
 	-- Use generic enemy set
-	local set = CF.GetRandomMissionPointsSet(self.Pts, "Enemy")
+	local set = CF.GetRandomMissionPointsSet(self.Pts, "Enemy");
+
 	-- Get LZs
-	self.missionData["landingZones"] = CF.GetPointsArray(self.Pts, "Enemy", set, "LZ")
+	self.missionData["landingZones"] = CF.GetPointsArray(self.Pts, "Enemy", set, "LZ");
 
 	-- Get base
-	self:ObtainBaseBoxes("Enemy", set)
+	self:ObtainBaseBoxes("Enemy", set);
 
-	-- Remove all non-player doors, because allied units will be deployed inside CPU bases
-	if CF.LocationRemoveDoors[self.GS["Location"]] ~= nil and CF.LocationRemoveDoors[self.GS["Location"]] == true then
-		for actor in MovableMan.Actors do
-			if actor.ClassName == "ADoor" then
-				actor.Team = CF.PlayerTeam
-			end
-		end
-	end
-	self:DeployGenericMissionEnemies(
-		set,
-		"Enemy",
-		self.missionData["missionContractor"],
-		CF.PlayerTeam,
-		self.missionData["spawnRate"]
-	)
+	self:DeployGenericMissionEnemies(set, "Enemy", self.missionData["missionContractor"], CF.PlayerTeam, self.missionData["spawnRate"]);
 
-	self.missionData["reinforcementsTriggered"] = false
-	self.missionData["reinforcementsNext"] = self.Time + math.ceil(self.missionData["interval"] * 0.5)
+	self.missionData["reinforcementsTriggered"] = false;
+	self.missionData["reinforcementsNext"] = self.Time + math.ceil(self.missionData["interval"] * 0.5);
 
-	self.missionData["baseEffectTimer"] = Timer()
-	self.missionData["baseEffectTimer"]:Reset()
+	self.missionData["baseEffectTimer"] = Timer();
+	self.missionData["baseEffectTimer"]:Reset();
 end
 -----------------------------------------------------------------------
 --

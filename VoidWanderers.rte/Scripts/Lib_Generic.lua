@@ -81,7 +81,12 @@ function CF.InitFactions(activity)
 	local fontIcons = {};
 	fontIcons[242] = "Mods/VoidWanderers.rte/UI/Letters/242.png";
 	fontIcons[243] = "Mods/VoidWanderers.rte/UI/Letters/243.png";
+	fontIcons[244] = "Mods/VoidWanderers.rte/UI/Letters/244.png";
 	CF.FontIcons = fontIcons;
+
+	local fontGlows = {};
+	fontGlows[244] = "Mods/VoidWanderers.rte/UI/Letters/244G.png";
+	CF.FontGlows = fontGlows;
 
 	CF.Ranks = { 50, 125, 250, 500, 1000 }
 	CF.PrestigeSlice = CreatePieSlice("Claim Prestige PieSlice", CF.ModuleName)
@@ -97,7 +102,7 @@ function CF.InitFactions(activity)
 	CF.SecurityIncrementPerMission = 5
 	CF.SecurityIncrementPerDeployment = 2
 
-	CF.ReputationPerDifficulty = 2000
+	CF.ReputationPerDifficulty = 1000
 
 	-- When reputation is below this level, the enemy starts attacking the player
 	CF.ReputationHuntThreshold = -500
@@ -110,7 +115,7 @@ function CF.InitFactions(activity)
 
 	CF.EnableIcons = true
 
-	CF.TeamReturnDelay = 5
+	CF.TeamReturnDelay = 2
 
 	CF.CratesRate = 0.25 -- Percentage of cases among available case spawn points
 	CF.ActorCratesRate = 0.1 -- Percentage of actor-cases among all deployed cases
@@ -313,6 +318,7 @@ function CF.InitFactions(activity)
 		TOOL = 8,
 		BOMB = 9,
 	}
+
 	CF.ActorTypes = {
 		ANY = -1,
 		LIGHT = 0,
@@ -587,27 +593,152 @@ function CF.InitFactions(activity)
 			end
 		end
 	end
+	
+	-- Init planet data structures
+	CF.Planet = {};
+	CF.PlanetName = {};
+	CF.PlanetGlow = {};
+	CF.PlanetPos = {};
+	CF.PlanetScale = {}; -- Used just to show realistic km distances when traveling near moons or stations
 
-	CF.InitExtensionsData(activity)
+	-- Init locations data structures
+	CF.Location = {};
+	CF.LocationName = {};
+	CF.LocationPos = {};
+	CF.LocationDescription = {};
+	CF.LocationSecurity = {};
+	CF.LocationGoldPresent = {};
+	CF.LocationScenes = {};
+	CF.LocationPlanet = {};
+	CF.LocationScript = {};
+	CF.LocationAmbientScript = {};
+	CF.LocationMissions = {};
+	CF.LocationPlayable = {}; -- Used by scene editor to discard service locations
+	CF.LocationAttributes = {};
+
+	CF.LocationAttributeTypes = {
+		BLACKMARKET = 0,
+		TRADESTAR = 1,
+		SHIPYARD = 2,
+		VESSEL = 3,
+		NOTMISSIONASSIGNABLE = 4,
+		ALWAYSUNSEEN = 5,
+		TEMPLOCATION = 6,
+		ABANDONEDVESSEL = 7,
+		SCOUT = 8,
+		CORVETTE = 9,
+		FRIGATE = 10,
+		DESTROYER = 11,
+		CRUISER = 12,
+		BATTLESHIP = 13,
+		NOBOMBS = 14,
+	};
+
+	CF.AssaultDifficultyVesselClass = {};
+	CF.AssaultDifficultyVesselClass[1] = CF.LocationAttributeTypes.SCOUT;
+	CF.AssaultDifficultyVesselClass[2] = CF.LocationAttributeTypes.CORVETTE;
+	CF.AssaultDifficultyVesselClass[3] = CF.LocationAttributeTypes.FRIGATE;
+	CF.AssaultDifficultyVesselClass[4] = CF.LocationAttributeTypes.DESTROYER;
+	CF.AssaultDifficultyVesselClass[5] = CF.LocationAttributeTypes.CRUISER;
+	CF.AssaultDifficultyVesselClass[6] = CF.LocationAttributeTypes.BATTLESHIP;
+
+	-- Init ship data structures
+	CF.Vessel = {};
+	CF.VesselName = {};
+	CF.VesselScene = {};
+	CF.VesselModule = {};
+
+	-- Price of the vesel
+	CF.VesselPrice = {}
+
+	-- Amount of bodies which can be stored on the ship
+	CF.VesselMaxClonesCapacity = {}
+	CF.VesselStartClonesCapacity = {};
+
+	-- Amount of items which can be stored on the ship
+	CF.VesselMaxStorageCapacity = {};
+	CF.VesselStartStorageCapacity = {};
+
+	-- How many units can be active on the ship simultaneously
+	CF.VesselMaxLifeSupport = {};
+	CF.VesselStartLifeSupport = {};
+
+	-- How many units can be active on the planet surface simultaneously
+	CF.VesselMaxCommunication = {};
+	CF.VesselStartCommunication = {};
+
+	CF.VesselMaxSpeed = {};
+	CF.VesselStartSpeed = {};
+
+	CF.VesselMaxTurrets = {};
+	CF.VesselStartTurrets = {};
+
+	CF.VesselMaxTurretStorage = {};
+	CF.VesselStartTurretStorage = {};
+
+	CF.VesselMaxBombBays = {};
+	CF.VesselStartBombBays = {};
+
+	CF.VesselMaxBombStorage = {};
+	CF.VesselStartBombStorage = {};
+
+	CF.Mission = {};
+
+	CF.MissionName = {};
+	CF.MissionRequiredData = {};
+	CF.MissionScript = {};
+	CF.MissionMinReputation = {};
+	CF.MissionBriefingText = {};
+	CF.MissionGoldRewardPerDifficulty = {};
+	CF.MissionReputationRewardPerDifficulty = {};
+	CF.MissionMaxSets = {};
+
+	-- Artifact items
+	CF.ArtItmPresets = {};
+	CF.ArtItmModules = {};
+	CF.ArtItmClasses = {};
+	CF.ArtItmPrices = {};
+	CF.ArtItmDescriptions = {};
+
+	-- Artifact actors
+	CF.ArtActPresets = {};
+	CF.ArtActModules = {};
+	CF.ArtActClasses = {};
+	CF.ArtActPrices = {};
+	CF.ArtActDescriptions = {};
+
+	-- Black Market items
+	CF.BlackMarketItmPresets = {};
+	CF.BlackMarketItmModules = {};
+	CF.BlackMarketItmClasses = {};
+	CF.BlackMarketItmPrices = {};
+	CF.BlackMarketItmDescriptions = {};
+	CF.BlackMarketItmTypes = {};
+
+	-- Quantum items
+	CF.QuantumItems = {};
+	CF.QuantumItmPresets = {};
+	CF.QuantumItmModules = {};
+	CF.QuantumItmClasses = {};
+	CF.QuantumItmPrices = {};
+
+	-- Random encounters
+	CF.RandomEncounters = {};
+	CF.RandomEncounterScripts = {};
+	CF.RandomEncounterEligibilityTests = {};
 
 	-- Load extensions
 	CF.ExtensionFiles = CF.ReadExtensionsList(
 		CF.ModuleName .. "/Extensions/Extensions.cfg",
 		CF.ModuleName .. "/Extensions/"
-	)
+	);
 
-	local extensionstorage = "Mods/" .. CF.ModuleName .. "/Extensions/"
+	local extensionstorage = "Mods/" .. CF.ModuleName .. "/Extensions/";
 
 	-- Load extensions data
 	for i = 1, #CF.ExtensionFiles do
-		dofile(CF.ExtensionFiles[i])
+		dofile(CF.ExtensionFiles[i]);
 	end
-end
------------------------------------------------------------------------
--- Get the faction of a given participant in this save
------------------------------------------------------------------------
-function CF.GetPlayerFaction(gameState, p)
-	return gameState["Player" .. p .. "Faction"];
 end
 -----------------------------------------------------------------------
 -- String processing
@@ -736,11 +867,11 @@ do
 
 			if not w then
 				if byte >= 242 and byte < 255 then
-					w = 9;
+					w = 8;
 					table.insert(icons, ch:byte());
 					table.insert(iconOffsets, Vector(totalX + 4, totalY + 7));
 					table.insert(iconFromLine, #lines + 1);
-					ch = "  \207\207";
+					ch = "   ";
 				elseif ch == "\t" then
 					w = 15;
 					ch = "     ";
@@ -791,7 +922,11 @@ do
 		
 		for i, icon in pairs(icons) do
 			local offset = Vector(iconOffsets[i].X - lineWidths[iconFromLine[i]] * halignment / 2, iconOffsets[i].Y) + alignmentOffset;
-			PrimitiveMan:DrawBitmapPrimitive(player, pos + offset:RadRotate(rotation), CF.FontIcons[icon], rotation, false, false);
+			if CF.FontIcons[icon] then
+				PrimitiveMan:DrawBitmapPrimitive(player, pos + offset:RadRotate(rotation), CF.FontIcons[icon], rotation, false, false);
+			elseif CF.FontGlows[icon] then
+				PrimitiveMan:DrawBitmapPrimitive(player, pos + offset:RadRotate(rotation), CF.FontGlows[icon], rotation, false, false);
+			end
 		end
 
 		return Vector(0, totalY + lineOffset), str:sub(lastIndex + 1, -1);
@@ -801,41 +936,97 @@ end
 -- Menu drawing functions
 -----------------------------------------------------------------------
 do
+	local emptyBlend = { 050, 050, 050, 050 };
+	local drawPrimitives = PrimitiveMan.DrawPrimitives;
+	local transBlend = DrawBlendMode.Transparency;
+	local playerNone = Activity.PLAYER_NONE;
+
+	local rankBaseColor = {
+		{72,40,8},
+		{56,8,8},
+		{24,44,8},
+		{8,8,40},
+		{56,40,56},
+		{8,24,40},
+		{80,20,40},
+		{56,8,8}
+	};
+
+	local rankRaisedColor = {
+		{250,234,121},
+		{230,24,8},
+		{121,178,68},
+		{125,190,246},
+		{218,218,226},
+		{76,238,255},
+		{218,218,226},
+		{234,153,28}
+	};
+
+	local rankEmbossColor = {
+		{198,133,64},
+		{170,24,8},
+		{109,121,20},
+		{52,113,198},
+		{165,170,170},
+		{52,113,198},
+		{170,93,101},
+		{170,24,8}
+	};
+
+	for _, part in pairs{ rankBaseColor, rankRaisedColor, rankEmbossColor } do
+		for _, palette in pairs(part) do
+			for channel = 1, #palette do
+				palette[channel] = (1 - palette[channel] / 255) * 100;
+			end
+		end
+	end
+
+	local rankShadePath = {};
+	local rankBasePath = {};
+	local rankRaisedPath = {};
+	local rankEmbossedPath = {};
+	
+	for i = 0, 5 do
+		rankShadePath[i] = "Mods/VoidWanderers.rte/Actors/PieMenu/Prestige/RankShade00" .. i .. ".png";
+		rankBasePath[i] = "Mods/VoidWanderers.rte/Actors/PieMenu/Prestige/RankBase00" .. i .. ".png";
+		rankRaisedPath[i] = "Mods/VoidWanderers.rte/Actors/PieMenu/Prestige/RankRaised00" .. i .. ".png";
+		rankEmbossedPath[i] = "Mods/VoidWanderers.rte/Actors/PieMenu/Prestige/RankHigh00" .. i .. ".png";
+	end
 	-----------------------------------------------------------------------
 	-- Draw boxes for menus
 	-----------------------------------------------------------------------
-	local emptyBlend = { 000, 000, 000, 000 };
 	function CF.DrawMenuBox(player, x1, y1, x2, y2, palette, blendMode, blend)
-		player = player or Activity.PLAYER_NONE;
+		player = player or playerNone;
 		palette = palette or CF.MenuNormalIdle;
-		blendMode = blendMode or DrawBlendMode.Transparency;
+		blendMode = blendMode or transBlend;
 		blend = blend or emptyBlend;
 
 		local outter = BoxPrimitive(player, Vector(x1, y1), Vector(x2, y2), palette[1]);
 		local inner = BoxPrimitive(player, Vector(x1, y1) + Vector(1, 1), Vector(x2, y2) - Vector(1, 1), palette[2]);
 		local panel = BoxFillPrimitive(player, Vector(x1, y1) + Vector(2, 2), Vector(x2, y2) - Vector(2, 2), palette[3]);
-		PrimitiveMan:DrawPrimitives(blendMode, blend[1], blend[2], blend[3], blend[4], { outter, inner, panel });
+		drawPrimitives(PrimitiveMan, blendMode, blend[1], blend[2], blend[3], blend[4], { outter, inner, panel });
 	end
 	-----------------------------------------------------------------------
 	-- Draw questionable frame for menus
 	-----------------------------------------------------------------------
 	function CF.DrawMenuFrame(player, x1, y1, x2, y2, palette, blendMode, blend)
-		player = player or Activity.PLAYER_NONE;
+		player = player or playerNone;
 		palette = palette or CF.MenuNormalIdle;
-		blendMode = blendMode or DrawBlendMode.Transparency;
+		blendMode = blendMode or transBlend;
 		blend = blend or emptyBlend;
 
 		local outter = BoxPrimitive(player, Vector(x1, y1), Vector(x2, y2), palette[1]);
 		local inner = BoxPrimitive(player, Vector(x1, y1) + Vector(1, 1), Vector(x2, y2) + Vector(-1, -1), palette[2]);
 		local panel = BoxFillPrimitive(player, Vector(x1, y1) + Vector(2, 2), Vector(x2, y1) + Vector(-2, 11), palette[3]);
-		PrimitiveMan:DrawPrimitives(blendMode, blend[1], blend[2], blend[3], blend[4], { outter, inner, panel });
+		drawPrimitives(PrimitiveMan, blendMode, blend[1], blend[2], blend[3], blend[4], { outter, inner, panel });
 	end
 	-----------------------------------------------------------------------
 	-- Draw progress bars for menus
 	-----------------------------------------------------------------------
 	function CF.DrawProgressBar(player, left, top, right, bottom, progress, palette, blendMode, blend)
-		player = player or Activity.PLAYER_NONE;
-		blendMode = blendMode or DrawBlendMode.Transparency;
+		player = player or playerNone;
+		blendMode = blendMode or transBlend;
 		blend = blend or emptyBlend;
 
 		local width = right - left + 1;
@@ -873,7 +1064,32 @@ do
 		-- Remainder
 		start, stop = Vector(left + 1 + n * 2, top + 1), Vector(right - 2, bottom - 2);
 		table.insert(primitives, BoxFillPrimitive(player, start, stop, palette[3]));
-		PrimitiveMan:DrawPrimitives(blendMode, blend[1], blend[2], blend[3], blend[4], primitives);
+		drawPrimitives(PrimitiveMan, DrawBlendMode.NoBlend, 0, 0, 0, 0, primitives);
+	end
+	-----------------------------------------------------------------------
+	-- Draw rank icons
+	-----------------------------------------------------------------------
+	function CF.DrawRankIcon(player, pos, rank, prestige)
+		player = player or Activity.PLAYER_NONE;
+		if rank then
+			local p = math.min(prestige + 1, 8);
+			local primitive, pal;
+
+			primitive = BitmapPrimitive(player, pos, rankShadePath[rank], 0, false, false);
+			PrimitiveMan:DrawPrimitives(DrawBlendMode.NoBlend, 000, 000, 000, 0, { primitive });
+
+			pal = rankBaseColor;
+			primitive = BitmapPrimitive(player, pos, rankBasePath[rank], 0, false, false);
+			PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive });
+		
+			pal = rankRaisedColor;
+			primitive = BitmapPrimitive(player, pos, rankRaisedPath[rank], 0, false, false);
+			PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive });
+		
+			pal = rankEmbossColor;
+			primitive = BitmapPrimitive(player, pos, rankEmbossedPath[rank], 0, false, false);
+			PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive });
+		end
 	end
 	-----------------------------------------------------------------------
 	-- Draw label element
@@ -918,6 +1134,12 @@ do
 			end
 		end
 	end
+end
+-----------------------------------------------------------------------
+-- Get the faction of a given participant in this save
+-----------------------------------------------------------------------
+function CF.GetPlayerFaction(gameState, p)
+	return gameState["Player" .. p .. "Faction"];
 end
 -----------------------------------------------------------------------
 -- Converts time in second to string h:mm:ss
@@ -1004,7 +1226,7 @@ function CF.BuffActor(actor, factor)
 		local jetpack = commonActor.Jetpack;
 
 		if jetpack then
-			jetpack.JetTimeTotal = jetpack.JetTimeTotal * sqrtFactor;
+			jetpack.JetTimeTotal = jetpack.JetTimeTotal * factor;
 
 			for emission in jetpack.Emissions do
 				emission.ParticlesPerMinute = emission.ParticlesPerMinute * sqrtFactor;
@@ -1062,8 +1284,9 @@ function CF.ReplaceLimbs(actor, limbs)
 						or CreateAEJetpack(limbString)
 						or CreateThrownDevice(limbString)
 						or CreateTDExplosive(limbString)
-						or CreateHDFirearm(limbString);
+						or CreateHDFirearm(limbString); -- Lets get retarded in here
 					elseif limbName == "Jetpack" then	
+						-- Create the jetpack which the parent has if they are the same model, because, for some reason, it is standard practice to not specify the behavior of the jetpack in it's own preset
 						local presetLimb = preset[limbName];
 						newLimb = presetLimb and (presetLimb:GetModuleAndPresetName() == limbString) and presetLimb:Clone() or CreateAEJetpack(limbString);
 					elseif limbName == "FGArm" or limbName == "BGArm" then
@@ -1100,26 +1323,29 @@ function CF.ReplaceLimbs(actor, limbs)
 					actor:RemoveAttachable(targetLimb, false, false);
 				elseif limbString then
 					local newLimb = nil;
-
-					if limbName == "Head" then
-						newLimb = CreateAttachable(limbString) or CreateHeldDevice(limbString) or CreateAEmitter(limbString);
-					elseif limbName == "Jetpack" then
-						newLimb = CreateAEJetpack(limbString);
-					elseif limbName == "FGArm" or limbName == "BGArm" then
-						newLimb = CreateArm(limbString);
-					elseif limbName == "FGLeg" or limbName == "BGLeg" then
+					
+					if limbName == "Turret" then
+						newLimb = CreateTurret(limbString)
+					elseif limbName == "Jetpack" then	
+						-- Create the jetpack which the parent has if they are the same model, because, for some reason, it is standard practice to not specify the behavior of the jetpack in it's own preset
+						local presetLimb = preset[limbName];
+						newLimb = presetLimb and (presetLimb:GetModuleAndPresetName() == limbString) and presetLimb:Clone() or CreateAEJetpack(limbString);
+					elseif limbName == "LeftFGLeg" or limbName == "RightFGLeg" or limbName == "LeftBGLeg" or limbName == "RightBGLeg" then
 						newLimb = CreateLeg(limbString);
 					end
+					
+					if newLimb then
+						if targetLimb then
+							newLimb.ParentOffset = targetLimb.ParentOffset;
+							newLimb.DrawnAfterParent = targetLimb.DrawnAfterParent;
 
-					if targetLimb then
-						newLimb.ParentOffset = targetLimb.ParentOffset;
-						newLimb.DrawnAfterParent = targetLimb.DrawnAfterParent;
-						if targetLimb.ParentBreakWound then
-							newLimb.ParentBreakWound = ToAEmitter(targetLimb.ParentBreakWound):Clone();
+							if targetLimb.ParentBreakWound then
+								newLimb.ParentBreakWound = ToAEmitter(targetLimb.ParentBreakWound):Clone();
+							end
 						end
-					end
 
-					actor[limbName] = newLimb;
+						actor[limbName] = newLimb;
+					end
 				end
 			end
 
@@ -1410,6 +1636,15 @@ function CF.TruncateNumber(value, digits)
 	return math.ceil(value / digitFactor) * digitFactor;
 end
 -----------------------------------------------------------------------
+--	Format a large quantity for display
+-----------------------------------------------------------------------
+function CF.FormatLargeQuantity(value)
+	local number = CF.TruncateNumber(value, 2);
+	local thousands = math.min(1, math.max(0, math.floor(math.log10(number) / 3)));
+	number = number / math.pow(1000, thousands);
+	return tostring(number) .. ({[0] = "", [1] = "k"})[thousands];
+end
+-----------------------------------------------------------------------
 -- Get table with inventory of actor, inventory cleared as a result
 -----------------------------------------------------------------------
 function CF.GetInventory(actor)
@@ -1476,7 +1711,7 @@ end
 -----------------------------------------------------------------------
 -- Save mission report
 -----------------------------------------------------------------------
-CF.SaveMissionReport = function(gameState, rep)
+function CF.SaveMissionReport(gameState, rep)
 	-- Dump mission report to game state to be saved
 	for i = 1, CF.MaxMissionReportLines do
 		gameState["MissionReport" .. i] = nil
@@ -1489,20 +1724,16 @@ end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-CF.CountActors = function(team)
-	local gameState = 0
+function CF.CountActors(team)
+	local count = 0;
 
 	for actor in MovableMan.Actors do
-		if
-			actor.Team == team
-			and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-			and not (CF.IsBrain(actor) or actor:NumberValueExists("VW_Ally"))
-		then
-			gameState = gameState + 1
+		if actor.Team == team and CF.IsCommonUnit(actor) then
+			count = count + 1;
 		end
 	end
 
-	return gameState
+	return count;
 end
 -----------------------------------------------------------------------
 --	Returns how many science points corresponds to selected difficulty level
@@ -1527,68 +1758,59 @@ end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-CF.CalculateReward = function(base, diff)
-	local coeff = 1 + (diff - 1) * 0.35
-
-	return math.floor(base * coeff)
+function CF.CalculateReward(base, diff)
+	return math.floor(base * (1 + (diff - 1) / (CF.MaxDifficulty - 1) * 2));
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-CF.IsLocationHasAttribute = function(loc, attr)
-	local attrs = CF.LocationAttributes[loc]
+function CF.IsLocationHasAttribute(location, attribute)
+	local attributes = CF.LocationAttributes[location];
 
-	if attrs ~= nil then
-		for i = 1, #attrs do
-			if attrs[i] == attr then
-				return true
+	if attributes ~= nil then
+		for i = 1, #attributes do
+			if attributes[i] == attribute then
+				return true;
 			end
 		end
 	end
 
-	return false
+	return false;
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-function CF.GiveExp(gameState, experience)
-	local levelup = false;
+function CF.AwardBrainExperience(gameState, experience, player)
+	local levelUp = false;
+	local activity = ActivityMan:GetActivity();
 
-	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		if ActivityMan:GetActivity():PlayerActive(player) and ActivityMan:GetActivity():PlayerHuman(player) then
-			local curexp = tonumber(gameState["Brain" .. player .. "Exp"])
-			local cursklpts = tonumber(gameState["Brain" .. player .. "SkillPoints"])
-			local curlvl = tonumber(gameState["Brain" .. player .. "Level"])
+	for player = player or Activity.PLAYER_1, player or (Activity.MAXPLAYERCOUNT - 1) do
+		if activity:PlayerActive(player) and activity:PlayerHuman(player) then
+			local curexp = tonumber(gameState["Brain" .. player .. "Exp"]);
+			local cursklpts = tonumber(gameState["Brain" .. player .. "SkillPoints"]);
+			local curlvl = tonumber(gameState["Brain" .. player .. "Level"]);
 
-			--print ("Curexp "..curexp)
-			--print ("Exppts "..experience)
-
-			curexp = curexp + experience
-
-			--print (CF.ExpPerLevel)
-			--print (math.floor(curexp / CF.ExpPerLevel))
+			curexp = curexp + experience;
 
 			while math.floor(curexp / CF.ExpPerLevel) > 0 do
 				if curlvl < CF.MaxLevel then
-					curexp = curexp - CF.ExpPerLevel
-					cursklpts = cursklpts + 1
-					curlvl = curlvl + 1
-					levelup = true
-
-					--print (levelup)
+					curexp = curexp - CF.ExpPerLevel;
+					cursklpts = cursklpts + 1;
+					curlvl = curlvl + 1;
+					levelUp = true;
 				else
-					curexp = 0
-					break
+					curexp = 0;
+					break;
 				end
 			end
 
-			gameState["Brain" .. player .. "SkillPoints"] = cursklpts
-			gameState["Brain" .. player .. "Exp"] = curexp
-			gameState["Brain" .. player .. "Level"] = curlvl
+			gameState["Brain" .. player .. "SkillPoints"] = cursklpts;
+			gameState["Brain" .. player .. "Exp"] = curexp;
+			gameState["Brain" .. player .. "Level"] = curlvl;
 		end
 	end
 
-	return levelup
+	return levelup;
 end
 -----------------------------------------------------------------------
 -- 
@@ -1645,6 +1867,7 @@ function CF.UnlockRandomQuantumItem(gameState)
 	local presets = CF.QuantumItmPresets;
 	local modules = CF.QuantumItmModules;
 	CF.SetEntityUnlocked(gameState, "Quantum", classes[qItem], presets[qItem], modules[qItem], true);
+	return qItem;
 end
 -----------------------------------------------------------------------
 -- 

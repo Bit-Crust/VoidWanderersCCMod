@@ -19,11 +19,10 @@ function VoidWanderers:InitItemShopControlPanelUI()
 		if not MovableMan:IsActor(self.ItemShopControlPanelActor) then
 			self.ItemShopControlPanelActor = CreateActor("Item Shop Control Panel");
 
-			if self.ItemShopControlPanelActor ~= nil then
-				self.ItemShopControlPanelActor.Pos = self.ItemShopControlPanelPos;
-				self.ItemShopControlPanelActor.Team = CF.PlayerTeam;
-				MovableMan:AddActor(self.ItemShopControlPanelActor);
-			end
+			self.ItemShopControlPanelActor.Pos = self.ItemShopControlPanelPos;
+			self.ItemShopControlPanelActor.Team = CF.PlayerTeam;
+
+			MovableMan:AddActor(self.ItemShopControlPanelActor);
 		end
 	end
 
@@ -88,12 +87,11 @@ end
 function VoidWanderers:DestroyItemShopControlPanelUI()
 	for _, set in ipairs{ MovableMan.Actors, MovableMan.AddedActors } do for actor in set do
 		if actor.PresetName == "Item Shop Control Panel" then
-			local actor = MovableMan:RemoveActor(actor);
-			DeleteEntity(actor);
-			actor = nil;
-			self.ItemShopControlPanelActor = nil;
+			actor.ToDelete = true;
 		end
 	end end
+	
+	self.ItemShopControlPanelActor = nil;
 end
 -----------------------------------------------------------------------
 --
@@ -265,18 +263,19 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 				if item then
 					local prefix = i == itemSelected and "> " or "";
 					CF.DrawString(prefix .. item.Preset, pos + Vector(-138, lineOffset), 90, 11, nil, nil, 0);
-
-					local price = item.Price;
-					local digits = math.ceil(math.log10(price)) - 3;
-					price = math.floor(price / math.pow(10, digits)) * math.pow(10, digits);
-					price = math.ceil(price) .. (price >= 1000 and "k" or "");
-					CF.DrawString("\198 " .. price .. " oz", pos + Vector(-2, lineOffset), 135, 11, nil, nil, 2);
+					CF.DrawString("\198 " .. CF.FormatLargeQuantity(item.Price) .. " oz", pos + Vector(-2, lineOffset), 135, 11, nil, nil, 2);
 					lineOffset = lineOffset + 11;
 				end
 			end
 
 			if item then
-				local displayPreset = ToMOSprite(PresetMan:GetPreset(item.Class or "HDFirearm", item.Preset, item.Module));
+				local preset = PresetMan:GetPreset(item.Class or "HDFirearm", item.Preset, item.Module);
+				
+				if not preset then
+					preset = PresetMan:GetPreset("Attachable", "Skeleton Head", "Uzira.rte");
+				end
+
+				local displayPreset = ToMOSprite(preset);
 				local sellCoeff = blackMarket and math.sqrt(CF.SellPriceCoeff) or CF.SellPriceCoeff;
 				local description, manufacturer, price;
 				local f, i = CF.FindItemInFactions(item.Preset, item.Class or "HDFirearm");

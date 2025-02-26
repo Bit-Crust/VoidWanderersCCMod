@@ -79,19 +79,20 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:IsInLZPanelProximity(pos)
+	local isWithinProximity = false;
+
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self.LZControlPanelPos[player + 1] then
-			local dist = SceneMan:ShortestDistance(self.LZControlPanelPos[player + 1], pos, SceneMan.SceneWrapsX)
-			if
-				math.abs(dist.X) < FrameMan.PlayerScreenWidth * 0.5
-				and math.abs(dist.Y) < FrameMan.PlayerScreenHeight * 0.5
-				and SceneMan:CastStrengthSumRay(self.LZControlPanelPos[player + 1], pos, 10, rte.grassID) < 500
-			then
-				return true
-			end
+			local dist = SceneMan:ShortestDistance(self.LZControlPanelPos[player + 1], pos, true);
+			local isInProximityX = math.abs(dist.X) < FrameMan.PlayerScreenWidth * 0.5;
+			local isInProximityY = math.abs(dist.Y) < FrameMan.PlayerScreenHeight * 0.5;
+			local isUnobstructed = SceneMan:CastStrengthSumRay(self.LZControlPanelPos[player + 1], pos, 10, rte.grassID) < 500;
+
+			isWithinProximity = isWithinProximity or (isInProximityX and isInProximityY and isUnobstructed);
 		end
 	end
-	return false
+
+	return isWithinProximity;
 end
 -----------------------------------------------------------------------
 --
@@ -125,7 +126,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 				self.BombingLastBombShot = self.Time
 				self.BombsControlPanelInBombMode = true
 
-				for i = 1, tonumber(self.GS["PlayerVesselBombBays"]) do
+				for returningUnits = 1, tonumber(self.GS["PlayerVesselBombBays"]) do
 					local bombpos = Vector(
 						self.BombingTarget - self.BombingRange / 2 + math.random(self.BombingRange),
 						-40
@@ -194,7 +195,6 @@ function VoidWanderers:ProcessLZControlPanelUI()
 	end
 	
 	local anypanelselected = false
-	local isSafe = false
 	local totalGoldCarried = 0
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -206,11 +206,50 @@ function VoidWanderers:ProcessLZControlPanelUI()
 			local selectedpanel = 1
 			anypanelselected = true
 
+			if cont:IsState(Controller.PRESS_LEFT) then
+				self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelSelectedModes[selectedpanel]
+					- 1
+
+				if self.BombsControlPanelSelectedModes[selectedpanel] < self.BombsControlPanelModes.RETURN then
+					self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelModes.BOMB
+				end
+
+				if self.BombsControlPanelSelectedModes[selectedpanel] == self.BombsControlPanelModes.BOMB then
+					if
+						self.BombsControlPanelInBombMode
+						or CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.NOBOMBS)
+					then
+						self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelSelectedModes[selectedpanel]
+							- 1
+					end
+				end
+			end
+
+			if cont:IsState(Controller.PRESS_RIGHT) then
+				self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelSelectedModes[selectedpanel]
+					+ 1
+
+				if self.BombsControlPanelSelectedModes[selectedpanel] == self.BombsControlPanelModes.BOMB then
+					if
+						self.BombsControlPanelInBombMode
+						or CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.NOBOMBS)
+					then
+						self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelSelectedModes[selectedpanel]
+							+ 1
+					end
+				end
+
+				if self.BombsControlPanelSelectedModes[selectedpanel] > self.BombsControlPanelModes.BOMB then
+					self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelModes.RETURN
+				end
+			end
+
 			if self.BombsControlPanelSelectedModes[selectedpanel] == self.BombsControlPanelModes.RETURN then
 				local safeUnits = {}
 				local unsafeUnits = {}
 				local enemyPos = {}
 				local brainUnsafe = 0
+				local isSafe = false
 
 				for actor in MovableMan.Actors do
 					if
@@ -262,16 +301,16 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					isSafe = true
 				end
 
-				for i = 1, #safeUnits do
+				for returningUnits = 1, #safeUnits do
 					local part = CreateMOSParticle("Tiny Blue Glow", self.ModuleName)
-					part.Pos = safeUnits[i].Pos
-						+ Vector(0, safeUnits[i].IndividualRadius * 0.5)
-						+ Vector(safeUnits[i].IndividualRadius * RangeRand(0, 1.25), 0):RadRotate(
+					part.Pos = safeUnits[returningUnits].Pos
+						+ Vector(0, safeUnits[returningUnits].IndividualRadius * 0.5)
+						+ Vector(safeUnits[returningUnits].IndividualRadius * RangeRand(0, 1.25), 0):RadRotate(
 							RangeRand(-math.pi, math.pi)
 						)
 					MovableMan:AddParticle(part)
-					if math.floor(safeUnits[i].Age / TimerMan.DeltaTimeMS) % 60 == 0 then
-						safeUnits[i]:FlashWhite(50)
+					if math.floor(safeUnits[returningUnits].Age / TimerMan.DeltaTimeMS) % 60 == 0 then
+						safeUnits[returningUnits]:FlashWhite(50)
 					end
 				end
 
@@ -280,89 +319,39 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					local storageCapacity = tonumber(self.GS["PlayerVesselStorageCapacity"])
 						- CF.CountUsedStorageInArray(CF.GetStorageArray(self.GS, false))
 
-					for i = 1, #items do
-						if i <= storageCapacity then
+					for returningUnits = 1, #items do
+						if returningUnits <= storageCapacity then
 							local part = CreateMOSParticle("Tiny Blue Glow", self.ModuleName)
-							part.Pos = items[i].Pos
-								+ Vector(items[i].Radius * math.random(), 0):RadRotate(RangeRand(-math.pi, math.pi))
+							part.Pos = items[returningUnits].Pos
+								+ Vector(items[returningUnits].Radius * math.random(), 0):RadRotate(RangeRand(-math.pi, math.pi))
 							MovableMan:AddParticle(part)
 						else
 							break
 						end
 					end
 
-					for i = 1, #unsafeUnits do
+					for returningUnits = 1, #unsafeUnits do
 						local part = CreateMOSParticle("Tiny Blue Glow", self.ModuleName)
-						part.Pos = unsafeUnits[i].Pos
-							+ Vector(0, unsafeUnits[i].IndividualRadius)
-							+ Vector(unsafeUnits[i].IndividualRadius * RangeRand(0, 1.25), 0):RadRotate(
+						part.Pos = unsafeUnits[returningUnits].Pos
+							+ Vector(0, unsafeUnits[returningUnits].IndividualRadius)
+							+ Vector(unsafeUnits[returningUnits].IndividualRadius * RangeRand(0, 1.25), 0):RadRotate(
 								RangeRand(-math.pi, math.pi)
 							)
 						MovableMan:AddParticle(part)
-						if math.floor(unsafeUnits[i].Age / TimerMan.DeltaTimeMS) % 60 == 0 then
-							unsafeUnits[i]:FlashWhite(50)
+						if math.floor(unsafeUnits[returningUnits].Age / TimerMan.DeltaTimeMS) % 60 == 0 then
+							unsafeUnits[returningUnits]:FlashWhite(50)
 						end
 					end
 				else
 					CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 80, pos.Y - 24, pos.X + 80, pos.Y + 24, CF.MenuDeniedIdle);
 					if self.Time % 2 == 0 then
-						-- Show hostiles to indicate that they prevent from returning safely
-						for i = 1, #enemyPos do
-							self:AddObjectivePoint(
-								"HOSTILE",
-								enemyPos[i] + Vector(0, -30),
-								CF.PlayerTeam,
-								GameActivity.ARROWDOWN
-							)
+						for returningUnits = 1, #enemyPos do
+							self:AddObjectivePoint("HOSTILE", enemyPos[returningUnits] + Vector(0, -30), CF.PlayerTeam, GameActivity.ARROWDOWN)
 						end
 					else
-						-- Show hostiles to indicate that they prevent from returning safely
-						for i = 1, #unsafeUnits do
-							self:AddObjectivePoint(
-								"ABANDONED",
-								unsafeUnits[i].Pos + Vector(0, -40),
-								CF.PlayerTeam,
-								GameActivity.ARROWDOWN
-							)
+						for returningUnits = 1, #unsafeUnits do
+							self:AddObjectivePoint("ABANDONED", unsafeUnits[returningUnits].Pos + Vector(0, -40), CF.PlayerTeam, GameActivity.ARROWDOWN)
 						end
-					end
-				end
-
-				if cont:IsState(Controller.PRESS_LEFT) then
-					self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelSelectedModes[selectedpanel]
-						- 1
-
-					if self.BombsControlPanelSelectedModes[selectedpanel] < self.BombsControlPanelModes.RETURN then
-						self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelModes.BOMB
-					end
-
-					if self.BombsControlPanelSelectedModes[selectedpanel] == self.BombsControlPanelModes.BOMB then
-						if
-							self.BombsControlPanelInBombMode
-							or CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.NOBOMBS)
-						then
-							self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelSelectedModes[selectedpanel]
-								- 1
-						end
-					end
-				end
-
-				if cont:IsState(Controller.PRESS_RIGHT) then
-					self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelSelectedModes[selectedpanel]
-						+ 1
-
-					if self.BombsControlPanelSelectedModes[selectedpanel] == self.BombsControlPanelModes.BOMB then
-						if
-							self.BombsControlPanelInBombMode
-							or CF.IsLocationHasAttribute(self.GS["Location"], CF.LocationAttributeTypes.NOBOMBS)
-						then
-							self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelSelectedModes[selectedpanel]
-								+ 1
-						end
-					end
-
-					if self.BombsControlPanelSelectedModes[selectedpanel] > self.BombsControlPanelModes.BOMB then
-						self.BombsControlPanelSelectedModes[selectedpanel] = self.BombsControlPanelModes.RETURN
 					end
 				end
 
@@ -374,15 +363,11 @@ function VoidWanderers:ProcessLZControlPanelUI()
 							self.ControlPanelLZPressTimes[player + 1] = self.Time
 						end
 
-						if self.ControlPanelLZPressTimes[player + 1] + CF.TeamReturnDelay <= self.Time then
-							self.ControlPanelLZPressTimes[player + 1] = self.Time - CF.TeamReturnDelay
-						end
-
 						text = text .. "RETURN IN T-" .. tostring(self.ControlPanelLZPressTimes[player + 1] + CF.TeamReturnDelay - self.Time);
 
-						if self.ControlPanelLZPressTimes[player + 1] + CF.TeamReturnDelay <= self.Time and (brainUnsafe <= 0 or isSafe) then
+						if self.ControlPanelLZPressTimes[player + 1] + CF.TeamReturnDelay <= self.Time then
+							local actors = {};
 
-							local actors = {}
 							for actor in MovableMan.Actors do
 								if
 									actor.Team == CF.PlayerTeam
@@ -391,83 +376,137 @@ function VoidWanderers:ProcessLZControlPanelUI()
 									and not CF.IsAlly(actor)
 									and (isSafe or self:IsInLZPanelProximity(actor.Pos))
 								then
-									table.insert(actors, actor)
+									table.insert(actors, actor);
 								end
 							end
+
 							for actor in MovableMan:GetMOsInBox(self.lzBox, Activity.NOTEAM, true) do
 								if
-									actor.Team == CF.PlayerTeam
+									(actor.Team == CF.PlayerTeam and (not actor:NumberValueExists("VW_CarryingTeam") or actor:GetNumberValue("VW_CarryingTeam") == CF.PlayerTeam))
 									and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 									and ToActor(actor):IsDead()
 									and not CF.IsAlly(ToActor(actor))
 									and self:IsInLZPanelProximity(actor.Pos)
 								then
-									table.insert(actors, ToActor(actor))
+									table.insert(actors, ToActor(actor));
 								end
 							end
-
-							self:ClearDeployed()
-							self.GS["MissionReturningTroops"] = 1
-							self.deployedActors = {}
+		
+							local totalGoldCarried = 0;
 
 							for _, actor in pairs(actors) do
-								local assignable = true
-								local i = tonumber(self.GS["MissionReturningTroops"])
+								if actor.GoldCarried > 0 then
+									totalGoldCarried = totalGoldCarried + actor.GoldCarried;
+									actor.GoldCarried = 0;
+								end
+							end
 
-								-- Check if unit is playable
-								local f = self.GS["PlayerFaction"]
-								if CF.UnassignableUnits[f] ~= nil then
-									for i = 1, #CF.UnassignableUnits[f] do
-										if actor.PresetName == CF.UnassignableUnits[f][i] then
-											assignable = false
-										end
+							if isSafe then
+								local storage = CF.GetStorageArray(self.GS, false);
+								local items = {};
+
+								for item in MovableMan.Items do
+									if
+										self:IsInLZPanelProximity(item.Pos)
+										and IsHeldDevice(item)
+										and not ToHeldDevice(item).UnPickupable
+									then
+										items[#items + 1] = item;
 									end
 								end
 
-								if assignable then
-									local pre, cls, mdl = CF.GetInventory(actor)
-
-									if actor.Team == CF.PlayerTeam and IsActor(actor) then
-										actor = ToActor(actor)
-
-										if assignable and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
-											self.GS["Deployed" .. i .. "Preset"] = actor.PresetName;
-											self.GS["Deployed" .. i .. "Class"] = actor.ClassName;
-											self.GS["Deployed" .. i .. "Module"] = actor.ModuleName;
-											self.GS["Deployed" .. i .. "XP"] = actor:GetNumberValue("VW_XP");
-											self.GS["Deployed" .. i .. "Identity"] = actor:GetNumberValue("Identity");
-											self.GS["Deployed" .. i .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer");
-											self.GS["Deployed" .. i .. "Prestige"] = actor:GetNumberValue("VW_Prestige");
-											self.GS["Deployed" .. i .. "Name"] = actor:GetStringValue("VW_Name");
-										
-											for _, limbName in ipairs(CF.LimbIDs[actor.ClassName]) do
-												self.GS["Deployed" .. i .. limbName] = CF.GetLimbData(actor, limbName);
-											end
-
-											for j = 1, #pre do
-												self.GS["Deployed" .. i .. "Item" .. j .. "Preset"] = pre[j]
-												self.GS["Deployed" .. i .. "Item" .. j .. "Class"] = cls[j]
-												self.GS["Deployed" .. i .. "Item" .. j .. "Module"] = mdl[j]
-											end
-								
-											self.deployedActors[i] = actor
-											self.GS["MissionReturningTroops"] = tonumber(self.GS["MissionReturningTroops"]) + 1
-										end
+								for _, item in pairs(items) do
+									if CF.CountUsedStorageInArray(storage) < tonumber(self.GS["PlayerVesselStorageCapacity"]) then
+										CF.PutItemToStorageArray(storage, item.PresetName, item.ClassName, item.ModuleName);
+									else
+										break;
 									end
+								end
 
-									if actor.GoldCarried then
-										totalGoldCarried = totalGoldCarried + actor.GoldCarried;
-										actor.GoldCarried = 0;
-									end
-									--print (#pre)
+								CF.SetStorageArray(self.GS, storage);
+
+								if #items > 0 then
+									self.reportData[#self.reportData + 1] = tostring(#items) .. " item" .. (#items > 1 and "s" or "") .. " collected";
 								end
 							end
-						
-							for _, actor in pairs(self.deployedActors) do
-								self.deployedActors[_] = MovableMan:RemoveActor(actor)
+
+							if totalGoldCarried > 0 then
+								self.reportData[#self.reportData + 1] = totalGoldCarried .. " oz of gold collected.";
+								CF.ChangePlayerGold(self.GS, totalGoldCarried);
 							end
 
-							self.GS["DeserializeDeployedTeam"] = "True"
+							-- Dump mission report to config to be saved
+							CF.SaveMissionReport(self.GS, self.reportData);
+							local scene = CF.VesselScene[self.GS["PlayerVessel"]];
+
+							-- Set new operating mode
+							self.GS["Mode"] = "Vessel";
+							self.GS["Scene"] = scene;
+							
+							self:SaveCurrentGameState();
+							
+							self.sceneToLaunch = self.GS["Scene"];
+							self.scriptToLaunch = "Tactics.lua";
+							self.deploymentToSerialize = actors;
+							self.onboardToSerialize = nil;
+
+							
+							if self.missionData["stage"] and self.missionData["stage"] ~= CF.MissionStages.COMPLETED then
+								self:GiveMissionPenalties();
+							end
+
+							if self.missionData["advanceMissions"] and self.missionData["advanceMissions"] == true then
+								CF.GenerateRandomMissions(self.GS);
+							end
+
+							if (tonumber(self.GS["MissionDeployedTroops"]) or 0) > #actors then
+								local s = "";
+								local lost = (tonumber(self.GS["MissionDeployedTroops"]) or 0) - #actors;
+
+								if #actors == 0 then
+									self.reportData[#self.reportData + 1] = "ALL UNITS LOST";
+								elseif lost > 1 then
+									self.reportData[#self.reportData + 1] = lost .. " UNITS LOST";
+								else
+									self.reportData[#self.reportData + 1] = "1 UNIT LOST";
+								end
+							elseif (tonumber(self.GS["MissionDeployedTroops"]) or 0) < #actors then
+								local s = "";
+								local recruited = #actors - (tonumber(self.GS["MissionDeployedTroops"]) or 0);
+
+								if recruited > 1 then
+									self.reportData[#self.reportData + 1] = recruited .. " UNITS GAINED";
+								else
+									self.reportData[#self.reportData + 1] = "1 UNIT GAINED";
+								end
+							else
+								self.reportData[#self.reportData + 1] = "NO CASUALTIES";
+							end
+
+
+							-- Wrap it up
+							if self.AmbientDestroy ~= nil then
+								self:AmbientDestroy();
+							end
+
+							if self.MissionDestroy ~= nil then
+								self:MissionDestroy();
+							end
+
+							-- Clean everything
+							self.MissionCreate = nil;
+							self.MissionUpdate = nil;
+							self.MissionDestroy = nil;
+							self.missionData = {};
+
+							self.AmbientCreate = nil;
+							self.AmbientUpdate = nil;
+							self.AmbientDestroy = nil;
+							self.ambientData = {};
+
+							print(collectgarbage('count'));
+							collectgarbage("collect");
+							print(collectgarbage('count'));
 						end
 					else
 						text = text .. "HOLD FIRE TO RETURN";
@@ -583,13 +622,13 @@ function VoidWanderers:ProcessLZControlPanelUI()
 				CF.DrawString(text, pos + Vector(0, lineOffset), 155, 44, nil, nil, 1, 0);
 				lineOffset = lineOffset + 11;
 
-				for i = listStart, listStart + itemsPerPage - 1 do
-					local bomb = bombs[i];
+				for returningUnits = listStart, listStart + itemsPerPage - 1 do
+					local bomb = bombs[returningUnits];
 
 					if bomb then
-						text = (i == selectedItem and "> " or "") .. bomb.Preset;
+						text = (returningUnits == selectedItem and "> " or "") .. bomb.Preset;
 						CF.DrawString(text, pos + Vector(-70, lineOffset), 155, 11, nil, nil, 0);
-						text = (i == #bombs and "" or tostring(bomb.Count));
+						text = (returningUnits == #bombs and "" or tostring(bomb.Count));
 						CF.DrawString(text, pos + Vector(70, lineOffset), 155, 11, nil, nil, 2);
 						lineOffset = lineOffset + 11;
 					end
@@ -614,140 +653,29 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		end
 
 		self.BombsControlPanelSelectedItem = 1;
-		local bombs = CF.GetBombsArray(self.GS);
 
-		for i, payload in pairs(self.BombPayload) do
-			local found = false;
+		if #self.BombPayload > 0 then
+			local bombs = CF.GetBombsArray(self.GS);
 
-			for j, bomb in pairs(bombs) do
-				if payload.Preset == bomb.Preset and payload.Class == bomb.Class and payload.Module == bomb.Module then
-					bombs[j].Count = bombs[j].Count + 1;
-					found = true;
-					break;
+			for returningUnits, payload in ipairs(self.BombPayload) do
+				local found = false;
+
+				for j, bomb in pairs(bombs) do
+					if payload.Preset == bomb.Preset and payload.Class == bomb.Class and payload.Module == bomb.Module then
+						bombs[j].Count = bombs[j].Count + 1;
+						found = true;
+						break;
+					end
+				end
+
+				if not found then
+					payload.Count = 1;
+					table.insert(bombs, payload);
 				end
 			end
 
-			if not found then
-				payload.Count = 1;
-				table.insert(bombs, payload);
-			end
+			self.BombPayload = {};
+			CF.SetBombsArray(self.GS, bombs);
 		end
-
-		self.BombPayload = {};
-		CF.SetBombsArray(self.GS, bombs);
-	end
-
-	if self.GS["DeserializeDeployedTeam"] == "True" then
-		if self.missionData["stage"] and self.missionData["stage"] ~= CF.MissionStages.COMPLETED then
-			self:GiveMissionPenalties()
-		end
-
-		-- Generate new missions
-		if self.missionData["advanceMissions"] and self.missionData["advanceMissions"] == true then
-			CF.GenerateRandomMissions(self.GS);
-		end
-
-		-- Update casualties report
-		if tonumber(self.GS["MissionDeployedTroops"]) > tonumber(self.GS["MissionReturningTroops"]) then
-			local s = ""
-			local lost = tonumber(self.GS["MissionDeployedTroops"]) - tonumber(self.GS["MissionReturningTroops"])
-
-			if tonumber(self.GS["MissionReturningTroops"]) == 0 then
-				self.reportData[#self.reportData + 1] = "ALL UNITS LOST"
-			elseif lost > 1 then
-				self.reportData[#self.reportData + 1] = lost .. " UNITS LOST"
-			else
-				self.reportData[#self.reportData + 1] = "1 UNIT LOST"
-			end
-		elseif tonumber(self.GS["MissionDeployedTroops"]) < tonumber(self.GS["MissionReturningTroops"]) then
-			local s = ""
-			local recruited = tonumber(self.GS["MissionReturningTroops"]) - tonumber(self.GS["MissionDeployedTroops"])
-
-			if recruited > 1 then
-				self.reportData[#self.reportData + 1] = recruited .. " UNITS GAINED"
-			else
-				self.reportData[#self.reportData + 1] = "1 UNIT GAINED"
-			end
-		else
-			self.reportData[#self.reportData + 1] = "NO CASUALTIES"
-		end
-
-		-- Collect items
-		if isSafe then
-			local storage = CF.GetStorageArray(self.GS, false)
-			local items = {}
-			for item in MovableMan.Items do
-				if
-					self:IsInLZPanelProximity(item.Pos)
-					and IsHeldDevice(item)
-					and not ToHeldDevice(item).UnPickupable
-				then
-					items[#items + 1] = item
-				end
-			end
-			for _, item in pairs(items) do
-				if CF.CountUsedStorageInArray(storage) < tonumber(self.GS["PlayerVesselStorageCapacity"]) then
-					CF.PutItemToStorageArray(storage, item.PresetName, item.ClassName, item.ModuleName)
-				else
-					break
-				end
-			end
-
-			CF.SetStorageArray(self.GS, storage)
-
-			if #items > 0 then
-				self.reportData[#self.reportData + 1] = tostring(#items)
-					.. " item"
-					.. (#items > 1 and "s" or "")
-					.. " collected"
-			end
-		end
-
-		if totalGoldCarried > 0 then
-			self.reportData[#self.reportData + 1] = totalGoldCarried .. " oz of gold collected.";
-			CF.ChangePlayerGold(self.GS, totalGoldCarried);
-		end
-
-		-- Dump mission report to config to be saved
-		CF.SaveMissionReport(self.GS, self.reportData);
-
-		local scene = CF.VesselScene[self.GS["PlayerVessel"]];
-		-- Set new operating mode
-		self.GS["Mode"] = "Vessel";
-		self.GS["Scene"] = scene;
-		self.GS["DeserializeDeployedTeam"] = "True";
-		self.GS["DeserializeOnboard"] = "True";
-		self.GS["MissionInitiated"] = "False";
-		
-		self:SaveCurrentGameState();
-		
-		self.sceneToLaunch = self.GS["Scene"];
-		self.scriptToLaunch = "Tactics.lua";
-
-		-- Wrap it up
-		if self.AmbientDestroy ~= nil then
-			self:AmbientDestroy();
-		end
-
-		if self.MissionDestroy ~= nil then
-			self:MissionDestroy();
-		end
-
-		-- Clean everything
-		self.MissionCreate = nil;
-		self.MissionUpdate = nil;
-		self.MissionDestroy = nil;
-		self.missionData = {};
-
-		self.AmbientCreate = nil;
-		self.AmbientUpdate = nil;
-		self.AmbientDestroy = nil;
-		self.ambientData = {};
-		
-		self.BrainsAtStake = false;
-
-		--print(collectgarbage('count'));
-		collectgarbage("collect");
-		--print(collectgarbage('count'));
 	end
 end

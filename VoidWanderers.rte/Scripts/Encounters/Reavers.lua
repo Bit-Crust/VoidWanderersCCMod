@@ -192,6 +192,7 @@ function VoidWanderers:EncounterUpdate()
 				self.vesselData["flightDisabled"] = false
 				self.vesselData["flightAimless"] = false
 				self.vesselData["dialog"] = nil
+				self.vesselData["beamEnabled"] = true;
 				self:RemoveDeployedTurrets()
 			end
 		end
@@ -242,6 +243,7 @@ function VoidWanderers:EncounterUpdate()
 					self.vesselData["flightDisabled"] = false
 					self.vesselData["flightAimless"] = false
 					self.vesselData["dialog"] = nil
+					self.vesselData["beamEnabled"] = true;
 					self:RemoveDeployedTurrets()
 				end
 			end
@@ -472,6 +474,7 @@ function VoidWanderers:EncounterUpdate()
 			self.vesselData["flightDisabled"] = false
 			self.vesselData["flightAimless"] = false
 			self.vesselData["dialog"] = nil
+			self.vesselData["beamEnabled"] = true;
 			self:RemoveDeployedTurrets()
 			CF.SaveMissionReport(self.GS, self.reportData)
 			-- Rebuild destroyed consoles

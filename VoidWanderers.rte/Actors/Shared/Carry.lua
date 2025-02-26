@@ -68,6 +68,7 @@ function Update(self)
 						/ math.sqrt(math.abs(self.pickedUpObject.Mass) + 1.0),
 				RangeRand(-1, 1)
 			):RadRotate(self:GetAimAngle(true));
+
 			self.pickedUpObject.Vel = self.Vel * 0.5 + tossVec;
 			self.pickedUpObject.AngularVel = self.AngularVel * 0.5 + 3.0 * RangeRand(-1, 1);
 
@@ -92,7 +93,9 @@ function Update(self)
 			self.pickedUpObjectName = nil;
 			self:SetWhichMOToNotHit(nil, -1);
 		end
+
 		self.pickedUpObject = nil;
+
 		if self:IsPlayerControlled() and self.Status == Actor.STABLE then
 			if self.ItemInReach then
 				self.objectInReach = nil;
@@ -281,7 +284,7 @@ function Update(self)
 		self.tempItem = ToHeldDevice(self.tempItem);
 		
 		if not self.tempItem:IsBeingHeld() and self.tempItem:IsActivated() then
-			self.tempObject.Vel = self.Vel * 0.5 + self.tossVec;
+			self.tempObject.Vel = self.Vel * 0.5 + self.tossVec * 4;
 			self.tempObject.AngularVel = self.AngularVel + RangeRand(-5, 2.5) * self.FlipFactor;
 			self.tempObject.Pos = armToUse.HandPos + self.tossVec;
 

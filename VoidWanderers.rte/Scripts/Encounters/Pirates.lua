@@ -10,7 +10,11 @@ function VoidWanderers:EncounterCreate()
 
 	self.vesselData["flightDisabled"] = true;
 	self.vesselData["flightAimless"] = true;
-	self.vesselData["lifeSupportEnabled"] = false;
+	self.vesselData["lifeSupportEnabled"] = true;
+	self.vesselData["beamEnabled"] = false;
+	self.vesselData["itemStorageEnabled"] = true;
+	self.vesselData["cloneStorageEnabled"] = true;
+	self.vesselData["bridgeEnabled"] = true;
 
 	-- Select random pirate party
 	local bandEncountered = CF.PirateBands[math.random(#CF.PirateBands)];
@@ -29,10 +33,15 @@ function VoidWanderers:EncounterCreate()
 		
 		-- Finish encounter
 		self.encounterData["encounterConcluded"] = true;
+		self.vesselData["dialog"] = nil;
+
 		self.vesselData["flightDisabled"] = false;
 		self.vesselData["flightAimless"] = false;
 		self.vesselData["lifeSupportEnabled"] = true;
-		self.vesselData["dialog"] = nil;
+		self.vesselData["beamEnabled"] = true;
+		self.vesselData["itemStorageEnabled"] = true;
+		self.vesselData["cloneStorageEnabled"] = true;
+		self.vesselData["bridgeEnabled"] = true;
 		self:RemoveDeployedTurrets();
 	else
 		self.encounterData["askingFee"] = fee;
@@ -121,22 +130,20 @@ function VoidWanderers:EncounterUpdate()
 			self.encounterData["attackNextSpawnTime"] = self.Time + bandEncountered.Interval;
 			self.encounterData["attackNextSpawnPos"] = self.encounterData["attackSpawn"]:GetRandomPoint();
 
-			-- Disable consoles
-			self:DestroyStorageControlPanelUI();
-			self:DestroyBeamControlPanelUI();
-			self:DestroyTurretsControlPanelUI();
-			self:DestroyItemShopControlPanelUI();
-			self:DestroyCloneShopControlPanelUI();
+			self.vesselData["lifeSupportEnabled"] = false;
+			self.vesselData["beamEnabled"] = false;
+			self.vesselData["itemStorageEnabled"] = false;
+			self.vesselData["cloneStorageEnabled"] = false;
 		end
 	else
 		local enemyCount = 0;
 
-		for actor in MovableMan.Actors do
+		for _, set in ipairs{ MovableMan.Actors, MovableMan.AddedActors } do for actor in set do
 			if actor.Team == Activity.TEAM_2 then
 				enemyCount = enemyCount + 1;
 				actor.AIMode = Actor.AIMODE_BRAINHUNT;
 			end
-		end
+		end end
 
 		if self.encounterData["unitsWithheld"] == 0 then
 			if enemyCount == 0 then
@@ -276,10 +283,15 @@ function VoidWanderers:EncounterUpdate()
 
 		-- Finish encounter
 		self.encounterData["encounterConcluded"] = true;
+		self.vesselData["dialog"] = nil;
+
 		self.vesselData["flightDisabled"] = false;
 		self.vesselData["flightAimless"] = false;
 		self.vesselData["lifeSupportEnabled"] = true;
-		self.vesselData["dialog"] = nil;
+		self.vesselData["beamEnabled"] = true;
+		self.vesselData["itemStorageEnabled"] = true;
+		self.vesselData["cloneStorageEnabled"] = true;
+		self.vesselData["bridgeEnabled"] = true;
 		self:RemoveDeployedTurrets();
 	end
 end

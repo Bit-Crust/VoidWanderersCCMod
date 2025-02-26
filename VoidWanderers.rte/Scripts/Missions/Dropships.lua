@@ -48,7 +48,13 @@ function VoidWanderers:MissionCreate()
 		self.missionData["targetGold"] = 7500
 	end
 
-	self.missionData["reinforcementsLast"] = self.Time + self.missionData["interval"] * 3
+	for actor in MovableMan.AddedActors do
+		if actor.ClassName == "ADoor" then
+			actor.Team = CF.CPUTeam;
+		end
+	end
+
+	self.missionData["reinforcementsLast"] = self.Time
 	self.missionData["nextGoldWarning"] = self.missionData["enemyBudget"]
 		+ (self.missionData["targetGold"] - self.missionData["enemyBudget"]) * 0.20
 	self.missionData["lastFailWarning"] = 0

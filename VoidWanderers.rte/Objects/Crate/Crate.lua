@@ -35,7 +35,7 @@ function Create(self)
 	self.registeredActors = {};
 	self.registeredFlags = {};
 
-	if not (self:HasStringValue("spawnPreset")) then
+	if not (self:StringValueExists("spawnPreset")) then
 		local actorTypes = CF_Read(self, {"ActorTypes"});
 		local factions = CF_Read(self, {"Factions"});
 		local factionPlayable = CF_Read(self, {"FactionPlayable"});
@@ -118,7 +118,7 @@ function Update(self)
 			end
 
 			if distance < self.interactDist + actor.IndividualRadius + 3 then
-				if actor:HasNumberValue("VW_AttemptAccess") then
+				if actor:NumberValueExists("VW_AttemptAccess") then
 					if actor.GoldCarried >= self.cost then
 						actor.GoldCarried = actor.GoldCarried - self.cost;
 					else
@@ -149,7 +149,7 @@ function Destroy(self)
 		end
 	end
 
-	if not self:HasNumberValue("VW_AttemptAccess") and math.random(50, 100) < ActivityMan:GetActivity().Difficulty then
+	if not self:NumberValueExists("VW_AttemptAccess") and math.random(50, 100) < ActivityMan:GetActivity().Difficulty then
 		local actor = CreateACrab("Crab", "Base.rte");
 		actor.Pos = self.Pos;
 		actor.Vel = Vector(0, -5);

@@ -35,12 +35,10 @@ function VoidWanderers:InitClonesControlPanelUI()
 		self:LocateClonesControlPanelActor();
 
 		if not MovableMan:IsActor(self.ClonesControlPanelActor) then
-			if self.ClonesControlPanelActor == nil then
-				self.ClonesControlPanelActor = CreateActor("Clones Control Panel");
+			self.ClonesControlPanelActor = CreateActor("Clones Control Panel");
 
-				self.ClonesControlPanelActor.Pos = self.ClonesControlPanelPos;
-				self.ClonesControlPanelActor.Team = CF.PlayerTeam;
-			end
+			self.ClonesControlPanelActor.Pos = self.ClonesControlPanelPos;
+			self.ClonesControlPanelActor.Team = CF.PlayerTeam;
 
 			MovableMan:AddActor(self.ClonesControlPanelActor);
 		end
@@ -90,21 +88,24 @@ end
 -- Find and assign appropriate actors
 -----------------------------------------------------------------------
 function VoidWanderers:LocateClonesControlPanelActor()
-	for actor in MovableMan.AddedActors do
+	for _, set in ipairs{ MovableMan.Actors, MovableMan.AddedActors } do for actor in set do
 		if actor.PresetName == "Clones Control Panel" then
-			self.ClonesControlPanelActor = actor
-			break
+			self.ClonesControlPanelActor = actor;
+			break;
 		end
-	end
+	end end
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function VoidWanderers:DestroyClonesControlPanelUI()
-	if self.ClonesControlPanelActor ~= nil then
-		self.ClonesControlPanelActor.ToDelete = true
-		self.ClonesControlPanelActor = nil
-	end
+	for _, set in ipairs{ MovableMan.Actors, MovableMan.AddedActors } do for actor in set do
+		if actor.PresetName == "Clones Control Panel" then
+			actor.ToDelete = true;
+		end
+	end end
+	
+	self.ClonesControlPanelActor = nil;
 end
 -----------------------------------------------------------------------
 --
@@ -383,7 +384,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 					end
 
 					if rank ~= 0 or prestige ~= 0 then
-						self:DrawRankIcon(Activity.PLAYER_NONE, pos + Vector(9, lineOffset + 9), rank, prestige);
+						CF.DrawRankIcon(Activity.PLAYER_NONE, pos + Vector(9, lineOffset + 9), rank, prestige);
 					end
 
 					local text;
@@ -636,7 +637,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 					end
 
 					if rank ~= 0 or prestige ~= 0 then
-						self:DrawRankIcon(Activity.PLAYER_NONE, pos + Vector(9, lineOffset + 9), rank, prestige);
+						CF.DrawRankIcon(Activity.PLAYER_NONE, pos + Vector(9, lineOffset + 9), rank, prestige);
 					end
 
 					local text;
@@ -1049,6 +1050,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 								if actor:IsPlayerControlled() then
 									self:SwitchToActor(self.ClonesControlPanelActor, controller.Player, CF.PlayerTeam);
 								end
+
 								if actor.GoldCarried > 0 then
 									CF.ChangePlayerGold(self.GS, actor.GoldCarried);
 								end

@@ -16,11 +16,11 @@ function VoidWanderers:InitShipControlPanelUI()
 	if self.ShipControlPanelPos ~= nil then
 		if not MovableMan:IsActor(self.ShipControlPanelActor) then
 			self.ShipControlPanelActor = CreateActor("Ship Control Panel");
-			if self.ShipControlPanelActor ~= nil then
-				self.ShipControlPanelActor.Pos = self.ShipControlPanelPos;
-				self.ShipControlPanelActor.Team = CF.PlayerTeam;
-				MovableMan:AddActor(self.ShipControlPanelActor);
-			end
+
+			self.ShipControlPanelActor.Pos = self.ShipControlPanelPos;
+			self.ShipControlPanelActor.Team = CF.PlayerTeam;
+
+			MovableMan:AddActor(self.ShipControlPanelActor);
 		end
 	end
 
@@ -65,26 +65,24 @@ end
 -- Find and assign appropriate actors
 -----------------------------------------------------------------------
 function VoidWanderers:LocateShipControlPanelActor()
-	for _, group in pairs({MovableMan.AddedActors, MovableMan.Actors}) do
-		for actor in group do
-			if actor.PresetName == "Ship Control Panel" then
-				self.ShipControlPanelActor = actor;
-				return true
-			end
+	for _, set in ipairs{ MovableMan.Actors, MovableMan.AddedActors } do for actor in set do
+		if actor.PresetName == "Ship Control Panel" then
+			self.ShipControlPanelActor = actor;
+			break;
 		end
-	end
-	return false
+	end end
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function VoidWanderers:DestroyShipControlPanelUI()
-	if self.ShipControlPanelActor ~= nil then
-		self.ShipControlPanelActor.ToDelete = true;
-		self.ShipControlPanelActor = nil;
-		return true
-	end
-	return false
+	for _, set in ipairs{ MovableMan.Actors, MovableMan.AddedActors } do for actor in set do
+		if actor.PresetName == "Ship Control Panel" then
+			actor.ToDelete = true;
+		end
+	end end
+	
+	self.ShipControlPanelActor = nil;
 end
 -----------------------------------------------------------------------
 --
@@ -215,14 +213,22 @@ function VoidWanderers:ProcessShipControlPanelUI()
 								end
 							end
 
+							local actors = {};
+
+							for actor in MovableMan.Actors do
+								if actor.PresetName ~= "Brain Case" and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
+									table.insert(actors, actor);
+								end
+							end
+
 							self.GS["DeserializeOnboard"] = "True";
 							CF.SetStorageArray(self.GS, self.StorageItems);
-							self:SaveActors(false);
 							self:SaveCurrentGameState();
 							self:DestroyConsoles();
 							FORM_TO_LOAD = BASE_PATH .. "FormSave.lua";
 							self.sceneToLaunch = "Void Wanderers";
 							self.scriptToLaunch = "StrategyScreenMain.lua";
+							self.onboardToSerialize = actors;
 						end
 					else
 						local lineOffset = topOfPage;
@@ -1234,31 +1240,31 @@ function VoidWanderers:ProcessShipControlPanelUI()
 								end
 
 								-- Assign new ship
-								self.GS["PlayerVessel"] = id
+								self.GS["PlayerVessel"] = id;
 
-								self.GS["PlayerVesselStorageCapacity"] = actstor
-								self.GS["PlayerVesselClonesCapacity"] = actcryo
-								self.GS["PlayerVesselLifeSupport"] = actlife
-								self.GS["PlayerVesselCommunication"] = actcomm
-								self.GS["PlayerVesselSpeed"] = actengn
-								self.GS["PlayerVesselTurrets"] = actturr
-								self.GS["PlayerVesselTurretStorage"] = actturs
-								self.GS["PlayerVesselBombBays"] = actbmbb
-								self.GS["PlayerVesselBombStorage"] = actbmbs
-
-								self.GS["Scene"] = CF.VesselScene[self.GS["PlayerVessel"]]
-
-								-- Save everything and restart script
-								self:SaveActors(true);
-								self.GS["DeserializeOnboard"] = "True";
-
-								self:SaveCurrentGameState();
-								self.EnableBrainSelection = false;
+								self.GS["PlayerVesselStorageCapacity"] = actstor;
+								self.GS["PlayerVesselClonesCapacity"] = actcryo;
+								self.GS["PlayerVesselLifeSupport"] = actlife;
+								self.GS["PlayerVesselCommunication"] = actcomm;
+								self.GS["PlayerVesselSpeed"] = actengn;
+								self.GS["PlayerVesselTurrets"] = actturr;
+								self.GS["PlayerVesselTurretStorage"] = actturs;
+								self.GS["PlayerVesselBombBays"] = actbmbb;
+								self.GS["PlayerVesselBombStorage"] = actbmbs;
+								
+								self.GS["Scene"] = CF.VesselScene[self.GS["PlayerVessel"]];
 								self:DestroyConsoles();
+								local actors = {};
 
-								self:LoadCurrentGameState();
+								for actor in MovableMan.Actors do
+									if actor.PresetName ~= "Brain Case" and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
+										table.insert(actors, actor);
+									end
+								end
+
 								self.sceneToLaunch = self.GS["Scene"];
 								self.scriptToLaunch = "Tactics.lua";
+								self.onboardToSerialize = actors;
 							end
 						end
 					else

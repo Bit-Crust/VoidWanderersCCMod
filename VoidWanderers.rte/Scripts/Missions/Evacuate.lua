@@ -37,9 +37,9 @@ function VoidWanderers:MissionCreate()
 		self.missionData["interval"] = 16
 	end
 
-	for actor in MovableMan.Actors do
+	for actor in MovableMan.AddedActors do
 		if actor.ClassName == "ADoor" then
-			actor.Team = CF.PlayerTeam
+			actor.Team = CF.PlayerTeam;
 		end
 	end
 

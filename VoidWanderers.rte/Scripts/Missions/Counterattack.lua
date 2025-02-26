@@ -82,10 +82,10 @@ function VoidWanderers:MissionCreate()
 		end
 		self.missionData["brain"] = brain;
 	end
-
-	for actor in MovableMan.Actors do
+	
+	for actor in MovableMan.AddedActors do
 		if actor.ClassName == "ADoor" then
-			actor.Team = CF.CPUTeam
+			actor.Team = CF.CPUTeam;
 		end
 	end
 

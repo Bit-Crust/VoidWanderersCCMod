@@ -43,6 +43,12 @@ function VoidWanderers:MissionCreate()
 		self.missionData["interval"] = 35;
 		self.missionData["counterAttackDelay"] = 90;
 	end
+	
+	for actor in MovableMan.AddedActors do
+		if actor.ClassName == "ADoor" then
+			actor.Team = CF.CPUTeam;
+		end
+	end
 
 	-- Use generic enemy set
 	local target = self.missionData["missionTarget"];
@@ -76,7 +82,7 @@ function VoidWanderers:MissionUpdate()
 	if self.missionData["stage"] == CF.MissionStages.ACTIVE then
 		local count = 0;
 		
-		for actor in MovableMan.Actors do
+		for _, set in ipairs{ MovableMan.Actors, MovableMan.AddedActors } do for actor in set do
 			if actor.Team == CF.CPUTeam and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
 				local inside = false;
 				count = count + 1;
@@ -100,12 +106,12 @@ function VoidWanderers:MissionUpdate()
 					end
 				end
 			end
-		end
+		end end
 
 		self.missionData["missionStatus"] = "Enemies left: " .. tostring(count);
 
 		-- Start checking for victory only when all units were spawned
-		if count == 0 and not MovableMan.AddedActors() then
+		if count == 0 then
 			self:GiveMissionRewards();
 			self.missionData["stage"] = CF.MissionStages.COMPLETED;
 

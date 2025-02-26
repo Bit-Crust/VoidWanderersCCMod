@@ -78,6 +78,12 @@ function VoidWanderers:MissionCreate()
 		self.missionData["brain"] = brain;
 	end
 
+	for actor in MovableMan.AddedActors do
+		if actor.ClassName == "ADoor" then
+			actor.Team = CF.CPUTeam;
+		end
+	end
+
 	self.missionData["craft"] = nil;
 	self.missionData["craftCheckTime"] = self.Time;
 

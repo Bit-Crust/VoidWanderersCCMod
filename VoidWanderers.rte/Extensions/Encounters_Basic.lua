@@ -68,7 +68,7 @@ end
 --]]
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
--- Hostile drone
+--[[ Hostile drone
 local id = "HOSTILE_DRONE";
 CF.RandomEncounters[#CF.RandomEncounters + 1] = id;
 
@@ -98,7 +98,7 @@ end;
 --]]
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
--- Asteroid field
+--[[ Asteroid field
 local id = "ASTEROIDS";
 CF.RandomEncounters[#CF.RandomEncounters + 1] = id;
 
@@ -118,10 +118,12 @@ CF.RandomEncounterScripts[id] = "VoidWanderers.rte/Scripts/Encounters/FactionAmb
 CF.RandomEncounterEligibilityTests[id] = function(self)
 	for i = 1, tonumber(self.GS["ActiveCPUs"]) do
 		local rep = tonumber(self.GS["Player" .. i .. "Reputation"]);
+
 		if rep <= CF.ReputationHuntThreshold then
 			return true;
 		end
 	end
+
 	return false;
 end;
 --]]

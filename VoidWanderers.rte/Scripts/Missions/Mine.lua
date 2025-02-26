@@ -61,6 +61,12 @@ function VoidWanderers:MissionCreate()
 		self.missionData["timeToHold"] = 240
 	end
 
+	for actor in MovableMan.AddedActors do
+		if actor.ClassName == "ADoor" then
+			actor.Team = CF.PlayerTeam;
+		end
+	end
+
 	self.missionData["allySpawnInterval"] = math.ceil(self.missionData["interval"] * 0.5)
 	self.missionData["reinforcementsLast"] = self.Time + self.missionData["interval"]
 	self.missionData["backupLast"] = self.Time - 1

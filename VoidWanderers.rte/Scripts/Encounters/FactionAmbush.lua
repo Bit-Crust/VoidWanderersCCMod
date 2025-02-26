@@ -10,9 +10,14 @@ function VoidWanderers:EncounterCreate()
 
 	self.encounterData["assaultDelay"] = 15;
 	self.encounterData["assaultStartTime"] = self.Time + self.encounterData["assaultDelay"];
-	self.vesselData["flightDisabled"] = true;
+	
+	self.vesselData["flightDisabled"] = false;
 	self.vesselData["flightAimless"] = true;
-	self.vesselData["lifeSupportEnabled"] = false;
+	self.vesselData["lifeSupportEnabled"] = true;
+	self.vesselData["beamEnabled"] = false;
+	self.vesselData["itemStorageEnabled"] = true;
+	self.vesselData["cloneStorageEnabled"] = true;
+	self.vesselData["bridgeEnabled"] = true;
 
 	-- Select random assault CPU based on how angry they are
 	local angry = {};
@@ -87,12 +92,10 @@ function VoidWanderers:EncounterUpdate()
 	end
 
 	if timeLeft == self.Time then
-		self:DestroyBeamControlPanelUI();
-
-		self:DestroyItemShopControlPanelUI();
-		self:DestroyCloneShopControlPanelUI();
-
 		self:DestroyTurretsControlPanelUI();
+		self.vesselData["lifeSupportEnabled"] = false;
+		self.vesselData["itemStorageEnabled"] = false;
+		self.vesselData["cloneStorageEnabled"] = true;
 	end
 
 	-- Show enemies count
@@ -163,14 +166,15 @@ function VoidWanderers:EncounterUpdate()
 		local message = "";
 
 		message = "Enemy will charge its FTL drive in T-" .. timeLeft .. ", we can counterattack!"
-			.. "\n" .. "Deploy your away team to the enemy ship!";
+			.. "\n\n" .. "Deploy your away team to the enemy ship!";
 
-		self:SendTransmission(message, {});
-
-		message = "Enemy will charge its FTL drive in T-" .. timeLeft .. ".";
+		self:SendTransmission(message, {"Let em leave!"});
 		FrameMan:SetScreenText(message, 0, 0, 1000, true);
+		self.vesselData["beamEnabled"] = true;
 
-		if self.Time > self.encounterData["counterattackExpiration"] then
+		local variant = self.vesselData["dialogOptionChosen"];
+
+		if self.Time > self.encounterData["counterattackExpiration"] or variant == 1 then
 			self.reportData = {};
 			self.reportData[#self.reportData + 1] = "We survived this assault.";
 			CF.SaveMissionReport(self.GS, self.reportData);
@@ -178,10 +182,14 @@ function VoidWanderers:EncounterUpdate()
 			self.encounterData["encounterConcluded"] = true;
 			self.GS["Location"] = nil;
 			self.GS["LocationInhabitants"] = nil;
+
 			self.vesselData["flightDisabled"] = false;
 			self.vesselData["flightAimless"] = false;
 			self.vesselData["lifeSupportEnabled"] = true;
-			self.vesselData["dialog"] = nil;
+			self.vesselData["beamEnabled"] = true;
+			self.vesselData["itemStorageEnabled"] = true;
+			self.vesselData["cloneStorageEnabled"] = true;
+			self.vesselData["bridgeEnabled"] = true;
 			self:RemoveDeployedTurrets();
 		end
 	end
