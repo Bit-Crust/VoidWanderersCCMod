@@ -38,7 +38,7 @@ function VoidWanderers:StartSceneProcess()
 
 	self:LoadCurrentGameState()
 
-	---- -- -- self.ModuleName = "VoidWanderers.rte"
+	---- -- -- -- self.ModuleName = "VoidWanderers.rte"
 
 	self.Mid.X = SceneMan.Scene.Width / 2
 	self.Mid.Y = SceneMan.Scene.Height / 2

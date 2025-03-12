@@ -1,5 +1,5 @@
 function VoidWanderers:StartActivity()
-	---- -- -- self.ModuleName = "VoidWanderers.rte"
+	---- -- -- -- self.ModuleName = "VoidWanderers.rte"
 	self.IsInitialized = false
 
 	LAUNCH_MISSION_PACK = nil
