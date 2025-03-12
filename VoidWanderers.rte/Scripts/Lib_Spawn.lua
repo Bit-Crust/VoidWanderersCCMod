@@ -996,6 +996,10 @@ end
 -- 
 -----------------------------------------------------------------------
 function CF.GetFullMissionDifficulty(gameState, location, missionID)
+	if not gameState["Mission" .. missionID .. "Difficulty"] then
+		error("No mission at ID " .. tostring(missionID), 2);
+	end
+
 	local locationDifficulty = CF.GetLocationSecurity(gameState, location) / 10;
 	local missionDifficulty = tonumber(gameState["Mission" .. missionID .. "Difficulty"]);
 	return CF.NormalizeDifficulty(locationDifficulty + missionDifficulty - 1);
@@ -1107,6 +1111,10 @@ function CF.GenerateRandomMission(gameState, ally, enemy, prohibitedLocations)
 	-- Pick some random mission type
 	local randomMissionType = validMissionTypes[math.random(#validMissionTypes)];
 
+	if randomMissionType == nil then
+		return nil;
+	end
+
 	-- Pick scene
 	local typeScenes = randomMissionType.Scenes;
 	local randomMissionScene = typeScenes[math.random(#typeScenes)];
@@ -1131,6 +1139,11 @@ function CF.GenerateRandomMissions(gameState)
 
 	for i = 1, maxMissions do
 		missions[i] = CF.GenerateRandomMission(gameState, nil, nil, usedLocations);
+
+		if not missions[i] then
+			break;
+		end
+
 		table.insert(usedLocations, missions[i].Location);
 	end
 

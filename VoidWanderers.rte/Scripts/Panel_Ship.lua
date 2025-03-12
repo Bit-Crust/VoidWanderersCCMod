@@ -142,20 +142,18 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					or self.ShipControlMode == self.ShipControlPanelModes.REPUTATION
 					or (self.ShipControlMode == self.ShipControlPanelModes.BRAIN and self.GS["Brain" .. player .. "Detached"] == "True")
 				then
-					CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 70, pos.X + 140, pos.Y + 70, CF.MenuNormalIdle);
+					CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 70, pos.X + 141, pos.Y + 71, CF.MenuNormalIdle);
 				else
-					CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 70, pos.X - 1, pos.Y + 70, CF.MenuNormalIdle);
+					CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 70, pos.X, pos.Y + 71, CF.MenuNormalIdle);
 					if self.ShipControlMode == self.ShipControlPanelModes.PLANET then
 						local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Ship_GalaxyBackA.png";
-						PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(70, 0), path, 0, false, false);
+						PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.Screen, 080, 080, 080, 080, { BitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(70, 0), path, 0, false, false) });
 					else
 						if self.ShipControlMode == self.ShipControlPanelModes.LOCATION then
-							local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Ship_GalaxyBackB.png";
-							PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(70, 0), path, 0, false, false);
 							local path = CF.PlanetGlow[self.GS["Planet"]];
-							PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(70, 0), path, 0, false, false);
+							PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.Screen, 080, 080, 080, 080, { BitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(70, 0), path, 0, false, false) });
 						else
-							CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X + 0, pos.Y - 70, pos.X + 140, pos.Y + 70, CF.MenuNormalIdle);
+							CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X + 0, pos.Y - 70, pos.X + 141, pos.Y + 71, CF.MenuNormalIdle);
 						end
 					end
 				end
@@ -400,10 +398,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 					-- If we have mission in that location then draw red dot
 					for m = 1, CF.MaxMissions do
-						if
-							selectedLocation
-							== self.GS["Mission" .. m .. "Location"]
-						then
+						if selectedLocation == self.GS["Mission" .. m .. "Location"] then
 							msn = true
 							msntype = self.GS["Mission" .. m .. "Type"]
 							msndiff = CF.GetFullMissionDifficulty(self.GS, self.GS["Mission" .. m .. "Location"], m) --tonumber(self.GS["Mission"..m.."Difficulty"])
@@ -599,27 +594,29 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					local missionSelected = self.ShipControlSelectedMission;
 
 					for i = 1, CF.MaxMissions do
-						mission = {}
-						mission.SourcePlayer = tonumber(self.GS["Mission" .. i .. "SourcePlayer"])
-						mission.TargetPlayer = tonumber(self.GS["Mission" .. i .. "TargetPlayer"])
-						mission.Difficulty = CF.GetFullMissionDifficulty(self.GS, self.GS["Mission" .. i .. "Location"], i)
-						mission.Location = self.GS["Mission" .. i .. "Location"]
-						mission.Type = self.GS["Mission" .. i .. "Type"]
+						if self.GS["Mission" .. i .. "Location"] then
+							mission = {};
+							mission.SourcePlayer = tonumber(self.GS["Mission" .. i .. "SourcePlayer"]);
+							mission.TargetPlayer = tonumber(self.GS["Mission" .. i .. "TargetPlayer"]);
+							mission.Difficulty = CF.GetFullMissionDifficulty(self.GS, self.GS["Mission" .. i .. "Location"], i);
+							mission.Location = self.GS["Mission" .. i .. "Location"];
+							mission.Type = self.GS["Mission" .. i .. "Type"];
 
-						local rep = math.floor(tonumber(self.GS["Player" .. mission.SourcePlayer .. "Reputation"]))
-						local srep = (rep > 0 and "+" or "") .. tostring(rep)
-						mission.SourceFactionReputation = srep
-						mission.SourceFaction = CF.FactionNames[CF.GetPlayerFaction(self.GS, mission.SourcePlayer)]
+							local rep = math.floor(tonumber(self.GS["Player" .. mission.SourcePlayer .. "Reputation"]));
+							local srep = (rep > 0 and "+" or "") .. tostring(rep);
+							mission.SourceFactionReputation = srep;
+							mission.SourceFaction = CF.FactionNames[CF.GetPlayerFaction(self.GS, mission.SourcePlayer)];
 
-						local rep = math.floor(tonumber(self.GS["Player" .. mission.TargetPlayer .. "Reputation"]))
-						local srep = (rep > 0 and "+" or "") .. tostring(rep)
-						mission.TargetFactionRaputation = srep
-						mission.TargetFaction = CF.FactionNames[CF.GetPlayerFaction(self.GS, mission.TargetPlayer)]
+							local rep = math.floor(tonumber(self.GS["Player" .. mission.TargetPlayer .. "Reputation"]));
+							local srep = (rep > 0 and "+" or "") .. tostring(rep);
+							mission.TargetFactionRaputation = srep;
+							mission.TargetFaction = CF.FactionNames[CF.GetPlayerFaction(self.GS, mission.TargetPlayer)];
 
-						mission.Description = CF.MissionBriefingText[mission.Type]
-						mission.GoldReward = CF.CalculateReward(CF.MissionGoldRewardPerDifficulty[mission.Type], mission.Difficulty)
-						mission.RepReward = CF.CalculateReward(CF.MissionReputationRewardPerDifficulty[mission.Type], mission.Difficulty)
-						table.insert(missions, mission);
+							mission.Description = CF.MissionBriefingText[mission.Type];
+							mission.GoldReward = CF.CalculateReward(CF.MissionGoldRewardPerDifficulty[mission.Type], mission.Difficulty);
+							mission.RepReward = CF.CalculateReward(CF.MissionReputationRewardPerDifficulty[mission.Type], mission.Difficulty);
+							table.insert(missions, mission);
+						end
 					end
 
 					if up then
@@ -1352,8 +1349,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					end
 				end
 
-				CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 84, pos.X + 140, pos.Y - 71, highBarPalette);
-				CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y + 71, pos.X + 140, pos.Y + 84, lowBarPalette);
+				CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 84, pos.X + 141, pos.Y - 70, highBarPalette);
+				CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y + 71, pos.X + 141, pos.Y + 85, lowBarPalette);
 
 				CF.DrawString(highBarLeftText, pos + Vector(-138, -77), 276, 11, nil, nil, 0, 1);
 				CF.DrawString(highBarCenterText, pos + Vector(0, -77), 276, 11, nil, nil, 1, 1);
