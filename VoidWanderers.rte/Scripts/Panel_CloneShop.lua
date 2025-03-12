@@ -173,14 +173,14 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 			local linesPerPage = 12;
 			local topOfPage = -68;
 
-			CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 70, pos.X, pos.Y + 70, menuPalette);
+			CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 70, pos.X, pos.Y + 71, menuPalette);
 
 			if self.CloneShopTradeStar then
 				local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_CloneShop_Description.png";
-				PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(91, 0), path, 0, false, false);
+				PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.Transparency, 080, 080, 080, 080, { BitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(90, 0), path, 0, false, false) });
 			elseif self.CloneShopBlackMarket then
 				local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_CloneBlackMarket_Description.png";
-				PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(91, 0), path, 0, false, false);
+				PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.Transparency, 080, 080, 080, 080, { BitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(90, 0), path, 0, false, false) });
 			end
 
 			local index = self.CloneShopFilters[mode][itemSelected];
@@ -284,8 +284,8 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 				end
 			end
 
-			CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 77 - 7, pos.X + 180, pos.Y - 77 + 6, highBarPalette);
-			CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y + 78 - 7, pos.X + 180, pos.Y + 78 + 6, lowBarPalette);
+			CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 77 - 7, pos.X + 181, pos.Y - 77 + 7, highBarPalette);
+			CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y + 78 - 7, pos.X + 181, pos.Y + 78 + 7, lowBarPalette);
 
 			CF.DrawString(highBarLeftText, pos + Vector(-138, -77), 316, 11, nil, nil, 0, 1);
 			CF.DrawString(highBarCenterText, pos + Vector(20, -77), 316, 11, nil, nil, 1, 1);

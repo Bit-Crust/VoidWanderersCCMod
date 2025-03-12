@@ -243,7 +243,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 		local rotation = 0;
 		local hflip = false;
 		local vflip = false;
-		PrimitiveMan:DrawBitmapPrimitive(player, pos, path, rotation, hflip, vflip);
+		PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.Transparency, 080, 080, 080, 080, { BitmapPrimitive(player, pos, path, rotation, hflip, vflip) });
 	end
 
 	if MovableMan:IsActor(self.BeamControlPanelActor) then

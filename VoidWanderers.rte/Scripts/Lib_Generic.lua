@@ -936,9 +936,9 @@ end
 -- Menu drawing functions
 -----------------------------------------------------------------------
 do
-	local emptyBlend = { 050, 050, 050, 050 };
+	local emptyBlend = { 080, 080, 080, 080 };
 	local drawPrimitives = PrimitiveMan.DrawPrimitives;
-	local transBlend = DrawBlendMode.Transparency;
+	local transBlend = DrawBlendMode.Screen;
 	local playerNone = Activity.PLAYER_NONE;
 
 	local rankBaseColor = {
@@ -1081,11 +1081,11 @@ do
 			pal = rankBaseColor;
 			primitive = BitmapPrimitive(player, pos, rankBasePath[rank], 0, false, false);
 			PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive });
-		
+			
 			pal = rankRaisedColor;
 			primitive = BitmapPrimitive(player, pos, rankRaisedPath[rank], 0, false, false);
 			PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive });
-		
+			
 			pal = rankEmbossColor;
 			primitive = BitmapPrimitive(player, pos, rankEmbossedPath[rank], 0, false, false);
 			PrimitiveMan:DrawPrimitives(DrawBlendMode.Transparency, pal[p][1], pal[p][2], pal[p][3], 0, { primitive });
