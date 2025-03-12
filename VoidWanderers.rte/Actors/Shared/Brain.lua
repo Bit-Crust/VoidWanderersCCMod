@@ -308,11 +308,19 @@ function Create(self)
 		};
 
 		if self.scannerLevel > 0 then
-			local scannerEnabled = GS_Read(self, "Brain" .. self.brainNumber .. "ScannerEnabled") == "True";
-
+			local scannerEnabled = false;
+			
+			if owner.brainNumber ~= Activity.PLAYER_NONE then
+				GS_Read(self, "Brain" .. self.brainNumber .. "ScannerEnabled") == "True";
+			end
+			
 			local scannerOnPress = function(self, parent, owner)
 				owner.scannerEnabled = not owner.scannerEnabled;
-				GS_Write("Brain" .. owner.brainNumber .. "ScannerEnabled", tostring(owner.scannerEnabled));
+				
+				if owner.brainNumber ~= Activity.PLAYER_NONE then
+					GS_Write("Brain" .. owner.brainNumber .. "ScannerEnabled", tostring(owner.scannerEnabled));
+				end
+
 				owner.scannerSkillItem.Right = owner.scannerEnabled and "[ ON ]" or "[ OFF ]";
 			end
 
@@ -340,7 +348,10 @@ function Create(self)
 					if gun ~= nil then
 						gun:RemoveWounds(gun:GetWoundCount());
 						owner.quantumStorage = owner.quantumStorage - price;
-						GS_Write("Brain" .. owner.brainNumber .. "QuantumStorage", owner.quantumStorage);
+
+						if owner.brainNumber ~= Activity.PLAYER_NONE then
+							GS_Write("Brain" .. owner.brainNumber .. "QuantumStorage", owner.quantumStorage);
+						end
 					end
 				end
 			end
@@ -371,7 +382,10 @@ function Create(self)
 						owner.healSkillTimer:Reset();
 						owner.healingSwarm = SwarmCreate(owner, target);
 						owner.quantumStorage = owner.quantumStorage - price;
-						GS_Write("Brain" .. owner.brainNumber .. "QuantumStorage", owner.quantumStorage);
+
+						if owner.brainNumber ~= Activity.PLAYER_NONE then
+							GS_Write("Brain" .. owner.brainNumber .. "QuantumStorage", owner.quantumStorage);
+						end
 					end
 				end
 			end
@@ -402,7 +416,10 @@ function Create(self)
 						owner.healSkillTimer:Reset();
 						owner.healingSwarm = SwarmCreate(owner, target);
 						owner.quantumStorage = owner.quantumStorage - price;
-						GS_Write("Brain" .. owner.brainNumber .. "QuantumStorage", owner.quantumStorage);
+
+						if owner.brainNumber ~= Activity.PLAYER_NONE then
+							GS_Write("Brain" .. owner.brainNumber .. "QuantumStorage", owner.quantumStorage);
+						end
 					end
 				end
 			end
@@ -434,7 +451,10 @@ function Create(self)
 							owner.quantumStorage = owner.quantumCapacity;
 						end
 			
-						GS_Write("Brain" .. owner.brainNumber .. "QuantumStorage", owner.quantumStorage);
+						if owner.brainNumber ~= Activity.PLAYER_NONE then
+							GS_Write("Brain" .. owner.brainNumber .. "QuantumStorage", owner.quantumStorage);
+						end
+						
 						owner.EquippedItem.ToDelete = true;
 						owner:GetController():SetState(Controller.WEAPON_CHANGE_NEXT, true);
 					end
@@ -472,7 +492,10 @@ function Create(self)
 
 					owner.quantumStorage = owner.quantumStorage - owner.activeMenu[owner.selectedMenuItem].Price;
 					owner.quantumMenuItem.Count = owner.quantumStorage;
-					GS_Write("Brain" .. owner.brainNumber .. "QuantumStorage", owner.quantumStorage);
+
+					if owner.brainNumber ~= Activity.PLAYER_NONE then
+						GS_Write("Brain" .. owner.brainNumber .. "QuantumStorage", owner.quantumStorage);
+					end
 				end
 			end
 		end
@@ -608,11 +631,19 @@ function Create(self)
 		};
 
 		if self.shieldLevel > 0 then
-			local shieldEnabled = GS_Read(self, "Brain" .. self.brainNumber .. "ShieldEnabled") ~= "False";
+			local shieldEnabled = false;
+			
+			if owner.brainNumber ~= Activity.PLAYER_NONE then
+				GS_Read(self, "Brain" .. self.brainNumber .. "ShieldEnabled") ~= "False";
+			end
 
 			local shieldOnPress = function(self, parent, owner)
 				owner.shieldEnabled = not owner.shieldEnabled;
-				GS_Write("Brain" .. owner.brainNumber .. "ShieldEnabled", tostring(owner.shieldEnabled));
+				
+				if owner.brainNumber ~= Activity.PLAYER_NONE then
+					GS_Write("Brain" .. owner.brainNumber .. "ShieldEnabled", tostring(owner.shieldEnabled));
+				end
+
 				owner.shieldSkillItem.Right = owner.shieldEnabled and "[ ON ]" or "[ OFF ]";
 			end
 
@@ -910,12 +941,12 @@ function Create(self)
 end
 
 function Update(self)
-	-- Don't do anything when in edit mode
+	-- Don't do anything when in edit mode.
 	if ActivityMan:GetActivity().ActivityState ~= Activity.RUNNING then
 		return;
 	end
 
-	-- Brains lose their brain-hood when they die, probably temporary bit
+	-- Brains do nothing while dead.
 	if self.Health <= 0 or (not self.Head) or self.Status >= Actor.DYING then
 		return;
 	end
@@ -923,11 +954,11 @@ function Update(self)
 	-- Do distortion
 	if MovableMan:IsActor(self.aimDistortTarget) then
 		if not self.telekineticCoolDownTimer:IsPastSimMS(self.telekeneticCoolDown) then
-			self.aimDistortTarget:GetController():SetState(Controller.AIM_UP, true)
+			self.aimDistortTarget:GetController():SetState(Controller.AIM_UP, true);
 			SwarmUpdate(self.aimDistortSwarm);
 
 			if self.aimDistortTarget:GetAimAngle(false) < 0.75 then
-				self.aimDistortTarget:GetController():SetState(Controller.WEAPON_FIRE, true)
+				self.aimDistortTarget:GetController():SetState(Controller.WEAPON_FIRE, true);
 			end
 		else
 			self.aimDistortTarget = nil;
@@ -939,20 +970,19 @@ function Update(self)
 	-- Do distortion after damage
 	if MovableMan:IsActor(self.damageThreat) and not self.telekineticCoolDownTimer:IsPastSimMS(self.telekeneticCoolDown) then
 		if self.damageDistortEnabled then
-			self.damageThreat:GetController():SetState(Controller.BODY_CROUCH, true)
-			self.damageThreat:GetController():SetState(Controller.AIM_DOWN, true)
+			self.damageThreat:GetController():SetState(Controller.BODY_CROUCH, true);
+			self.damageThreat:GetController():SetState(Controller.AIM_DOWN, true);
 		end
 	else
-		self.damageThreat = nil
+		self.damageThreat = nil;
 	end
 
 	--CF.DrawString(tostring(self:GetAimAngle(true)), self.Pos + Vector(0,-110), 200, 200)
 	--CF.DrawString(tostring(math.cos(self:GetAimAngle(false))), self.Pos + Vector(0,-100), 200, 200)
 	--CF.DrawString(tostring(math.floor(self:GetAimAngle(true) * (180 / 3.14))), self.Pos + Vector(0,-90), 200, 200)
 
-	-- Add power
-	self.energy = math.min(self.maxEnergy, self.energy + self.telekinesisLevel * 1/60)
-
+	-- Add power and health regen
+	self.energy = math.min(self.maxEnergy, self.energy + self.telekinesisLevel * 1/60);
 	self.Health = math.min(self.MaxHealth, self.Health + 1/60 / self.regenInterval);
 
 	-- Draw power marker
@@ -983,34 +1013,34 @@ function Update(self)
 		
 	-- Process AI skill usage
 	if self.Team ~= Activity.TEAM_1 then
-		local healThreshold = 40
+		local healThreshold = 40;
 		
 		-- Heal itself
 		if self.Health < healThreshold then
-			self.skillTargetActor = self
-			rpgbrain_skill_selfhealstart(self)
+			self.affectedActors[1] = self;
+			self.healSkillItem:Function(self.skillMenu, self);
 		end
 
 		-- Heal nearby actors
-		local nearestTarget = nil
-		local dist = self.healRange
+		local nearestTarget = nil;
+		local dist = self.healRange;
 
 		for actor in MovableMan.Actors do
 			if actor.Team == self.Team and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
 				local d = SceneMan:ShortestDistance(self.Pos, actor.Pos, true).Magnitude
 				if d <= dist then
 					if actor.Health < healThreshold then
-						a = actor
-						dist = d
-						healThreshold = actor.Health
+						a = actor;
+						dist = d;
+						healThreshold = actor.Health;
 					end
 				end
 			end
 		end
 				
 		if nearestTarget ~= nil then
-			self.skillTargetActor = nearestTarget
-			rpgbrain_skill_healstart(self)
+			self.affectedActors[1] = nearestTarget;
+			self.healSkillItem:Function(self.skillMenu, self);
 		end
 	end
 
