@@ -930,7 +930,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 		local player = Activity.PLAYER_NONE;
 		local pos = self.ClonesControlPanelActor.Pos;
 		local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Clones.png";
-		PrimitiveMan:DrawBitmapPrimitive(player, pos, path, 0, false, false);
+		PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.Screen, 080, 080, 080, 080, { BitmapPrimitive(player, pos, path, 0, false, false) });
 
 		local text = "Capacity: " .. CF.CountUsedClonesInArray(self.Clones) .. "/" .. self.GS["PlayerVesselClonesCapacity"];
 		CF.DrawString(text, pos + Vector(0, -40), 100, 11, nil, nil, 1);

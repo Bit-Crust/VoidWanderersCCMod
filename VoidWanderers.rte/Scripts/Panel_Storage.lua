@@ -409,7 +409,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 		local player = Activity.PLAYER_NONE;
 		local pos = self.StorageControlPanelActor.Pos;
 		local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Storage.png";
-		PrimitiveMan:DrawBitmapPrimitive(player, pos, path, 0, false, false);
+		PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.Screen, 080, 080, 080, 080, { BitmapPrimitive(player, pos, path, 0, false, false) });
 
 		local text = "Capacity: " .. CF.CountUsedStorageInArray(self.StorageItems) .. " / " .. self.GS["PlayerVesselStorageCapacity"];
 		CF.DrawString(text, pos + Vector(0, -40), 100, 11, nil, nil, 1);

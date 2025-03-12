@@ -299,7 +299,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 		local player = Activity.PLAYER_NONE;
 		local pos = self.CloneShopControlPanelActor.Pos;
 		local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_CloneShop.png";
-		PrimitiveMan:DrawBitmapPrimitive(player, pos, path, 0, false, false);
+		PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.Screen, 080, 080, 080, 080, { BitmapPrimitive(player, pos, path, 0, false, false) });
 	end
 
 	if MovableMan:IsActor(self.CloneShopControlPanelActor) then
