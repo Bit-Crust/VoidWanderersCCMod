@@ -929,8 +929,8 @@ function VoidWanderers:UpdateSceneProcess()
 				local healthProportion = killer.Health / killer.MaxHealth;
 				local riskFactor = 3 - math.min(healthProportion + distanceProportion, 2);
 				local powerDampingFactor = 10 + math.abs(killer:GetGoldValue(0, 0.2, 0.2));
-				local sharedGain = math.floor(hit.Value / #killerCandidates / powerDampingFactor * riskFactor);
-					
+				local sharedGain = math.ceil(hit.Value / #killerCandidates / powerDampingFactor * riskFactor);
+				
 				if sharedGain > 0 then
 					if killer:GetNumberValue("VW_BrainOfPlayer") - 1 > Activity.PLAYER_NONE then
 						local levelUp = CF.AwardBrainExperience(self.GS, sharedGain, killer:GetNumberValue("VW_BrainOfPlayer") - 1);
@@ -943,8 +943,6 @@ function VoidWanderers:UpdateSceneProcess()
 					else
 						self:GiveXP(killer, sharedGain);
 					end
-
-					print("Awarding " .. sharedGain .. " to " .. tostring(killer));
 				end
 			end
 		end
@@ -963,7 +961,7 @@ function VoidWanderers:UpdateSceneProcess()
 				if not actor:NumberValueExists("VW_FragValue") then
 					local rank = actor:GetNumberValue("VW_Rank");
 					local prestige = actor:GetNumberValue("VW_Prestige");
-					fragValue = rank + math.abs(actor:GetGoldValue(0, 1, 1)) * (2 + rank / #CF.Ranks) * math.sqrt(prestige);
+					fragValue = math.abs(actor:GetGoldValue(0, 1, 1)) * (1 + rank / #CF.Ranks) * math.sqrt(1 + prestige) / 2;
 
 					actor:SetNumberValue("VW_FragValue", fragValue);
 				else

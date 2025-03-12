@@ -310,8 +310,8 @@ function Create(self)
 		if self.scannerLevel > 0 then
 			local scannerEnabled = false;
 			
-			if owner.brainNumber ~= Activity.PLAYER_NONE then
-				GS_Read(self, "Brain" .. self.brainNumber .. "ScannerEnabled") == "True";
+			if self.brainNumber ~= Activity.PLAYER_NONE then
+				scannerEnabled = GS_Read(self, "Brain" .. self.brainNumber .. "ScannerEnabled") == "True";
 			end
 			
 			local scannerOnPress = function(self, parent, owner)
@@ -633,8 +633,8 @@ function Create(self)
 		if self.shieldLevel > 0 then
 			local shieldEnabled = false;
 			
-			if owner.brainNumber ~= Activity.PLAYER_NONE then
-				GS_Read(self, "Brain" .. self.brainNumber .. "ShieldEnabled") ~= "False";
+			if self.brainNumber ~= Activity.PLAYER_NONE then
+				shieldEnabled = GS_Read(self, "Brain" .. self.brainNumber .. "ShieldEnabled") ~= "False";
 			end
 
 			local shieldOnPress = function(self, parent, owner)
@@ -1017,7 +1017,7 @@ function Update(self)
 		
 		-- Heal itself
 		if self.Health < healThreshold then
-			self.affectedActors[1] = self;
+			self.affectedActors = { self };
 			self.healSkillItem:Function(self.skillMenu, self);
 		end
 
@@ -1039,7 +1039,7 @@ function Update(self)
 		end
 				
 		if nearestTarget ~= nil then
-			self.affectedActors[1] = nearestTarget;
+			self.affectedActors = { nearestTarget };
 			self.healSkillItem:Function(self.skillMenu, self);
 		end
 	end
