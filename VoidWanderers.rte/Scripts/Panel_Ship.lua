@@ -2,18 +2,20 @@
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:InitShipControlPanelUI()
+	-- Ship Control Panel
 	local x, y
-	x = tonumber(self.SceneConfig["ShipControlPanelX"])
-	y = tonumber(self.SceneConfig["ShipControlPanelY"])
 
+	x = tonumber(self.LS["ShipControlPanelX"])
+	y = tonumber(self.LS["ShipControlPanelY"])
 	if x ~= nil and y ~= nil then
 		self.ShipControlPanelPos = Vector(x, y)
 	else
 		self.ShipControlPanelPos = nil
 	end
 
+	-- Create actor
+	-- Ship
 	if self.ShipControlPanelPos ~= nil then
-		self:LocateShipControlPanelActor()
 		if not MovableMan:IsActor(self.ShipControlPanelActor) then
 			self.ShipControlPanelActor = CreateActor("Ship Control Panel")
 			if self.ShipControlPanelActor ~= nil then
@@ -35,6 +37,13 @@ function VoidWanderers:InitShipControlPanelUI()
 		UPGRADE = 6,
 		SHIPYARD = 7,
 	}
+
+	-- Debug
+	--for i = 1, CF["MaxMissionReportLines"] do
+	--	self.GS["MissionReport"..i] = "STRING "..i
+	--end
+
+	--self.MissionReport = {}
 
 	if self.MissionReport ~= nil then
 		self.ShipControlMode = self.ShipControlPanelModes.REPORT
@@ -71,17 +80,6 @@ function VoidWanderers:InitShipControlPanelUI()
 
 	self.ShipControlSelectedEncounterVariant = 1
 	self.ShipControlForceVariantTime = 17000
-end
------------------------------------------------------------------------------------------
--- Find and assign appropriate actors
------------------------------------------------------------------------------------------
-function VoidWanderers:LocateShipControlPanelActor()
-	for actor in MovableMan.AddedActors do
-		if actor.PresetName == "Ship Control Panel" then
-			self.ShipControlPanelActor = actor
-			break
-		end
-	end
 end
 -----------------------------------------------------------------------------------------
 --
@@ -389,6 +387,13 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						10
 					)
 
+					if self.ShipControlLocationList[self.ShipControlSelectedLocation] ~= nil then
+						local rev = self.GS[self.ShipControlLocationList[self.ShipControlSelectedLocation] .. "-FogRevealPercentage"]
+							or 0
+						-- TODO: Better name for fog revealed indicator?
+						CF["DrawString"]("INTEL: " .. rev .. "%", pos + Vector(8, -36), 136, 10)
+					end
+
 					-- Write gold status
 					local gold = CF["LocationGoldPresent"][self.ShipControlLocationList[self.ShipControlSelectedLocation]]
 					if gold ~= nil then
@@ -642,15 +647,13 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						end
 
 						CF["SetStorageArray"](self.GS, self.StorageItems)
-						self.GS["DeserializeOnboard"] = "True"
 
 						self:SaveActors(false)
 						self:SaveCurrentGameState()
 
-						print(self.GS["Player0Gold"])
-
-						self:LaunchScript("Void Wanderers", "StrategyScreenMain.lua")
+						self:LaunchScript("VoidWanderers Strategy Screen", "StrategyScreenMain.lua")
 						FORM_TO_LOAD = BASE_PATH .. "FormSave.lua"
+						self.EnableBrainSelection = false
 						self:DestroyConsoles()
 						return
 					end

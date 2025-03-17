@@ -6,32 +6,33 @@ function VoidWanderers:InitClonesControlPanelUI()
 	-- Clone Control Panel
 	local x, y
 
-	x = tonumber(self.SceneConfig["ClonesControlPanelX"])
-	y = tonumber(self.SceneConfig["ClonesControlPanelY"])
+	x = tonumber(self.LS["ClonesControlPanelX"])
+	y = tonumber(self.LS["ClonesControlPanelY"])
 	if x ~= nil and y ~= nil then
 		self.ClonesControlPanelPos = Vector(x, y)
 	else
 		self.ClonesControlPanelPos = nil
 	end
 
-	x = tonumber(self.SceneConfig["ClonesDeployX"])
-	y = tonumber(self.SceneConfig["ClonesDeployY"])
+	x = tonumber(self.LS["ClonesDeployX"])
+	y = tonumber(self.LS["ClonesDeployY"])
 	if x ~= nil and y ~= nil then
 		self.ClonesDeployPos = Vector(x, y)
 	else
 		self.ClonesDeployPos = nil
 	end
 
-	x = tonumber(self.SceneConfig["ClonesInputX"])
-	y = tonumber(self.SceneConfig["ClonesInputY"])
+	x = tonumber(self.LS["ClonesInputX"])
+	y = tonumber(self.LS["ClonesInputY"])
 	if x ~= nil and y ~= nil then
 		self.ClonesInputPos = Vector(x, y)
 	else
 		self.ClonesInputPos = nil
 	end
 
+	-- Create actor
+	-- Ship
 	if self.ClonesControlPanelPos ~= nil then
-		self:LocateClonesControlPanelActor()
 		if not MovableMan:IsActor(self.ClonesControlPanelActor) then
 			self.ClonesControlPanelActor = CreateActor("Clones Control Panel")
 			if self.ClonesControlPanelActor ~= nil then
@@ -42,7 +43,6 @@ function VoidWanderers:InitClonesControlPanelUI()
 		end
 	end
 
-	-- Init variables
 	self.ClonesInputDelay = 3
 	self.ClonesInputRange = 35
 	self.ClonesControlLastMessageTime = -1000
@@ -68,17 +68,6 @@ function VoidWanderers:InitClonesControlPanelUI()
 		"L/R/U/D - Select, FIRE - Add to inventory"
 
 	self.Clones = CF["GetClonesArray"](self.GS)
-end
------------------------------------------------------------------------------------------
--- Find and assign appropriate actors
------------------------------------------------------------------------------------------
-function VoidWanderers:LocateClonesControlPanelActor()
-	for actor in MovableMan.AddedActors do
-		if actor.PresetName == "Clones Control Panel" then
-			self.ClonesControlPanelActor = actor
-			break
-		end
-	end
 end
 -----------------------------------------------------------------------------------------
 --

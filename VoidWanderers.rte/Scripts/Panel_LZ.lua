@@ -2,10 +2,6 @@
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:InitLZControlPanelUI()
-	-- Find suitable LZs
-	local lzs = CF.GetPointsArray(self.Pts, "Deploy", self.MissionDeploySet, "PlayerLZ")
-	self.LZControlPanelPos = CF.RandomSampleOfList(lzs, Activity.MAXPLAYERCOUNT)
-
 	self.LZControlPanelActor = {}
 	self.ControlPanelLZPressTimes = {}
 
@@ -25,18 +21,19 @@ function VoidWanderers:InitLZControlPanelUI()
 
 	local panelPos = Vector()
 
-	self.BrainsAbsent = self.GS["BrainsOnMission"] == "False"
+	local brainsAbsent = self.GS["BrainsOnMission"] == "False"
 	
-	self:LocateLZControlPanelActors()
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		if not MovableMan:IsActor(self.LZControlPanelActor[player + 1]) then
-			if (self.BrainsAbsent and self:PlayerActive(player) and self:PlayerHuman(player)) or (not self.BrainsAbsent and player == Activity.PLAYER_1) then
+		--print("PLAYER #" .. player .. ": " .. tostring(brainsAbsent and self:PlayerActive(player) and self:PlayerHuman(player)) .. " " .. tostring(not brainsAbsent and player == Activity.PLAYER_1))
+		if (brainsAbsent and self:PlayerActive(player) and self:PlayerHuman(player)) or (not brainsAbsent and player == Activity.PLAYER_1) then
+			-- Create actor
+			if not MovableMan:IsActor(self.LZControlPanelActor[player + 1]) then
 				self.LZControlPanelActor[player + 1] = CreateActor("LZ Control Panel")
 				if self.LZControlPanelActor[player + 1] ~= nil then
 					self.LZControlPanelActor[player + 1].Pos = self.LZControlPanelPos[player + 1]
 					self.LZControlPanelActor[player + 1].Team = CF.PlayerTeam
 					MovableMan:AddActor(self.LZControlPanelActor[player + 1])
-					if self.BrainsAbsent then
+					if brainsAbsent then
 						self:SetPlayerBrain(self.LZControlPanelActor[player + 1], player)
 						self:SwitchToActor(self.LZControlPanelActor[player + 1], player, CF.PlayerTeam)
 					end
@@ -52,38 +49,18 @@ function VoidWanderers:InitLZControlPanelUI()
 	self.lzBox = Box(zoneLeft + screenDim * -0.5, zoneRight + screenDim * 0.5)
 end
 -----------------------------------------------------------------------------------------
--- Find and assign appropriate landing zone actors
------------------------------------------------------------------------------------------
-function VoidWanderers:LocateLZControlPanelActors()
-	if self.BrainsAbsent then
-		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				local actor = self:GetPlayerBrain(player);
-				self.LZControlPanelActor[player + 1] = actor
-				self.LZControlPanelPos[player + 1] = actor.Pos
-			end
-		end
-	else
-		for actor in MovableMan.AddedActors do
-			if actor.PresetName == "LZ Control Panel" then
-				self.LZControlPanelActor[1] = actor
-				self.LZControlPanelPos[1] = actor.Pos
-				break
-			end
-		end
-	end
-end
------------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
+	print("Halp")
 	if orbitedCraft.PresetName ~= "Fake Drop Ship MK1" and self.GS["Mode"] ~= "Vessel" then
 		if orbitedCraft.Team == CF.PlayerTeam and orbitedCraft:HasScript("VoidWanderers.rte/Scripts/Brain.lua") then
+			self.DeployedActors = {}
+
 			-- Bring back actors
 			for actor in orbitedCraft.Inventory do
-				if actor.Team == CF.PlayerTeam and IsActor(actor) then
+				if actor.Team == CF.PlayerTeam and IsActor(actor) and ToActor(actor).Health > 0 then
 					actor = ToActor(actor)
-					local i = tonumber(self.GS["MissionReturningTroops"])
 					local assignable = true
 					local f = CF.GetPlayerFaction(self.GS, 0)
 
@@ -101,30 +78,29 @@ function VoidWanderers:CraftEnteredOrbit(orbitedCraft)
 						assignable = false
 					end
 
-					self:ClearDeployed()
 					if
-						assignable and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
+						assignable
+						and actor.PresetName ~= "LZ Control Panel"
+						and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 					then
-						self.GS["Deployed" .. i .. "Preset"] = actor.PresetName
-						self.GS["Deployed" .. i .. "Class"] = actor.ClassName
-						self.GS["Deployed" .. i .. "Module"] = actor.ModuleName
-						self.GS["Deployed" .. i .. "XP"] = actor:GetNumberValue("VW_XP")
-						self.GS["Deployed" .. i .. "Identity"] = actor:GetNumberValue("Identity")
-						self.GS["Deployed" .. i .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
-						self.GS["Deployed" .. i .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
-						self.GS["Deployed" .. i .. "Name"] = actor:GetStringValue("VW_Name")
-						
+						local pre, cls, mdl = CF.GetInventory(actor)
+						-- These actors must be deployed
+						local n = #self.DeployedActors + 1
+						self.DeployedActors[n] = {}
+						self.DeployedActors[n]["Preset"] = actor.PresetName
+						self.DeployedActors[n]["Class"] = actor.ClassName
+						self.DeployedActors[n]["Module"] = actor.ModuleName
+						self.DeployedActors[n]["XP"] = actor:GetNumberValue("VW_XP")
+						self.DeployedActors[n]["Identity"] = actor:GetNumberValue("Identity")
+						self.DeployedActors[n]["Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
+						self.DeployedActors[n]["Prestige"] = actor:GetNumberValue("VW_Prestige")
+						self.DeployedActors[n]["Name"] = actor:GetStringValue("VW_Name")
+						self.DeployedActors[n]["InventoryPresets"] = pre
+						self.DeployedActors[n]["InventoryClasses"] = cls
+						self.DeployedActors[n]["InventoryModules"] = mdl
 						for j = 1, #CF.LimbID do
-							self.GS["Deployed" .. i .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
+							self.DeployedActors[n][CF.LimbID[j]] = CF.GetLimbData(actor, j)
 						end
-
-						for j = 1, #pre do
-							self.GS["Deployed" .. i .. "Item" .. j .. "Preset"] = pre[j]
-							self.GS["Deployed" .. i .. "Item" .. j .. "Class"] = cls[j]
-							self.GS["Deployed" .. i .. "Item" .. j .. "Module"] = mdl[j]
-						end
-								
-						self.GS["MissionReturningTroops"] = tonumber(self.GS["MissionReturningTroops"]) + 1
 					end
 				end
 			end
@@ -156,12 +132,10 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:DestroyLZControlPanelUI()
-	if self.LZControlPanelActor then
-		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-			-- Destroy actor
-			if MovableMan:IsActor(self.LZControlPanelActor[player + 1]) then
-				self.LZControlPanelActor[player + 1].ToDelete = true
-			end
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		-- Destroy actor
+		if MovableMan:IsActor(self.LZControlPanelActor[player + 1]) then
+			self.LZControlPanelActor[player + 1].ToDelete = true
 		end
 	end
 	
@@ -249,6 +223,26 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					self.BombingRange = nil
 					self.BombingCount = nil
 					self.BombsControlPanelInBombMode = false
+				end
+			end
+		end
+	end
+
+	-- Re-create dead LZs
+	local brainsAbsent = self.GS["BrainsOnMission"] == "False"
+	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		--print("PLAYER #" .. player .. ": " .. tostring(brainsAbsent and self:PlayerActive(player) and self:PlayerHuman(player)) .. " " .. tostring(not brainsAbsent and player == Activity.PLAYER_1))
+		if (brainsAbsent and self:PlayerActive(player) and self:PlayerHuman(player)) or (not brainsAbsent and player == Activity.PLAYER_1) then
+			if not MovableMan:IsActor(self.LZControlPanelActor[player + 1]) then
+				self.LZControlPanelActor[player + 1] = CreateActor("LZ Control Panel")
+				if self.LZControlPanelActor[player + 1] ~= nil then
+					self.LZControlPanelActor[player + 1].Pos = self.LZControlPanelPos[player + 1]
+					self.LZControlPanelActor[player + 1].Team = CF.PlayerTeam
+					MovableMan:AddActor(self.LZControlPanelActor[player + 1])
+					if brainsAbsent then
+						self:SetPlayerBrain(self.LZControlPanelActor[player + 1], player)
+						self:SwitchToActor(self.LZControlPanelActor[player + 1], player, CF.PlayerTeam)
+					end
 				end
 			end
 		end
@@ -458,7 +452,8 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					)
 
 					-- Return to ship
-					if self.ControlPanelLZPressTimes[player + 1] + CF.TeamReturnDelay <= self.Time and (brainUnsafe <= 0 or safe) then
+					if self.ControlPanelLZPressTimes[player + 1] + CF.TeamReturnDelay == self.Time and (brainUnsafe <= 0 or safe) then
+						self.DeployedActors = {}
 
 						local actors = {}
 						-- Bring back actors
@@ -484,14 +479,8 @@ function VoidWanderers:ProcessLZControlPanelUI()
 								table.insert(actors, ToActor(actor))
 							end
 						end
-
-						self:ClearDeployed()
-						self.GS["MissionReturningTroops"] = 1
-						self.deployedActors = {}
-
 						for _, actor in pairs(actors) do
 							local assignable = true
-							local i = tonumber(self.GS["MissionReturningTroops"])
 
 							-- Check if unit is playable
 							local f = CF.GetPlayerFaction(self.GS, 0)
@@ -505,54 +494,38 @@ function VoidWanderers:ProcessLZControlPanelUI()
 
 							if assignable then
 								local pre, cls, mdl = CF.GetInventory(actor)
-
-								if actor.Team == CF.PlayerTeam and IsActor(actor) then
-									actor = ToActor(actor)
-
-									if
-										assignable and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
-									then
-										self.GS["Deployed" .. i .. "Preset"] = actor.PresetName
-										self.GS["Deployed" .. i .. "Class"] = actor.ClassName
-										self.GS["Deployed" .. i .. "Module"] = actor.ModuleName
-										self.GS["Deployed" .. i .. "XP"] = actor:GetNumberValue("VW_XP")
-										self.GS["Deployed" .. i .. "Identity"] = actor:GetNumberValue("Identity")
-										self.GS["Deployed" .. i .. "Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
-										self.GS["Deployed" .. i .. "Prestige"] = actor:GetNumberValue("VW_Prestige")
-										self.GS["Deployed" .. i .. "Name"] = actor:GetStringValue("VW_Name")
-										
-										for j = 1, #CF.LimbID do
-											self.GS["Deployed" .. i .. CF.LimbID[j]] = CF.GetLimbData(actor, j)
-										end
-
-										for j = 1, #pre do
-											self.GS["Deployed" .. i .. "Item" .. j .. "Preset"] = pre[j]
-											self.GS["Deployed" .. i .. "Item" .. j .. "Class"] = cls[j]
-											self.GS["Deployed" .. i .. "Item" .. j .. "Module"] = mdl[j]
-										end
-								
-										self.deployedActors[i] = MovableMan:RemoveActor(actor)
-										self.GS["MissionReturningTroops"] = tonumber(self.GS["MissionReturningTroops"]) + 1
-									end
+								-- These actors must be deployed
+								local n = #self.DeployedActors + 1
+								self.DeployedActors[n] = {}
+								self.DeployedActors[n]["Preset"] = actor.PresetName
+								self.DeployedActors[n]["Class"] = actor.ClassName
+								self.DeployedActors[n]["Module"] = actor.ModuleName
+								self.DeployedActors[n]["XP"] = actor:GetNumberValue("VW_XP")
+								self.DeployedActors[n]["Identity"] = actor:GetNumberValue("Identity")
+								self.DeployedActors[n]["Player"] = actor:GetNumberValue("VW_BrainOfPlayer")
+								self.DeployedActors[n]["Prestige"] = actor:GetNumberValue("VW_Prestige")
+								self.DeployedActors[n]["Name"] = actor:GetStringValue("VW_Name")
+								self.DeployedActors[n]["InventoryPresets"] = pre
+								self.DeployedActors[n]["InventoryClasses"] = cls
+								self.DeployedActors[n]["InventoryModules"] = mdl
+								for j = 1, #CF.LimbID do
+									self.DeployedActors[n][CF.LimbID[j]] = CF.GetLimbData(actor, j)
 								end
-
 								if actor.GoldCarried then
 									totalGoldCarried = totalGoldCarried + actor.GoldCarried
 								end
 								--print (#pre)
 							end
 						end
-
-						self.GS["DeserializeDeployedTeam"] = "True"
 					end
 				else
 					CF.DrawString("HOLD FIRE TO RETURN", pos + Vector(-50, -10), 130, 20)
 					self.ControlPanelLZPressTimes[player + 1] = nil
 				end
 
-				if self.missionData["missionStatus"] ~= nil then
-					local l = CF.GetStringPixelWidth(self.missionData["missionStatus"])
-					CF.DrawString(self.missionData["missionStatus"], pos + Vector(-l / 2, 16), 130, 25)
+				if self.MissionStatus ~= nil then
+					local l = CF.GetStringPixelWidth(self.MissionStatus)
+					CF.DrawString(self.MissionStatus, pos + Vector(-l / 2, 16), 130, 25)
 				end
 			elseif self.BombsControlPanelSelectedModes[selectedpanel] == self.BombsControlPanelModes.BOMB then
 				if not self.BombsControlPanelInBombMode then
@@ -707,35 +680,31 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		end
 	end
 
-	if self.GS["DeserializeDeployedTeam"] == "True" then
-		if self.missionData["missionAvailable"] then
-			if self.missionData["stage"] ~= CF.MissionStages.COMPLETED then
-				self:GiveMissionPenalties()
-			end
+	if self.DeployedActors then
+		if self.MissionAvailable and not self.MissionCompleted then
+			self:GiveMissionPenalties()
+		end
+
+		if self.MissionAvailable then
 			-- Generate new missions
 			CF.GenerateRandomMissions(self.GS)
 		end
 
 		-- Update casualties report
-		if tonumber(self.GS["MissionDeployedTroops"]) > tonumber(self.GS["MissionReturningTroops"]) then
+		if self.MissionDeployedTroops > #self.DeployedActors then
 			local s = ""
-			local lost = tonumber(self.GS["MissionDeployedTroops"]) - tonumber(self.GS["MissionReturningTroops"])
-
-			if tonumber(self.GS["MissionReturningTroops"]) == 0 then
-				self.MissionReport[#self.MissionReport + 1] = "ALL UNITS LOST"
-			elseif lost > 1 then
-				self.MissionReport[#self.MissionReport + 1] = lost .. " UNITS LOST"
-			else
-				self.MissionReport[#self.MissionReport + 1] = "1 UNIT LOST"
+			local a = ""
+			if self.MissionDeployedTroops - #self.DeployedActors > 1 then
+				s = "S"
+				a = "ALL "
 			end
-		elseif tonumber(self.GS["MissionDeployedTroops"]) < tonumber(self.GS["MissionReturningTroops"]) then
-			local s = ""
-			local recruited = tonumber(self.GS["MissionReturningTroops"]) - tonumber(self.GS["MissionDeployedTroops"])
 
-			if recruited > 1 then
-				self.MissionReport[#self.MissionReport + 1] = recruited .. " UNITS GAINED"
+			if #self.DeployedActors == 0 then
+				self.MissionReport[#self.MissionReport + 1] = a .. "UNIT" .. s .. " LOST"
 			else
-				self.MissionReport[#self.MissionReport + 1] = "1 UNIT GAINED"
+				self.MissionReport[#self.MissionReport + 1] = tostring(
+					self.MissionDeployedTroops - #self.DeployedActors
+				) .. " UNIT" .. s .. " LOST"
 			end
 		else
 			self.MissionReport[#self.MissionReport + 1] = "NO CASUALTIES"
@@ -776,20 +745,24 @@ function VoidWanderers:ProcessLZControlPanelUI()
 			CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + totalGoldCarried)
 		end
 
+		-- Save fog of war
+		if self.GS["FogOfWar"] and self.GS["FogOfWar"] == "true" then
+			self:SaveFogOfWarState(self.GS)
+		end
+
 		-- Dump mission report to config to be saved
 		CF.SaveMissionReport(self.GS, self.MissionReport)
 
 		local scene = CF.VesselScene[self.GS["Player0Vessel"]]
 		-- Set new operating mode
 		self.GS["Mode"] = "Vessel"
-		self.GS["Scene"] = scene
-		self.GS["DeserializeDeployedTeam"] = "True"
-		self.GS["DeserializeOnboard"] = "True"
-		self.GS["MissionInitiated"] = "False"
+		self.GS["SceneType"] = "Vessel"
+		self.GS["WasReset"] = "False"
 		
 		self:SaveCurrentGameState()
 
 		self:LaunchScript(scene, "Tactics.lua")
+		self.EnableBrainSelection = false
 		self:DestroyLZControlPanelUI()
 
 		-- Destroy mission and ambient specific objects
@@ -805,17 +778,14 @@ function VoidWanderers:ProcessLZControlPanelUI()
 		self.MissionCreate = nil
 		self.MissionUpdate = nil
 		self.MissionDestroy = nil
-		self.missionData = nil
 
 		self.AmbientCreate = nil
 		self.AmbientUpdate = nil
 		self.AmbientDestroy = nil
-		
-		self.BrainsAtStake = false
 
 		print(collectgarbage('count'))
 		collectgarbage("collect")
 		print(collectgarbage('count'))
-		return true
+		return
 	end
 end

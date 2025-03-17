@@ -5,16 +5,16 @@ function VoidWanderers:InitCloneShopControlPanelUI()
 	-- CloneShop Control Panel
 	local x, y
 
-	x = tonumber(self.SceneConfig["CloneShopControlPanelX"])
-	y = tonumber(self.SceneConfig["CloneShopControlPanelY"])
+	x = tonumber(self.LS["CloneShopControlPanelX"])
+	y = tonumber(self.LS["CloneShopControlPanelY"])
 	if x ~= nil and y ~= nil then
 		self.CloneShopControlPanelPos = Vector(x, y)
 	else
 		self.CloneShopControlPanelPos = nil
 	end
 
+	-- Create actor
 	if self.CloneShopControlPanelPos ~= nil then
-		self:LocateCloneShopControlPanelActor()
 		if not MovableMan:IsActor(self.CloneShopControlPanelActor) then
 			self.CloneShopControlPanelActor = CreateActor("Clone Shop Control Panel")
 			if self.CloneShopControlPanelActor ~= nil then
@@ -25,8 +25,9 @@ function VoidWanderers:InitCloneShopControlPanelUI()
 		end
 	end
 
-	-- Init variables
 	self.CloneShopControlPanelItemsPerPage = 8
+
+	-- Init variables
 	self.CloneShopControlPanelModes = { EVERYTHING = -1, LIGHT = 0, HEAVY = 1, ARMOR = 2, TURRET = 3 }
 	self.CloneShopControlPanelModesTexts = {}
 
@@ -49,17 +50,6 @@ function VoidWanderers:InitCloneShopControlPanelUI()
 	if CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].BLACKMARKET) then
 		self.CloneShopItems, self.CloneShopFilters = CF["GetCloneBlackMarketArray"](self.GS, true)
 		self.CloneShopBlackMarket = true
-	end
-end
------------------------------------------------------------------------------------------
--- Find and assign appropriate actors
------------------------------------------------------------------------------------------
-function VoidWanderers:LocateCloneShopControlPanelActor()
-	for actor in MovableMan.Actors do
-		if actor.PresetName == "Clone Shop Control Panel" then
-			self.CloneShopControlPanelActor = actor
-			break
-		end
 	end
 end
 -----------------------------------------------------------------------------------------

@@ -2,18 +2,19 @@
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:InitItemShopControlPanelUI()
+	-- ItemShop Control Panel
 	local x, y
 
-	x = tonumber(self.SceneConfig["ItemShopControlPanelX"])
-	y = tonumber(self.SceneConfig["ItemShopControlPanelY"])
+	x = tonumber(self.LS["ItemShopControlPanelX"])
+	y = tonumber(self.LS["ItemShopControlPanelY"])
 	if x ~= nil and y ~= nil then
 		self.ItemShopControlPanelPos = Vector(x, y)
 	else
 		self.ItemShopControlPanelPos = nil
 	end
 
+	-- Create actor
 	if self.ItemShopControlPanelPos ~= nil then
-		self:LocateItemShopControlPanelActor()
 		if not MovableMan:IsActor(self.ItemShopControlPanelActor) then
 			self.ItemShopControlPanelActor = CreateActor("Item Shop Control Panel")
 			if self.ItemShopControlPanelActor ~= nil then
@@ -24,8 +25,9 @@ function VoidWanderers:InitItemShopControlPanelUI()
 		end
 	end
 
-	-- Init variables
 	self.ItemShopControlPanelItemsPerPage = 8
+
+	-- Init variables
 	self.ItemShopControlPanelModes = {
 		EVERYTHING = -1,
 		PISTOL = 0,
@@ -66,17 +68,6 @@ function VoidWanderers:InitItemShopControlPanelUI()
 	if CF["IsLocationHasAttribute"](self.GS["Location"], CF["LocationAttributeTypes"].BLACKMARKET) then
 		self.ItemShopItems, self.ItemShopFilters = CF["GetItemBlackMarketArray"](self.GS, true)
 		self.ItemShopBlackMarket = true
-	end
-end
------------------------------------------------------------------------------------------
--- Find and assign appropriate actors
------------------------------------------------------------------------------------------
-function VoidWanderers:LocateItemShopControlPanelActor()
-	for actor in MovableMan.Actors do
-		if actor.PresetName == "Item Shop Control Panel" then
-			self.ItemShopControlPanelActor = actor
-			break
-		end
 	end
 end
 -----------------------------------------------------------------------------------------

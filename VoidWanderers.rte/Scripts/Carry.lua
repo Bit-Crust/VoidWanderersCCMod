@@ -79,6 +79,14 @@ function Update(self)
 					if
 						IsAttachable(foundMO)
 						and ToAttachable(foundMO):NumberValueExists("Carriable")
+						and (
+							not IsActor(foundMO:GetRootParent())
+							or (
+								ToActor(foundMO:GetRootParent()).Status ~= Actor.STABLE
+								and ToAttachable(foundMO).JointStrength > 0
+								and ToAttachable(foundMO).JointStrength <= armToUse.GripStrength
+							)
+						)
 					then
 						foundMO = ToAttachable(foundMO)
 					else

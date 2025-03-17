@@ -29,11 +29,11 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 					-- Create faction appropriate brain because we can do that
 					local rb = CF.MakeBrain(self.GS, 0, CF.PlayerTeam, act.Pos + Vector(0, 20), false)
 
-					if rb then
+					if rb and rb.Head then
 						rb.PieMenu:AddPieSlice(CreatePieSlice("RPG Brain PDA", "VoidWanderers.rte"), nil)
 						rb.Vel = Vector(0, 4)
 						rb.AIMode = Actor.AIMODE_SENTRY
-						rb.Health = act.Health / act.MaxHealth * rb.MaxHealth
+						rb.Health = act.Health / act.MaxHealth
 
 						-- Make this brain's player known
 						rb:SetNumberValue("VW_BrainOfPlayer", player + 1)
@@ -57,17 +57,17 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 
 						-- Only add to scene after everything is sorted
 						MovableMan:AddActor(rb)
-
-						-- Then switch
 						rb:AddScript("VoidWanderers.rte/Scripts/Brain.lua")
 						rb:EnableScript("VoidWanderers.rte/Scripts/Brain.lua")
+
+						-- Then switch
 						self:SwitchToActor(rb, player, CF.PlayerTeam)
 						self:SetPlayerBrain(rb, player)
 
 						-- Then record
 						self.GS["Brain" .. player .. "Detached"] = "True"
 						CF.ClearAllBrainsSupplies(self.GS, player)
-						self.createdBrainCases[player] = nil
+						self.CreatedBrains[player] = nil
 						act.ToDelete = true
 
 						-- Maintain identity only if it was ever determined
@@ -105,13 +105,12 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 				local cont = act:GetController()
 
 				if cont:IsState(Controller.PRESS_UP) and readytoattach then
-					local rb = CreateActor("Brain Case", "Base.rte")
+					local rb = CreateActor("Brain Case")
 
 					if rb then
 						rb.Team = CF.PlayerTeam
 						rb.Pos = self.BrainPos[player + 1]
 						rb.Health = act.Health/act.MaxHealth * rb.MaxHealth
-						rb:SetNumberValue("VW_BrainOfPlayer", player + 1)
 						-- Clear inventory
 						for j = 1, CF.MaxSavedItemsPerActor do
 							self.GS["Brain" .. player .. "Item" .. j .. "Preset"] = nil
@@ -126,7 +125,7 @@ function VoidWanderers:ProcessBrainControlPanelUI()
 							self.GS["Brain" .. player .. "Item" .. j .. "Module"] = mdl[j]
 						end
 						self.GS["Brain" .. player .. "Detached"] = "False"
-						self.createdBrainCases[player] = rb
+						self.CreatedBrains[player] = rb
 						if act.GoldCarried > 0 then
 							CF.SetPlayerGold(self.GS, 0, CF.GetPlayerGold(self.GS, 0) + act.GoldCarried)
 						end

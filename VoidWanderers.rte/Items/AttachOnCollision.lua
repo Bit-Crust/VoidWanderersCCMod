@@ -12,7 +12,7 @@ function OnCollideWithMO(self, mo, rootMO)
 		and self:GetNumberValue("Carriable") > 1
 		and mo
 		and IsAHuman(mo)
-		and CF.AttemptReplaceLimb(ToAHuman(mo), self)
+		and CF["AttemptReplaceLimb"](ToAHuman(mo), self)
 	then
 		self.attachSound:Play(self.Pos)
 		self.ToDelete = true
@@ -29,7 +29,7 @@ function OnCollideWithTerrain(self, terrainID)
 		local mo = MovableMan:GetMOFromID(
 			SceneMan:CastMORay(self.Pos, self.Vel.Normalized, self.ID, Activity.NOTEAM, rte.airID, true, 1)
 		)
-		if mo and IsAHuman(mo:GetRootParent()) and CF.AttemptReplaceLimb(ToAHuman(mo:GetRootParent()), self) then
+		if mo and IsAHuman(mo:GetRootParent()) and CF["AttemptReplaceLimb"](ToAHuman(mo:GetRootParent()), self) then
 			self.attachSound:Play(self.Pos)
 			self.ToDelete = true
 		end

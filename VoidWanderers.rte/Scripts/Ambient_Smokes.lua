@@ -1,39 +1,43 @@
 function VoidWanderers:AmbientCreate()
-	self.ambientData["smokeBrokenChambers"] = SceneMan.Scene:GetArea("Vessel")
-	self.ambientData["smokeNextEmission"] = self.Time + math.random(3)
-	self.ambientData["smokeEmitters"] = {}
-	self.ambientData["smokeEmitterCount"] = 4
-
-	for i = 1, self.ambientData["smokeEmitterCount"] do
-		self.ambientData["smokeEmitters"][i] = CreateAEmitter("White Smoke Burst", self.ModuleName)
-		self.ambientData["smokeEmitters"][i].Pos = self.ambientData["smokeBrokenChambers"]:GetRandomPoint()
-		self.ambientData["smokeEmitters"][i].RotAngle = math.rad(270)
-		self.ambientData["smokeEmitters"][i]:EnableEmission(true)
-		MovableMan:AddParticle(self.ambientData["smokeEmitters"][i])
+	self.AmbientSmokesBrokenChambers = SceneMan.Scene:GetArea("Vessel")
+	self.AmbientSmokesNextEmission = self.Time + math.random(3)
+	self.AmbientSmokesEmitters = {}
+	self.AmbientSmokesEmitterCount = 4
+	for i = 1, self.AmbientSmokesEmitterCount do
+		self.AmbientSmokesEmitters[i] = CreateAEmitter("White Smoke Burst", self.ModuleName)
+		self.AmbientSmokesEmitters[i].Pos = self.AmbientSmokesBrokenChambers:GetRandomPoint()
+		self.AmbientSmokesEmitters[i].RotAngle = math.rad(270)
+		self.AmbientSmokesEmitters[i]:EnableEmission(true)
+		MovableMan:AddParticle(self.AmbientSmokesEmitters[i])
 	end
 
+	self.AmbientSmokesNextHealthDamage = self.Time
+	self.Ship = SceneMan.Scene:GetArea("Vessel")
+
 	-- Explosions
-	self.ambientData["explosionTimer"] = Timer()
-	self.ambientData["explosionTimer"]:Reset()
-	self.ambientData["explosionInterval"] = 2500
-	self.ambientData["safeExplosionDistance"] = 250
+	self.ExplosionTimer = Timer()
+	self.ExplosionTimer:Reset()
+	self.ExplosionInterval = 2500
+	self.SafeExplosionDistance = 250
+
+	self.LastExplosionPos = self.Ship:GetRandomPoint()
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:AmbientUpdate()
-	if self.Time >= self.ambientData["smokeNextEmission"] then
-		self.ambientData["smokeNextEmission"] = self.Time + math.random(2)
+	if self.Time >= self.AmbientSmokesNextEmission then
+		self.AmbientSmokesNextEmission = self.Time + math.random(2)
 
-		for i = 1, self.ambientData["smokeEmitterCount"] do
-			if MovableMan:IsParticle(self.ambientData["smokeEmitters"][i]) then
-				self.ambientData["smokeEmitters"][i].Pos = self.ambientData["smokeBrokenChambers"]:GetRandomPoint()
+		for i = 1, self.AmbientSmokesEmitterCount do
+			if MovableMan:IsParticle(self.AmbientSmokesEmitters[i]) then
+				self.AmbientSmokesEmitters[i].Pos = self.AmbientSmokesBrokenChambers:GetRandomPoint()
 			end
 		end
 	end
 
 	-- Put explosion
-	if self.ambientData["explosionTimer"]:IsPastSimMS(self.ambientData["explosionInterval"]) then
+	if self.ExplosionTimer:IsPastSimMS(self.ExplosionInterval) then
 		local pos
 		local ok = true
 
@@ -41,8 +45,8 @@ function VoidWanderers:AmbientUpdate()
 		pos = self.Ship:GetRandomPoint()
 
 		for actor in MovableMan.Actors do
-			if actor.Team == CF.PlayerTeam then
-				if CF.DistUnder(pos, actor.Pos, self.ambientData["safeExplosionDistance"]) then
+			if actor.Team == CF["PlayerTeam"] then
+				if CF["DistUnder"](pos, actor.Pos, self.SafeExplosionDistance) then
 					ok = false
 					break
 				end
@@ -57,7 +61,7 @@ function VoidWanderers:AmbientUpdate()
 			Charge.Pos = pos
 			MovableMan:AddParticle(Charge)
 			Charge:GibThis()
-			self.ambientData["explosionTimer"]:Reset()
+			self.ExplosionTimer:Reset()
 		end
 	end
 end
@@ -66,9 +70,9 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:AmbientDestroy()
 	-- Destroy smoke emitters
-	for i = 1, self.ambientData["smokeEmitterCount"] do
-		if MovableMan:IsParticle(self.ambientData["smokeEmitters"][i]) then
-			self.ambientData["smokeEmitters"][i].ToDelete = true
+	for i = 1, self.AmbientSmokesEmitterCount do
+		if MovableMan:IsParticle(self.AmbientSmokesEmitters[i]) then
+			self.AmbientSmokesEmitters[i].ToDelete = true
 		end
 	end
 end

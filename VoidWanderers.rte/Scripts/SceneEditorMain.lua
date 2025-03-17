@@ -66,8 +66,8 @@ function VoidWanderers:StartActivity()
 
 	self.MouseFirePressed = true
 
-	self.SceneTimer = Timer()
-	self.SceneTimer:Reset()
+	self.GenericTimer = Timer()
+	self.GenericTimer:Reset()
 
 	self.MessageTimer = Timer()
 	self.MessageTimer:Reset()

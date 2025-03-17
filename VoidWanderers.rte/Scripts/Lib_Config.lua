@@ -155,14 +155,16 @@ end
 -----------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------
-CF.ReadConfigFile = function(modulename, filename)
+CF["ReadConfigFile"] = function(modulename, filename)
 	local config = {}
 
 	local f = LuaMan:FileOpen("Mods/" .. modulename .. "/CampaignData/" .. filename, "r")
 
 	while not LuaMan:FileEOF(f) do
 		line = LuaMan:FileReadLine(f)
-		local param, value = CF.ParseLine(line)
+		local param, value
+
+		param, value = CF["ParseLine"](line)
 		if param ~= nil then
 			config[param] = value
 		end
@@ -207,7 +209,7 @@ end
 CF["WriteSceneConfigFile"] = function(config, modulename, filename)
 	local file = LuaMan:FileOpen(modulename .. "/Scenes/Data/" .. filename, "w")
 
-	local sorted = CF.GetSortedListFromTable(config)
+	local sorted = CF["GetSortedListFromTable"](config)
 
 	for i = 1, #sorted do
 		LuaMan:FileWriteLine(file, tostring(sorted[i]["Key"]) .. "=" .. tostring(sorted[i]["Value"]) .. "\n")
@@ -220,8 +222,7 @@ end
 -----------------------------------------------------------------------------
 CF["WriteConfigFile"] = function(config, modulename, filename)
 	local file = LuaMan:FileOpen(modulename .. "/CampaignData/" .. filename, "w")
-
-	local sorted = CF.GetSortedListFromTable(config)
+	local sorted = CF["GetSortedListFromTable"](config)
 
 	for i = 1, #sorted do
 		LuaMan:FileWriteLine(file, tostring(sorted[i]["Key"]) .. "=" .. tostring(sorted[i]["Value"]) .. "\n")

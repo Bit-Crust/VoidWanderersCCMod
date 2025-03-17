@@ -35,9 +35,8 @@ function UnpackBrainForConfig(self, info)
 end
 
 function Create(self)
-	-- Set up constants and temps
+	-- Set up constants
 	local quantumCapacityPerLevel = CF_Read(self, {"QuantumCapacityPerLevel"})
-	local reference = ToActor(PresetMan:GetPreset(self.ClassName, self.PresetName, self.ModuleName))
 	
 	self.DistPerPower = 75
 	self.CoolDownInterval = 3000
@@ -69,9 +68,8 @@ function Create(self)
 
 	-- Defaults are basically nothing but slight regen
 	local val = 0
-	local healthProportion = self.Health / self.MaxHealth
-	self.MaxHealth = reference.MaxHealth * (100 + val) / 100
-	self.Health = self.MaxHealth * healthProportion
+	self.MaxHealth = self.MaxHealth * (100 + val) / 100
+	self.Health = self.MaxHealth
 	self.RegenInterval = 2000 - val * 10
 
 	self.ToughnessLevel = 0
@@ -89,10 +87,9 @@ function Create(self)
 		local player = self.BrainNumber
 
 		local val = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Level"}))
-		local healthProportion = self.Health / self.MaxHealth
-		self.MaxHealth = reference.MaxHealth * (100 + val) / 100
-		self.Health = self.MaxHealth * healthProportion
-		self.RegenInterval = 2000 - val * 10
+		self.MaxHealth = self.MaxHealth * (100 + val) / 100
+		self.Health = self.MaxHealth
+		self.RegenInterval = 1500 - val * 10
 			
 		self.ToughnessLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Toughness"}))
 		self.ShieldLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "Field"}))
@@ -105,10 +102,9 @@ function Create(self)
 		self.QuantumStorageLevel = tonumber(CF_Read(self, {"GS", "Brain" .. player .. "QuantumCapacity"}))
 	elseif self:GetNumberValue("VW_PreassignedSkills") ~= 0 then -- If preset with values
 		local val = self:GetNumberValue("VW_HealthSkill")
-		local healthProportion = self.Health / self.MaxHealth
-		self.MaxHealth = reference.MaxHealth * (100 + val) / 100
-		self.Health = self.MaxHealth * healthProportion
-		self.RegenInterval = 2000 - val * 10
+		self.MaxHealth = self.MaxHealth * (100 + val) / 100
+		self.Health = self.MaxHealth
+		self.RegenInterval = 1500 - val * 10
 
 		self.ToughnessLevel = self:GetNumberValue("VW_ToughSkill")
 		self.ShieldLevel = self:GetNumberValue("VW_ShieldSkill")
@@ -355,9 +351,6 @@ function Update(self)
 	end
 
 	if self.Status >= Actor.DYING then
-		if self.BrainNumber == Activity.PLAYER_NONE then
-			self:DisableScript("VoidWanderers.rte/Scripts/Brain.lua")
-		end
 		return
 	end
 
@@ -896,13 +889,8 @@ end
 
 function do_rpgbrain_shield(self)
 	if self.Health > 0 and self.Head and self.ShieldEnabled then
-		local maximumPressure = (self.ShieldRadius + self.ShieldLevel * self.ShieldRadiusPerPower) * self.ShieldPressureAmp
-
-		if self:IsStatus(Actor.UNSTABLE) then
-			self.ShieldPressure = maximumPressure
-		end
-
-		local radius = math.max(0, (maximumPressure - self.ShieldPressure) / self.ShieldPressureAmp)
+		local maximumRadius = (self.ShieldRadius + self.ShieldLevel * self.ShieldRadiusPerPower)
+		local radius = math.max(0, maximumRadius - self.ShieldPressure / self.ShieldPressureAmp)
 		local massindex = 1 + ((5 - self.ShieldLevel) * 0.20)
 
 		if radius > self.ShieldIneffectiveRadius then
@@ -928,7 +916,7 @@ function do_rpgbrain_shield(self)
 							projectile.Vel = tempVel:FlipX(true):GetRadRotatedCopy(incidentAngle + RangeRand(-0.1, 0.1))
 						end
 					
-						local pressureIncrement = (projectile.Mass * massindex * projectile.Vel.Magnitude * projectile.Sharpness) * math.cos(tempVel.AbsRadAngle)
+						local pressureIncrement = ((projectile.Mass * massindex) * projectile.Vel.Magnitude) * math.cos(tempVel.AbsRadAngle)
 						pressureTotal = pressureTotal + pressureIncrement
 
 						glowIndex = math.min(math.floor(pressureIncrement * 0.1), 15)
@@ -958,7 +946,7 @@ function do_rpgbrain_shield(self)
 		end
 
 		if self.DepressureTimer:IsPastSimMS(self.ShieldDepressureDelay) then
-			self.ShieldPressure = math.max(0, math.min(maximumPressure, self.ShieldPressure - 3 * self.ShieldLevel))
+			self.ShieldPressure = math.max(0, math.min(maximumRadius * self.ShieldPressureAmp, self.ShieldPressure - 3 * self.ShieldLevel))
 		end
 	end
 end
@@ -974,15 +962,13 @@ function do_rpgbrain_pda(self)
 		local detectionRange = self.ActiveMenu[self.SelectedMenuItem]["ActorDetectRange"]
 		if not self.ActiveMenu[self.SelectedMenuItem]["DetectAllActors"] then
 			for actor in MovableMan.Actors do
-				local dist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX).Magnitude
 				if
 					actor.Team == self.Team
 					and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab")
 					and (self.ActiveMenu[self.SelectedMenuItem]["AffectsBrains"] == actor:HasScript("VoidWanderers.rte/Scripts/Brain.lua"))
-					and detectionRange >= dist
+					and detectionRange >= SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX).Magnitude
 				then
 					self.SkillTargetActor = actor
-					detectionRange = dist
 				end
 			end
 

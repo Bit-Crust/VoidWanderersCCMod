@@ -7,7 +7,7 @@ function VoidWanderers:FormLoad()
 	local el
 	self.UI = {}
 
-	if CF.IsFileExists(self.ModuleName, STATE_CONFIG_FILE) then
+	if false and CF.IsFileExists(self.ModuleName, STATE_CONFIG_FILE) then
 		el = {}
 		el["Type"] = self.ElementTypes.BUTTON
 		el["Presets"] = {}
@@ -54,16 +54,44 @@ function VoidWanderers:FormLoad()
 
 	self.UI[#self.UI + 1] = el
 	
+	if CF.DebugEnableRandomActivity then
+		el = {}
+		el["Type"] = self.ElementTypes.BUTTON
+		el["Presets"] = {}
+		el["Presets"][self.ButtonStates.IDLE] = "SideMenuButtonIdle"
+		el["Presets"][self.ButtonStates.MOUSE_OVER] = "SideMenuButtonMouseOver"
+		el["Presets"][self.ButtonStates.PRESSED] = "SideMenuButtonPressed"
+		el["Pos"] = self.Mid + Vector(0, 120)
+		el["Text"] = "Launch Random Activity"
+		el["Width"] = 140
+		el["Height"] = 40
+
+		el["OnClick"] = self.BtnLaunchRandomActivity_OnClick
+
+		self.UI[#self.UI + 1] = el
+	end
+	
 	AudioMan:ClearMusicQueue()
 	AudioMan:PlayMusic("Base.rte/Music/Hubnester/ccmenu.ogg", -1, -1)
 end
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
+function VoidWanderers:BtnLaunchRandomActivity_OnClick()
+	self:SaveCurrentGameState()
+	CF.LaunchMission(scene, script)
+end
+-----------------------------------------------------------------------------------------
+--
+-----------------------------------------------------------------------------------------
 function VoidWanderers:BtnContinueGame_OnClick()
-	self:FormClose()
-	self:LoadCurrentGameState()
-	self:LaunchScript(self.GS["Scene"], "Tactics.lua")
+	config = CF.ReadConfigFile(self.ModuleName, STATE_CONFIG_FILE)
+	self:LaunchScript(config["Scene"], "Tactics.lua")
+
+	--self:FormClose()
+	--dofile(BASE_PATH.."FormDefault.lua")
+	--self:LoadCurrentGameState()
+	--self:FormLoad()
 end
 -----------------------------------------------------------------------------------------
 --
@@ -79,6 +107,7 @@ end
 function VoidWanderers:BtnLoadGame_OnClick()
 	self:FormClose()
 	dofile(BASE_PATH .. "FormLoad.lua")
+	self.ReturnToStart = true
 	self:FormLoad()
 end
 -----------------------------------------------------------------------------------------

@@ -60,7 +60,7 @@ function VoidWanderers:FormLoad()
 				self.Slots[i]["Faction"] = CF.FactionNames[config["Player0Faction"]]
 				self.Slots[i]["Gold"] = config["Player0Gold"]
 
-				local tm = tonumber(config["Time"]) or 0
+				local tm = tonumber(config["Time"])
 				local hrs
 				local mins
 
@@ -225,19 +225,18 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:SaveSlots_OnClick()
 	if not self.Slots[self.MouseOverElement]["Empty"] then
-		self.GS = CF.ReadConfigFile(self.ModuleName, "savegame" .. self.MouseOverElement .. ".dat")
-
+		local config = CF.ReadConfigFile(self.ModuleName, "savegame" .. self.MouseOverElement .. ".dat")
 		-- Reset mission listing if they are not correct
 		for j = 1, CF.MaxMissions do
 			local resetMissions = true
 			if
-				self.GS["Mission" .. j .. "Location"]
-				and self.GS["Mission" .. j .. "Type"]
-				and CF.LocationMissions[self.GS["Mission" .. j .. "Location"]]
+				config["Mission" .. j .. "Location"]
+				and config["Mission" .. j .. "Type"]
+				and CF.LocationMissions[config["Mission" .. j .. "Location"]]
 			then
-				for lm = 1, #CF.LocationMissions[self.GS["Mission" .. j .. "Location"]] do
+				for lm = 1, #CF.LocationMissions[config["Mission" .. j .. "Location"]] do
 					if
-						self.GS["Mission" .. j .. "Type"] == CF.LocationMissions[self.GS["Mission" .. j .. "Location"]][lm]
+						config["Mission" .. j .. "Type"] == CF.LocationMissions[config["Mission" .. j .. "Location"]][lm]
 					then
 						resetMissions = false
 						break
@@ -245,28 +244,27 @@ function VoidWanderers:SaveSlots_OnClick()
 				end
 				if resetMissions then
 					print("Mission location mismatch detected!! Mission listing has been reset!")
-					CF.GenerateRandomMissions(self.GS)
+					CF.GenerateRandomMissions(config)
 					break
 				end
 			end
 		end
-
 		-- Completion streak will be reset, so make sure that the mission report gets fixed
 		CF.MissionCombo = nil
 		for i = 1, CF.MaxMissionReportLines do
-			if self.GS["MissionReport" .. i] then
-				if string.find(self.GS["MissionReport" .. i], "Completion streak") then
-					self.GS["MissionReport" .. i] = "Completion streak: 0"
+			if config["MissionReport" .. i] then
+				if string.find(config["MissionReport" .. i], "Completion streak") then
+					config["MissionReport" .. i] = "Completion streak: 0"
 					break
 				end
 			else
 				break
 			end
 		end
-
-		self:WriteSaveData()
-		self:LoadSaveData()
+		CF.WriteConfigFile(config, self.ModuleName, STATE_CONFIG_FILE)
 		self:FormClose()
+
+		self:LoadCurrentGameState()
 		self:LaunchScript(self.GS["Scene"], "Tactics.lua")
 	end
 end
@@ -275,7 +273,12 @@ end
 -----------------------------------------------------------------------------------------
 function VoidWanderers:BtnBack_OnClick()
 	self:FormClose()
-	dofile(BASE_PATH .. "FormStart.lua")
+	if self.ReturnToStart then
+		dofile(BASE_PATH .. "FormStart.lua")
+	else
+		dofile(BASE_PATH .. "FormDefault.lua")
+	end
+	self.ReturnToStart = false
 	self:FormLoad()
 end
 -----------------------------------------------------------------------------------------

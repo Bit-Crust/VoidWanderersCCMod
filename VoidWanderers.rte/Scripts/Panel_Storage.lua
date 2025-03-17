@@ -2,26 +2,36 @@
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:InitStorageControlPanelUI()
+	-- Storage Control Panel
 	local x, y
 
-	x = tonumber(self.SceneConfig["StorageControlPanelX"])
-	y = tonumber(self.SceneConfig["StorageControlPanelY"])
+	x = tonumber(self.LS["StorageControlPanelX"])
+	y = tonumber(self.LS["StorageControlPanelY"])
 	if x ~= nil and y ~= nil then
 		self.StorageControlPanelPos = Vector(x, y)
 	else
 		self.StorageControlPanelPos = nil
 	end
 
-	x = tonumber(self.SceneConfig["StorageInputX"])
-	y = tonumber(self.SceneConfig["StorageInputY"])
+	x = tonumber(self.LS["StorageInputX"])
+	y = tonumber(self.LS["StorageInputY"])
 	if x ~= nil and y ~= nil then
 		self.StorageInputPos = Vector(x, y)
 	else
 		self.StorageInputPos = nil
 	end
-
+	--[[
+	x = tonumber(self.LS["StorageDeployX"])
+	y = tonumber(self.LS["StorageDeployY"])
+	if x~= nil and y ~= nil then
+		self.StorageDeployPos = Vector(x,y)
+	else
+		self.StorageDeployPos = nil
+	end
+	]]
+	--
+	-- Create actor
 	if self.StorageControlPanelPos ~= nil then
-		self:LocateStorageControlPanelActor()
 		if not MovableMan:IsActor(self.StorageControlPanelActor) then
 			self.StorageControlPanelActor = CreateActor("Storage Control Panel")
 			if self.StorageControlPanelActor ~= nil then
@@ -30,10 +40,9 @@ function VoidWanderers:InitStorageControlPanelUI()
 				MovableMan:AddActor(self.StorageControlPanelActor)
 			end
 		end
-	end
 
-		--[[Crate debug
-		local crt = CreateMOSRotating("Case", self.ModuleName)
+		-- Crate debug
+		--[[local crt = CreateMOSRotating("Case", self.ModuleName)
 		if crt then
 			crt.Pos = self.StorageControlPanelPos
 			MovableMan:AddParticle(crt)
@@ -44,14 +53,19 @@ function VoidWanderers:InitStorageControlPanelUI()
 			crt.Pos = self.StorageControlPanelPos + Vector(30,0)
 			MovableMan:AddParticle(crt)
 		end
-		--]]
 
-	-- Init variables
+		--]]
+		--
+	end
+
 	self.StorageControlPanelItemsPerPage = 9
+
 	self.StorageInputRange = 50
 	self.StorageInputDelay = 10
 	self.StorageInputModifier = 3
 	self.StorageInputRapidity = 1
+
+	-- Init variables
 	self.StorageControlPanelModes = {
 		SELL = -3,
 		UNKNOWN = -2,
@@ -85,17 +99,6 @@ function VoidWanderers:InitStorageControlPanelUI()
 
 	self.StorageItems, self.StorageFilters = CF["GetStorageArray"](self.GS, true)
 	self.Bombs = CF["GetBombsArray"](self.GS)
-end
------------------------------------------------------------------------------------------
--- Find and assign appropriate actors
------------------------------------------------------------------------------------------
-function VoidWanderers:LocateStorageControlPanelActor()
-	for actor in MovableMan.AddedActors do
-		if actor.PresetName == "Storage Control Panel" then
-			self.StorageControlPanelActor = actor
-			break
-		end
-	end
 end
 -----------------------------------------------------------------------------------------
 --

@@ -32,7 +32,7 @@ function VoidWanderers:FormLoad()
 	
 	self.LargestFactionDescriptionHeight = math.ceil(self.LargestFactionDescriptionHeight) * 10 + 20
 
-	self.MaxCPUPlayersSelectable = #CF.Factions - 1
+	self.MaxCPUPlayersSelectable = #CF.Factions
 
 	self.FactionButtonsPerRow = math.floor(FrameMan.PlayerScreenWidth / (self.TileW + 1)) -- Plates per row
 
@@ -107,22 +107,18 @@ function VoidWanderers:FormLoad()
 	self.UI[#self.UI + 1] = el
 	self.BtnOk = el
 
-	el = {}
-	el["Type"] = self.ElementTypes.BUTTON
-	el["Presets"] = {}
-	el["Presets"][self.ButtonStates.IDLE] = "SideMenuButtonSmallIdle"
-	el["Presets"][self.ButtonStates.MOUSE_OVER] = "SideMenuButtonSmallMouseOver"
-	el["Presets"][self.ButtonStates.PRESSED] = "SideMenuButtonSmallPressed"
-	el["Pos"] = self.Mid + Vector(self.ResX2 - 70 - 20, -self.ResY2 + 12 + 20)
-	el["Text"] = "Back"
-	el["Width"] = 140
-	el["Height"] = 40
-	el["Visible"] = true
+	if CF["IsFileExists"](self.ModuleName, STATE_CONFIG_FILE) then
+		el = {}
+		el["Type"] = self.ElementTypes.LABEL
+		el["Preset"] = nil
+		el["Pos"] = self.Mid + Vector(0, 95)
+		el["Text"] = "!!! WARNING, YOUR EXISTING GAME WILL BE DELETED !!!"
+		el["Width"] = 800
+		el["Height"] = 100
 
-	el["OnClick"] = self.BtnBack_OnClick
-
-	self.UI[#self.UI + 1] = el
-	self.BtnBack = el
+		self.UI[#self.UI + 1] = el
+		self.LblHeader = el
+	end
 
 	local xtile = 1
 	local ytile = 0
@@ -280,8 +276,18 @@ end
 --
 -----------------------------------------------------------------------------------------
 function VoidWanderers:BtnOk_OnClick()
+	--CF["StopUIProcessing"] = true
+
 	-- Create new game file
-	local player = self.FactionButtons[self.SelectedPlayerFaction]["FactionId"]
+	local config = {}
+
+	local player
+	local ally
+	local cpu = {}
+
+	player = self.FactionButtons[self.SelectedPlayerFaction]["FactionId"]
+	local j = 0
+
 	for i = 1, self.MaxCPUPlayersSelectable do
 		if (self.SelectedCPUFactions[i] == 0) then
 			table.remove(self.SelectedCPUFactions, i)
@@ -290,22 +296,30 @@ function VoidWanderers:BtnOk_OnClick()
 			i = i - 1
 		end
 	end
-	
-	local cpu = {player}
-	for i = 2, self.MaxCPUPlayersSelectable do
+
+	cpu[1] = player
+
+	for i = 1, self.MaxCPUPlayersSelectable do
 		if self.SelectedCPUFactions[i] ~= 0 then
-			cpu[i] = self.FactionButtons[self.SelectedCPUFactions[i]]["FactionId"]
+			cpu[i+1] = self.FactionButtons[self.SelectedCPUFactions[i]]["FactionId"]
 		else
-			cpu[i] = nil
+			cpu[i+1] = nil
 		end
 	end
 
+	print(#cpu)
+
 	-- Create new game data
-	self.GS = CF.MakeNewConfig(CHOSEN_DIFFICULTY, CHOSEN_AISKILLPLAYER, CHOSEN_AISKILLCPU, player, cpu, self)
-	self:WriteSaveData()
-	self:LoadSaveData()
+	dofile(LIB_PATH .. "Lib_NewGameData.lua")
+	config = CF["MakeNewConfig"](CHOSEN_DIFFICULTY, CHOSEN_AISKILLPLAYER, CHOSEN_AISKILLCPU, player, cpu, self)
+	CF["MakeNewConfig"] = nil
+
+	CF["WriteConfigFile"](config, self.ModuleName, STATE_CONFIG_FILE)
+
 	self:FormClose()
-	self:LaunchScript(gamestate["Scene"], "Tactics.lua")
+
+	--CF["LaunchMission"](config["Scene"], "Tactics.lua")
+	self:LaunchScript(config["Scene"], "Tactics.lua")
 end
 
 -----------------------------------------------------------------------------------------
@@ -331,14 +345,7 @@ function VoidWanderers:GetFactionButtonUnderMouse(pos)
 
 	return nil
 end
------------------------------------------------------------------------------------------
---
------------------------------------------------------------------------------------------
-function VoidWanderers:BtnBack_OnClick()
-	self:FormClose()
-	dofile(BASE_PATH .. "FormStart.lua")
-	self:FormLoad()
-end
+
 -----------------------------------------------------------------------------------------
 --
 -----------------------------------------------------------------------------------------
@@ -499,7 +506,7 @@ function VoidWanderers:FormClose()
 
 	-- Destroy actors
 	for actor in MovableMan.Actors do
-		if actor.PresetName ~= "Fake Brain Case" then
+		if actor.PresetName ~= "Brain Case" then
 			actor.ToDelete = true
 		end
 	end
