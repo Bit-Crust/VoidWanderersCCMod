@@ -103,7 +103,7 @@ function Update(self)
 				local adjustedAimAngle = self:GetAimAngle(false) * self.FlipFactor;
 
 				local reach = armToUse.MaxLength * 1.5;
-				local reachPoint = armToUse.JointPos;
+				local reachPoint = armToUse.HandPos;
 
 				local itemMOID = SceneMan:CastMORay(
 					reachPoint,
