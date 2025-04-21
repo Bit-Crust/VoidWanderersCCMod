@@ -1,33 +1,24 @@
 function Create(self)
-	self.activity = ActivityMan:GetActivity();
+	-- These are all the things which persist between frames
+	-- listed so that it's a little easier to make certain nothing stupid slips through
+	
+	-- This is the object which is picked up, like any dead actor
+	self.pickedUpObject = nil;
 
-	if self:NumberValueExists("pickedUpObjectID") then
-		self.pickedUpObject = MovableMan:GetMOFromID(self:GetNumberValue("pickedUpObjectID"));
-		self.pickedUpObjectName = self:GetStringValue("pickedUpObjectName");
-		self.EquippedItem.SharpStanceOffset = Vector((self.FGArm or self.BGArm).MaxLength * 0.75, 1);
-		self.EquippedItem.Lifetime = -1;
-		self.EquippedItem.SharpLength = 1;
-		self.EquippedItem.DeleteWhenRemovedFromParent = true;
-		self.EquippedItem:SetStringValue("OriginalPresetName", self.EquippedItem.PresetName);
-		self.EquippedItem:SetStringValue("ModdedPresetName", self.pickedUpObjectName);
-		self.EquippedItem.PresetName = self.pickedUpObject.PresetName;
+	-- This is the preset name the object had at the moment it was picked up
+	self.pickedUpObjectPresetName = nil;
 
-		if self.EquippedItem:HasScript("VoidWanderers.rte/Scripts/PresetModSafeguard.lua") then
-			self.EquippedItem:EnableScript("VoidWanderers.rte/Scripts/PresetModSafeguard.lua")
-		else
-			self.EquippedItem:AddScript("VoidWanderers.rte/Scripts/PresetModSafeguard.lua")
-		end
+	-- This is the object which is in reach of the actor
+	self.objectInReach = nil;
 
-		self:RemoveStringValue("pickedUpObjectName");
-		self:RemoveNumberValue("pickedUpObjectID");
-	end
-end
 
-function OnSave(self)
-	if self.pickedUpObjectName then
-		self:SetStringValue("pickedUpObjectName", self.pickedUpObjectName);
-		self:SetNumberValue("pickedUpObjectID", self.pickedUpObject.ID);
-	end
+	self.tempItem = nil;
+
+
+	self.tempObject = nil;
+
+
+	self.tossVec = nil;
 end
 
 function Update(self)
@@ -39,7 +30,7 @@ function Update(self)
 		and self.Status == Actor.STABLE
 		and armToUse
 		and self.EquippedItem and IsThrownDevice(self.EquippedItem)
-		and (self.EquippedItem.PresetName == self.pickedUpObjectName or self.EquippedItem:GetStringValue("ModdedPresetName") == self.pickedUpObjectName)
+		and (self.EquippedItem.DisplayName == self.pickedUpObject.DisplayName)
 		and (not IsActor(self.pickedUpObject) or (IsACrab(self.pickedUpObject) or (IsAHuman(self.pickedUpObject) and (not ToAHuman(self.pickedUpObject).FGLeg) and (not ToAHuman(self.pickedUpObject).BGLeg) or self.pickedUpObject.Status ~= Actor.STABLE)))
 	then
 		--TODO: Transfer impulse forces?
@@ -56,9 +47,9 @@ function Update(self)
 		if self:GetController():IsState(Controller.WEAPON_FIRE) then
 			self.tempItem = ToThrownDevice(self.EquippedItem);
 			self.tempObject = self.pickedUpObject;
-			self.maxThrowVel = self.tempItem:GetCalculatedMaxThrowVelIncludingArmThrowStrength();
-			self.minThrowVel = self.tempItem.MinThrowVel ~= 0 and self.tempItem.MinThrowVel or (self.maxThrowVel / 5);
-			self.tossVec = Vector(self.minThrowVel + (self.maxThrowVel - self.minThrowVel) * self.ThrowProgress, 0.5 * NormalRand()):RadRotate(self:GetAimAngle(true));
+			local maxThrowVel = self.tempItem:GetCalculatedMaxThrowVelIncludingArmThrowStrength();
+			local minThrowVel = self.tempItem.MinThrowVel ~= 0 and self.tempItem.MinThrowVel or (maxThrowVel / 5);
+			self.tossVec = Vector(minThrowVel + (maxThrowVel - minThrowVel) * self.ThrowProgress, 0.5 * NormalRand()):RadRotate(self:GetAimAngle(true));
 		end
 
 		if self:GetController():IsState(Controller.WEAPON_DROP) then
@@ -75,22 +66,21 @@ function Update(self)
 			armToUse.HandPos = armToUse.HandPos + tossVec;
 			self.pickedUpObject.Pos = armToUse.HandPos;
 
-			self:RemoveInventoryItem(self.pickedUpObjectName);
+			self:RemoveInventoryItem(self.pickedUpObjectPresetName);
 		end
 	else
-		--Remove any dummy items that might have been left over
-		if self.pickedUpObjectName then
+		if self.pickedUpObjectPresetName then
 			if self.pickedUpObject and IsMOSRotating(self.pickedUpObject) then
 				self.pickedUpObject.Team = self.pickedUpObject:GetNumberValue("VW_CarryingTeam");
 			end
 
-			self:RemoveInventoryItem(self.pickedUpObjectName);
+			self:RemoveInventoryItem(self.pickedUpObjectPresetName);
 
-			if self.EquippedItem and self.EquippedItem.PresetName == self.pickedUpObjectName then
+			if self.EquippedItem and self.EquippedItem.PresetName == self.pickedUpObjectPresetName then
 				self.EquippedItem.ToDelete = true;
 			end
 
-			self.pickedUpObjectName = nil;
+			self.pickedUpObjectPresetName = nil;
 			self:SetWhichMOToNotHit(nil, -1);
 		end
 
@@ -121,7 +111,9 @@ function Update(self)
 					true,
 					3
 				);
+
 				local foundMO = MovableMan:GetMOFromID(itemMOID);
+
 				if foundMO and IsMOSRotating(foundMO) and armToUse.GripStrength > foundMO.PinStrength then
 					if
 						IsAttachable(foundMO)
@@ -160,10 +152,13 @@ function Update(self)
 						self.objectInReach = nil;
 					else
 						self.ItemInReach = nil;
-						local displayName = self.objectInReach:GetStringValue("VW_Name") == ""
-								and self.objectInReach.PresetName
-							or self.objectInReach:GetStringValue("VW_Name");
-						local screen = self.activity:ScreenOfPlayer(self:GetController().Player);
+						local displayName = self.objectInReach:GetStringValue("VW_Name");
+
+						if displayName == "" then
+							displayName = self.objectInReach.DisplayName;
+						end
+
+						local screen = ActivityMan:GetActivity():ScreenOfPlayer(self:GetController().Player);
 
 						if screen ~= -1 then
 							local drawPos = self.AboveHUDPos
@@ -176,6 +171,7 @@ function Update(self)
 											* 0.5,
 									-3
 								);
+
 							PrimitiveMan:DrawBitmapPrimitive(
 								screen,
 								drawPos + Vector(-6, 5),
@@ -184,13 +180,15 @@ function Update(self)
 								false,
 								false
 							);
+
 							PrimitiveMan:DrawTextPrimitive(screen, drawPos, displayName, true, 0);
 						end
 
 						if self:GetController():IsState(Controller.WEAPON_PICKUP) then
 							self.pickedUpObject = self.objectInReach;
-							self.pickedUpObject.PinStrength = 0;
+							self.objectInReach = nil;
 
+							self.pickedUpObject.PinStrength = 0;
 							local actor = nil;
 
 							if IsAHuman(self.pickedUpObject) then
@@ -217,61 +215,47 @@ function Update(self)
 								end
 							end
 
-							self.pickedUpObjectName = displayName;
-							self.objectInReach = nil;
-							local actorItem = CreateThrownDevice("Null Throwable", "VoidWanderers.rte");
+							local standinHoldable = CreateThrownDevice("Null Throwable", "VoidWanderers.rte");
 							self.pickedUpObject:SetNumberValue("VW_CarryingTeam", self.pickedUpObject.Team);
 							self.pickedUpObject.Team = self.Team;
+							self.pickedUpObjectPresetName = self.pickedUpObject.PresetName;
 
 							if IsActor(self.pickedUpObject) then
-								self.pickedUpObject = ToActor(self.pickedUpObject);
-								local sound = self.pickedUpObject.AlarmSound or self.pickedUpObject.PainSound;
-								if sound and self.pickedUpObject.Status < Actor.INACTIVE then
-									sound:Play(self.pickedUpObject.Pos);
+								local pickedUpActor = ToActor(self.pickedUpObject);
+								local sound = pickedUpActor.AlarmSound or pickedUpActor.PainSound;
+
+								if sound and pickedUpActor.Status < Actor.INACTIVE then
+									sound:Play(pickedUpActor.Pos);
 								end
-								actorItem.StanceOffset = Vector(armToUse.MaxLength * 0.5, armToUse.MaxLength * 0.5);
+
+								standinHoldable.StanceOffset = Vector(armToUse.MaxLength * 0.5, armToUse.MaxLength * 0.5);
 							else
-								if
-									IsAttachable(self.pickedUpObject) and ToAttachable(self.pickedUpObject):GetParent()
-								then
-									ToAttachable(self.pickedUpObject)
-										:GetParent()
-										:RemoveAttachable(ToAttachable(self.pickedUpObject), true, true);
+								if IsAttachable(self.pickedUpObject) then
+									local pickedUpAttachable = ToAttachable(self.pickedUpObject);
+
+									if pickedUpAttachable:GetParent() then
+										pickedUpAttachable:GetParent():RemoveAttachable(pickedUpAttachable, true, true);
+									end
 								end
-								self.pickedUpObject:SetNumberValue(
-									"Carriable",
-									self.pickedUpObject:GetNumberValue("Carriable") + 1
-								);
+
+								self.pickedUpObject:SetNumberValue("Carriable", self.pickedUpObject:GetNumberValue("Carriable") + 1);
 								self.pickedUpObject.IgnoresTeamHits = true;
-								actorItem.StanceOffset = Vector(armToUse.MaxLength * 0.66, armToUse.MaxLength * 0.33);
+								standinHoldable.StanceOffset = Vector(armToUse.MaxLength * 0.66, armToUse.MaxLength * 0.33);
 							end
 
 							local totalMass = self.pickedUpObject.Mass + self.Mass;
 
 							if totalMass >= 1 then
-								self.Vel = self.Vel * (self.pickedUpObject.Mass / totalMass)
-									+ self.pickedUpObject.Vel * (self.Mass / totalMass);
+								self.Vel = self.Vel * (self.Mass / totalMass) + self.pickedUpObject.Vel * (self.pickedUpObject.Mass / totalMass);
 							end
 
-							local massRatio = self.pickedUpObject.Mass > 1 and math.min((self.Mass - self.InventoryMass) / self.pickedUpObject.Mass, 2) or 1;
-							actorItem.SharpStanceOffset = Vector(armToUse.MaxLength * 0.75, 1);
-							actorItem.Lifetime = -1;
-							actorItem.SharpLength = 1;
-							actorItem.DeleteWhenRemovedFromParent = true;
-							
-							actorItem:SetStringValue("OriginalPresetName", actorItem.PresetName);
-							actorItem:SetStringValue("ModdedPresetName", self.pickedUpObjectName);
-
-							actorItem.PresetName = self.pickedUpObjectName;
-
-							if actorItem:HasScript("VoidWanderers.rte/Scripts/PresetModSafeguard.lua") then
-								actorItem:EnableScript("VoidWanderers.rte/Scripts/PresetModSafeguard.lua")
-							else
-								actorItem:AddScript("VoidWanderers.rte/Scripts/PresetModSafeguard.lua")
-							end
-
-							self:AddInventoryItem(actorItem);
-							self:EquipNamedDevice(actorItem.PresetName, true);
+							standinHoldable.SharpStanceOffset = Vector(armToUse.MaxLength * 0.75, 1);
+							standinHoldable.DisplayName = displayName;
+							standinHoldable.Lifetime = -1;
+							standinHoldable.SharpLength = 1;
+							standinHoldable.DeleteWhenRemovedFromParent = true;
+							self:AddInventoryItem(standinHoldable);
+							self:EquipNamedDevice(standinHoldable.PresetName, true);
 							armToUse.HandPos = self.pickedUpObject.Pos;
 						end
 					end
@@ -282,13 +266,18 @@ function Update(self)
 
 	if self.tempItem and IsHeldDevice(self.tempItem) then
 		self.tempItem = ToHeldDevice(self.tempItem);
-		
+
 		if not self.tempItem:IsBeingHeld() and self.tempItem:IsActivated() then
 			self.tempObject.Vel = self.Vel * 0.5 + self.tossVec * 4;
 			self.tempObject.AngularVel = self.AngularVel + RangeRand(-5, 2.5) * self.FlipFactor;
-			self.tempObject.Pos = armToUse.HandPos + self.tossVec;
 
-			armToUse.HandPos = self.tempObject.Pos;
+			if armToUse then
+				self.tempObject.Pos = armToUse.HandPos + self.tossVec;
+				armToUse.HandPos = self.tempObject.Pos;
+			end
+
+			self.tempItem = nil;
+			self.tempObject = nil;
 		end
 	end
 end
