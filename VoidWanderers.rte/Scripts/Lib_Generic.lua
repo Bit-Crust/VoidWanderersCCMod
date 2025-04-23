@@ -936,9 +936,9 @@ end
 -- Menu drawing functions
 -----------------------------------------------------------------------
 do
-	local emptyBlend = { 080, 080, 080, 080 };
+	local emptyBlend = { 000, 000, 000, 000 };
 	local drawPrimitives = PrimitiveMan.DrawPrimitives;
-	local transBlend = DrawBlendMode.Screen;
+	local transBlend = DrawBlendMode.NoBlend;
 	local playerNone = Activity.PLAYER_NONE;
 
 	local rankBaseColor = {

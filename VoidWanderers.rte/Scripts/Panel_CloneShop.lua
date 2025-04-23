@@ -177,10 +177,10 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 
 			if self.CloneShopTradeStar then
 				local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_CloneShop_Description.png";
-				PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.Transparency, 080, 080, 080, 080, { BitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(90, 0), path, 0, false, false) });
+				PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.NoBlend, 080, 080, 080, 080, { BitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(90, 0), path, 0, false, false) });
 			elseif self.CloneShopBlackMarket then
 				local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_CloneBlackMarket_Description.png";
-				PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.Transparency, 080, 080, 080, 080, { BitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(90, 0), path, 0, false, false) });
+				PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.NoBlend, 080, 080, 080, 080, { BitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(90, 0), path, 0, false, false) });
 			end
 
 			local index = self.CloneShopFilters[mode][itemSelected];
@@ -299,7 +299,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 		local player = Activity.PLAYER_NONE;
 		local pos = self.CloneShopControlPanelActor.Pos;
 		local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_CloneShop.png";
-		PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.Screen, 080, 080, 080, 080, { BitmapPrimitive(player, pos, path, 0, false, false) });
+		PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.NoBlend, 080, 080, 080, 080, { BitmapPrimitive(player, pos, path, 0, false, false) });
 	end
 
 	if MovableMan:IsActor(self.CloneShopControlPanelActor) then

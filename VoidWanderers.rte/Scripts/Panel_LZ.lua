@@ -190,7 +190,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 	
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if (not controlled[player + 1]) and self.LZControlPanelActor[player + 1] then
-		PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.Screen, 080, 080, 080, 080, { BitmapPrimitive(Activity.PLAYER_NONE, self.LZControlPanelActor[player + 1].Pos, "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_LZ.png", 0, false, false) });
+		PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.NoBlend, 080, 080, 080, 080, { BitmapPrimitive(Activity.PLAYER_NONE, self.LZControlPanelActor[player + 1].Pos, "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_LZ.png", 0, false, false) });
 		end
 	end
 	

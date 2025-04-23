@@ -147,11 +147,11 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 141, pos.Y - 70, pos.X, pos.Y + 71, CF.MenuNormalIdle);
 					if self.ShipControlMode == self.ShipControlPanelModes.PLANET then
 						local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_Ship_GalaxyBackA.png";
-						PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.Screen, 080, 080, 080, 080, { BitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(70, 0), path, 0, false, false) });
+						PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.NoBlend, 080, 080, 080, 080, { BitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(70, 0), path, 0, false, false) });
 					else
 						if self.ShipControlMode == self.ShipControlPanelModes.LOCATION then
 							local path = CF.PlanetGlow[self.GS["Planet"]];
-							PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.Screen, 080, 080, 080, 080, { BitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(70, 0), path, 0, false, false) });
+							PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.NoBlend, 080, 080, 080, 080, { BitmapPrimitive(Activity.PLAYER_NONE, pos + Vector(70, 0), path, 0, false, false) });
 						else
 							CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X + 0, pos.Y - 70, pos.X + 141, pos.Y + 71, CF.MenuNormalIdle);
 						end
@@ -1378,7 +1378,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 		local rotation = 0;
 		local hflip = false;
 		local vflip = false;
-		PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.Screen, 080, 080, 080, 080, { BitmapPrimitive(player, pos, path, rotation, hflip, vflip) });
+		PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.NoBlend, 080, 080, 080, 080, { BitmapPrimitive(player, pos, path, rotation, hflip, vflip) });
 	end
 
 	if MovableMan:IsActor(self.ShipControlPanelActor) then

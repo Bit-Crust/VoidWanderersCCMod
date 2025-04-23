@@ -347,7 +347,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 		local player = Activity.PLAYER_NONE;
 		local pos = self.ItemShopControlPanelActor.Pos;
 		local path = "Mods/VoidWanderers.rte/UI/ControlPanels/ControlPanel_ItemShop.png";
-		PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.Screen, 080, 080, 080, 080, { BitmapPrimitive(player, pos, path, 0, false, false) });
+		PrimitiveMan.DrawPrimitives(PrimitiveMan, DrawBlendMode.NoBlend, 080, 080, 080, 080, { BitmapPrimitive(player, pos, path, 0, false, false) });
 	end
 
 	if MovableMan:IsActor(self.ItemShopControlPanelActor) then
