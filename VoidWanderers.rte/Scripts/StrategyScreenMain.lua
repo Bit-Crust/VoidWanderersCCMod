@@ -6,294 +6,256 @@ function VoidWanderers:StartSceneProcess()
 
 	self.AllowsUserSaving = false;
 
-	if self.IsInitialized == nil then
-		self.IsInitialized = false;
-	elseif self.IsInitialized == true then
-		return;
-	end
-	
-	self.MenuNavigationSchemes = { KEYBOARD = 0, MOUSE = 1, GAMEPAD = 2 };
-	self.MenuNavigationScheme = self.MenuNavigationSchemes.KEYBOARD;
-	self.MenuNavigatingPlayer = Activity.PLAYER_NONE;
-	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+	self.screens = { SCREEN_NONE = -1, SCREEN_ONE = 0, SCREEN_TWO = 1, SCREEN_THREE = 2, SCREEN_FOUR = 3, MAXSCREENCOUNT = 4 };
+	self.menuNavigationSchemes = { KEYBOARD = 0, MOUSE = 1, GAMEPAD = 2 };
+
+	self.menuNavigationScheme = self.menuNavigationSchemes.KEYBOARD;
+	self.menuNavigatingPlayer = Activity.PLAYER_NONE;
+
+	for player = Activity.PLAYER_NONE + 1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
-			self.MenuNavigatingPlayer = player;
+			self.menuNavigatingPlayer = player;
 			local cont = self:GetPlayerController(player);
+
 			if cont:IsMouseControlled() then
-				self.MenuNavigationScheme = self.MenuNavigationSchemes.MOUSE;
+				self.menuNavigationScheme = self.menuNavigationSchemes.MOUSE;
 			elseif cont:IsGamepadControlled() then
-				self.MenuNavigationScheme = self.MenuNavigationSchemes.GAMEPAD;
+				self.menuNavigationScheme = self.menuNavigationSchemes.GAMEPAD;
 			end
+
 			break;
 		end
 	end
 
-	self.Mid = Vector(SceneMan.Scene.Width / 4, SceneMan.Scene.Height / 2);
+	self.mid = Vector(SceneMan.Scene.Width / 4, SceneMan.Scene.Height / 2);
+	self.res = Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight);
+	self.mouse = Vector();
+	self.scroll = self.mid * 1;
+	self.cursor = self.mouse + self.scroll; 
+	self.scrollingScreen = { X = false, Y = false };
+	self.screen = Box(-self.res.X / 2, -self.res.Y / 2, self.res.X / 2, self.res.Y / 2);
+	self.bound = Box(self.mid.X, self.res.Y / 2, self.mid.X, SceneMan.Scene.Height - self.res.Y / 2);
 
-	self.Res = Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight);
-
-	-- Mouse is screen coords
-	self.Mouse = Vector();
-	-- Scroll is screen offset
-	self.Scroll = self.Mid * 1;
-	-- Cursor is selection in space
-	self.Cursor = self.Mouse + self.Scroll; 
-
-	self.ScrollingScreen = { X = false, Y = false };
-
-	self.Screen = Box(-self.Res.X / 2, -self.Res.Y / 2, self.Res.X / 2, self.Res.Y / 2);
-	self.Bound = Box(self.Mid.X, self.Res.Y / 2, self.Mid.X, SceneMan.Scene.Height - self.Res.Y / 2);
-
-	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+	for player = Activity.PLAYER_NONE + 1, Activity.MAXPLAYERCOUNT - 1 do
 		self:SetPlayerBrain(nil, player);
 		self:SetPlayerHadBrain(player, false);
 		FrameMan:ClearScreenText(player);
 	end
 
-	self.CamOffset = {};
-	self.CamOffset[0] = self.Mid;
-	self.CamOffset[1] = self.Mid + Vector(self.Mid.X * 2, -self.Mid.Y / 2);
-	self.CamOffset[2] = self.Mid + Vector(self.Mid.X * 2, 0);
-	self.CamOffset[3] = self.Mid + Vector(self.Mid.X * 2, self.Mid.Y / 2);
+	self.camOffset = {
+		[0] = self.mid,
+		[1] = self.mid + Vector(self.mid.X * 2, -self.mid.Y / 2),
+		[2] = self.mid + Vector(self.mid.X * 2, 0),
+		[3] = self.mid + Vector(self.mid.X * 2, self.mid.Y / 2),
+	};
 
-	self.FirePressed = {};
-	self.MouseFirePressed = false;
-
-	self.UI = {};
-
-	dofile(FORM_TO_LOAD);
-	self:FormLoad();
-
-	self.MouseOverElement = nil;
-	self.MousePressedElement = nil;
-	self.MousePressStartElement = nil;
-	self.MousePressEndElement = nil;
-
-	self.IsInitialized = true;
+	self.mouseFirePressed = false;
+	self.hoverOverIndex = nil;
+	self.pressHoldIndex = nil;
+	self.pressStartIndex = nil;
 end
 -----------------------------------------------------------------------
 -- Update Scene Process
 -----------------------------------------------------------------------
 function VoidWanderers:UpdateSceneProcess()
-	local cont = self:GetPlayerController(self.MenuNavigatingPlayer);
+	self:ClearObjectivePoints();
+	local navigator = self.menuNavigatingPlayer;
+	local cont = self:GetPlayerController(navigator);
 
 	if cont:IsMouseControlled() then
-		self.MenuNavigationScheme = self.MenuNavigationSchemes.MOUSE;
+		self.menuNavigationScheme = self.menuNavigationSchemes.MOUSE;
 	elseif cont:IsGamepadControlled() then
-		self.MenuNavigationScheme = self.MenuNavigationSchemes.GAMEPAD;
+		self.menuNavigationScheme = self.menuNavigationSchemes.GAMEPAD;
 	else
-		self.MenuNavigationScheme = self.MenuNavigationSchemes.KEYBOARD;
+		self.menuNavigationScheme = self.menuNavigationSchemes.KEYBOARD;
 	end
-	
-	self:ClearObjectivePoints();
 
-	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+	for player = Activity.PLAYER_NONE + 1, Activity.MAXPLAYERCOUNT - 1 do
 		local screen = self:ScreenOfPlayer(player);
-		FrameMan:ClearScreenText(player);
-		if screen ~= -1 then
-			if screen ~= 0 then
-				CameraMan:SetOffset(self.CamOffset[screen] - self.Res / 2, screen);
+		FrameMan:ClearScreenText(screen);
+
+		if screen ~= self.screens.SCREEN_NONE then
+			if screen == self.screens.SCREEN_ONE then
+				CameraMan:SetOffset(self.scroll - self.res / 2, screen);
 			else
-				CameraMan:SetOffset(self.Scroll - self.Res / 2, screen);
+				CameraMan:SetOffset(self.camOffset[screen] - self.res / 2, screen);
 			end
 		end
 	end
 
-	local prevMouse = self.Mouse * 1;
+	local prevMouse = self.mouse * 1;
 
-	if self.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
+	if self.menuNavigationScheme == self.menuNavigationSchemes.MOUSE then
+		self.mouse = self.mouse + UInputMan:GetMouseMovement(navigator);
+
+		if self.scrollingScreen.Y and not UInputMan.FlagLShiftState then
+			local scrollOffset = Vector(0, -UInputMan:MouseWheelMoved() * 10);
+			self.scroll = self.scroll + scrollOffset;
+		elseif self.scrollingScreen.X and UInputMan.FlagLShiftState then
+			local scrollOffset = Vector(-UInputMan:MouseWheelMoved() * 10, 0);
+			self.scroll = self.scroll + scrollOffset;
+		end
+	elseif self.menuNavigationScheme == self.menuNavigationSchemes.KEYBOARD then
 		if cont:IsState(Controller.MOVE_LEFT) then
-			self.Mouse = self.Mouse + Vector(-5, 0);
+			self.mouse = self.mouse + Vector(-5, 0);
 		end
 
 		if cont:IsState(Controller.MOVE_RIGHT) then
-			self.Mouse = self.Mouse + Vector(5, 0);
+			self.mouse = self.mouse + Vector(5, 0);
 		end
 
 		if cont:IsState(Controller.MOVE_UP) then
-			self.Mouse = self.Mouse + Vector(0, -5);
+			self.mouse = self.mouse + Vector(0, -5);
 		end
 
 		if cont:IsState(Controller.MOVE_DOWN) then
-			self.Mouse = self.Mouse + Vector(0, 5);
+			self.mouse = self.mouse + Vector(0, 5);
 		end
-	elseif self.MenuNavigationScheme == self.MenuNavigationSchemes.MOUSE then
-		self.Mouse = self.Mouse + UInputMan:GetMouseMovement(self.MenuNavigatingPlayer);
-
-		if self.ScrollingScreen.Y and not UInputMan.FlagLShiftState then
-			local scrollOffset = Vector(0, -UInputMan:MouseWheelMoved() * 10);
-			self.Scroll = self.Scroll + scrollOffset;
-		elseif self.ScrollingScreen.X and UInputMan.FlagLShiftState then
-			local scrollOffset = Vector(-UInputMan:MouseWheelMoved() * 10, 0);
-			self.Scroll = self.Scroll + scrollOffset;
-		end
-	else
-		self.Mouse = self.Mouse + cont.AnalogMove * 5;
+	elseif self.menuNavigationScheme == self.menuNavigationSchemes.GAMEPAD then
+		self.mouse = self.mouse + cont.AnalogMove * 5;
 	end
 
-	-- Get distance pulled outside screen
-	local excess = self.Mouse - self.Screen:GetWithinBox(self.Mouse);
-	self.Mouse = self.Mouse - excess;
+	local screenPull = self.mouse - self.screen:GetWithinBox(self.mouse);
+	self.mouse = self.mouse - screenPull;
+	self.scroll = self.bound:GetWithinBox(self.scroll + screenPull);
+	self.cursor = self.mouse + self.scroll;
 
-	-- Add to scroll and then bound
-	self.Scroll = self.Bound:GetWithinBox(self.Scroll + excess);
+	local hoverOverIndex = 0;
+	
+	for i = 1, #self.ui do
+		local element = self.ui[i];
 
-	self.Cursor = self.Mouse + self.Scroll;
+		if element.Type == CF.ElementTypes.BUTTON and element.Visible ~= false then
+			local mouseOffset = self.cursor - element.Pos;
+			local withinX = math.abs(mouseOffset.X) < element.Width / 2;
+			local withinY = math.abs(mouseOffset.Y) < element.Height / 2;
 
-	self.MouseOverElement = self:GetMouseOverKnownFormElements();
-
-	if self.MouseOverElement then
-		if self.UI[self.MouseOverElement].OnHover ~= nil then
-			self.UI[self.MouseOverElement].OnHover(self)
+			if withinX and withinY then
+				hoverOverIndex = i;
+				break;
+			end
 		end
 	end
 
-	if self.MenuNavigationScheme == self.MenuNavigationSchemes.MOUSE then
-		if UInputMan:MouseButtonPressed(MouseButtons.MOUSE_LEFT, self.MenuNavigatingPlayer) then
-			self.MousePressStartElement = self:GetMouseOverKnownFormElements();
-			self.MousePressEndElement = nil;
-			self.MousePressedElement = self:GetMouseOverKnownFormElements();
+	local pressHoldIndex = self.pressHoldIndex;
+	local pressStartIndex = self.pressStartIndex;
+	local pressEndIndex = self.pressEndIndex;
+
+	if self.menuNavigationScheme == self.menuNavigationSchemes.MOUSE then
+		if UInputMan:MouseButtonPressed(MouseButtons.MOUSE_LEFT, navigator) then
+			pressStartIndex = hoverOverIndex;
 		end
 
-		if UInputMan:MouseButtonHeld(MouseButtons.MOUSE_LEFT, self.MenuNavigatingPlayer) then
-			self.MouseOverElement = nil;
-			self.MouseButtonHeld = true;
+		if UInputMan:MouseButtonReleased(MouseButtons.MOUSE_LEFT, navigator) then
+			pressEndIndex = hoverOverIndex;
+		end
+
+		if UInputMan:MouseButtonHeld(MouseButtons.MOUSE_LEFT, navigator) then
+			pressHoldIndex = hoverOverIndex;
+			hoverOverIndex = nil;
 		else
-			self.MouseButtonHeld = false;
-		end
-
-		if UInputMan:MouseButtonReleased(MouseButtons.MOUSE_LEFT, self.MenuNavigatingPlayer) then
-			self.MousePressEndElement = self:GetMouseOverKnownFormElements();
-			
-			local dontpass = false;
-
-			if self.MousePressStartElement ~= nil and self.MousePressStartElement == self.MousePressEndElement then
-				if self.MousePressedElement ~= nil then
-					if self.UI[self.MousePressedElement].OnClick ~= nil then
-						dontpass = true;
-						self.UI[self.MousePressedElement].OnClick(self);
-					end
-				end
-			end
-
-			if not dontpass then
-				self:FormClick();
-			end
-
-			self.MouseOverElement = nil;
-			self.MousePressedElement = nil;
-			self.MousePressStartElement = nil;
-			self.MousePressEndElement = nil;
+			pressHoldIndex = nil;
 		end
 	else
 		if cont:IsState(Controller.WEAPON_FIRE) then
-			if not self.MouseFirePressed then
-				self.MousePressStartElement = self:GetMouseOverKnownFormElements();
-				self.MousePressEndElement = nil;
-				self.MousePressedElement = self:GetMouseOverKnownFormElements();
+			if not self.mouseFirePressed then
+				pressStartIndex = hoverOverIndex;
 			end
 
-			self.MouseOverElement = nil;
-			self.MouseFirePressed = true;
+			hoverOverIndex = nil;
+			self.mouseFirePressed = true;
 		else
-			if self.MouseFirePressed then
-				self.MousePressEndElement = self:GetMouseOverKnownFormElements();
+			if self.mouseFirePressed then
+				pressEndIndex = hoverOverIndex;
+			end
 
-				local dontpass = false;
+			self.mouseFirePressed = false;
+		end
+	end
+	
+	for i = 1, #self.ui do
+		local element = self.ui[i];
 
-				if self.MousePressStartElement ~= nil and self.MousePressStartElement == self.MousePressEndElement then
-					if self.MousePressedElement ~= nil then
-						if self.UI[self.MousePressedElement].OnClick ~= nil then
-							dontpass = true;
-							self.UI[self.MousePressedElement].OnClick(self);
-						end
-					end
+		if element.Type == CF.ElementTypes.BUTTON then
+			element.State = CF.ElementStates.IDLE;
+		end
+	end
+
+	if pressStartIndex then
+		local element = self.ui[pressStartIndex];
+		
+		if element ~= nil then
+			if element.Type == CF.ElementTypes.BUTTON then
+				element.State = CF.ElementStates.PRESSED;
+			end
+		end
+	end
+
+	if hoverOverIndex then
+		local element = self.ui[hoverOverIndex];
+
+		if element ~= nil then
+			if element.Type == CF.ElementTypes.BUTTON then
+				element.State = CF.ElementStates.MOUSE_OVER;
+			end
+
+			local elementOnHover = element.OnHover;
+		
+			if elementOnHover ~= nil then
+				elementOnHover(element, self);
+			end
+		end
+	end
+
+	if pressStartIndex ~= nil and pressEndIndex ~= nil then
+		local dontpass = false;
+		
+		if pressStartIndex == pressEndIndex then
+			local clickedElement = self.ui[pressEndIndex];
+
+			if clickedElement ~= nil then
+				local elementOnClick = clickedElement.OnClick;
+
+				if elementOnClick ~= nil then
+					dontpass = true;
+					elementOnClick(clickedElement, self);
 				end
-
-				if not dontpass then
-					self:FormClick();
-				end
-
-				self.MouseOverElement = nil;
-				self.MousePressedElement = nil;
-				self.MousePressStartElement = nil;
-				self.MousePressEndElement = nil;
-			end
-
-			self.MouseFirePressed = false;
-		end
-	end
-
-	self:RedrawKnownFormElements()
-	self:FormUpdate()
-	self:FormDraw()
-	PrimitiveMan:DrawBitmapPrimitive(self:ScreenOfPlayer(self.MenuNavigatingPlayer), self.Cursor + Vector(5, 5), "Mods/VoidWanderers.rte/UI/Generic/Cursor.png", 0)
-end
------------------------------------------------------------------------
--- Check if pos is within button area
------------------------------------------------------------------------
-function VoidWanderers:IsWithinButton(el, pos)
-	local isvisible = true
-
-	if el.Visible ~= nil then
-		if el.Visible == false then
-			isvisible = false
-		end
-	end
-
-	if isvisible then
-		local elpos = el.Pos
-		local wx = el.Width
-		local wy = el.Height
-
-		if
-			pos.X > elpos.X - (wx / 2)
-			and pos.X < elpos.X + (wx / 2)
-			and pos.Y > elpos.Y - (wy / 2)
-			and pos.Y < elpos.Y + (wy / 2)
-		then
-			return true
-		end
-	end
-
-	return false
-end
------------------------------------------------------------------------
--- Redraw non-custom elements
------------------------------------------------------------------------
-function VoidWanderers:RedrawKnownFormElements()
-	for i = 1, #self.UI do
-		if self.UI[i].Type == CF.ElementTypes.BUTTON then
-			local button = self.UI[i];
-			local state = CF.ElementStates.IDLE;
-			if i == self.MousePressedElement then
-				state = CF.ElementStates.PRESSED;
-			elseif i == self.MouseOverElement then
-				state = CF.ElementStates.MOUSE_OVER;
-			end
-			button.State = state;
-
-			CF.DrawButton(button);
-		end
-
-		if self.UI[i].Type == CF.ElementTypes.LABEL then
-			CF.DrawLabel(self.UI[i])
-		end
-	end
-end
------------------------------------------------------------------------
--- Get element id above which mouse currently is
------------------------------------------------------------------------
-function VoidWanderers:GetMouseOverKnownFormElements()
-	for i = 1, #self.UI do
-		if self.UI[i].Type == CF.ElementTypes.BUTTON then
-			if self:IsWithinButton(self.UI[i], self.Cursor) then
-				return i
 			end
 		end
+
+		if not dontpass then
+			self.form:Click();
+		end
+
+		pressStartIndex = nil;
+		pressEndIndex = nil;
 	end
 
-	return nil
+	self.hoverOverIndex = hoverOverIndex;
+	self.pressHoldIndex = pressHoldIndex;
+	self.pressStartIndex = pressStartIndex;
+	
+	self.form:Update();
+
+	for i = 1, #self.ui do
+		local element = self.ui[i];
+		
+		if element.Type == CF.ElementTypes.BUTTON then
+			CF.DrawButton(element);
+		elseif element.Type == CF.ElementTypes.LABEL then
+			CF.DrawLabel(element);
+		end
+	end
+
+	self.form:Draw();
+
+	PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, self.cursor + Vector(5, 5), "Mods/VoidWanderers.rte/UI/Generic/Cursor.png", 0);
+end
+-----------------------------------------------------------------------
+-- 
+-----------------------------------------------------------------------
+function VoidWanderers:CloseSceneProcess()
+	self.form:Close();
 end
 -----------------------------------------------------------------------
 -- Thats all folks!!!

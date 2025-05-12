@@ -92,7 +92,7 @@ function CF.InitFactions(activity)
 	CF.PrestigeSlice = CreatePieSlice("Claim Prestige PieSlice", CF.ModuleName)
 
 	CF.LimbIDs = {
-		ACrab = { "LeftFGLeg", "LeftBGLeg", "RightFGLeg", "RightBGLeg", "Turret", "Jetpack" },
+		ACrab = { "LeftFGLeg", "LeftBGLeg", "RightFGLeg", "RightBGLeg", "Actors - Turret", "Jetpack" },
 		AHuman = { "FGArm", "BGArm", "FGLeg", "BGLeg", "Head", "Jetpack" }
 	};
 
@@ -1324,7 +1324,7 @@ function CF.ReplaceLimbs(actor, limbs)
 				elseif limbString then
 					local newLimb = nil;
 					
-					if limbName == "Turret" then
+					if limbName == "Actors - Turret" then
 						newLimb = CreateTurret(limbString)
 					elseif limbName == "Jetpack" then	
 						-- Create the jetpack which the parent has if they are the same model, because, for some reason, it is standard practice to not specify the behavior of the jetpack in it's own preset

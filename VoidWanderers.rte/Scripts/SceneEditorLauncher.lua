@@ -1,83 +1,57 @@
-function VoidWanderers:StartActivity()
-	---- -- -- -- self.ModuleName = "VoidWanderers.rte"
-	self.IsInitialized = false
-
-	LAUNCH_MISSION_PACK = nil
-	STATE_CONFIG_FILE = "current.dat"
-
-	self.Zone = SceneMan.Scene:GetArea("VoidWanderersAntiBugZone")
-
-	LIB_PATH = self.ModuleName .. "/Scripts/"
-	BASE_PATH = self.ModuleName .. "/Scripts/"
-	
-	dofile(LIB_PATH .. "Lib_Generic.lua")
-	dofile(LIB_PATH .. "Lib_Config.lua")
-	dofile(LIB_PATH .. "Lib_ExtensionsData.lua")
-
-	if TRANSFER_IN_PROGRESS == nil then
-		TRANSFER_IN_PROGRESS = false
-	end
-
-	if not TRANSFER_IN_PROGRESS then
-		print("\n\n\n")
-		-- Reset all previouly set scenes and scripts before launch since we're starting clean
-		SCENE_TO_LAUNCH = nil
-		SCRIPT_TO_LAUNCH = nil
-	else
-		TRANSFER_IN_PROGRESS = false
-	end
-
-	print("VoidWanderers:MissionLauncher!")
-
-	if SCENE_TO_LAUNCH == nil then
-		SCENE_TO_LAUNCH = "Void Wanderers"
-	end
-
-	if SCRIPT_TO_LAUNCH == nil then
-		SCRIPT_TO_LAUNCH = BASE_PATH .. "StrategyScreenMain.lua"
-	end
-
-	FORM_TO_LOAD = BASE_PATH .. "FormSceneSelect.lua"
-
-	TRANSFER_IN_PROGRESS = false
-
-	print("SCRIPT: " .. SCRIPT_TO_LAUNCH)
-	print("SCENE : " .. SCENE_TO_LAUNCH)
-
-	dofile(SCRIPT_TO_LAUNCH)
-	SceneMan:LoadScene(SCENE_TO_LAUNCH, true)
+-----------------------------------------------------------------------
+-- Checks whether the mission can be started from a given scene.
+-----------------------------------------------------------------------
+function VoidWanderers:IsCompatibleScene(scene)
+	return (scene.ClassName == "Scene" and scene.PresetName == "Void Wanderers" and scene.ModuleName == "VoidWanderers.rte");
 end
 -----------------------------------------------------------------------
--- Launches new mission script without leaving current activity. Scene is case sensitive!
------------------------------------------------------------------------
-function VoidWanderers:LaunchScript(scene, script)
-	print("VoidWanderers-LaunchScript: " .. scene .. " / " .. script)
-	--print(scene)
-	--print(script)
+function VoidWanderers:StartActivity()
+	print("VoidWanderersSceneEditor:StartActivity");
 
-	self.IsInitialized = false
+	self.IsInitialized = false;
 
-	MovableMan:PurgeAllMOs()
+	stateConfigFileName = "current.dat";
+	libPath = self.ModuleName .. "/Scripts/";
+	basePath = self.ModuleName .. "/Scripts/";
 
-	dofile(BASE_PATH .. script)
-	SceneMan:LoadScene(scene, true)
+	dofile(libPath .. "Lib_Generic.lua");
+	dofile(libPath .. "Lib_Config.lua");
+	dofile(libPath .. "Lib_Spawn.lua");
+	dofile(libPath .. "Lib_Storage.lua");
+
+	FORM_TO_LOAD = basePath .. "FormSceneSelect.lua";
+
+	dofile(basePath .. "StrategyScreenMain.lua");
+	self:StartSceneProcess(true);
 end
 -----------------------------------------------------------------------
 -- Pause Activity
 -----------------------------------------------------------------------
 function VoidWanderers:PauseActivity(pause)
-	print("PAUSE! -- VoidWanderers:PauseActivity()!")
+	print("PAUSE! -- VoidWanderersSceneEditor:PauseActivity()!");
 end
 -----------------------------------------------------------------------
 -- End Activity
 -----------------------------------------------------------------------
 function VoidWanderers:EndActivity()
-	print("END! -- VoidWanderers:EndActivity()!")
-	CF.Self = nil
+	print("END! -- VoidWanderersSceneEditor:EndActivity()!");
 end
 -----------------------------------------------------------------------
 -- Update Activity
 -----------------------------------------------------------------------
 function VoidWanderers:UpdateActivity()
+	--self:UpdateSceneProcess();
+end
+-----------------------------------------------------------------------
+-- Launches new mission script without leaving current activity. Scene is case sensitive!
+-----------------------------------------------------------------------
+function VoidWanderers:launchScript(scene, script)
+	print("VoidWanderers-launchScript: " .. scene .. " / " .. script);
 
+	self.IsInitialized = false;
+
+	MovableMan:PurgeAllMOs();
+	
+	dofile(basePath .. script);
+	SceneMan:LoadScene(scene, true);
 end

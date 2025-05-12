@@ -2,10 +2,8 @@
 --	Load event. Put all UI element initialiations here.
 -----------------------------------------------------------------------
 function VoidWanderers:FormLoad()
-	-- Create UI elements
-	-- Clear old elements
-	local el
-	self.UI = {}
+	local el;
+	self.ui = {};
 
 	local sx = 140
 	local sy = 40
@@ -49,7 +47,7 @@ function VoidWanderers:FormLoad()
 				--el["OnHover"] = self.SaveSlots_OnHover
 				el["OnClick"] = self.SceneButton_OnClick
 
-				self.UI[#self.UI + 1] = el
+				self.ui[#self.ui + 1] = el
 			end
 		end
 	end
@@ -58,7 +56,7 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:FormClick()
-	local el = self.MousePressedElement
+	local el = self.pressHoldIndex
 
 	if el then
 	end
@@ -67,10 +65,10 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:SceneButton_OnClick()
-	local el = self.MousePressedElement
+	local el = self.pressHoldIndex
 
 	self:FormClose()
-	SceneMan:LoadScene(self.UI[el]["Text"], true)
+	SceneMan:LoadScene(self.ui[el]["Text"], true)
 
 	--[[for actor in MovableMan.AddedActors do
 		--print (actor.PresetName)
@@ -84,8 +82,8 @@ function VoidWanderers:SceneButton_OnClick()
 		self:SetPlayerBrain(nil, player)
 	end
 
-	self.SelectedLocationID = self.UI[el]["LocationID"]
-	dofile(BASE_PATH .. "FormSceneEditor.lua")
+	self.SelectedLocationID = self.ui[el]["LocationID"]
+	dofile(basePath .. "FormSceneEditor.lua")
 	self:FormLoad()
 end
 -----------------------------------------------------------------------

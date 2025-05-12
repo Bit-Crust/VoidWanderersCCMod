@@ -246,8 +246,8 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 
 				-- Dispense/sell/dump items
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed[player] then
-						self.FirePressed[player] = true;
+					if not self.firePressed[player] then
+						self.firePressed[player] = true;
 
 						local index = self.StorageFilters[mode][itemSelected];
 						local item = self.StorageItems[index];
@@ -303,7 +303,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 						end
 					end
 				else
-					self.FirePressed[player] = false
+					self.firePressed[player] = false
 				end
 				
 				local lineOffset = topOfPage;

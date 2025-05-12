@@ -199,8 +199,8 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 			end
 
 			if cont:IsState(Controller.WEAPON_FIRE) then
-				if not self.FirePressed[player] then
-					self.FirePressed[player] = true;
+				if not self.firePressed[player] then
+					self.firePressed[player] = true;
 
 					if clone then
 						if clone.Price <= CF.GetPlayerGold(self.GS, 0) then
@@ -234,7 +234,7 @@ function VoidWanderers:ProcessCloneShopControlPanelUI()
 					end
 				end
 			else
-				self.FirePressed[player] = false;
+				self.firePressed[player] = false;
 			end
 
 			local lineOffset = topOfPage;

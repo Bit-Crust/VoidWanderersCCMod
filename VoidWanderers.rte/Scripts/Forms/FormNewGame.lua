@@ -3,8 +3,8 @@
 -----------------------------------------------------------------------
 function VoidWanderers:FormLoad()
 	-- Clear old elements
-	self.UI = {};
-	self.ScrollingScreen = { X = false, Y = true };
+	self.ui = {};
+	self.scrollingScreen = { X = false, Y = true };
 
 	local el;
 
@@ -38,7 +38,7 @@ function VoidWanderers:FormLoad()
 			largestFactionDescriptionHeight = math.max(CF.GetStringPixelWidth(el.Description) / 400, largestFactionDescriptionHeight);
 
 			self.FactionButtons[self.PlayableFactionCount] = el;
-			self.UI[#self.UI + 1] = el;
+			self.ui[#self.ui + 1] = el;
 		end
 	end
 	
@@ -57,55 +57,55 @@ function VoidWanderers:FormLoad()
 	el = {};
 	el.Type = CF.ElementTypes.LABEL;
 	el.Preset = nil;
-	el.Pos = self.Mid + Vector(0, -self.Rows * self.TileH - largestFactionDescriptionHeight);
+	el.Pos = self.mid + Vector(0, -self.Rows * self.TileH - largestFactionDescriptionHeight);
 	el.Text = "START NEW GAME";
 	el.Width = 800;
 	el.Height = 11;
 	el.Centered = true;
 
-	self.UI[#self.UI + 1] = el;
+	self.ui[#self.ui + 1] = el;
 	self.LblHeader = el;
-	self.Bound.Corner = self.LblHeader.Pos + Vector(0, 155);
+	self.bound.Corner = self.LblHeader.Pos + Vector(0, 155);
 
 	el = {};
 	el.Type = CF.ElementTypes.LABEL;
 	el.Preset = nil;
-	el.Pos = self.Mid + Vector(0, -self.Rows * self.TileH - largestFactionDescriptionHeight + 10);
+	el.Pos = self.mid + Vector(0, -self.Rows * self.TileH - largestFactionDescriptionHeight + 10);
 	el.Text = "SELECT STARTING FACTION";
 	el.Width = 800;
 	el.Height = 11;
 	el.Centered = true;
 
-	self.UI[#self.UI + 1] = el;
+	self.ui[#self.ui + 1] = el;
 	self.LblPhase = el;
 
 	el = {};
 	el.Type = CF.ElementTypes.LABEL;
 	el.Preset = nil;
-	el.Pos = self.Mid + Vector(0, -self.Rows * self.TileH - largestFactionDescriptionHeight + 30);
+	el.Pos = self.mid + Vector(0, -self.Rows * self.TileH - largestFactionDescriptionHeight + 30);
 	el.Text = "";
 	el.Width = 400;
 	el.Height = 100;
 	el.Centered = true;
 
-	self.UI[#self.UI + 1] = el
+	self.ui[#self.ui + 1] = el
 	self.LblFactionName = el
 
 	el = {};
 	el.Type = CF.ElementTypes.LABEL;
 	el.Preset = nil;
-	el.Pos = self.Mid + Vector(0, -self.Rows * self.TileH - largestFactionDescriptionHeight + 70);
+	el.Pos = self.mid + Vector(0, -self.Rows * self.TileH - largestFactionDescriptionHeight + 70);
 	el.Text = "";
 	el.Width = 400;
 	el.Height = 100;
 	el.Centered = true;
 
-	self.UI[#self.UI + 1] = el;
+	self.ui[#self.ui + 1] = el;
 	self.LblFactionDescription = el;
 
 	el = {};
 	el.Type = CF.ElementTypes.BUTTON;
-	el.Pos = self.Mid + Vector(0, 60);
+	el.Pos = self.mid + Vector(0, 60);
 	el.Text = "OK";
 	el.Width = 140;
 	el.Height = 40;
@@ -113,12 +113,12 @@ function VoidWanderers:FormLoad()
 
 	el.OnClick = self.BtnOk_OnClick;
 
-	self.UI[#self.UI + 1] = el;
+	self.ui[#self.ui + 1] = el;
 	self.BtnOk = el;
 
 	el = {};
 	el.Type = CF.ElementTypes.BUTTON;
-	el.Pos = Vector(self.Mid.X + self.Res.X / 2 - 70 - 20, self.Bound.Corner.Y - self.Res.Y / 2 + 20 + 20);
+	el.Pos = Vector(self.mid.X + self.res.X / 2 - 70 - 20, self.bound.Corner.Y - self.res.Y / 2 + 20 + 20);
 	el.Text = "Back";
 	el.Width = 140;
 	el.Height = 40;
@@ -126,7 +126,7 @@ function VoidWanderers:FormLoad()
 
 	el.OnClick = self.BtnBack_OnClick;
 
-	self.UI[#self.UI + 1] = el;
+	self.ui[#self.ui + 1] = el;
 	self.BtnBack = el;
 
 	local xtile = 1;
@@ -143,8 +143,8 @@ function VoidWanderers:FormLoad()
 		end
 
 		self.FactionButtons[i].Pos = Vector(
-			self.Mid.X - ((tilesperrow * self.TileW) / 2) + (xtile * self.TileW) - (self.TileW / 2),
-			self.Mid.Y - (ytile * 70)
+			self.mid.X - ((tilesperrow * self.TileW) / 2) + (xtile * self.TileW) - (self.TileW / 2),
+			self.mid.Y - (ytile * 70)
 		);
 
 		xtile = xtile + 1;
@@ -209,14 +209,14 @@ function VoidWanderers:FormLoad()
 		el.Backdrop = false;
 		el.Text = "";
 		el.Pos = Vector(
-			self.Mid.X - ((tilesperrow * self.TileW) / 2) + (xtile * self.TileW) - (self.TileW / 2),
-			self.Mid.Y + 90 + (ytile * tileH2) + 60
+			self.mid.X - ((tilesperrow * self.TileW) / 2) + (xtile * self.TileW) - (self.TileW / 2),
+			self.mid.Y + 90 + (ytile * tileH2) + 60
 		);
 		el.Width = self.TileW - 2;
 		el.Height = 12;
 
 		self.participantSlots[i] = el;
-		self.UI[#self.UI + 1] = el;
+		self.ui[#self.ui + 1] = el;
 
 		-- Add labels
 		local el = {};
@@ -231,7 +231,7 @@ function VoidWanderers:FormLoad()
 		el.Centered = true;
 		
 		self.participantLabels[i] = el;
-		self.UI[#self.UI + 1] = el;
+		self.ui[#self.ui + 1] = el;
 
 		xtile = xtile + 1;
 		if (xtile > tilesperrow) then
@@ -264,9 +264,9 @@ function VoidWanderers:BtnOk_OnClick()
 	end
 
 	-- Create new game state
-	self.GS = self:MakeFreshGameState(player, cpu);
+	self.GS = self:makeFreshGameState(player, cpu);
 	self:OnSave();
-	self:LoadSaveData();
+	self:loadSaveData();
 	self:FormClose();
 	self.sceneToLaunch = self.GS["Scene"];
 	self.scriptToLaunch = "Tactics.lua";
@@ -302,7 +302,7 @@ function VoidWanderers:BtnBack_OnClick()
 			MovableMan:RemoveActor(actor);
 		end
 	end
-	dofile(BASE_PATH .. "FormStart.lua");
+	dofile(basePath .. "FormStart.lua");
 	self:FormLoad();
 end
 -----------------------------------------------------------------------
@@ -313,7 +313,7 @@ local removeSoundContainer = CreateSoundContainer("Error")
 local selectedActors = {}
 local freeSpots = {}
 function VoidWanderers:FormClick()
-	local f = self:GetFactionButtonUnderMouse(self.Cursor)
+	local f = self:GetFactionButtonUnderMouse(self.cursor)
 
 	if f ~= nil then
 		-- If a faction is already in the list, note where so we can remove it on click
@@ -410,7 +410,7 @@ end
 -----------------------------------------------------------------------
 function VoidWanderers:FormUpdate()
 	-- Redraw plates on hover or press
-	local f = self:GetFactionButtonUnderMouse(self.Cursor);
+	local f = self:GetFactionButtonUnderMouse(self.cursor);
 
 	if self.LastMouseOver and self.LastMouseOver ~= f then
 		-- Clear faction description

@@ -10,80 +10,75 @@ end
 -----------------------------------------------------------------------
 function VoidWanderers:StartActivity(isNewGame)
 	print("VoidWanderers:StartActivity");
+	
+	self.BuyMenuEnabled = false;
 
 	-- TODO: Remove by pre 7, make em figure it out themselves
-	-- Change the global metatable
-	-- Localize substring function so that we're not indexing any tables in the table indexing handler
-	-- Intercept indexes of CF_ anything and route them to the table instead
+	-- Localize substring function so it isn't taken from the global table
 	local sub = string.sub;
-	local mt = {};
+	
+	-- Intercept indexes of CF_ anything and route them to the table instead
+	setmetatable(_G, {
+		__index = function(table, key)
+			if sub(key, 1, 3) == "CF_" and CF then
+				key = sub(key, 4, -1);
 
-	function mt.__index(table, key)
-		if sub(key, 1, 3) == "CF_" and CF then
-			local key = sub(key, 4, -1);
+				if key == "FactionTypes" then
+					key = "FactionNatureTypes";
+				end
 
-			--if key == "FactionNatures" then
-			--	key = "FactionNatureTypes";
-			--end
-
-			if key == "FactionTypes" then
-				key = "FactionNatureTypes";
+				return rawget(CF, key);
 			end
 
-			return rawget(CF, key);
-		end
+			return rawget(table, key);
+		end,
+		__newindex = function(table, key, value)
+			if sub(key, 1, 3) == "CF_" and CF then
+				rawset(CF, sub(key, 4, -1), value);
+				return;
+			end
 
-		return rawget(table, key);
-	end
-
-	function mt.__newindex(table, key, value)
-		if sub(key, 1, 3) == "CF_" and CF then
-			rawset(CF, sub(key, 4, -1), value);
+			rawset(table, key, value);
 			return;
-		end
-
-		rawset(table, key, value);
-		return;
-	end
-
-	setmetatable(_G, mt);
-
-	STATE_CONFIG_FILE = "current.dat";
-	
-	LIB_PATH = self.ModuleName .. "/Scripts/";
-	BASE_PATH = self.ModuleName .. "/Scripts/";
-
-	dofile(LIB_PATH .. "Lib_Generic.lua");
-	dofile(LIB_PATH .. "Lib_Config.lua");
-	dofile(LIB_PATH .. "Lib_Spawn.lua");
-	dofile(LIB_PATH .. "Lib_Storage.lua");
+		end,
+	});
 	
 	-- Save Load Handler
 	self.saveLoadHandler = require("Scripts/Utility/SaveLoadHandler");
 	self.saveLoadHandler:Initialize(false);
 	
 	-- Init a couple properties and constants
-	self.FirePressed = {};
-	
-	self.BuyMenuEnabled = false;
+	self.firePressed = {};
 
 	-- Check delta time and fix it to avoid problems with fonts
+	-- this maddens me
 	if TimerMan.DeltaTimeMS >= 25 then
 		print("Incorrect delta time, fixed");
 		TimerMan.DeltaTimeSecs = 0.0166667;
 	end
 
+	self.stateConfigFileName = "current.dat";
+	self.basePath = self.ModuleName .. "/Scripts/";
+	self.libPath = self.basePath .. "/Library/";
+	self.panelPath = self.basePath .. "/Panels/";
+	self.formPath = self.basePath .. "/Forms/";
+	
 	-- Panel behaviors have to be defined every time because they are methods of this activity
-	dofile(LIB_PATH .. "Panel_Clones.lua");
-	dofile(LIB_PATH .. "Panel_Ship.lua");
-	dofile(LIB_PATH .. "Panel_Beam.lua");
-	dofile(LIB_PATH .. "Panel_Storage.lua");
-	dofile(LIB_PATH .. "Panel_ItemShop.lua");
-	dofile(LIB_PATH .. "Panel_CloneShop.lua");
-	dofile(LIB_PATH .. "Panel_LZ.lua");
-	dofile(LIB_PATH .. "Panel_Brain.lua");
-	dofile(LIB_PATH .. "Panel_Turrets.lua");
-	dofile(LIB_PATH .. "Panel_Bombs.lua");
+	-- The config libraries are also loaded every time to overwrite old versions of functions
+	dofile(self.libPath .. "Lib_Generic.lua");
+	dofile(self.libPath .. "Lib_Config.lua");
+	dofile(self.libPath .. "Lib_Spawn.lua");
+	dofile(self.libPath .. "Lib_Storage.lua");
+	dofile(self.panelPath .. "Panel_Clones.lua");
+	dofile(self.panelPath .. "Panel_Ship.lua");
+	dofile(self.panelPath .. "Panel_Beam.lua");
+	dofile(self.panelPath .. "Panel_Storage.lua");
+	dofile(self.panelPath .. "Panel_ItemShop.lua");
+	dofile(self.panelPath .. "Panel_CloneShop.lua");
+	dofile(self.panelPath .. "Panel_LZ.lua");
+	dofile(self.panelPath .. "Panel_Brain.lua");
+	dofile(self.panelPath .. "Panel_Turrets.lua");
+	dofile(self.panelPath .. "Panel_Bombs.lua");
 
 	-- Now that all the libraries and all caps constants are loaded, it should be safe
 	-- This function basically boots the game
@@ -93,41 +88,17 @@ function VoidWanderers:StartActivity(isNewGame)
 	-- Otherwise, just load the tactics script, we're mid game
 	if isNewGame then
 		print("VoidWanderers:StartActivity: Detected new game");
+		self.formToLoad = "FormStart.lua";
 
-		FORM_TO_LOAD = BASE_PATH .. "FormStart.lua";
-		self:LaunchScene("Void Wanderers");
-		self:LaunchScript("StrategyScreenMain.lua");
+		self.sceneToLaunch = "Void Wanderers";
+		self.scriptToLaunch = "StrategyScreenMain.lua";
 	else
 		print("VoidWanderers:StartActivity: Detected load game");
+		self:loadSaveData();
 		
-		self:LoadSaveData();
-		dofile(BASE_PATH .. "Tactics.lua");
-		self:StartSceneProcess(false);
+		self.sceneToLaunch = self.GS["Scene"];
+		self.scriptToLaunch = "Tactics.lua";
 	end
-end
------------------------------------------------------------------------
--- Scene is case sensitive!
------------------------------------------------------------------------
-function VoidWanderers:LaunchScene(scene)
-	print("VoidWanderers:LaunchScene: " .. scene);
-
-	MovableMan:PurgeAllMOs();
-	SceneMan:LoadScene(scene, true);
-
-	for actor in MovableMan.AddedActors do
-		if actor and actor.ClassName ~= "ADoor" then
-			actor.ToDelete = true;
-		end
-	end
-end
------------------------------------------------------------------------
--- Launches new mission script without leaving current activity.
------------------------------------------------------------------------
-function VoidWanderers:LaunchScript(script)
-	print("VoidWanderers:LaunchScript: " .. script);
-	
-	dofile(BASE_PATH .. script);
-	self:StartSceneProcess(true);
 end
 -----------------------------------------------------------------------
 -- Pause Activity
@@ -145,12 +116,14 @@ end
 -- Update Activity
 -----------------------------------------------------------------------
 function VoidWanderers:UpdateActivity()
-	if self.deploymentToSerialize then
+	local deploymentToSerialize = self.deploymentToSerialize;
+	
+	if deploymentToSerialize then
 		CF.ClearDeployed(self.GS);
 		self.deployedActors = {};
 		local returningUnits = 0;
 
-		for _, actor in pairs(self.deploymentToSerialize) do
+		for _, actor in ipairs(deploymentToSerialize) do
 			if actor and actor.Team == CF.PlayerTeam and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
 				returningUnits = returningUnits + 1;
 				self.GS["Deployed" .. returningUnits .. "Preset"] = actor.PresetName;
@@ -183,11 +156,13 @@ function VoidWanderers:UpdateActivity()
 		self.deploymentToSerialize = nil;
 	end
 
-	if self.onboardToSerialize then
+	local onboardToSerialize = self.onboardToSerialize;
+
+	if onboardToSerialize then
 		CF.ClearOnboard(self.GS);
 		local returningUnits = 0;
 
-		for _, actor in pairs(self.onboardToSerialize) do
+		for _, actor in ipairs(onboardToSerialize) do
 			if actor.Team == CF.PlayerTeam and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
 				returningUnits = returningUnits + 1;
 				self.GS["Onboard" .. returningUnits .. "Preset"] = actor.PresetName;
@@ -219,15 +194,25 @@ function VoidWanderers:UpdateActivity()
 		self.GS["Onboard#"] = returningUnits;
 		self.onboardToSerialize = nil;
 	end
+
+	if self.cacheCurrentGameState then
+		self:saveCurrentGameState();
+		self.cacheCurrentGameState = false;
+	end
 	
 	if self.sceneToLaunch then
-		self:LaunchScene(self.sceneToLaunch);
+		self:launchScene(self.sceneToLaunch);
 		self.sceneToLaunch = nil;
 	end
 
 	if self.scriptToLaunch then
-		self:LaunchScript(self.scriptToLaunch);
+		self:launchScript(self.scriptToLaunch);
 		self.scriptToLaunch = nil;
+	end
+
+	if self.formToLoad then
+		self:loadForm(self.formToLoad);
+		self.formToLoad = nil;
 	end
 	
 	self:UpdateSceneProcess();
@@ -271,11 +256,52 @@ function VoidWanderers:OnSave()
 	self.saveLoadHandler:SaveTableAsString("controlledActors", controlledActors);
 end
 -----------------------------------------------------------------------
+-- Scene is case sensitive!
+-----------------------------------------------------------------------
+function VoidWanderers:launchScene(scene)
+	print("VoidWanderers:launchScene: " .. scene);
+
+	MovableMan:PurgeAllMOs();
+	SceneMan:LoadScene(scene, true);
+
+	for actor in MovableMan.AddedActors do
+		if actor and actor.ClassName ~= "ADoor" then
+			actor.ToDelete = true;
+		end
+	end
+end
+-----------------------------------------------------------------------
+-- Launches new mission script without leaving current activity.
+-----------------------------------------------------------------------
+function VoidWanderers:launchScript(script)
+	print("VoidWanderers:launchScript: " .. script);
+
+	local processClose = self.CloseSceneProcess;
+
+	if processClose then
+		processClose(self);
+	end
+	
+	dofile(self.basePath .. script);
+	self:StartSceneProcess(true);
+end
+-----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-function VoidWanderers:LoadCurrentGameState()
-	if CF.IsFileExists(self.ModuleName, STATE_CONFIG_FILE) then
-		self.GS = CF.ReadDataFile("Mods/" .. self.ModuleName .. "/CampaignData/" .. STATE_CONFIG_FILE)
+function VoidWanderers:loadForm(formToLoad)
+	if self.form then
+		self.form:Close(self, self);
+	end
+
+	self.form = dofile(self.formPath .. formToLoad);
+	self.ui = self.form:Load(self, self);
+end
+-----------------------------------------------------------------------
+--
+-----------------------------------------------------------------------
+function VoidWanderers:loadCurrentGameState()
+	if CF.IsFileExists(self.ModuleName, self.stateConfigFileName) then
+		self.GS = CF.ReadDataFile("Mods/" .. self.ModuleName .. "/CampaignData/" .. self.stateConfigFileName)
 
 		self.Time = tonumber(self.GS["Time"])
 
@@ -408,13 +434,13 @@ end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-function VoidWanderers:SaveCurrentGameState()
-	CF.WriteDataFile(self.GS, "Mods/" .. self.ModuleName .. "/CampaignData/" .. STATE_CONFIG_FILE)
+function VoidWanderers:saveCurrentGameState()
+	CF.WriteDataFile(self.GS, "Mods/" .. self.ModuleName .. "/CampaignData/" .. self.stateConfigFileName)
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-function VoidWanderers:LoadSaveData()
+function VoidWanderers:loadSaveData()
 	local gsRead = self.saveLoadHandler:ReadSavedStringAsTable("gameState")
 	if next(gsRead) ~= nil then
 		self.GS = gsRead
@@ -432,9 +458,11 @@ function VoidWanderers:LoadSaveData()
 		if self.GS["Difficulty"] then
 			CF.Difficulty = tonumber(self.GS["Difficulty"])
 		end
+
 		if self.GS["AISkillPlayer"] then
 			CF.AISkillPlayer = tonumber(self.GS["AISkillPlayer"])
 		end
+
 		if self.GS["AISkillCPU"] then
 			CF.AISkillCPU = tonumber(self.GS["AISkillCPU"])
 		end
@@ -550,7 +578,7 @@ end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-function VoidWanderers:MakeFreshGameState(playerFaction, cpus)
+function VoidWanderers:makeFreshGameState(playerFaction, cpus)
 	local gameState = {};
 	gameState["Time"] = tostring(0);
 	gameState["Difficulty"] = self.Difficulty;
@@ -600,25 +628,27 @@ function VoidWanderers:MakeFreshGameState(playerFaction, cpus)
 	local activecpus = 0;
 
 	for i = 1, CF.MaxCPUPlayers do
-		if cpus[i] then
-			gameState["Player" .. i .. "Faction"] = cpus[i];
+		local cpu = cpus[i];
+		
+		if cpu then
+			gameState["Player" .. i .. "Faction"] = cpu;
 			gameState["Player" .. i .. "Active"] = "True";
 			gameState["Player" .. i .. "Type"] = "CPU";
 
-			if cpus[i] == playerFaction then
+			if cpu == playerFaction then
 				gameState["Player" .. i .. "Reputation"] = 500;
 			else
 				computedReputation = 0;
 
-				if CF.FactionNatures[playerFaction] ~= CF.FactionNatures[cpus[i]] then
+				if CF.FactionNatures[playerFaction] ~= CF.FactionNatures[cpu] then
 					computedReputation = computedReputation + CF.ReputationHuntThreshold * (self.Difficulty / 100);
 				end
 
-				if CF.FactionAlignments[playerFaction] ~= CF.FactionAlignments[cpus[i]] then
+				if CF.FactionAlignments[playerFaction] ~= CF.FactionAlignments[cpu] then
 					computedReputation = computedReputation + CF.ReputationHuntThreshold * (self.Difficulty / 100);
 				end
 
-				if CF.FactionIngroupPreference[cpus[i]] then
+				if CF.FactionIngroupPreference[cpu] then
 					computedReputation = computedReputation + CF.ReputationHuntThreshold * (self.Difficulty / 100) * 2;
 				end
 
@@ -667,7 +697,7 @@ function VoidWanderers:MakeFreshGameState(playerFaction, cpus)
 
 	if cloneCapacity <= 0 then
 		actorPrefix = "Actor";
-		gameState["DeserializeOnboard"] = "True";
+		-- TODO make them spawn, obviously
 	end
 
 	if actorPrefix == "Actor" or cloneCapacity < 4 then

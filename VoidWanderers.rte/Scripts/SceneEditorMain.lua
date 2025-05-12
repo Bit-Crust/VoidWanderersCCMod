@@ -5,16 +5,16 @@
 function VoidWanderers:StartSceneProcess()
 	print("VoidWanderers:StrategyScreen:StartSceneProcess");
 
-	self.MenuNavigationSchemes = { KEYBOARD = 0, MOUSE = 1, GAMEPAD = 2 }
-	self.MenuNavigationScheme = self.MenuNavigationSchemes.KEYBOARD
-	self.MenuNavigatingPlayer = Activity.PLAYER_NONE
+	self.menuNavigationSchemes = { KEYBOARD = 0, MOUSE = 1, GAMEPAD = 2 }
+	self.menuNavigationScheme = self.menuNavigationSchemes.KEYBOARD
+	self.menuNavigatingPlayer = Activity.PLAYER_NONE
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
-			self.MenuNavigatingPlayer = player
+			self.menuNavigatingPlayer = player
 			if self:GetPlayerController(player):IsMouseControlled() then
-				self.MenuNavigationScheme = self.MenuNavigationSchemes.MOUSE
+				self.menuNavigationScheme = self.menuNavigationSchemes.MOUSE
 			elseif self:GetPlayerController(player):IsGamepadControlled() then
-				self.MenuNavigationScheme = self.MenuNavigationSchemes.GAMEPAD
+				self.menuNavigationScheme = self.menuNavigationSchemes.GAMEPAD
 			end
 			break
 		else
@@ -36,21 +36,21 @@ function VoidWanderers:StartSceneProcess()
 
 	CF.InitFactions(self)
 
-	self:LoadCurrentGameState()
+	self:loadCurrentGameState()
 
-	---- -- -- -- self.ModuleName = "VoidWanderers.rte"
+	---- -- -- -- -- self.ModuleName = "VoidWanderers.rte"
 
-	self.Mid.X = SceneMan.Scene.Width / 2
-	self.Mid.Y = SceneMan.Scene.Height / 2
-	self.Mid = Vector(self.Mid.X, self.Mid.Y)
+	self.mid.X = SceneMan.Scene.Width / 2
+	self.mid.Y = SceneMan.Scene.Height / 2
+	self.mid = Vector(self.mid.X, self.mid.Y)
 
-	self.Res.X = FrameMan.PlayerScreenWidth
-	self.Res.Y = FrameMan.PlayerScreenHeight
+	self.res.X = FrameMan.PlayerScreenWidth
+	self.res.Y = FrameMan.PlayerScreenHeight
 
-	self.Res.X / 2 = FrameMan.PlayerScreenWidth / 2
-	self.Res.Y / 2 = FrameMan.PlayerScreenHeight / 2
+	self.res.X / 2 = FrameMan.PlayerScreenWidth / 2
+	self.res.Y / 2 = FrameMan.PlayerScreenHeight / 2
 
-	self.Mouse = self.Mid
+	self.mouse = self.mid
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		self:SetPlayerBrain(nil, player)
@@ -63,7 +63,7 @@ function VoidWanderers:StartSceneProcess()
 
 	self:CreateActors()
 
-	self.MouseFirePressed = true
+	self.mouseFirePressed = true
 
 	self.SceneTimer = Timer()
 	self.SceneTimer:Reset()
@@ -71,7 +71,7 @@ function VoidWanderers:StartSceneProcess()
 	self.MessageTimer = Timer()
 	self.MessageTimer:Reset()
 	self.MessageInterval = CF.MessageInterval
-	self.MessagePos = self.Mid + Vector(-75, self.Res.Y / 2 - 48)
+	self.MessagePos = self.mid + Vector(-75, self.res.Y / 2 - 48)
 
 	self.Messages = {}
 
@@ -84,7 +84,7 @@ function VoidWanderers:StartSceneProcess()
 	CF.ElementTypes = { BUTTON = 0, LABEL = 1, PLANET = 2 }
 	CF.ElementStates = { IDLE = 0, MOUSE_OVER = 1, PRESSED = 2 }
 
-	self.UI = {}
+	self.ui = {}
 
 	-- Load default form
 	-- If we returned from tactical mission go straight to default form
@@ -92,10 +92,10 @@ function VoidWanderers:StartSceneProcess()
 	-- Init form
 	self:FormLoad()
 
-	self.MouseOverElement = nil
-	self.MousePressedElement = nil
-	self.MousePressStartElement = nil
-	self.MousePressEndElement = nil
+	self.hoverOverIndex = nil
+	self.pressHoldIndex = nil
+	self.pressStartIndex = nil
+	self.pressEndIndex = nil
 
 	self.IsInitialized = true
 end
@@ -116,61 +116,61 @@ function VoidWanderers:UpdateSceneProcess()
 
 	local cont = self.brain:GetController()
 
-	if self.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
+	if self.menuNavigationScheme == self.menuNavigationSchemes.KEYBOARD then
 		if cont:IsState(Controller.MOVE_LEFT) then
-			self.Mouse = self.Mouse + Vector(-5, 0)
+			self.mouse = self.mouse + Vector(-5, 0)
 		end
 
 		if cont:IsState(Controller.MOVE_RIGHT) then
-			self.Mouse = self.Mouse + Vector(5, 0)
+			self.mouse = self.mouse + Vector(5, 0)
 		end
 
 		if cont:IsState(Controller.MOVE_UP) then
-			self.Mouse = self.Mouse + Vector(0, -5)
+			self.mouse = self.mouse + Vector(0, -5)
 		end
 
 		if cont:IsState(Controller.MOVE_DOWN) then
-			self.Mouse = self.Mouse + Vector(0, 5)
+			self.mouse = self.mouse + Vector(0, 5)
 		end
-	elseif self.MenuNavigationScheme == self.MenuNavigationSchemes.MOUSE then
+	elseif self.menuNavigationScheme == self.menuNavigationSchemes.MOUSE then
 		-- Read mouse input
-		self.Mouse = self.Mouse + UInputMan:GetMouseMovement(self.MenuNavigatingPlayer)
+		self.mouse = self.mouse + UInputMan:GetMouseMovement(self.menuNavigatingPlayer)
 	else
-		self.Mouse = self.Mouse + self:GetPlayerController(self.MenuNavigatingPlayer).AnalogMove * 5
+		self.mouse = self.mouse + self:GetPlayerController(self.menuNavigatingPlayer).AnalogMove * 5
 	end
 
 	-- Don't let the cursor leave the screen
 	if self.ButtonPressed then
-		if self.Mouse.X < G_CursorActor.Pos.X - self.Res.X / 2 + 5 then
-			self.Mouse.X = G_CursorActor.Pos.X - self.Res.X / 2 + 5
+		if self.mouse.X < G_CursorActor.Pos.X - self.res.X / 2 + 5 then
+			self.mouse.X = G_CursorActor.Pos.X - self.res.X / 2 + 5
 		end
 
-		if self.Mouse.Y < G_CursorActor.Pos.Y - self.Res.Y / 2 + 5 then
-			self.Mouse.Y = G_CursorActor.Pos.Y - self.Res.Y / 2 + 5
+		if self.mouse.Y < G_CursorActor.Pos.Y - self.res.Y / 2 + 5 then
+			self.mouse.Y = G_CursorActor.Pos.Y - self.res.Y / 2 + 5
 		end
 
-		if self.Mouse.X > G_CursorActor.Pos.X + self.Res.X / 2 - 5 then
-			self.Mouse.X = G_CursorActor.Pos.X + self.Res.X / 2 - 5
+		if self.mouse.X > G_CursorActor.Pos.X + self.res.X / 2 - 5 then
+			self.mouse.X = G_CursorActor.Pos.X + self.res.X / 2 - 5
 		end
 
-		if self.Mouse.Y > G_CursorActor.Pos.Y + self.Res.Y / 2 - 5 then
-			self.Mouse.Y = G_CursorActor.Pos.Y + self.Res.Y / 2 - 5
+		if self.mouse.Y > G_CursorActor.Pos.Y + self.res.Y / 2 - 5 then
+			self.mouse.Y = G_CursorActor.Pos.Y + self.res.Y / 2 - 5
 		end
 	else
-		if self.Mouse.X < 0 then
-			self.Mouse.X = SceneMan.Scene.Width - 1
+		if self.mouse.X < 0 then
+			self.mouse.X = SceneMan.Scene.Width - 1
 		end
 
-		if self.Mouse.Y < 10 then
-			self.Mouse.Y = 10
+		if self.mouse.Y < 10 then
+			self.mouse.Y = 10
 		end
 
-		if self.Mouse.X > SceneMan.Scene.Width then
-			self.Mouse.X = 0
+		if self.mouse.X > SceneMan.Scene.Width then
+			self.mouse.X = 0
 		end
 
-		if self.Mouse.Y > SceneMan.Scene.Height - 10 then
-			self.Mouse.Y = SceneMan.Scene.Height - 10
+		if self.mouse.Y > SceneMan.Scene.Height - 10 then
+			self.mouse.Y = SceneMan.Scene.Height - 10
 		end
 	end
 
@@ -178,31 +178,31 @@ function VoidWanderers:UpdateSceneProcess()
 
 	if MovableMan:IsActor(G_CursorActor) then
 		if not self.ButtonPressed then
-			G_CursorActor.Pos = self.Mouse
+			G_CursorActor.Pos = self.mouse
 		end
 	end
 
 	-- Process mouse hovers and presses -- TODO: UInputMan doesn't seem to register the mouse press functions?
-	if true or self.MenuNavigationScheme == self.MenuNavigationSchemes.KEYBOARD then
-		self.MouseOverElement = self:GetMouseOverKnownFormElements()
+	if true or self.menuNavigationScheme == self.menuNavigationSchemes.KEYBOARD then
+		self.hoverOverIndex = self:getHoveredButton()
 
-		if self.MouseOverElement then
-			if self.UI[self.MouseOverElement]["OnHover"] ~= nil then
-				self.UI[self.MouseOverElement]["OnHover"](self)
+		if self.hoverOverIndex then
+			if self.ui[self.hoverOverIndex]["OnHover"] ~= nil then
+				self.ui[self.hoverOverIndex]["OnHover"](self)
 			end
 		end
 
 		-- Process standard input
 		if cont:IsState(Controller.WEAPON_FIRE) then
-			if not self.MouseFirePressed then
-				self.MousePressedElement = self:GetMouseOverKnownFormElements()
+			if not self.mouseFirePressed then
+				self.pressHoldIndex = self:getHoveredButton()
 
 				local dontpass = false
 
-				if self.MousePressedElement ~= nil then
-					if self.UI[self.MousePressedElement]["OnClick"] ~= nil then
+				if self.pressHoldIndex ~= nil then
+					if self.ui[self.pressHoldIndex]["OnClick"] ~= nil then
 						dontpass = true
-						self.UI[self.MousePressedElement]["OnClick"](self)
+						self.ui[self.pressHoldIndex]["OnClick"](self)
 					end
 				end
 
@@ -210,33 +210,33 @@ function VoidWanderers:UpdateSceneProcess()
 					self:FormClick()
 				end
 
-				self.MouseOverElement = nil
-				self.MousePressedElement = nil
-				self.MousePressStartElement = nil
-				self.MousePressEndElement = nil
+				self.hoverOverIndex = nil
+				self.pressHoldIndex = nil
+				self.pressStartIndex = nil
+				self.pressEndIndex = nil
 			end
-			self.MouseFirePressed = true
+			self.mouseFirePressed = true
 		else
-			self.MouseFirePressed = false
+			self.mouseFirePressed = false
 		end
 	else
 		-- Process mouse input
-		self.MouseOverElement = self:GetMouseOverKnownFormElements()
+		self.hoverOverIndex = self:getHoveredButton()
 
-		if self.MouseOverElement then
-			if self.UI[self.MouseOverElement]["OnHover"] ~= nil then
-				self.UI[self.MouseOverElement]["OnHover"](self)
+		if self.hoverOverIndex then
+			if self.ui[self.hoverOverIndex]["OnHover"] ~= nil then
+				self.ui[self.hoverOverIndex]["OnHover"](self)
 			end
 		end
 
 		if UInputMan:MouseButtonPressed(0) then
-			self.MousePressStartElement = self:GetMouseOverKnownFormElements()
-			self.MousePressEndElement = nil
-			self.MousePressedElement = self:GetMouseOverKnownFormElements()
+			self.pressStartIndex = self:getHoveredButton()
+			self.pressEndIndex = nil
+			self.pressHoldIndex = self:getHoveredButton()
 		end
 
 		if UInputMan:MouseButtonHeld(0) then
-			self.MouseOverElement = nil
+			self.hoverOverIndex = nil
 			self.MouseButtonHeld = true
 		else
 			self.MouseButtonHeld = false
@@ -244,15 +244,15 @@ function VoidWanderers:UpdateSceneProcess()
 
 		if UInputMan:MouseButtonReleased(0) then
 			-- Get element above which mouse was released
-			self.MousePressEndElement = self:GetMouseOverKnownFormElements()
+			self.pressEndIndex = self:getHoveredButton()
 
 			local dontpass = false
 
-			if self.MousePressStartElement ~= nil and self.MousePressStartElement == self.MousePressEndElement then
-				if self.MousePressedElement ~= nil then
-					if self.UI[self.MousePressedElement]["OnClick"] ~= nil then
+			if self.pressStartIndex ~= nil and self.pressStartIndex == self.pressEndIndex then
+				if self.pressHoldIndex ~= nil then
+					if self.ui[self.pressHoldIndex]["OnClick"] ~= nil then
 						dontpass = true
-						self.UI[self.MousePressedElement]["OnClick"](self)
+						self.ui[self.pressHoldIndex]["OnClick"](self)
 					end
 				end
 			end
@@ -262,17 +262,17 @@ function VoidWanderers:UpdateSceneProcess()
 				self:FormClick()
 			end
 
-			self.MouseOverElement = nil
-			self.MousePressedElement = nil
-			self.MousePressStartElement = nil
-			self.MousePressEndElement = nil
+			self.hoverOverIndex = nil
+			self.pressHoldIndex = nil
+			self.pressStartIndex = nil
+			self.pressEndIndex = nil
 		end
 	end
 
-	--print(self.MouseOverElement)
-	--print(self.MousePressedElement)
+	--print(self.hoverOverIndex)
+	--print(self.pressHoldIndex)
 
-	self:RedrawKnownFormElements()
+	self:redrawKnownFormElements()
 	self:FormUpdate()
 	self:FormDraw()
 end
@@ -293,13 +293,13 @@ function VoidWanderers:CreateActors()
 	self.brain = CreateActor("Brain Case")
 	self.brain.Scale = 0
 	self.brain.Team = Activity.TEAM_1
-	self.brain.Pos = self.Mid
+	self.brain.Pos = self.mid
 	self.brain.HitsMOs = false
 	self.brain.GetsHitByMOs = false
 	MovableMan:AddActor(self.brain)
 	self:SetPlayerBrain(self.brain, Activity.TEAM_1)
 	self:SwitchToActor(self.brain, Activity.PLAYER_1, Activity.TEAM_1)
-	CameraMan:SetScroll(self.Mid, self:ScreenOfPlayer(Activity.PLAYER_1))
+	CameraMan:SetScroll(self.mid, self:ScreenOfPlayer(Activity.PLAYER_1))
 
 	--[[if MovableMan:IsActor(G_CursorActor) then
 		G_CursorActor.ToDelete = true
@@ -336,16 +336,16 @@ end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-function VoidWanderers:LoadCurrentGameState()
-	if CF.IsFileExists(self.ModuleName, STATE_CONFIG_FILE) then
-		self.GS = CF.ReadDataFile("Mods/" .. self.ModuleName .. "/CampaignData/" .. STATE_CONFIG_FILE)
+function VoidWanderers:loadCurrentGameState()
+	if CF.IsFileExists(self.ModuleName, self.stateConfigFileName) then
+		self.GS = CF.ReadDataFile("Mods/" .. self.ModuleName .. "/CampaignData/" .. self.stateConfigFileName)
 	end
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-function VoidWanderers:SaveCurrentGameState()
-	CF.WriteDataFile(self.GS, "Mods/" .. self.ModuleName .. "/CampaignData/" .. STATE_CONFIG_FILE)
+function VoidWanderers:saveCurrentGameState()
+	CF.WriteDataFile(self.GS, "Mods/" .. self.ModuleName .. "/CampaignData/" .. self.stateConfigFileName)
 end
 -----------------------------------------------------------------------
 --
@@ -353,7 +353,7 @@ end
 function VoidWanderers:DrawMouseCursor()
 	--for i = 1, self.CURSOR_REDRAW_COUNT do
 	local pix = CreateMOPixel("Cursor")
-	pix.Pos = self.Mouse + Vector(6, 6)
+	pix.Pos = self.mouse + Vector(6, 6)
 	MovableMan:AddParticle(pix)
 	--end
 end
@@ -417,7 +417,7 @@ end
 -----------------------------------------------------------------------
 -- Check if pos is within button area
 -----------------------------------------------------------------------
-function VoidWanderers:IsWithinButton(el, pos)
+function VoidWanderers:isWithinButton(el, pos)
 	local isvisible = true
 
 	if el["Visible"] ~= nil then
@@ -446,35 +446,35 @@ end
 -----------------------------------------------------------------------
 -- Redraw non-custom elements
 -----------------------------------------------------------------------
-function VoidWanderers:RedrawKnownFormElements()
-	for i = 1, #self.UI do
+function VoidWanderers:redrawKnownFormElements()
+	for i = 1, #self.ui do
 		-- Redraw button
-		if self.UI[i]["Type"] == CF.ElementTypes.BUTTON then
+		if self.ui[i]["Type"] == CF.ElementTypes.BUTTON then
 			local state = CF.ElementStates.IDLE
 
-			if i == self.MouseOverElement then
+			if i == self.hoverOverIndex then
 				state = CF.ElementStates.MOUSE_OVER
 			end
 
-			if i == self.MousePressedElement then
+			if i == self.pressHoldIndex then
 				state = CF.ElementStates.PRESSED
 			end
 
-			CF.DrawButton(self.UI[i], state, true)
+			CF.DrawButton(self.ui[i], state, true)
 		end
 
-		if self.UI[i]["Type"] == CF.ElementTypes.LABEL then
-			CF.DrawLabel(self.UI[i], nil)
+		if self.ui[i]["Type"] == CF.ElementTypes.LABEL then
+			CF.DrawLabel(self.ui[i], nil)
 		end
 	end
 end
 -----------------------------------------------------------------------
 -- Get element id above whicj mouse currently is
 -----------------------------------------------------------------------
-function VoidWanderers:GetMouseOverKnownFormElements()
-	for i = 1, #self.UI do
-		if self.UI[i]["Type"] == CF.ElementTypes.BUTTON then
-			if self:IsWithinButton(self.UI[i], self.Mouse) then
+function VoidWanderers:getHoveredButton()
+	for i = 1, #self.ui do
+		if self.ui[i]["Type"] == CF.ElementTypes.BUTTON then
+			if self:isWithinButton(self.ui[i], self.mouse) then
 				return i
 			end
 		end

@@ -210,8 +210,8 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 			end
 
 			if cont:IsState(Controller.WEAPON_FIRE) then
-				if not self.FirePressed[player] then
-					self.FirePressed[player] = true
+				if not self.firePressed[player] then
+					self.firePressed[player] = true
 
 					local index = self.ItemShopFilters[mode][itemSelected];
 					local item = self.ItemShopItems[index];
@@ -243,7 +243,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 					end
 				end
 			else
-				self.FirePressed[player] = false
+				self.firePressed[player] = false
 			end
 
 			local lineOffset = topOfPage;

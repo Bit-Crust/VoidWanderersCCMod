@@ -158,8 +158,8 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 
 				-- Deploy units
 				if cont:IsState(Controller.WEAPON_FIRE) and canbeam then
-					if not self.FirePressed[player] then
-						self.FirePressed[player] = true;
+					if not self.firePressed[player] then
+						self.firePressed[player] = true;
 
 						-- Save ground items
 						storageCapacity = tonumber(self.GS["PlayerVesselStorageCapacity"]);
@@ -211,14 +211,14 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 						self.GS["BrainsOnMission"] = brainCount == self.PlayerCount and "True" or "False";
 						self.GS["Mode"] = "Mission";
 						self.GS["Scene"] = scene;
-						self:SaveCurrentGameState();
+						self:saveCurrentGameState();
 						self:DestroyConsoles();
 						
 						self.sceneToLaunch = self.GS["Scene"];
 						self.scriptToLaunch = "Tactics.lua";
 					end
 				else
-					self.FirePressed[player] = false
+					self.firePressed[player] = false
 				end
 
 				-- Draw background

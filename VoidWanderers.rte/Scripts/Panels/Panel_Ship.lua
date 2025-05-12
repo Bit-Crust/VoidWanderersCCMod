@@ -12,10 +12,11 @@ function VoidWanderers:InitShipControlPanelUI()
 		self.ShipControlPanelPos = nil;
 	end
 	
+	self.ShipControlPanelPresetName = "Ship Control Panel";
 	self:LocateShipControlPanelActor();
 	if self.ShipControlPanelPos ~= nil then
 		if not MovableMan:IsActor(self.ShipControlPanelActor) then
-			self.ShipControlPanelActor = CreateActor("Ship Control Panel");
+			self.ShipControlPanelActor = CreateActor(self.ShipControlPanelPresetName);
 
 			self.ShipControlPanelActor.Pos = self.ShipControlPanelPos;
 			self.ShipControlPanelActor.Team = CF.PlayerTeam;
@@ -107,7 +108,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			local act = self:GetControlledActor(player);
 
-			if act and act.PresetName == self.ShipControlPanelActor.PresetName then
+			if act and act.PresetName == self.ShipControlPanelPresetName then
 				resetLists = false;
 				showIdle = false;
 
@@ -219,11 +220,9 @@ function VoidWanderers:ProcessShipControlPanelUI()
 								end
 							end
 
-							self.GS["DeserializeOnboard"] = "True";
 							CF.SetStorageArray(self.GS, self.StorageItems);
-							self:SaveCurrentGameState();
-							self:DestroyConsoles();
-							FORM_TO_LOAD = BASE_PATH .. "FormSave.lua";
+							self.formToLoad = "FormSave.lua";
+							self.cacheCurrentGameState = true;
 							self.sceneToLaunch = "Void Wanderers";
 							self.scriptToLaunch = "StrategyScreenMain.lua";
 							self.onboardToSerialize = actors;
@@ -255,12 +254,12 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							end
 
 							if cont:IsState(Controller.WEAPON_FIRE) then
-								if not self.FirePressed[player] then
-									self.FirePressed[player] = true;
+								if not self.firePressed[player] then
+									self.firePressed[player] = true;
 									self.vesselData.dialogOptionChosen = self.vesselData.dialogOptionSelected;
 								end
 							else
-								self.FirePressed[player] = false;
+								self.firePressed[player] = false;
 							end
 						end
 
@@ -317,8 +316,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					local selectedLocation = locations[self.ShipControlSelectedLocation];
 
 					if cont:IsState(Controller.WEAPON_FIRE) then
-						if not self.FirePressed[player] then
-							self.FirePressed[player] = true;
+						if not self.firePressed[player] then
+							self.firePressed[player] = true;
 
 							if not self.encounterData.initialized then
 								if self.GS["Location"] == nil then
@@ -337,7 +336,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							end
 						end
 					else
-						self.FirePressed[player] = false;
+						self.firePressed[player] = false;
 					end
 
 					local locationListStart = self.ShipControlSelectedLocation - (self.ShipControlSelectedLocation - 1) % self.ShipControlLocationsPerPage;
@@ -513,8 +512,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					end
 
 					if cont:IsState(Controller.WEAPON_FIRE) then
-						if not self.FirePressed[player] then
-							self.FirePressed[player] = true;
+						if not self.firePressed[player] then
+							self.firePressed[player] = true;
 
 							if not self.encounterData.initialized then
 								-- Travel to another planet
@@ -530,7 +529,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							end
 						end
 					else
-						self.FirePressed[player] = false;
+						self.firePressed[player] = false;
 					end
 
 					local planetListStart = planetSelected - (planetSelected - 1) % self.ShipControlPlanetsPerPage;
@@ -636,8 +635,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					end
 
 					if cont:IsState(Controller.WEAPON_FIRE) then
-						if not self.FirePressed[player] then
-							self.FirePressed[player] = true
+						if not self.firePressed[player] then
+							self.firePressed[player] = true
 
 							-- Find planet where mission is
 							local planet =
@@ -683,7 +682,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							self.SetDestination = self.GS["Destination"]
 						end
 					else
-						self.FirePressed[player] = false
+						self.firePressed[player] = false
 					end
 					
 					local mission = missions[missionSelected];
@@ -893,8 +892,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						local sklpts = tonumber(self.GS["Brain" .. player .. "SkillPoints"]);
 
 						if cont:IsState(Controller.WEAPON_FIRE) then
-							if not self.FirePressed[player] then
-								self.FirePressed[player] = true;
+							if not self.firePressed[player] then
+								self.firePressed[player] = true;
 
 								if current < maximum and price <= sklpts then
 									self.GS[skills[selectedSkill].Variable] = current + 1;
@@ -902,7 +901,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 								end
 							end
 						else
-							self.FirePressed[player] = false;
+							self.firePressed[player] = false;
 						end
 
 						lineOffset = topOfPage;
@@ -1065,8 +1064,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					local price = upgrades[selectedUpgrade].Price * amount;
 
 					if cont:IsState(Controller.WEAPON_FIRE) then
-						if not self.FirePressed[player] then
-							self.FirePressed[player] = true;
+						if not self.firePressed[player] then
+							self.firePressed[player] = true;
 
 							if current < maximum and price <= CF.GetPlayerGold(self.GS, 0) then
 								self.GS[upgrades[selectedUpgrade].Variable] = current + amount;
@@ -1079,7 +1078,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							end
 						end
 					else
-						self.FirePressed[player] = false;
+						self.firePressed[player] = false;
 					end
 
 					lineOffset = topOfPage;
@@ -1202,8 +1201,8 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					total = price + installFee - tradeInDeduction;
 
 					if cont:IsState(Controller.WEAPON_FIRE) then
-						if not self.FirePressed[player] then
-							self.FirePressed[player] = true
+						if not self.firePressed[player] then
+							self.firePressed[player] = true
 
 							local ok = true
 
@@ -1265,7 +1264,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							end
 						end
 					else
-						self.FirePressed[player] = false
+						self.firePressed[player] = false
 					end
 
 					lineOffset = topOfPage;

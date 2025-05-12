@@ -443,7 +443,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 							self.GS["Mode"] = "Vessel";
 							self.GS["Scene"] = scene;
 							
-							self:SaveCurrentGameState();
+							self:saveCurrentGameState();
 							
 							self.sceneToLaunch = self.GS["Scene"];
 							self.scriptToLaunch = "Tactics.lua";
@@ -578,8 +578,8 @@ function VoidWanderers:ProcessLZControlPanelUI()
 				end
 
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed[player] then
-						self.FirePressed[player] = true
+					if not self.firePressed[player] then
+						self.firePressed[player] = true
 						local selectedBomb = bombs[selectedItem];
 
 						if selectedBomb ~= nil then
@@ -612,7 +612,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 						end
 					end
 				else
-					self.FirePressed[player] = false
+					self.firePressed[player] = false
 				end
 
 				local itemsPerPage = self.BombsControlPanelItemsPerPage;

@@ -283,8 +283,8 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 				end
 
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed[player] then
-						self.FirePressed[player] = true;
+					if not self.firePressed[player] then
+						self.firePressed[player] = true;
 
 						if cloneSelected ~= 0 then
 							if isSelling then
@@ -304,7 +304,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 						end
 					end
 				else
-					self.FirePressed[player] = false;
+					self.firePressed[player] = false;
 				end
 
 				-- Print clone storage capacity
@@ -484,8 +484,8 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 				end
 
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed[player] then
-						self.FirePressed[player] = true;
+					if not self.firePressed[player] then
+						self.firePressed[player] = true;
 
 						if #self.Clones ~= 0 then
 							if CF.CountActors(CF.PlayerTeam) < tonumber(self.GS["PlayerVesselLifeSupport"]) then
@@ -562,7 +562,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 						end
 					end
 				else
-					self.FirePressed[player] = false;
+					self.firePressed[player] = false;
 				end
 
 				-- Change panel text to show life support capacity
@@ -733,8 +733,8 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 				local item = clone.Items[itemSelected];
 				
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed[player] then
-						self.FirePressed[player] = true;
+					if not self.firePressed[player] then
+						self.firePressed[player] = true;
 						local storageFull = CF.CountUsedStorageInArray(self.StorageItems) >= tonumber(self.GS.PlayerVesselStorageCapacity);
 
 						if not storageFull then
@@ -757,7 +757,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 						end
 					end
 				else
-					self.FirePressed[player] = false;
+					self.firePressed[player] = false;
 				end
 
 				local lineOffset = topOfPage;
@@ -822,8 +822,8 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 				end
 
 				if cont:IsState(Controller.WEAPON_FIRE) then
-					if not self.FirePressed[player] then
-						self.FirePressed[player] = true;
+					if not self.firePressed[player] then
+						self.firePressed[player] = true;
 
 						local fullInventory = #clone.Items >= CF.MaxStoredActorInventory;
 
@@ -856,7 +856,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 						end
 					end
 				else
-					self.FirePressed[player] = false;
+					self.firePressed[player] = false;
 				end
 
 				local lineOffset = topOfPage;
