@@ -60,7 +60,7 @@ function VoidWanderers:MissionCreate()
 	self.missionData["sentryRadius"] = 100 + math.sqrt(FrameMan.PlayerScreenHeight ^ 2 + FrameMan.PlayerScreenWidth ^ 2) * 0.5;
 	self.missionData["squad"] = {};
 	self.missionData["brainHuntTriggered"] = false;
-	self.missionData["assaultWaitTime"] = self.Time;
+	self.missionData["assaultWaitTime"] = tonumber(self.GS["Time"]);
 
 	for i = 1, diff + 2 do
 		local actor = self:SpawnViaTable{
@@ -72,7 +72,7 @@ function VoidWanderers:MissionCreate()
 		};
 		actor:AddAIMOWaypoint(self.missionData["brain"]);
 
-		table.insert(self.missionData["squad"], { Actor = actor, Abandoned = self.Time });
+		table.insert(self.missionData["squad"], { Actor = actor, Abandoned = tonumber(self.GS["Time"]) });
 	end
 end
 -----------------------------------------------------------------------
@@ -88,7 +88,7 @@ function VoidWanderers:MissionUpdate()
 			if actor.Team == CF.CPUTeam and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
 				count = count + 1
 
-				if self.Time % 4 == 1 then
+				if tonumber(self.GS["Time"]) % 4 == 1 then
 					if not SceneMan:IsUnseen(actor.Pos.X, actor.Pos.Y, CF.PlayerTeam) then
 						self:AddObjectivePoint("KILL", actor.AboveHUDPos, CF.PlayerTeam, GameActivity.ARROWDOWN)
 					end
@@ -97,7 +97,7 @@ function VoidWanderers:MissionUpdate()
 
 			if actor.Team == CF.PlayerTeam and (actor.ClassName == "AHuman" or actor.ClassName == "ACrab") then
 				if MovableMan:IsActor(self.missionData["brain"]) then
-					local dist = SceneMan:ShortestDistance(self.missionData["brain"].Pos, actor.Pos, SceneMan.SceneWrapsX)
+					local dist = SceneMan:ShortestDistance(self.missionData["brain"].Pos, actor.Pos, true)
 
 					if dist:MagnitudeIsLessThan(enemydist) then
 						enemydist = dist.Magnitude
@@ -121,7 +121,7 @@ function VoidWanderers:MissionUpdate()
 						--self.missionData["brain"]:FlashWhite(500)
 
 						-- Start waiting for squad to assemble
-						self.missionData["assaultWaitTime"] = self.Time + 25
+						self.missionData["assaultWaitTime"] = tonumber(self.GS["Time"]) + 25
 					end
 				else
 					if self.missionData["brain"].AIMode ~= Actor.AIMODE_BRAINHUNT then
@@ -130,7 +130,7 @@ function VoidWanderers:MissionUpdate()
 				end
 
 				-- Send troops to fight
-				if self.Time > self.missionData["assaultWaitTime"] then
+				if tonumber(self.GS["Time"]) > self.missionData["assaultWaitTime"] then
 					for i = 1, #self.missionData["squad"] do
 						if MovableMan:IsActor(self.missionData["squad"][i]["Actor"]) then
 							if self.missionData["squad"][i]["Actor"].AIMode ~= Actor.AIMODE_BRAINHUNT then
@@ -146,7 +146,7 @@ function VoidWanderers:MissionUpdate()
 				for i = 1, #self.missionData["squad"] do
 					if MovableMan:IsActor(self.missionData["squad"][i]["Actor"]) then
 						if CF.Dist(self.missionData["brain"].Pos, self.missionData["squad"][i]["Actor"].Pos) < 200 then
-							self.missionData["squad"][i]["Abandoned"] = self.Time
+							self.missionData["squad"][i]["Abandoned"] = tonumber(self.GS["Time"])
 						else
 							abandoned = abandoned + 1
 							--self.missionData["squad"][i]["Actor"]:FlashWhite(500)
@@ -158,7 +158,7 @@ function VoidWanderers:MissionUpdate()
 						end
 
 						-- if actor is abandoned for too long, i.e. fell somewhere then just exclude it from squad
-						if self.Time > self.missionData["squad"][i]["Abandoned"] + 25 then
+						if tonumber(self.GS["Time"]) > self.missionData["squad"][i]["Abandoned"] + 25 then
 							self.missionData["squad"][i]["Actor"].AIMode = Actor.AIMODE_BRAINHUNT
 							self.missionData["squad"][i]["Actor"] = nil
 						end
@@ -207,7 +207,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["stage"] = CF.MissionStages.COMPLETED
 
 			-- Remember when we started showing misison status message
-			self.missionData["statusShowStart"] = self.Time
+			self.missionData["statusShowStart"] = tonumber(self.GS["Time"])
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
 		self.missionData["missionStatus"] = "MISSION COMPLETED"
@@ -216,7 +216,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["endMusicPlayed"] = true
 		end
 
-		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
+		if tonumber(self.GS["Time"]) < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)

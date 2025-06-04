@@ -211,7 +211,7 @@ function VoidWanderers:ProcessBeamControlPanelUI()
 						self.GS["BrainsOnMission"] = brainCount == self.PlayerCount and "True" or "False";
 						self.GS["Mode"] = "Mission";
 						self.GS["Scene"] = scene;
-						self:saveCurrentGameState();
+						self:saveCurrentGameState(self.GS);
 						self:DestroyConsoles();
 						
 						self.sceneToLaunch = self.GS["Scene"];

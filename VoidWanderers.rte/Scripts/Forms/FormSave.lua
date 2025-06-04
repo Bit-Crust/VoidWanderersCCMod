@@ -1,9 +1,30 @@
 local SaveForm = {};
 -----------------------------------------------------------------------
+--	
+-----------------------------------------------------------------------
+local function saveSlotOnClick(element, form, activity)
+	CF.WriteDataFile(activity.GS, "Mods/VoidWanderers.rte/CampaignData/savegame" .. element.Metadata.slotId .. ".dat");
+
+	activity.GS = activity:loadCurrentGameState();
+	activity.sceneToLaunch = activity.GS["Scene"];
+	activity.scriptToLaunch = "Tactics.lua";
+end
+-----------------------------------------------------------------------
+--	
+-----------------------------------------------------------------------
+local function backButtonOnClick(element, form, activity)
+	activity.GS = activity:loadCurrentGameState();
+	activity.sceneToLaunch = activity.GS["Scene"];
+	activity.scriptToLaunch = "Tactics.lua";
+end
+-----------------------------------------------------------------------
 --	Load event. Put all UI element initializations here.
 -----------------------------------------------------------------------
 function SaveForm:Load(document, activity)
 	local ui = {};
+
+	local resolution = Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight);
+	local center = Vector(SceneMan.Scene.Width / 4, SceneMan.Scene.Height / 2);
 
 	local saveSlotWidth = 180;
 	local saveSlotHeight = 70;
@@ -12,13 +33,12 @@ function SaveForm:Load(document, activity)
 	local columnsInLastRow = CF.MaxSaveGames % columns;
 	local xtile = 1;
 	local ytile = 1;
-	local resolution = Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight);
 
 	for i = 1, CF.MaxSaveGames do
 		local text = "EMPTY";
+		local gameState = CF.ReadDataFile("Mods/VoidWanderers.rte/CampaignData/savegame" .. i .. ".dat");
 		
-		if CF.IsFileExists(activity.ModuleName, "savegame" .. i .. ".dat") then
-			local gameState = CF.ReadDataFile("Mods/VoidWanderers.rte/CampaignData/savegame" .. i .. ".dat");
+		if gameState then
 			local isbroken = false;
 			local reason = "";
 
@@ -28,8 +48,8 @@ function SaveForm:Load(document, activity)
 
 			-- Check that all used factions are installed
 			for j = 1, CF.MaxCPUPlayers do
-				if gameState["Player" .. j .. "Active"] == "True" then
-					local f = gameState["Player" .. j .. "Faction"];
+				if gameState["Participant" .. j .. "Active"] == "True" then
+					local f = gameState["Participant" .. j .. "Faction"];
 
 					if f == nil then
 						isbroken = true;
@@ -63,25 +83,19 @@ function SaveForm:Load(document, activity)
 		if i > CF.MaxSaveGames - columnsInLastRow then
 			columnsThisRow = columnsInLastRow;
 		end
-
-		local slotId = #ui + 1;
+		
+		local offset = Vector(xtile * 178 - 89 - columnsThisRow * 89, ytile * 68 - 34 - rows * 34);
 
 		table.insert(ui, {
 			Type = CF.ElementTypes.BUTTON,
-			Pos = document.mid + Vector(
-				xtile * 178 - 89 - columnsThisRow * 89,
-				ytile * 68 - 34 - rows * 34
-			),
+			Pos = document.mid + offset,
 			Text = text,
 			Width = saveSlotWidth - 4,
 			Height = saveSlotHeight - 4,
-			OnClick = function(element, activity)
-				CF.WriteDataFile(activity.GS, "Mods/" .. activity.ModuleName .. "/CampaignData/" .. "savegame" .. slotId .. ".dat");
-
-				activity:loadCurrentGameState();
-				activity.sceneToLaunch = activity.GS["Scene"];
-				activity.scriptToLaunch = "Tactics.lua";
-			end,
+			OnClick = saveSlotOnClick,
+			Metadata = {
+				slotId = #ui + 1,
+			}
 		});
 
 		xtile = xtile + 1;
@@ -107,13 +121,13 @@ function SaveForm:Load(document, activity)
 		Text = "Back",
 		Width = 140,
 		Height = 40,
-		OnClick = function(element, activity)
-			activity:loadCurrentGameState();
-			activity.sceneToLaunch = activity.GS["Scene"];
-			activity.scriptToLaunch = "Tactics.lua";
-		end,
+		OnClick = backButtonOnClick,
 	});
 	
+	document.scrollingScreen = { X = false, Y = false };
+	document.bound.Corner = center * 1;
+	document.bound.Height = 0;
+	document.bound.Width = 0;
 	MusicMan:PlayDynamicSong("Main Menu Music DynamicSong", "Default", false, true, true);
 	
 	return ui;
@@ -122,7 +136,7 @@ end
 -- When a click occurs anywhere without catching in an element
 -----------------------------------------------------------------------
 function SaveForm:Click()
-	print("Default form click handling.");
+	--print("Default form click handling.");
 end
 -----------------------------------------------------------------------
 --
@@ -140,7 +154,7 @@ end
 --
 -----------------------------------------------------------------------
 function SaveForm:Close()
-	print("Default form close handling.");
+	--print("Default form close handling.");
 end
 -----------------------------------------------------------------------
 --

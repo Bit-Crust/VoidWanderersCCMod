@@ -64,11 +64,11 @@ function VoidWanderers:MissionCreate()
 	self:ObtainBaseBoxes("Enemy", set);
 
 	-- Deploy mines
-	local rate = math.min(-tonumber(self.GS["Player" .. target .. "Reputation"]) / (CF.MaxDifficulty * CF.ReputationPerDifficulty), 1) - 0.75;
+	local rate = math.min(-tonumber(self.GS["Participant" .. target .. "Reputation"]) / (CF.MaxDifficulty * CF.ReputationPerDifficulty), 1) - 0.75;
 	self:DeployInfantryMines(CF.CPUTeam, rate);
 	
 	self.missionData["craft"] = nil;
-	self.missionData["craftCheckTime"] = self.Time;
+	self.missionData["craftCheckTime"] = tonumber(self.GS["Time"]);
 
 	self.missionData["reinforcementsTriggered"] = false;
 	self.missionData["reinforcementsLast"] = 0;
@@ -97,8 +97,8 @@ function VoidWanderers:MissionUpdate()
 				if not self.missionData["reinforcementsTriggered"] then
 					if actor.Health > 0 and math.random(100) > actor.Health then
 						self.missionData["reinforcementsTriggered"] = true;
-						self.missionData["reinforcementsLast"] = self.Time;
-						self.missionData["reinforcementsFirst"] = self.Time;
+						self.missionData["reinforcementsLast"] = tonumber(self.GS["Time"]);
+						self.missionData["reinforcementsFirst"] = tonumber(self.GS["Time"]);
 					end
 				elseif self.missionData["counterAttackTriggered"] then
 					if count % 3 == 0 then
@@ -116,16 +116,16 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["stage"] = CF.MissionStages.COMPLETED;
 
 			-- Remember when we started showing misison status message
-			self.missionData["statusShowStart"] = self.Time;
-			self.missionData["missionEndTime"] = self.Time;
+			self.missionData["statusShowStart"] = tonumber(self.GS["Time"]);
+			self.missionData["missionEndTime"] = tonumber(self.GS["Time"]);
 		end
 
 		-- Send reinforcements if available
-		if self.missionData["reinforcementsTriggered"] and self.Time >= self.missionData["reinforcementsLast"] + self.missionData["interval"] then
+		if self.missionData["reinforcementsTriggered"] and tonumber(self.GS["Time"]) >= self.missionData["reinforcementsLast"] + self.missionData["interval"] then
 			if #self.missionData["landingZones"] > 0 and self.missionData["reinforcements"] > 0 then
 				local count = math.random(2);
 				local faction = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"]);
-				local ship = CF.MakeActor(CF.CraftClasses[faction], CF.Crafts[faction], CF.CraftModules[faction]);
+				local ship = CF.MakeActor(CF.CraftClasses[faction], CF.CraftPresets[faction], CF.CraftModules[faction]);
 
 				if ship then
 					for i = 1, count do
@@ -154,7 +154,7 @@ function VoidWanderers:MissionUpdate()
 				end
 			end
 
-			self.missionData["reinforcementsLast"] = self.Time;
+			self.missionData["reinforcementsLast"] = tonumber(self.GS["Time"]);
 		end
 
 		-- Trigger 'counterattack', send every third actor to attack player troops
@@ -162,7 +162,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["reinforcementsTriggered"]
 			and not self.missionData["counterAttackTriggered"]
 			and self.missionData["counterAttackDelay"] > 0
-			and self.Time >= self.missionData["reinforcementsFirst"] + self.missionData["counterAttackDelay"]
+			and tonumber(self.GS["Time"]) >= self.missionData["reinforcementsFirst"] + self.missionData["counterAttackDelay"]
 		then
 			self.missionData["reinforcementsTriggered"] = true
 		end
@@ -174,7 +174,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["endMusicPlayed"] = true;
 		end
 
-		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
+		if tonumber(self.GS["Time"]) < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player);
 				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true);

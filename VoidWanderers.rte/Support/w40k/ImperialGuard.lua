@@ -23,13 +23,13 @@ CF.PreferedBrainInventory[factionid] = { CF.WeaponTypes.HEAVY, CF.WeaponTypes.RI
 CF.FactionNatures[factionid] = CF.FactionNatureTypes.ORGANIC
 
 -- Define brain unit
-CF.Brains[factionid] = "Elysian Commissar"
+CF.BrainPresets[factionid] = "Elysian Commissar"
 CF.BrainModules[factionid] = "w40k.rte"
 CF.BrainClasses[factionid] = "AHuman"
 CF.BrainPrices[factionid] = 250
 
 -- Define dropship
-CF.Crafts[factionid] = "Dropship MK1"
+CF.CraftPresets[factionid] = "Dropship MK1"
 CF.CraftModules[factionid] = "Base.rte"
 CF.CraftClasses[factionid] = "ACDropShip"
 CF.CraftPrices[factionid] = 120

@@ -68,8 +68,8 @@ function VoidWanderers:MissionCreate()
 	end
 
 	self.missionData["allySpawnInterval"] = math.ceil(self.missionData["interval"] * 0.5)
-	self.missionData["reinforcementsLast"] = self.Time + self.missionData["interval"]
-	self.missionData["backupLast"] = self.Time - 1
+	self.missionData["reinforcementsLast"] = tonumber(self.GS["Time"]) + self.missionData["interval"]
+	self.missionData["backupLast"] = tonumber(self.GS["Time"]) - 1
 
 	-- Use generic enemy set
 	local minerSet = CF.GetRandomMissionPointsSet(self.Pts, "Mine")
@@ -158,13 +158,13 @@ function VoidWanderers:MissionUpdate()
 		self.missionData["missionStatus"] = "MINERS: " .. friends .. "/" .. self.missionData["minersNeeded"]
 
 		if
-			self.Time % 2 == 0
+			tonumber(self.GS["Time"]) % 2 == 0
 			and self.missionData["allyReinforcementsCount"] > 0
 			and friends < self.missionData["minersNeeded"]
-			and self.Time < self.missionData["backupLast"] + self.missionData["allySpawnInterval"]
+			and tonumber(self.GS["Time"]) < self.missionData["backupLast"] + self.missionData["allySpawnInterval"]
 		then
 			self.missionData["missionStatus"] = "MINERS ARRIVE IN T-"
-				.. self.missionData["backupLast"] + self.missionData["allySpawnInterval"] - self.Time
+				.. self.missionData["backupLast"] + self.missionData["allySpawnInterval"] - tonumber(self.GS["Time"])
 		end
 
 		if friends >= self.missionData["minersNeeded"] then
@@ -173,7 +173,7 @@ function VoidWanderers:MissionUpdate()
 			end
 
 			self.missionData["missionStatus"] = "HOLD FOR "
-				.. self.missionData["missionStartTime"] + self.missionData["timeToHold"] - self.Time
+				.. self.missionData["missionStartTime"] + self.missionData["timeToHold"] - tonumber(self.GS["Time"])
 				.. " TICKS"
 		else
 			self.missionData["enoughMiners"] = false
@@ -181,11 +181,11 @@ function VoidWanderers:MissionUpdate()
 
 		if
 			self.missionData["enoughMiners"]
-			and self.Time >= self.missionData["missionStartTime"] + self.missionData["timeToHold"]
+			and tonumber(self.GS["Time"]) >= self.missionData["missionStartTime"] + self.missionData["timeToHold"]
 		then
 			self:GiveMissionRewards()
 			self.missionData["stage"] = CF.MissionStages.COMPLETED
-			self.missionData["statusShowStart"] = self.Time
+			self.missionData["statusShowStart"] = tonumber(self.GS["Time"])
 
 			self.missionData["interval"] = math.floor(self.missionData["interval"] * 1.5)
 
@@ -199,7 +199,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["allyReinforcementsCount"] == 0 and friends < self.missionData["minersNeeded"]
 		then
 			self.missionData["stage"] = CF.MissionStages.FAILED
-			self.missionData["statusShowStart"] = self.Time
+			self.missionData["statusShowStart"] = tonumber(self.GS["Time"])
 
 			for actor in MovableMan.Actors do
 				if CF.IsAlly(actor) then
@@ -208,7 +208,7 @@ function VoidWanderers:MissionUpdate()
 			end
 		end
 
-		if self.Time < self.missionData["dropshipWarningStart"] + 10 then
+		if tonumber(self.GS["Time"]) < self.missionData["dropshipWarningStart"] + 10 then
 			if self.missionData["allyReinforcementsCount"] > 0 then
 				local s = self.missionData["allyReinforcementsCount"] > 1 and "S" or ""
 				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -225,24 +225,24 @@ function VoidWanderers:MissionUpdate()
 		end
 
 		if self.missionData["enoughMiners"] then
-			self.missionData["backupLast"] = self.Time
+			self.missionData["backupLast"] = tonumber(self.GS["Time"])
 		end
 
 		-- Send player reinforcements
 		if
 			not self.missionData["enoughMiners"]
 			and #self.missionData["minerLandingZones"] > 0
-			and self.Time >= self.missionData["backupLast"] + self.missionData["allySpawnInterval"]
+			and tonumber(self.GS["Time"]) >= self.missionData["backupLast"] + self.missionData["allySpawnInterval"]
 			and self.missionData["allyReinforcementsCount"] > 0
 		then
-			self.missionData["backupLast"] = self.Time
+			self.missionData["backupLast"] = tonumber(self.GS["Time"])
 
 			if self.missionData["allyReinforcementsCount"] < 3 then
-				self.missionData["dropshipWarningStart"] = self.Time
+				self.missionData["dropshipWarningStart"] = tonumber(self.GS["Time"])
 			end
 
 			local f = CF.GetPlayerFaction(self.GS, self.missionData["missionContractor"])
-			local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
+			local ship = CF.MakeActor(CF.CraftClasses[f], CF.CraftPresets[f], CF.CraftModules[f])
 			if ship then
 				for i = 1, math.random(2) do
 					local actor
@@ -277,7 +277,7 @@ function VoidWanderers:MissionUpdate()
 			self:StartMusic(CF.MusicTypes.VICTORY)
 			self.missionData["endMusicPlayed"] = true
 		end
-		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
+		if tonumber(self.GS["Time"]) < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)
@@ -290,7 +290,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["endMusicPlayed"] = true
 		end
 
-		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
+		if tonumber(self.GS["Time"]) < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)
@@ -301,11 +301,11 @@ function VoidWanderers:MissionUpdate()
 	-- Always send enemy reinforcements to prevent player from digging out the whole map with free miners
 	if
 		#self.missionData["minerLandingZones"] > 0
-		and self.Time >= self.missionData["reinforcementsLast"]
+		and tonumber(self.GS["Time"]) >= self.missionData["reinforcementsLast"]
 	then
 		if self.missionData["enemyDropShips"] > 0 then
 			local f = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])
-			local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
+			local ship = CF.MakeActor(CF.CraftClasses[f], CF.CraftPresets[f], CF.CraftModules[f])
 			if ship then
 				local count
 				if self.missionData["stage"] == CF.MissionStages.ACTIVE then
@@ -342,7 +342,7 @@ function VoidWanderers:MissionUpdate()
 			-- Don't stop at zero dropships, just delay the enemy whenever they lose one
 			self.missionData["enemyDropShips"] = self.missionData["enemyDropShips"] + 1
 		end
-		self.missionData["reinforcementsLast"] = self.Time
+		self.missionData["reinforcementsLast"] = tonumber(self.GS["Time"])
 			+ math.max(self.missionData["interval"] - friends, self.missionData["allySpawnInterval"])
 	end
 end

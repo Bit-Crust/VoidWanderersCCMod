@@ -72,12 +72,12 @@ for module in PresetMan.Modules do
 			-- Prefered brain inventory items. Brain gets the best available items of the classes specified in list for free.
 			CF.PreferedBrainInventory[factionid] = { CF.WeaponTypes.DIGGER, CF.WeaponTypes.RIFLE }
 			-- Define brain unit
-			CF.Brains[factionid] = "Brain Robot"
+			CF.BrainPresets[factionid] = "Brain Robot"
 			CF.BrainModules[factionid] = "Base.rte"
 			CF.BrainClasses[factionid] = "AHuman"
 			CF.BrainPrices[factionid] = 500
 			-- Define dropship
-			CF.Crafts[factionid] = "Dropship MK1"
+			CF.CraftPresets[factionid] = "Dropship MK1"
 			CF.CraftModules[factionid] = "Base.rte"
 			CF.CraftClasses[factionid] = "ACDropShip"
 			CF.CraftPrices[factionid] = 500
@@ -293,7 +293,7 @@ for module in PresetMan.Modules do
 				then
 					entity = ToActor(entity)
 					if entity:HasObjectInGroup("Brains") then
-						CF.Brains[factionid] = entity.PresetName
+						CF.BrainPresets[factionid] = entity.PresetName
 						CF.BrainModules[factionid] = module.FileName
 						CF.BrainClasses[factionid] = entity.ClassName
 						CF.BrainPrices[factionid] = entity:GetGoldValue(0, 1, 1) * 5

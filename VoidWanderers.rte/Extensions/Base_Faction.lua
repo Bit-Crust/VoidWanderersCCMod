@@ -7,20 +7,63 @@ do
 	-- State that there is a faction with this ID
 	CF.Factions[#CF.Factions + 1] = factionID;
 
-	-- Faction name
-	CF.FactionNames[factionID] = "Free Trade";
-	-- Faction description
-	CF.FactionDescriptions[factionID] = "The enabler of interstellar trade on the multi-civilizational scale and the hand that feeds most factions, so to speak. You probably do not want to make enemies with these guys.";
-	-- Set true if faction is selectable by player or AI
-	CF.FactionPlayable[factionID] = false;
-	-- Available values: NONE, ORGANIC, SYNTHETIC
-	CF.FactionNatures[factionID] = CF.FactionNatureTypes.ORGANIC;
-	-- Available values: NEUTRAL, ORDER, CHAOS
-	CF.FactionAlignments[factionID] = CF.FactionNatureTypes.ORGANIC;
-	-- Set true if faction is significantly hostile to outgroups
-	CF.FactionIngroupPreference[factionID] = false;
-	-- Set true if faction is always involved, but not selectable
-	CF.FactionStaticInvolvement[factionID] = true;
+	do
+		-- Faction name
+		CF.FactionNames[factionID] = "Free Trade";
+		-- Faction description
+		CF.FactionDescriptions[factionID] = "The enabler of interstellar trade on the multi-civilizational scale and the hand that feeds most factions, so to speak. You probably do not want to make enemies with these guys.";
+		-- Set true if faction is selectable for player or AI
+		CF.FactionPlayable[factionID] = false;
+		-- Available values: NONE, ORGANIC, SYNTHETIC
+		CF.FactionNatures[factionID] = CF.FactionNatureTypes.ORGANIC;
+		-- Set true if faction is significantly hostile to outgroups
+		CF.FactionIngroupPreference[factionID] = false;
+		-- Set true if faction is always involved, but not selectable
+		CF.FactionStaticInvolvement[factionID] = true;
+	end
+	--
+	CF.FactionAttributes[factionID] = {
+		"VENDOR"
+	};
+	--
+	local law = {
+		type = "union",
+		"PRIVATE_MILITARY_COMPANY",
+		"PMC",
+		"LAW_ENFORCEMENT",
+		"POLICE",
+		"LAW",
+		"Techion",
+	};
+	local criminal = {
+		type = "union",
+		"PIRATES"
+		"Ronin",
+	};
+	CF.FactionInclinations[factionID] = {
+		{
+			modifier = 600,
+			membership = {
+				type = "intersection",
+				law,
+				{
+					type = "complement",
+					criminal,
+				},
+			},
+		},
+		{
+			modifier = -1500,
+			membership = {
+				type = "intersection",
+				criminal,
+				{
+					type = "complement",
+					law,
+				},
+			},
+		},
+	};
 
 	-- Modules needed for this faction
 	CF.RequiredModules[factionID] = { "Base.rte" };
@@ -29,13 +72,13 @@ do
 	CF.PreferedBrainInventory[factionID] = {};
 
 	-- Define brain unit
-	CF.Brains[factionID] = "AI Box";
+	CF.BrainPresets[factionID] = "AI Box";
 	CF.BrainModules[factionID] = "Base.rte";
 	CF.BrainClasses[factionID] = "ACrab";
 	CF.BrainPrices[factionID] = 500;
 
 	-- Define dropship
-	CF.Crafts[factionID] = "Rocket MK2";
+	CF.CraftPresets[factionID] = "Rocket MK2";
 	CF.CraftModules[factionID] = "Base.rte";
 	CF.CraftClasses[factionID] = "ACRocket";
 	CF.CraftPrices[factionID] = 500;

@@ -105,7 +105,7 @@ function Update(self)
 						--[[Telefrag??
 						for actor in MovableMan.Actors do
 							for _, target in pairs(targets) do
-								if SceneMan:ShortestDistance(actor.Pos, pos, SceneMan.SceneWrapsX):MagnitudeIsLessThan(5) then
+								if SceneMan:ShortestDistance(actor.Pos, pos, true):MagnitudeIsLessThan(5) then
 									actor:GibThis()
 									break
 								end
@@ -114,7 +114,7 @@ function Update(self)
 						--
 						for _, actor in pairs(targets) do
 							actor.Pos = self.partner.Pos
-								+ SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX)
+								+ SceneMan:ShortestDistance(self.Pos, actor.Pos, true)
 							actor:FlashWhite(250)
 						end
 						self.partner.Sharpness = 1

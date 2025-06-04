@@ -65,7 +65,7 @@ function Update(self)
 						end
 					end
 
-					local dist = SceneMan:ShortestDistance(self.Pos, self.target.Pos, SceneMan.SceneWrapsX)
+					local dist = SceneMan:ShortestDistance(self.Pos, self.target.Pos, true)
 
 					if dist:MagnitudeIsLessThan(self.searchRange * 2) then
 						controller:SetState(Controller.MOVE_LEFT, dist.X < 0)

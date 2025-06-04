@@ -230,15 +230,15 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 
 								CF.ChangePlayerGold(self.GS, -item.Price);
 							else
-								self.ClonesShopControlMessageTime = self.Time;
+								self.ClonesShopControlMessageTime = tonumber(self.GS["Time"]);
 								self.ClonesShopControlMessageText = "No space within item storage.";
 							end
 						else
-							self.ClonesShopControlMessageTime = self.Time;
+							self.ClonesShopControlMessageTime = tonumber(self.GS["Time"]);
 							self.ClonesShopControlMessageText = "Insufficient funds for purchase.";
 						end
 					else
-						self.ClonesShopControlMessageTime = self.Time;
+						self.ClonesShopControlMessageTime = tonumber(self.GS["Time"]);
 						self.ClonesShopControlMessageText = "No items for purchase.";
 					end
 				end
@@ -324,7 +324,7 @@ function VoidWanderers:ProcessItemShopControlPanelUI()
 			end
 
 			if self.ItemShopControlMessageText then
-				if self.Time <= self.ItemShopControlMessageTime + self.ItemShopControlMessagePeriod then
+				if tonumber(self.GS["Time"]) <= self.ItemShopControlMessageTime + self.ItemShopControlMessagePeriod then
 					lowBarPalette = CF.MenuDeniedIdle;
 					lowBarCenterText = self.ItemShopControlMessageText;
 				end

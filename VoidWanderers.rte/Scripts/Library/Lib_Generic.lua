@@ -214,6 +214,14 @@ function CF.InitFactions(activity)
 	CF.Nobody = "Nobody"
 	CF.CPUFaction = "Nobody"
 
+	CF.RandomNames = {};
+	CF.RandomNames[1] = { "Big", "Just", "Killer", "Lt.", "Little", "Mad", "Major", "MC", "Sgt.", "Serious" };
+	CF.RandomNames[2] = { "Alex", "Ban", "Billy", "Brian", "Buck", "Chad", "Charlie", "Chuck", "Dick", "Dixie",
+						"Frankie", "Gordon", "George", "Joe", "John", "Jordan", "Mack", "Mal", "Max", "Miles",
+						"Morgan", "Pepper", "Roger", "Sam", "Smoke" };
+	CF.RandomNames[3] = { "Davis", "Freeman", "Function", "Griffin", "Hammer", "Hawkins", "Johnson", "McGee",
+						"Moore", "Rambo", "Richards", "Simpson", "Williams", "Wilson" };
+
 	CF.MissionEndTimer = Timer()
 	CF.StartReturnCountdown = false
 	CF.Activity = activity
@@ -327,269 +335,237 @@ function CF.InitFactions(activity)
 		TURRET = 3
 	}
 
-	CF.ItmNames = {}
-	CF.ItmPresets = {}
-	CF.ItmModules = {}
-	CF.ItmPrices = {}
-	CF.ItmDescriptions = {}
-	CF.ItmUnlockData = {}
-	CF.ItmClasses = {}
-	CF.ItmTypes = {}
-	CF.ItmPowers = {} -- AI will select weapons based on this value
+	CF.ItmNames = {};
+	CF.ItmPresets = {};
+	CF.ItmModules = {};
+	CF.ItmPrices = {};
+	CF.ItmDescriptions = {};
+	CF.ItmUnlockData = {};
+	CF.ItmClasses = {};
+	CF.ItmTypes = {};
+	CF.ItmPowers = {}; -- AI will select weapons based on this value
 
-	CF.ActNames = {}
-	CF.ActPresets = {}
-	CF.ActModules = {}
-	CF.ActPrices = {}
-	CF.ActDescriptions = {}
-	CF.ActUnlockData = {}
-	CF.ActClasses = {}
-	CF.ActTypes = {}
-	CF.EquipmentTypes = {} -- Factions with pre-equipped actors specify which weapons class this unit is equivalent
-	CF.ActPowers = {}
-	CF.ActOffsets = {}
+	CF.ActNames = {};
+	CF.ActPresets = {};
+	CF.ActModules = {};
+	CF.ActPrices = {};
+	CF.ActDescriptions = {};
+	CF.ActUnlockData = {};
+	CF.ActClasses = {};
+	CF.ActTypes = {};
+	CF.EquipmentTypes = {}; -- Factions with pre-equipped actors specify which weapons class this unit is equivalent
+	CF.ActPowers = {};
+	CF.ActOffsets = {};
 
 	-- Bombs, used only by VoidWanderers
-	CF.BombNames = {}
-	CF.BombPresets = {}
-	CF.BombModules = {}
-	CF.BombClasses = {}
-	CF.BombPrices = {}
-	CF.BombDescriptions = {}
-	CF.BombOwnerFactions = {}
-	CF.BombUnlockData = {}
+	CF.BombNames = {};
+	CF.BombPresets = {};
+	CF.BombModules = {};
+	CF.BombClasses = {};
+	CF.BombPrices = {};
+	CF.BombDescriptions = {};
+	CF.BombOwnerFactions = {};
+	CF.BombUnlockData = {};
 
-	CF.RequiredModules = {}
+	CF.RequiredModules = {};
 
 	CF.FactionNatureTypes = { NONE = -1, ORGANIC = 0, SYNTHETIC = 1 };
 	CF.FactionNatures = {};
 
-	CF.FactionAlignmentTypes = { NEUTRAL = -1, ORDER = 0, CHAOS = 1 };
-	CF.FactionAlignments = {};
-
 	CF.FactionIngroupPreference = {};
 	CF.FactionStaticInvolvement = {};
 
-	CF.Brains = {}
-	CF.BrainModules = {}
-	CF.BrainClasses = {}
-	CF.BrainPrices = {}
+	CF.BrainPresets = {};
+	CF.BrainModules = {};
+	CF.BrainClasses = {};
+	CF.BrainPrices = {};
 
-	CF.Crafts = {}
-	CF.CraftModules = {}
-	CF.CraftClasses = {}
-	CF.CraftPrices = {}
+	CF.CraftPresets = {};
+	CF.CraftModules = {};
+	CF.CraftClasses = {};
+	CF.CraftPrices = {};
 
-	CF.MusicTypes = { SHIP_CALM = 0, SHIP_INTENSE = 1, MISSION_CALM = 2, MISSION_INTENSE = 3, VICTORY = 4, DEFEAT = 5, COMMERCE = 6 }
-
-	CF.Music = {}
-	CF.Music[CF.MusicTypes.SHIP_CALM] = {}
-	CF.Music[CF.MusicTypes.SHIP_INTENSE] = {}
-	CF.Music[CF.MusicTypes.MISSION_CALM] = {}
-	CF.Music[CF.MusicTypes.MISSION_INTENSE] = {}
+	CF.MusicTypes = { SHIP_CALM = 0, SHIP_INTENSE = 1, MISSION_CALM = 2, MISSION_INTENSE = 3, VICTORY = 4, DEFEAT = 5, COMMERCE = 6 };
+	CF.Music = {};
+	CF.Music[CF.MusicTypes.SHIP_CALM] = {};
+	CF.Music[CF.MusicTypes.SHIP_INTENSE] = {};
+	CF.Music[CF.MusicTypes.MISSION_CALM] = {};
+	CF.Music[CF.MusicTypes.MISSION_INTENSE] = {};
+	CF.Music[CF.MusicTypes.VICTORY] = {};
+	CF.Music[CF.MusicTypes.DEFEAT] = {};
+	CF.Music[CF.MusicTypes.COMMERCE] = {};
 
 	-- Load factions
-	local lastfactioncount = #CF.Factions
+	local lastfactioncount = #CF.Factions;
 
 	-- Execute script
-	dofile("Mods/VoidWanderers.rte/Extensions/Factions.lua")
+	dofile("Mods/VoidWanderers.rte/Extensions/Factions.lua");
 
 	-- Check for faction consistency only if it is a faction file
 	if lastfactioncount ~= #CF.Factions then
-		local id = CF.Factions[#CF.Factions]
+		local id = CF.Factions[#CF.Factions];
 
 		--Check if faction modules installed. Check only works with old v1 or most new v2 faction files.
 		--print(CF.InfantryModules[CF.Factions[#CF.Factions]])
 		for m = 1, #CF.RequiredModules[id] do
-			local module = CF.RequiredModules[id][m]
+			local module = CF.RequiredModules[id][m];
 
 			if module ~= nil then
 				if PresetMan:GetModuleID(module) == -1 then
-					CF.FactionPlayable[id] = false
-					print("ERROR!!! " .. id .. " DISABLED!!! " .. CF.RequiredModules[id][m] .. " NOT FOUND!!!")
+					CF.FactionPlayable[id] = false;
+					print("ERROR!!! " .. id .. " DISABLED!!! " .. CF.RequiredModules[id][m] .. " NOT FOUND!!!");
 				end
 			end
 		end
 
 		-- Assume that faction file is correct
-		local factionok = true
-		local err = ""
+		local factionok = true;
+		local err = "";
 
 		-- Verify faction file data and add mission values if any
 		-- Verify items
 		for i = 1, #CF.ItmNames[id] do
 			if CF.ItmClasses[id][i] == nil then
-				factionok = false
-				err = "CF.ItmClasses is missing."
+				factionok = false;
+				err = "CF.ItmClasses is missing.";
 			end
 
 			if CF.ItmPresets[id][i] == nil then
-				factionok = false
-				err = "CF.ItmPresets is missing."
+				factionok = false;
+				err = "CF.ItmPresets is missing.";
 			end
 
 			if CF.ItmModules[id][i] == nil then
-				factionok = false
-				err = "CF.ItmModules is missing."
+				factionok = false;
+				err = "CF.ItmModules is missing.";
 			end
 
 			if CF.ItmPrices[id][i] == nil then
-				factionok = false
-				err = "CF.ItmPrices is missing."
+				factionok = false;
+				err = "CF.ItmPrices is missing.";
 			end
 
 			if CF.ItmDescriptions[id][i] == nil then
-				factionok = false
-				err = "CF.ItmDescriptions is missing."
+				factionok = false;
+				err = "CF.ItmDescriptions is missing.";
 			end
 
 			if CF.ItmUnlockData[id][i] == nil then
-				factionok = false
-				err = "CF.ItmUnlockData is missing."
+				factionok = false;
+				err = "CF.ItmUnlockData is missing.";
 			end
 
 			if CF.ItmTypes[id][i] == nil then
-				factionok = false
-				err = "CF.ItmTypes is missing."
+				factionok = false;
+				err = "CF.ItmTypes is missing.";
 			end
 
 			if CF.ItmPowers[id][i] == nil then
-				factionok = false
-				err = "CF.ItmPowers is missing."
+				factionok = false;
+				err = "CF.ItmPowers is missing.";
 			end
 
 			-- If something is wrong then disable faction and print error message
 			if not factionok then
-				CF.FactionPlayable[id] = false
-				print("ERROR!!! " .. id .. " DISABLED!!! " .. CF.ItmNames[id][i] .. " : " .. err)
-				break
+				CF.FactionPlayable[id] = false;
+				print("ERROR!!! " .. id .. " DISABLED!!! " .. CF.ItmNames[id][i] .. " : " .. err);
+				break;
 			end
 		end
 
 		-- Assume that faction file is correct
-		local info = {}
-		local data = {}
+		local info = {};
+		local data = {};
 
 		-- Verify faction generic data
-		info[#info + 1] = "CF['FactionNames']"
-		data[#info] = CF.FactionNames[id]
+		info[#info + 1] = "CF['FactionNames']";
+		data[#info] = CF.FactionNames[id];
 
-		info[#info + 1] = "CF['FactionDescriptions']"
-		data[#info] = CF.FactionDescriptions[id]
+		info[#info + 1] = "CF['FactionDescriptions']";
+		data[#info] = CF.FactionDescriptions[id];
 
-		info[#info + 1] = "CF['FactionPlayable']"
-		data[#info] = CF.FactionPlayable[id]
+		info[#info + 1] = "CF['FactionPlayable']";
+		data[#info] = CF.FactionPlayable[id];
 
-		info[#info + 1] = "CF['RequiredModules']"
-		data[#info] = CF.RequiredModules[id]
+		info[#info + 1] = "CF['RequiredModules']";
+		data[#info] = CF.RequiredModules[id];
 
-		info[#info + 1] = "CF['FactionNatures']"
-		data[#info] = CF.FactionNatures[id]
-		--[[ UL2 stuff - don't need these!
-		info[#info + 1] = "CF.ScanBonuses"
-		data[#info] = CF.ScanBonuses[id]
-				
-		info[#info + 1] = "CF.RelationsBonuses"
-		data[#info] = CF.RelationsBonuses[id]
+		info[#info + 1] = "CF['FactionNatures']";
+		data[#info] = CF.FactionNatures[id];
 
-		info[#info + 1] = "CF.ExpansionBonuses"
-		data[#info] = CF.ExpansionBonuses[id]
+		info[#info + 1] = "CF['Brains']";
+		data[#info] = CF.BrainPresets[id];
 
-		info[#info + 1] = "CF.MineBonuses"
-		data[#info] = CF.MineBonuses[id]
+		info[#info + 1] = "CF['BrainModules']";
+		data[#info] = CF.BrainModules[id];
 
-		info[#info + 1] = "CF.LabBonuses"
-		data[#info] = CF.LabBonuses[id]
+		info[#info + 1] = "CF['BrainClasses']";
+		data[#info] = CF.BrainClasses[id];
 
-		info[#info + 1] = "CF.AirfieldBonuses"
-		data[#info] = CF.AirfieldBonuses[id]
+		info[#info + 1] = "CF['BrainPrices']";
+		data[#info] = CF.BrainPrices[id];
 
-		info[#info + 1] = "CF.SuperWeaponBonuses"
-		data[#info] = CF.SuperWeaponBonuses[id]
+		info[#info + 1] = "CF['Crafts']";
+		data[#info] = CF.CraftPresets[id];
 
-		info[#info + 1] = "CF.FactoryBonuses"
-		data[#info] = CF.FactoryBonuses[id]
+		info[#info + 1] = "CF['CraftModules']";
+		data[#info] = CF.CraftModules[id];
 
-		info[#info + 1] = "CF.CloneBonuses"
-		data[#info] = CF.CloneBonuses[id]
+		info[#info + 1] = "CF['CraftClasses']";
+		data[#info] = CF.CraftClasses[id];
 
-		info[#info + 1] = "CF.HospitalBonuses"
-		data[#info] = CF.HospitalBonuses[id]
-		]]
-		--
-		info[#info + 1] = "CF['Brains']"
-		data[#info] = CF.Brains[id]
-
-		info[#info + 1] = "CF['BrainModules']"
-		data[#info] = CF.BrainModules[id]
-
-		info[#info + 1] = "CF['BrainClasses']"
-		data[#info] = CF.BrainClasses[id]
-
-		info[#info + 1] = "CF['BrainPrices']"
-		data[#info] = CF.BrainPrices[id]
-
-		info[#info + 1] = "CF['Crafts']"
-		data[#info] = CF.Crafts[id]
-
-		info[#info + 1] = "CF['CraftModules']"
-		data[#info] = CF.CraftModules[id]
-
-		info[#info + 1] = "CF['CraftClasses']"
-		data[#info] = CF.CraftClasses[id]
-
-		info[#info + 1] = "CF['CraftPrices']"
-		data[#info] = CF.CraftPrices[id]
+		info[#info + 1] = "CF['CraftPrices']";
+		data[#info] = CF.CraftPrices[id];
 
 		for i = 1, #info do
 			if data[i] == nil then
-				CF.FactionPlayable[id] = false
-				print("ERROR!!! " .. id .. " DISABLED!!! " .. info[i] .. " is missing")
-				break
+				CF.FactionPlayable[id] = false;
+				print("ERROR!!! " .. id .. " DISABLED!!! " .. info[i] .. " is missing");
+				break;
 			end
 		end
 
 		-- Assume that faction file is correct
-		local factionok = true
-		local err = ""
+		local factionok = true;
+		local err = "";
 
 		-- Verify actors
 		for i = 1, #CF.ActNames[id] do
 			if CF.ActModules[id][i] == nil then
-				factionok = false
-				err = "CF['ActModules'] is missing."
+				factionok = false;
+				err = "CF['ActModules'] is missing.";
 			end
 
 			if CF.ActPrices[id][i] == nil then
-				factionok = false
-				err = "CF['ActPrices'] is missing."
+				factionok = false;
+				err = "CF['ActPrices'] is missing.";
 			end
 
 			if CF.ActDescriptions[id][i] == nil then
-				factionok = false
-				err = "CF['ActDescriptions'] is missing."
+				factionok = false;
+				err = "CF['ActDescriptions'] is missing.";
 			end
 
 			if CF.ActUnlockData[id][i] == nil then
-				factionok = false
-				err = "CF['ActUnlockData'] is missing."
+				factionok = false;
+				err = "CF['ActUnlockData'] is missing.";
 			end
 
 			if CF.ActTypes[id][i] == nil then
-				factionok = false
-				err = "CF['ActTypes'] is missing."
+				factionok = false;
+				err = "CF['ActTypes'] is missing.";
 			end
 
 			if CF.ActPowers[id][i] == nil then
-				factionok = false
-				err = "CF['ActPowers'] is missing."
+				factionok = false;
+				err = "CF['ActPowers'] is missing.";
 			end
 
 			-- If something is wrong then disable faction and print error message
 			if not factionok then
-				CF.FactionPlayable[id] = false
-				print("ERROR!!! " .. id .. " DISABLED!!! " .. CF.ActNames[id][i] .. " : " .. err)
-				break
+				CF.FactionPlayable[id] = false;
+				print("ERROR!!! " .. id .. " DISABLED!!! " .. CF.ActNames[id][i] .. " : " .. err);
+				break;
 			end
 		end
 	end
@@ -634,13 +610,14 @@ function CF.InitFactions(activity)
 		NOBOMBS = 14,
 	};
 
-	CF.AssaultDifficultyVesselClass = {};
-	CF.AssaultDifficultyVesselClass[1] = CF.LocationAttributeTypes.SCOUT;
-	CF.AssaultDifficultyVesselClass[2] = CF.LocationAttributeTypes.CORVETTE;
-	CF.AssaultDifficultyVesselClass[3] = CF.LocationAttributeTypes.FRIGATE;
-	CF.AssaultDifficultyVesselClass[4] = CF.LocationAttributeTypes.DESTROYER;
-	CF.AssaultDifficultyVesselClass[5] = CF.LocationAttributeTypes.CRUISER;
-	CF.AssaultDifficultyVesselClass[6] = CF.LocationAttributeTypes.BATTLESHIP;
+	CF.AssaultDifficultyVesselClass = {
+		CF.LocationAttributeTypes.SCOUT;
+		CF.LocationAttributeTypes.CORVETTE;
+		CF.LocationAttributeTypes.FRIGATE;
+		CF.LocationAttributeTypes.DESTROYER;
+		CF.LocationAttributeTypes.CRUISER;
+		CF.LocationAttributeTypes.BATTLESHIP;
+	};
 
 	-- Init ship data structures
 	CF.Vessel = {};
@@ -1003,12 +980,12 @@ do
 		blend = blend or emptyBlend;
 
 		local outter = BoxPrimitive(player, Vector(x1, y1), Vector(x2, y2), palette[1]);
-		local inner = BoxPrimitive(player, Vector(x1, y1) + Vector(1, 1), Vector(x2, y2) - Vector(1, 1), palette[2]);
-		local panel = BoxFillPrimitive(player, Vector(x1, y1) + Vector(2, 2), Vector(x2, y2) - Vector(2, 2), palette[3]);
+		local inner = BoxPrimitive(player, Vector(x1 + 1, y1 + 1), Vector(x2 - 1, y2 - 1), palette[2]);
+		local panel = BoxFillPrimitive(player, Vector(x1 + 2, y1 + 2), Vector(x2 - 2, y2 - 2), palette[3]);
 		drawPrimitives(PrimitiveMan, blendMode, blend[1], blend[2], blend[3], blend[4], { outter, inner, panel });
 	end
 	-----------------------------------------------------------------------
-	-- Draw questionable frame for menus
+	-- Draw questionable frames for menus
 	-----------------------------------------------------------------------
 	function CF.DrawMenuFrame(player, x1, y1, x2, y2, palette, blendMode, blend)
 		player = player or playerNone;
@@ -1016,10 +993,14 @@ do
 		blendMode = blendMode or transBlend;
 		blend = blend or emptyBlend;
 
-		local outter = BoxPrimitive(player, Vector(x1, y1), Vector(x2, y2), palette[1]);
-		local inner = BoxPrimitive(player, Vector(x1, y1) + Vector(1, 1), Vector(x2, y2) + Vector(-1, -1), palette[2]);
-		local panel = BoxFillPrimitive(player, Vector(x1, y1) + Vector(2, 2), Vector(x2, y1) + Vector(-2, 11), palette[3]);
-		drawPrimitives(PrimitiveMan, blendMode, blend[1], blend[2], blend[3], blend[4], { outter, inner, panel });
+		drawPrimitives(PrimitiveMan, blendMode, blend[1], blend[2], blend[3], blend[4], {
+			BoxPrimitive(player, Vector(x1, y1), Vector(x2, y2), palette[1]),
+			BoxPrimitive(player, Vector(x1 + 1, y1 + 1), Vector(x2 - 1, y2 - 1), palette[2]),
+			BoxFillPrimitive(player, Vector(x1 + 2, y1 + 2), Vector(x2 - 2, y1 + 11), palette[3]),
+			BoxFillPrimitive(player, Vector(x1 + 2, y1 + 11), Vector(x1 + 11, y2 - 11), palette[3]),
+			BoxFillPrimitive(player, Vector(x2 - 11, y1 + 11), Vector(x2 - 2, y2 - 11), palette[3]),
+			BoxFillPrimitive(player, Vector(x1 + 2, y2 - 11), Vector(x2 - 2, y2 - 2), palette[3]),
+		});
 	end
 	-----------------------------------------------------------------------
 	-- Draw progress bars for menus
@@ -1096,19 +1077,26 @@ do
 	-----------------------------------------------------------------------
 	function CF.DrawLabel(el, player)
 		player = player or Activity.PLAYER_NONE;
-		-- Labels can ommit presets or texts
+
+		local w = el.Width;
+		local h = el.Height;
+
+		if el.Visible == false then
+			return;
+		end
+
 		if el.Backdrop then
 			local x = el.Pos.X;
 			local y = el.Pos.Y;
-			local w = el.Width;
-			local h = el.Height;
 			local palettes = el.Palettes or CF.MenuNormalPalette;
 			local state = el.State or CF.ElementStates.IDLE;
 			CF.DrawMenuBox(player, x - w / 2, y - h / 2, x + w / 2 - 1, y + h / 2 - 1, palettes[state]);
+			w = w - 6;
+			h = h - 6;
 		end
 
 		if el.Text then
-			CF.DrawString(el.Text, el.Pos, el.Width, el.Height, nil, nil, el.Centered and 1 or 0, el.Centered and 1 or 0, nil, player);
+			CF.DrawString(el.Text, el.Pos, w, h, nil, nil, el.Centered and 1 or 0, el.Centered and 1 or 0, nil, player);
 		end
 	end
 	-----------------------------------------------------------------------
@@ -1116,22 +1104,26 @@ do
 	-----------------------------------------------------------------------
 	function CF.DrawButton(el, player)
 		player = player or Activity.PLAYER_NONE;
-		if el.Visible ~= false then
-			local x = el.Pos.X;
-			local y = el.Pos.Y;
-			local w = el.Width;
-			local h = el.Height;
-			local palettes = el.Palettes or CF.MenuNormalPalette;
-			local state = el.State or CF.ElementStates.IDLE;
-			if el.Backdrop ~= false then
-				CF.DrawMenuBox(player, x - w / 2, y - h / 2, x + w / 2 - 1, y + h / 2 - 1, palettes[state]);
-			else
-				CF.DrawMenuFrame(player, x - w / 2, y - h / 2, x + w / 2 - 1, y + h / 2 - 1, palettes[state]);
-			end
 
-			if el.Text then
-				CF.DrawString(el.Text, el.Pos, el.Width - 6, el.Height - 6, nil, nil, 1, 1, nil, player);
-			end
+		if el.Visible == false then
+			return;
+		end
+
+		local x = el.Pos.X;
+		local y = el.Pos.Y;
+		local w = el.Width;
+		local h = el.Height;
+		local palettes = el.Palettes or CF.MenuNormalPalette;
+		local state = el.State or CF.ElementStates.IDLE;
+
+		if el.Backdrop ~= false then
+			CF.DrawMenuBox(player, x - w / 2, y - h / 2, x + w / 2 - 1, y + h / 2 - 1, palettes[state]);
+		else
+			CF.DrawMenuFrame(player, x - w / 2, y - h / 2, x + w / 2 - 1, y + h / 2 - 1, palettes[state]);
+		end
+
+		if el.Text then
+			CF.DrawString(el.Text, el.Pos, el.Width - 6, el.Height - 6, nil, nil, 1, 1, nil, player);
 		end
 	end
 end
@@ -1139,7 +1131,7 @@ end
 -- Get the faction of a given participant in this save
 -----------------------------------------------------------------------
 function CF.GetPlayerFaction(gameState, p)
-	return gameState["Player" .. p .. "Faction"];
+	return gameState["Participant" .. p .. "Faction"];
 end
 -----------------------------------------------------------------------
 -- Converts time in second to string h:mm:ss
@@ -1157,20 +1149,24 @@ function CF.ConvertTimeToString(period)
 		timestr = timestr .. string.format("%d", hours) .. ":";
 	end
 
-	local s
-	s = tostring(minutes)
-	if #s < 2 then
-		s = "0" .. s
-	end
-	timestr = timestr .. s .. ":"
+	local s;
+	s = tostring(minutes);
 
-	s = tostring(seconds)
 	if #s < 2 then
-		s = "0" .. s
+		s = "0" .. s;
 	end
-	timestr = timestr .. s
 
-	return timestr
+	timestr = timestr .. s .. ":";
+
+	s = tostring(seconds);
+
+	if #s < 2 then
+		s = "0" .. s;
+	end
+
+	timestr = timestr .. s;
+
+	return timestr;
 end
 -----------------------------------------------------------------------
 -- Use given XP to determine rank
@@ -1244,12 +1240,14 @@ function CF.GetLimbData(actor, id)
 	if IsAHuman(actor) then
 		actor = ToAHuman(actor);
 		limb = actor[id];
+
 		if limb then
 			return limb:GetModuleAndPresetName();
 		end
 	elseif IsACrab(actor) then
 		actor = ToACrab(actor);
 		limb = actor[id];
+
 		if limb then
 			return limb:GetModuleAndPresetName();
 		end
@@ -1359,253 +1357,273 @@ end
 --
 -----------------------------------------------------------------------
 function CF.AttemptReplaceLimb(actor, limb)
-	local j = 0
-	local isArm = string.find(limb.PresetName, " Arm")
-	local isLeg = string.find(limb.PresetName, " Leg")
-	local isHead = string.find(limb.PresetName, " Head")
-	local limbName = limb:StringValueExists("LimbName") and limb:GetStringValue("LimbName") or limb.PresetName
+	local j = 0;
+	local isArm = string.find(limb.PresetName, " Arm");
+	local isLeg = string.find(limb.PresetName, " Leg");
+	local isHead = string.find(limb.PresetName, " Head");
+	local limbName = limb:StringValueExists("LimbName") and limb:GetStringValue("LimbName") or limb.PresetName;
+
 	if isArm then
-		j = not actor.FGArm and 1 or (not actor.BGArm and 2 or j)
+		j = not actor.FGArm and 1 or (not actor.BGArm and 2 or j);
 	elseif isLeg then
-		j = not actor.FGLeg and 3 or (not actor.BGLeg and 4 or j)
+		j = not actor.FGLeg and 3 or (not actor.BGLeg and 4 or j);
 	elseif isHead and actor.Head == nil then
-		j = 5
+		j = 5;
 	end
+
 	if j ~= 0 then
-		local reference = CreateAHuman(actor:GetModuleAndPresetName())
-		local referenceLimb
+		local reference = CreateAHuman(actor:GetModuleAndPresetName());
+		local referenceLimb;
+
 		if j == 1 then
-			referenceLimb = reference.FGArm
+			referenceLimb = reference.FGArm;
 		elseif j == 2 then
-			referenceLimb = reference.BGArm
+			referenceLimb = reference.BGArm;
 		elseif j == 3 then
-			referenceLimb = reference.FGLeg
+			referenceLimb = reference.FGLeg;
 		elseif j == 4 then
-			referenceLimb = reference.BGLeg
+			referenceLimb = reference.BGLeg;
 		elseif j == 5 then
-			referenceLimb = reference.Head
+			referenceLimb = reference.Head;
 		end
-		local newLimb
+
+		local newLimb;
+
 		if isArm then
-			newLimb = CreateArm(limbName .. (j == 1 and " FG" or " BG"))
+			newLimb = CreateArm(limbName .. (j == 1 and " FG" or " BG"));
 		elseif isLeg then
-			newLimb = CreateLeg(limbName .. (j == 3 and " FG" or " BG"))
+			newLimb = CreateLeg(limbName .. (j == 3 and " FG" or " BG"));
 		else
-			newLimb = limb:Clone() --(limbName)
+			newLimb = limb:Clone();
 		end
+
 		if newLimb then
 			if referenceLimb then
-				newLimb.ParentOffset = referenceLimb.ParentOffset
-				local woundName = referenceLimb:GetEntryWoundPresetName()
+				newLimb.ParentOffset = referenceLimb.ParentOffset;
+				local woundName = referenceLimb:GetEntryWoundPresetName();
+
 				if woundName ~= "" then
-					newLimb.ParentBreakWound = CreateAEmitter(woundName)
+					newLimb.ParentBreakWound = CreateAEmitter(woundName);
 				end
 			end
+
 			for wound in newLimb.Wounds do
 				if
 					math.floor(wound.ParentOffset.X - newLimb.JointOffset.X + 0.5) == 0
 					and math.floor(wound.ParentOffset.Y - newLimb.JointOffset.Y + 0.5) == 0
 				then
 					for em in wound.Emissions do
-						em.ParticlesPerMinute = 0
+						em.ParticlesPerMinute = 0;
 					end
-					wound.Scale = wound.Scale * 0.7
+
+					wound.Scale = wound.Scale * 0.7;
 				end
 			end
+
 			if j == 1 then
-				actor.FGArm = newLimb
+				actor.FGArm = newLimb;
 			elseif j == 2 then
-				actor.BGArm = newLimb
+				actor.BGArm = newLimb;
 			elseif j == 3 then
-				actor.FGLeg = newLimb
+				actor.FGLeg = newLimb;
 			elseif j == 4 then
-				actor.BGLeg = newLimb
+				actor.BGLeg = newLimb;
 			elseif j == 5 then
-				actor.Head = newLimb
+				actor.Head = newLimb;
 			end
+
 			for wound in actor.Wounds do
 				if
 					math.floor(wound.ParentOffset.X - newLimb.ParentOffset.X + 0.5) == 0
 					and math.floor(wound.ParentOffset.Y - newLimb.ParentOffset.Y + 0.5) == 0
 				then
 					for em in wound.Emissions do
-						em.ParticlesPerMinute = 0
+						em.ParticlesPerMinute = 0;
 					end
-					wound.Scale = wound.Scale * 0.7
+
+					wound.Scale = wound.Scale * 0.7;
 				end
 			end
-			limb:RemoveNumberValue("Carriable")
+
+			limb:RemoveNumberValue("Carriable");
 		else
-			j = 0
+			j = 0;
 		end
-		DeleteEntity(reference)
+
+		DeleteEntity(reference);
 	end
-	return j ~= 0
+
+	return j ~= 0;
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function CF.RandomizeLimbs(actor, limbs)
 	if IsAHuman(actor) then
-		actor = ToAHuman(actor)
-		local reference = RandomAHuman("Actors - Heavy", actor.ModuleName)
+		actor = ToAHuman(actor);
+		local reference = RandomAHuman("Actors - Heavy", actor.ModuleName);
+
 		if reference then
 			if reference.PresetName == actor.PresetName then
-				return false
+				return false;
 			end
-			local rand = math.random()
+
+			local rand = math.random();
+
 			if rand < 0.66 and actor.Head and reference.Head then
-				local organicHead = string.find(actor.Head.PresetName, "Flesh")
-				local matchingHead = string.find(reference.Head.PresetName, "Flesh") == organicHead
+				local organicHead = string.find(actor.Head.PresetName, "Flesh");
+				local matchingHead = string.find(reference.Head.PresetName, "Flesh") == organicHead;
+
 				if matchingHead and reference.Head.ClassName == "Attachable" then
-					local newHead = CreateAttachable(reference.Head.PresetName, reference.ModuleName)
-					newHead.ParentOffset = actor.Head.ParentOffset
-					newHead.DrawnAfterParent = actor.Head.DrawnAfterParent
-					actor.Head = newHead
+					local newHead = CreateAttachable(reference.Head.PresetName, reference.ModuleName);
+					newHead.ParentOffset = actor.Head.ParentOffset;
+					newHead.DrawnAfterParent = actor.Head.DrawnAfterParent;
+					actor.Head = newHead;
 				end
 			end
+
 			if rand < 0.33 or rand > 0.66 then
 				if actor.FGArm and reference.FGArm then
-					local newArm = CreateArm(reference.FGArm.PresetName, reference.ModuleName)
-					newArm.ParentOffset = actor.FGArm.ParentOffset
-					actor.FGArm = newArm
+					local newArm = CreateArm(reference.FGArm.PresetName, reference.ModuleName);
+					newArm.ParentOffset = actor.FGArm.ParentOffset;
+					actor.FGArm = newArm;
 				end
+
 				if actor.BGArm and reference.BGArm then
-					local newArm = CreateArm(reference.BGArm.PresetName, reference.ModuleName)
-					newArm.ParentOffset = actor.BGArm.ParentOffset
-					actor.BGArm = newArm
+					local newArm = CreateArm(reference.BGArm.PresetName, reference.ModuleName);
+					newArm.ParentOffset = actor.BGArm.ParentOffset;
+					actor.BGArm = newArm;
 				end
 			end
+
 			if math.random() <= actor:GetNumberValue("VW_XP") / CF.Ranks[#CF.Ranks] then
-				CF.SetRandomName(actor)
+				CF.SetRandomName(actor);
 			end
 		end
-		return true
+
+		return true;
 	elseif IsACrab(actor) then
-		actor = ToACrab(actor)
-		--Todo
-		return false
+		actor = ToACrab(actor);
+		return false;
 	end
-	return false
-end
------------------------------------------------------------------------
--- Set which actor is being named right now
------------------------------------------------------------------------
-function CF.SetNamingActor(actor, player)
-	CF.TypingActor = actor
-	CF.TypingPlayer = player
+	return false;
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function CF.SetRandomName(actor)
 	if not actor:StringValueExists("VW_Name") then
-		actor:SetStringValue("VW_Name", CF.GenerateRandomName())
+		actor:SetStringValue("VW_Name", CF.GenerateRandomName());
 	end
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function CF.GenerateRandomName()
-	if not CF.RandomNames then
-		CF.RandomNames = {}
-		CF.RandomNames[1] = { "Big", "Just", "Killer", "Lt.", "Little", "Mad", "Major", "MC", "Sgt.", "Serious" }
-		CF.RandomNames[2] = { "Alex", "Ban", "Billy", "Brian", "Buck", "Chad", "Charlie", "Chuck", "Dick", "Dixie",
-							"Frankie", "Gordon", "George", "Joe", "John", "Jordan", "Mack", "Mal", "Max", "Miles",
-							"Morgan", "Pepper", "Roger", "Sam", "Smoke" }
-		CF.RandomNames[3] = { "Davis", "Freeman", "Function", "Griffin", "Hammer", "Hawkins", "Johnson", "McGee",
-							"Moore", "Rambo", "Richards", "Simpson", "Williams", "Wilson" }
-	end
+	local rand = math.random();
+	local first = CF.RandomNames[1];
+	local second = CF.RandomNames[2];
+	local third = CF.RandomNames[3];
 
-	local name = ""
-	local rand = math.random()
-	if rand < 0.25 then --First + Second + Third
-		name = CF.RandomNames[1][math.random(#CF.RandomNames[1])]
+	if rand < 0.25 then
+		return first[math.random(#first)]
 			.. " "
-			.. CF.RandomNames[2][math.random(#CF.RandomNames[2])]
+			.. second[math.random(#second)]
 			.. " "
-			.. CF.RandomNames[3][math.random(#CF.RandomNames[3])]
-	elseif rand < 0.50 then --First + Second
-		name = CF.RandomNames[1][math.random(#CF.RandomNames[1])]
+			.. third[math.random(#third)];
+	elseif rand < 0.50 then
+		return first[math.random(#first)]
 			.. " "
-			.. CF.RandomNames[2][math.random(#CF.RandomNames[2])]
-	elseif rand < 0.75 then --Second + Third
-		name = CF.RandomNames[2][math.random(#CF.RandomNames[2])]
+			.. second[math.random(#second)];
+	elseif rand < 0.75 then
+		return second[math.random(#second)]
 			.. " "
-			.. CF.RandomNames[3][math.random(#CF.RandomNames[3])]
-	else --First + Third
-		name = CF.RandomNames[1][math.random(#CF.RandomNames[1])]
+			.. third[math.random(#third)];
+	else
+		return first[math.random(#first)]
 			.. " "
-			.. CF.RandomNames[3][math.random(#CF.RandomNames[3])]
+			.. third[math.random(#third)];
 	end
-	return name
 end
 -----------------------------------------------------------------------
 -- Set actors to hunt for nearby actors of a specific team - or regroup near actors of the same team
 -----------------------------------------------------------------------
 function CF.HuntForActors(hunter, targetTeam)
 	if hunter and MovableMan:IsActor(hunter) and hunter.AIMode == Actor.AIMODE_SENTRY then
-		local enemies = {}
-		local brains = {}
-		local closestActor, closestDistance
+		local enemies = {};
+		local brains = {};
+		local closestActor, closestDistance;
+
 		for target in MovableMan.Actors do
 			if
 				(targetTeam == nil or targetTeam == Activity.NOTEAM or target.Team == targetTeam)
 				and target.ID ~= hunter.ID
 				and (target.ClassName == "AHuman" or target.ClassName == "ACrab")
 			then
-				table.insert(enemies, target)
-				local dist = SceneMan:ShortestDistance(hunter.Pos, target.Pos, SceneMan.SceneWrapsX)
+				table.insert(enemies, target);
+				local dist = SceneMan:ShortestDistance(hunter.Pos, target.Pos, true);
+
 				if not closestDistance or dist:MagnitudeIsLessThan(closestDistance) then
-					closestDistance = dist.Magnitude
-					closestActor = target
+					closestDistance = dist.Magnitude;
+					closestActor = target;
 				end
+
 				if CF.IsBrain(target) then
-					table.insert(brains, target)
+					table.insert(brains, target);
 				end
 			end
 		end
-		local target
+
+		local target;
+
 		if #brains > 0 and math.random(3) <= 1 then
-			hunter.AIMode = Actor.AIMODE_GOTO
-			target = brains[math.random(#brains)]
-			hunter:AddAIMOWaypoint(target)
+			hunter.AIMode = Actor.AIMODE_GOTO;
+			target = brains[math.random(#brains)];
+			hunter:AddAIMOWaypoint(target);
 		elseif #enemies > 0 then
-			hunter.AIMode = Actor.AIMODE_GOTO
+			hunter.AIMode = Actor.AIMODE_GOTO;
 			target = math.random() * SceneMan.SceneWidth * 0.3 > closestDistance and closestActor
-				or enemies[math.random(#enemies)]
+				or enemies[math.random(#enemies)];
+
 			if SceneMan:IsUnseen(target.Pos.X, target.Pos.Y, hunter.Team) then
-				hunter:AddAISceneWaypoint(target.Pos)
+				hunter:AddAISceneWaypoint(target.Pos);
 			else
-				hunter:AddAIMOWaypoint(target)
+				hunter:AddAIMOWaypoint(target);
 			end
 		else
-			hunter.AIMode = Actor.AIMODE_PATROL
+			hunter.AIMode = Actor.AIMODE_PATROL;
 		end
-		return target
+
+		return target;
 	end
-	return nil
+
+	return nil;
 end
 -----------------------------------------------------------------------
 -- Send actors after specific target(s)
 -----------------------------------------------------------------------
 function CF.Hunt(hunter, targets)
 	if hunter and MovableMan:IsActor(hunter) and #targets > 0 then
-		local target = targets[math.random(#targets)]
+		local target = targets[math.random(#targets)];
+
 		if target then
-			hunter.AIMode = Actor.AIMODE_GOTO
-			hunter:ClearMovePath()
+			hunter.AIMode = Actor.AIMODE_GOTO;
+			hunter:ClearMovePath();
+
 			if MovableMan:IsActor(target) and not SceneMan:IsUnseen(target.Pos.X, target.Pos.Y, hunter.Team) then
-				hunter:AddAIMOWaypoint(target)
+				hunter:AddAIMOWaypoint(target);
 			elseif IsActor(target) then
-				hunter:AddAISceneWaypoint(target.Pos)
+				hunter:AddAISceneWaypoint(target.Pos);
 			end
-			hunter:UpdateMovePath()
-			return true
+
+			hunter:UpdateMovePath();
+			return true;
 		end
-		hunter.AIMode = Actor.AIMODE_PATROL
+
+		hunter.AIMode = Actor.AIMODE_PATROL;
 	end
-	return false
+
+	return false;
 end
 -----------------------------------------------------------------------
 --	Get the registered amount of gold in the player's ownership
@@ -1654,25 +1672,26 @@ function CF.GetInventory(actor)
 
 	if IsActor(actor) then
 		if actor.ClassName == "AHuman" then
-			local human = ToAHuman(actor)
-			local equipped = { human.EquippedItem, human.EquippedBGItem }
+			local human = ToAHuman(actor);
+			local equipped = { human.EquippedItem, human.EquippedBGItem };
+
 			for _, item in pairs(equipped) do
 				if item then
-					local skip = false
+					local skip = false;
 
 					if CF.DiscardableItems[actor.PresetName] ~= nil then
 						for i = 1, #CF.DiscardableItems[actor.PresetName] do
 							if CF.DiscardableItems[actor.PresetName][i] == item.PresetName then
-								skip = true
-								break
+								skip = true;
+								break;
 							end
 						end
 					end
 
 					if not skip then
-						presets[#presets + 1] = item.PresetName
-						classes[#classes + 1] = item.ClassName
-						modules[#modules + 1] = item.ModuleName
+						presets[#presets + 1] = item.PresetName;
+						classes[#classes + 1] = item.ClassName;
+						modules[#modules + 1] = item.ModuleName;
 					end
 				end
 			end
@@ -1680,21 +1699,21 @@ function CF.GetInventory(actor)
 
 		if not actor:IsInventoryEmpty() then
 			for item in actor.Inventory do
-				local skip = false
+				local skip = false;
 
 				if CF.DiscardableItems[actor.PresetName] ~= nil then
 					for i = 1, #CF.DiscardableItems[actor.PresetName] do
 						if CF.DiscardableItems[actor.PresetName][i] == item.PresetName then
-							skip = true
-							break
+							skip = true;
+							break;
 						end
 					end
 				end
 
 				if not skip then
-					presets[#presets + 1] = item.PresetName
-					classes[#classes + 1] = item.ClassName
-					modules[#modules + 1] = item.ModuleName
+					presets[#presets + 1] = item.PresetName;
+					classes[#classes + 1] = item.ClassName;
+					modules[#modules + 1] = item.ModuleName;
 				end
 			end
 		end
@@ -1714,11 +1733,11 @@ end
 function CF.SaveMissionReport(gameState, rep)
 	-- Dump mission report to game state to be saved
 	for i = 1, CF.MaxMissionReportLines do
-		gameState["MissionReport" .. i] = nil
+		gameState["MissionReport" .. i] = nil;
 	end
 
 	for i = 1, #rep do
-		gameState["MissionReport" .. i] = rep[i]
+		gameState["MissionReport" .. i] = rep[i];
 	end
 end
 -----------------------------------------------------------------------
@@ -1739,21 +1758,21 @@ end
 --	Returns how many science points corresponds to selected difficulty level
 -----------------------------------------------------------------------
 function CF.GetTechLevelFromDifficulty(faction, difficulty)
-	local maxpoints = 0
+	local maxpoints = 0;
 
 	for i = 1, #CF.ItmNames[faction] do
 		if CF.ItmUnlockData[faction][i] > maxpoints then
-			maxpoints = CF.ItmUnlockData[faction][i]
+			maxpoints = CF.ItmUnlockData[faction][i];
 		end
 	end
 
 	for i = 1, #CF.ActNames[faction] do
 		if CF.ActUnlockData[faction][i] > maxpoints then
-			maxpoints = CF.ActUnlockData[faction][i]
+			maxpoints = CF.ActUnlockData[faction][i];
 		end
 	end
 
-	return math.floor(maxpoints / CF.MaxDifficulty * difficulty)
+	return math.floor(maxpoints / CF.MaxDifficulty * difficulty);
 end
 -----------------------------------------------------------------------
 --
@@ -1821,18 +1840,19 @@ function CF.GetAvailableQuantumItems(gameState)
 	local classes = CF.QuantumItmClasses;
 	local presets = CF.QuantumItmPresets;
 	local modules = CF.QuantumItmModules;
+	local prices = CF.QuantumItmPrices;
 
 	for i = 1, #qItems do
 		local id = qItems[i];
 
 		if CF.IsEntityUnlocked(gameState, "Quantum", classes[id], presets[id], modules[id]) then
-			local item = {};
-			item.ID = id;
-			item.Class = classes[id];
-			item.Preset = presets[id];
-			item.Module = modules[id];
-			item.Price = CF.QuantumItmPrices[id];
-			table.insert(items, item);
+			table.insert(items, {
+				ID = id,
+				Class = classes[id],
+				Preset = presets[id],
+				Module = modules[id],
+				Price = prices[id],
+			});
 		end
 	end
 
@@ -1841,7 +1861,7 @@ end
 -----------------------------------------------------------------------
 -- 
 -----------------------------------------------------------------------
-function CF.RandomLockedQuantumItem(gameState)
+function CF.RandomLockedQuantumItems(gameState, count)
 	local lockedItems = {};
 	local qItems = CF.QuantumItems;
 	local classes = CF.QuantumItmClasses;
@@ -1856,18 +1876,29 @@ function CF.RandomLockedQuantumItem(gameState)
 		end
 	end
 
-	return lockedItems[math.random(#lockedItems)];
+	local returnItems = {};
+
+	for i = 1, count do
+		table.insert(returnItems, table.remove(lockedItems, math.random(#lockedItems)))
+	end
+
+	return returnItems;
 end
 -----------------------------------------------------------------------
 -- 
 -----------------------------------------------------------------------
-function CF.UnlockRandomQuantumItem(gameState)
-	local qItem = CF.RandomLockedQuantumItem(gameState);
+function CF.UnlockRandomQuantumItems(gameState, count)
+	count = count or 1;
 	local classes = CF.QuantumItmClasses;
 	local presets = CF.QuantumItmPresets;
 	local modules = CF.QuantumItmModules;
-	CF.SetEntityUnlocked(gameState, "Quantum", classes[qItem], presets[qItem], modules[qItem], true);
-	return qItem;
+	local list = CF.RandomLockedQuantumItems(gameState, count);
+
+	for i, qItem in ipairs(list) do
+		CF.SetEntityUnlocked(gameState, "Quantum", classes[qItem], presets[qItem], modules[qItem], true);
+	end
+
+	return list;
 end
 -----------------------------------------------------------------------
 -- 

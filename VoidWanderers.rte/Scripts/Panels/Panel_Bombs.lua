@@ -97,12 +97,12 @@ function VoidWanderers:ProcessBombsControlPanelUI()
 
 				if self.BombingTarget ~= nil then
 					s = ""
-					if self.Time <= self.BombingStart + self.BombingLoadTime then
+					if tonumber(self.GS["Time"]) <= self.BombingStart + self.BombingLoadTime then
 						s = "LOADING BOMBS\nT-"
-							.. tostring(self.BombingStart + self.BombingLoadTime + CF.BombFlightInterval - self.Time)
-					elseif self.Time <= self.BombingStart + self.BombingLoadTime + CF.BombFlightInterval then
+							.. tostring(self.BombingStart + self.BombingLoadTime + CF.BombFlightInterval - tonumber(self.GS["Time"]))
+					elseif tonumber(self.GS["Time"]) <= self.BombingStart + self.BombingLoadTime + CF.BombFlightInterval then
 						s = "BOMBS RELEASED\nT-"
-							.. tostring(self.BombingStart + self.BombingLoadTime + CF.BombFlightInterval - self.Time)
+							.. tostring(self.BombingStart + self.BombingLoadTime + CF.BombFlightInterval - tonumber(self.GS["Time"]))
 					end
 				else
 					self.LastKnownBombingPosition = bombpos
@@ -143,12 +143,12 @@ function VoidWanderers:ProcessBombsControlPanelUI()
 
 						if self.BombingTarget == nil then
 							self.BombingTarget = bombpos.X
-							self.BombingStart = self.Time
+							self.BombingStart = tonumber(self.GS["Time"])
 							self.BombingLoadTime = math.ceil(
 								#self.BombPayload / tonumber(self.GS["PlayerVesselBombBays"])
 							) * CF.BombLoadInterval
 							self.BombingRange = range
-							self.BombingLastBombShot = self.Time
+							self.BombingLastBombShot = tonumber(self.GS["Time"])
 							self.BombingCount = 1
 
 							-- Commit bombs to storage

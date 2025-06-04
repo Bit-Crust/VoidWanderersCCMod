@@ -121,9 +121,9 @@ function VoidWanderers:ProcessLZControlPanelUI()
 	self:ProcessBombsControlPanelUI()
 
 	if self.BombingTarget ~= nil then
-		if self.Time > self.BombingStart + self.BombingLoadTime + CF.BombFlightInterval then
-			if self.Time > self.BombingLastBombShot + CF.BombInterval then
-				self.BombingLastBombShot = self.Time
+		if tonumber(self.GS["Time"]) > self.BombingStart + self.BombingLoadTime + CF.BombFlightInterval then
+			if tonumber(self.GS["Time"]) > self.BombingLastBombShot + CF.BombInterval then
+				self.BombingLastBombShot = tonumber(self.GS["Time"])
 				self.BombsControlPanelInBombMode = true
 
 				for returningUnits = 1, tonumber(self.GS["PlayerVesselBombBays"]) do
@@ -344,7 +344,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 					end
 				else
 					CF.DrawMenuBox(Activity.PLAYER_NONE, pos.X - 80, pos.Y - 24, pos.X + 80, pos.Y + 24, CF.MenuDeniedIdle);
-					if self.Time % 2 == 0 then
+					if tonumber(self.GS["Time"]) % 2 == 0 then
 						for returningUnits = 1, #enemyPos do
 							self:AddObjectivePoint("HOSTILE", enemyPos[returningUnits] + Vector(0, -30), CF.PlayerTeam, GameActivity.ARROWDOWN)
 						end
@@ -360,12 +360,12 @@ function VoidWanderers:ProcessLZControlPanelUI()
 				if brainUnsafe <= 0 or isSafe then
 					if cont:IsState(Controller.WEAPON_FIRE) then
 						if self.ControlPanelLZPressTimes[player + 1] == nil then
-							self.ControlPanelLZPressTimes[player + 1] = self.Time
+							self.ControlPanelLZPressTimes[player + 1] = tonumber(self.GS["Time"])
 						end
 
-						text = text .. "RETURN IN T-" .. tostring(self.ControlPanelLZPressTimes[player + 1] + CF.TeamReturnDelay - self.Time);
+						text = text .. "RETURN IN T-" .. tostring(self.ControlPanelLZPressTimes[player + 1] + CF.TeamReturnDelay - tonumber(self.GS["Time"]));
 
-						if self.ControlPanelLZPressTimes[player + 1] + CF.TeamReturnDelay <= self.Time then
+						if self.ControlPanelLZPressTimes[player + 1] + CF.TeamReturnDelay <= tonumber(self.GS["Time"]) then
 							local actors = {};
 
 							for actor in MovableMan.Actors do
@@ -443,7 +443,7 @@ function VoidWanderers:ProcessLZControlPanelUI()
 							self.GS["Mode"] = "Vessel";
 							self.GS["Scene"] = scene;
 							
-							self:saveCurrentGameState();
+							self:saveCurrentGameState(self.GS);
 							
 							self.sceneToLaunch = self.GS["Scene"];
 							self.scriptToLaunch = "Tactics.lua";

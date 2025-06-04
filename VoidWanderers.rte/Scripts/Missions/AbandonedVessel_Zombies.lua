@@ -42,7 +42,7 @@ function VoidWanderers:MissionCreate()
 	end
 
 	self.missionData["zombieRespawnInterval"] = 9 - difficulty
-	self.missionData["zombieRespawnTime"] = self.Time
+	self.missionData["zombieRespawnTime"] = tonumber(self.GS["Time"])
 	self.missionData["zombieCount"] = math.random(15, 20) + difficulty
 	self.missionData["artifactSpawned"] = false
 
@@ -128,8 +128,8 @@ function VoidWanderers:MissionUpdate()
 	self:ProcessExplorationPoints()
 	local zombiesLeft = self.missionData["zombieCount"];
 
-	if zombiesLeft > 0 and self.Time >= self.missionData["zombieRespawnTime"] then
-		self.missionData["zombieRespawnTime"] = self.Time + self.missionData["zombieRespawnInterval"] + math.random(-2, 2);
+	if zombiesLeft > 0 and tonumber(self.GS["Time"]) >= self.missionData["zombieRespawnTime"] then
+		self.missionData["zombieRespawnTime"] = tonumber(self.GS["Time"]) + self.missionData["zombieRespawnInterval"] + math.random(-2, 2);
 		local spawnZones = self.missionData["landingZones"];
 
 		if #spawnZones > 0 then

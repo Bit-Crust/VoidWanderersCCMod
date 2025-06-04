@@ -9,7 +9,7 @@ function VoidWanderers:EncounterCreate()
 	print("FACTION AMBUSH CREATE")
 
 	self.encounterData["assaultDelay"] = 15;
-	self.encounterData["assaultStartTime"] = self.Time + self.encounterData["assaultDelay"];
+	self.encounterData["assaultStartTime"] = tonumber(self.GS["Time"]) + self.encounterData["assaultDelay"];
 	
 	self.vesselData["flightDisabled"] = false;
 	self.vesselData["flightAimless"] = true;
@@ -24,7 +24,7 @@ function VoidWanderers:EncounterCreate()
 	local anger = {};
 
 	for i = 1, tonumber(self.GS["ActiveCPUs"]) do
-		local rep = tonumber(self.GS["Player" .. i .. "Reputation"]);
+		local rep = tonumber(self.GS["Participant" .. i .. "Reputation"]);
 		if rep <= CF.ReputationHuntThreshold then
 			angry[#angry + 1] = i;
 			anger[#anger + 1] = math.min(CF.MaxDifficulty, math.max(1, math.floor(-rep / CF.ReputationPerDifficulty)));
@@ -77,10 +77,10 @@ function VoidWanderers:EncounterUpdate()
 	FrameMan:ClearScreenText(0);
 	
 	local difficulty = self.encounterData["difficulty"];
-	local timeLeft = self.encounterData["assaultStartTime"] - self.Time;
+	local timeLeft = self.encounterData["assaultStartTime"] - tonumber(self.GS["Time"]);
 
 	if timeLeft > 0 then
-		if self.Time % 2 == 0 then
+		if tonumber(self.GS["Time"]) % 2 == 0 then
 			self:MakeAlertSound(1 / math.max(timeLeft / 3, 1))
 		end
 
@@ -91,7 +91,7 @@ function VoidWanderers:EncounterUpdate()
 		FrameMan:SetScreenText(message, 0, 0, 1000, true);
 	end
 
-	if timeLeft == self.Time then
+	if timeLeft == tonumber(self.GS["Time"]) then
 		self:DestroyTurretsControlPanelUI();
 		self.vesselData["lifeSupportEnabled"] = false;
 		self.vesselData["itemStorageEnabled"] = false;
@@ -99,14 +99,14 @@ function VoidWanderers:EncounterUpdate()
 	end
 
 	-- Show enemies count
-	if self.Time % 10 == 0 and self.encounterData["enemiesToSpawn"] > 0 then
+	if tonumber(self.GS["Time"]) % 10 == 0 and self.encounterData["enemiesToSpawn"] > 0 then
 		FrameMan:SetScreenText("Remaining assault bots: " .. self.encounterData["enemiesToSpawn"], 0, 0, 1000, true);
 	end
 
 	local unitsPresent = CF.CountActors(Activity.TEAM_2) > 0;
 	local unitsRemaining = self.encounterData["enemiesToSpawn"] > 0;
 
-	if unitsRemaining and self.Time > self.encounterData["nextSpawnTime"] - self.encounterData["ambushWarningPeriod"] then
+	if unitsRemaining and tonumber(self.GS["Time"]) > self.encounterData["nextSpawnTime"] - self.encounterData["ambushWarningPeriod"] then
 		self:AddObjectivePoint("INTRUDER\nALERT", self.encounterData["nextSpawnPos"], CF.PlayerTeam, GameActivity.ARROWDOWN);
 
 		if self.TeleportEffectTimer:IsPastSimMS(50) then
@@ -117,8 +117,8 @@ function VoidWanderers:EncounterUpdate()
 		end
 	end
 
-	if self.encounterData["nextSpawnTime"] == self.Time and unitsRemaining then
-		self.encounterData["nextSpawnTime"] = self.Time + CF.AssaultDifficultySpawnInterval[difficulty];
+	if self.encounterData["nextSpawnTime"] == tonumber(self.GS["Time"]) and unitsRemaining then
+		self.encounterData["nextSpawnTime"] = tonumber(self.GS["Time"]) + CF.AssaultDifficultySpawnInterval[difficulty];
 		local defaultCount = CF.AssaultDifficultySpawnBurst[difficulty];
 		local cnt = math.random(math.ceil(defaultCount * 0.5), defaultCount);
 		local engineer = false;
@@ -155,14 +155,14 @@ function VoidWanderers:EncounterUpdate()
 	if not (unitsPresent or unitsRemaining) then
 		if not self.encounterData["counterAttackNotified"] then
 			self:GiveRandomExperienceReward(difficulty);
-			self.encounterData["counterattackExpiration"] = self.Time + 15;
+			self.encounterData["counterattackExpiration"] = tonumber(self.GS["Time"]) + 15;
 			self.encounterData["counterAttackNotified"] = true;
 			self.GS["Location"] = self.encounterData["counterattackLocation"];
 			self.GS["LocationInhabitants"] = self.encounterData["ambushAssailant"];
 			CF.SetLocationSecurity(self.GS, self.GS["Location"], self.encounterData["difficulty"] * 10);
 		end
 
-		local timeLeft = (self.encounterData["counterattackExpiration"] - self.Time);
+		local timeLeft = (self.encounterData["counterattackExpiration"] - tonumber(self.GS["Time"]));
 		local message = "";
 
 		message = "Enemy will charge its FTL drive in T-" .. timeLeft .. ", we can counterattack!"
@@ -174,7 +174,7 @@ function VoidWanderers:EncounterUpdate()
 
 		local variant = self.vesselData["dialogOptionChosen"];
 
-		if self.Time > self.encounterData["counterattackExpiration"] or variant == 1 then
+		if tonumber(self.GS["Time"]) > self.encounterData["counterattackExpiration"] or variant == 1 then
 			self.reportData = {};
 			self.reportData[#self.reportData + 1] = "We survived this assault.";
 			CF.SaveMissionReport(self.GS, self.reportData);

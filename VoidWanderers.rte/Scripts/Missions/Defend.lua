@@ -63,7 +63,7 @@ function VoidWanderers:MissionCreate()
 	self:DeployGenericMissionEnemies(set, "Enemy", self.missionData["missionContractor"], CF.PlayerTeam, self.missionData["spawnRate"]);
 
 	self.missionData["reinforcementsTriggered"] = false;
-	self.missionData["reinforcementsNext"] = self.Time + math.ceil(self.missionData["interval"] * 0.5);
+	self.missionData["reinforcementsNext"] = tonumber(self.GS["Time"]) + math.ceil(self.missionData["interval"] * 0.5);
 
 	self.missionData["baseEffectTimer"] = Timer();
 	self.missionData["baseEffectTimer"]:Reset();
@@ -96,7 +96,7 @@ function VoidWanderers:MissionUpdate()
 						end
 					end
 
-					if inside and self.Time % 5 == 0 then
+					if inside and tonumber(self.GS["Time"]) % 5 == 0 then
 						self:AddObjectivePoint("HOLD POSITION", actor.AboveHUDPos, CF.PlayerTeam, GameActivity.ARROWDOWN)
 					end
 				elseif actor.Team == CF.CPUTeam then
@@ -109,7 +109,7 @@ function VoidWanderers:MissionUpdate()
 		-- As soon as there's at least one defender ready - start assault
 		if friends > 0 and self.missionData["reinforcementsTriggered"] == false then
 			self.missionData["reinforcementsTriggered"] = true
-			self.missionData["reinforcementsNext"] = self.Time + 10
+			self.missionData["reinforcementsNext"] = tonumber(self.GS["Time"]) + 10
 		end
 
 		if not self.missionData["reinforcementsTriggered"] or friends < 2 then
@@ -134,7 +134,7 @@ function VoidWanderers:MissionUpdate()
 		-- Start checking for defeat only when all units were spawned
 		if friends == 0 and self.missionData["reinforcementsTriggered"] then
 			self.missionData["stage"] = CF.MissionStages.FAILED
-			self.missionData["statusShowStart"] = self.Time
+			self.missionData["statusShowStart"] = tonumber(self.GS["Time"])
 
 			-- Destroy additional functions
 			-- self.MissionDefendFireSuperWeapon = nil
@@ -145,7 +145,7 @@ function VoidWanderers:MissionUpdate()
 		if enemies == 0 and self.missionData["enemyDropShips"] <= 0 then
 			self:GiveMissionRewards()
 			self.missionData["stage"] = CF.MissionStages.COMPLETED
-			self.missionData["statusShowStart"] = self.Time
+			self.missionData["statusShowStart"] = tonumber(self.GS["Time"])
 
 			-- Destroy additional functions
 			-- self.MissionDefendFireSuperWeapon = nil
@@ -157,7 +157,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["reinforcementsTriggered"]
 			and #self.missionData["landingZones"] > 0
 			and self.missionData["enemyDropShips"] > 0
-			and self.Time >= self.missionData["reinforcementsNext"]
+			and tonumber(self.GS["Time"]) >= self.missionData["reinforcementsNext"]
 		then
 			if MovableMan:GetMOIDCount() < CF.MOIDLimit then
 				local count = math.random(
@@ -165,7 +165,7 @@ function VoidWanderers:MissionUpdate()
 					self.missionData["troopCount"]
 				)
 				local f = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])
-				local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
+				local ship = CF.MakeActor(CF.CraftClasses[f], CF.CraftPresets[f], CF.CraftModules[f])
 				if ship then
 					for i = 1, count do
 						local actor = CF.MakeUnit(self.GS, self.missionData["missionTarget"]);
@@ -183,7 +183,7 @@ function VoidWanderers:MissionUpdate()
 				-- Remove one and a half drop ships on every spawn so that the enemy eventually runs out
 				self.missionData["enemyDropShips"] = self.missionData["enemyDropShips"] - 1.5
 			end
-			self.missionData["reinforcementsNext"] = self.Time
+			self.missionData["reinforcementsNext"] = tonumber(self.GS["Time"])
 				+ self.missionData["interval"]
 				+ math.ceil(enemies / math.sqrt(math.max(friends, 1)))
 		end
@@ -191,8 +191,8 @@ function VoidWanderers:MissionUpdate()
 		-- Use particle cannon to destroy some allies preventing enemy to deploy
 		-- This can never happen
 		--[[if enemies == 0 and MovableMan:GetMOIDCount() >= CF.MOIDLimit then
-			if self.Time == self.MissionParticleCannonLastShot + self.MissionParticleCannonInterval then
-				self.MissionParticleCannonLastShot = self.Time
+			if tonumber(self.GS["Time"]) == self.MissionParticleCannonLastShot + self.MissionParticleCannonInterval then
+				self.MissionParticleCannonLastShot = tonumber(self.GS["Time"])
 				self:MissionDefendFireSuperWeapon(true, CF.CPUTeam, CF.PlayerTeam)
 			else
 				self:MissionDefendFireSuperWeapon(false, CF.CPUTeam, CF.PlayerTeam)
@@ -205,7 +205,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["endMusicPlayed"] = true
 		end
 
-		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
+		if tonumber(self.GS["Time"]) < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				local screen = self:ScreenOfPlayer(player);
 				FrameMan:ClearScreenText(screen)
@@ -219,7 +219,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["endMusicPlayed"] = true
 		end
 
-		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
+		if tonumber(self.GS["Time"]) < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				local screen = self:ScreenOfPlayer(player);
 				FrameMan:ClearScreenText(screen)
@@ -254,8 +254,8 @@ end
 		self.ShotAttempts = 0
 	end
 
-	if self.BeamEnabled and self.LastBeamShot + self.ShotInterval < self.Time then
-		self.LastBeamShot = self.Time
+	if self.BeamEnabled and self.LastBeamShot + self.ShotInterval < tonumber(self.GS["Time"]) then
+		self.LastBeamShot = tonumber(self.GS["Time"])
 
 		print("Particle beam!")
 

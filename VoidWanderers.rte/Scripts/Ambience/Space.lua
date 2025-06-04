@@ -1,5 +1,5 @@
 function VoidWanderers:AmbientCreate()
-	self.AmbientSmokesNextHealthDamage = self.Time
+	self.AmbientSmokesNextHealthDamage = tonumber(self.GS["Time"])
 	self.vesselData["ship"] = SceneMan.Scene:GetArea("Vessel")
 end
 -----------------------------------------------------------------------
@@ -19,14 +19,14 @@ function VoidWanderers:AmbientUpdate()
 
 					mo.Vel = mo.Vel + Vector(0, grav)
 				else
-					if self.Time >= self.AmbientSmokesNextHealthDamage then
-						self.AmbientSmokesNextHealthDamage = self.Time + 1
+					if tonumber(self.GS["Time"]) >= self.AmbientSmokesNextHealthDamage then
+						self.AmbientSmokesNextHealthDamage = tonumber(self.GS["Time"]) + 1
 
 						if IsActor(mo) and not actor:IsInGroup("Brains") then
 							local actor = ToActor(mo)
 							actor.Health = actor.Health - math.ceil(50 / math.sqrt(1 + math.abs(actor.Mass + actor.Material.StructuralIntegrity)))
 							-- Push actor outwards from the ship
-							actor.Vel = actor.Vel + SceneMan:ShortestDistance(Vector(SceneMan.SceneWidth / 2, SceneMan.SceneHeight / 2), actor.Pos, SceneMan.SceneWrapsX) * 0.001
+							actor.Vel = actor.Vel + SceneMan:ShortestDistance(Vector(SceneMan.SceneWidth / 2, SceneMan.SceneHeight / 2), actor.Pos, true) * 0.001
 						end
 					end
 					-- God forbid you exit the ship when the engines are on

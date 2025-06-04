@@ -24,9 +24,9 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:EncounterUpdate()
-	if self.encounterData["encounterStartTime"] > self.Time then
-		if self.Time % 2 == 0 then
-			self:MakeAlertSound(1 / math.max(self.encounterData["encounterStartTime"] - self.Time / 3, 1));
+	if self.encounterData["encounterStartTime"] > tonumber(self.GS["Time"]) then
+		if tonumber(self.GS["Time"]) % 2 == 0 then
+			self:MakeAlertSound(1 / math.max(self.encounterData["encounterStartTime"] - tonumber(self.GS["Time"]) / 3, 1));
 		end
 	end
 	
@@ -40,7 +40,7 @@ function VoidWanderers:EncounterUpdate()
 		self.encounterData["asteroidSpawn"] = 5;
 		self.encounterData["asteroidVelocity"] = 10;
 		self.encounterData["asteroidTriggered"] = true;
-		self.encounterData["asteroidNextTime"] = self.Time + 8;
+		self.encounterData["asteroidNextTime"] = tonumber(self.GS["Time"]) + 8;
 		self.vesselData["flightDisabled"] = false;
 		self.vesselData["flightAimless"] = false;
 
@@ -59,14 +59,14 @@ function VoidWanderers:EncounterUpdate()
 		self.encounterData["asteroidSpawn"] = 1;
 		self.encounterData["asteroidVelocity"] = 40 + shipSpeed;
 		self.encounterData["asteroidTriggered"] = true;
-		self.encounterData["asteroidNextTime"] = self.Time + 4;
+		self.encounterData["asteroidNextTime"] = tonumber(self.GS["Time"]) + 4;
 		self.vesselData["flightDisabled"] = false;
 		self.vesselData["flightAimless"] = false;
 	end
 	
 	if self.encounterData["asteroidTriggered"] then
 		local asteroidsRemaining = self.encounterData["asteroidCount"] > 0;
-		if self.Time >= self.encounterData["asteroidNextTime"] then
+		if tonumber(self.GS["Time"]) >= self.encounterData["asteroidNextTime"] then
 			if asteroidsRemaining then
 				self.vesselData["dialogDefaultTimer"]:Reset();
 
@@ -87,7 +87,7 @@ function VoidWanderers:EncounterUpdate()
 					end
 
 					self.encounterData["asteroidCount"] = self.encounterData["asteroidCount"] - 1;
-					self.encounterData["asteroidNextTime"] = self.Time + self.encounterData["asteroidInterval"]
+					self.encounterData["asteroidNextTime"] = tonumber(self.GS["Time"]) + self.encounterData["asteroidInterval"]
 				end
 			end
 		end

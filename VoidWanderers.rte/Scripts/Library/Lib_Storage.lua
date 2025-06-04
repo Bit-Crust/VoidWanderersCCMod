@@ -119,8 +119,8 @@ function CF.GetItemShopArray(gameState, makefilters)
 			local applicable = false
 
 			if
-				tonumber(gameState["Player" .. i .. "Reputation"]) > 0
-				and tonumber(gameState["Player" .. i .. "Reputation"]) >= CF.ItmUnlockData[f][itm]
+				tonumber(gameState["Participant" .. i .. "Reputation"]) > 0
+				and tonumber(gameState["Participant" .. i .. "Reputation"]) >= CF.ItmUnlockData[f][itm]
 			then
 				applicable = true
 			end
@@ -156,7 +156,7 @@ function CF.GetItemShopArray(gameState, makefilters)
 				arr[ii]["Description"] = CF.ItmDescriptions[f][itm]
 				local price = math.floor(
 					CF.ItmPrices[f][itm]
-							* (tonumber(gameState["Player" .. i .. "Reputation"]) >= CF.ItmUnlockData[f][itm] and 1 or CF.TechPriceMultiplier)
+							* (tonumber(gameState["Participant" .. i .. "Reputation"]) >= CF.ItmUnlockData[f][itm] and 1 or CF.TechPriceMultiplier)
 						+ 0.5
 				)
 				--[[
@@ -198,7 +198,7 @@ function CF.GetItemShopArray(gameState, makefilters)
 						--print ("OK")
 						--print (tonumber(gameState["Player"..i.."Reputation"]))
 						--print (CF.BombUnlockData[itm])
-						if tonumber(gameState["Player" .. i .. "Reputation"]) >= CF.BombUnlockData[itm] then
+						if tonumber(gameState["Participant" .. i .. "Reputation"]) >= CF.BombUnlockData[itm] then
 							allowed = true
 							owner = f
 						end
@@ -305,8 +305,8 @@ function CF.GetCloneShopArray(gameState, makefilters)
 
 			if not applicable then
 				if
-					tonumber(gameState["Player" .. i .. "Reputation"]) > 0
-					and tonumber(gameState["Player" .. i .. "Reputation"]) >= CF.ActUnlockData[faction][index]
+					tonumber(gameState["Participant" .. i .. "Reputation"]) > 0
+					and tonumber(gameState["Participant" .. i .. "Reputation"]) >= CF.ActUnlockData[faction][index]
 				then
 					applicable = true
 				end
@@ -339,7 +339,7 @@ function CF.GetCloneShopArray(gameState, makefilters)
 				clones[ii].Description = CF.ActDescriptions[faction][index]
 				local price = math.floor(
 					CF.ActPrices[faction][index]
-							* (tonumber(gameState["Player" .. i .. "Reputation"]) >= CF.ActUnlockData[faction][index] and 1 or CF.TechPriceMultiplier)
+							* (tonumber(gameState["Participant" .. i .. "Reputation"]) >= CF.ActUnlockData[faction][index] and 1 or CF.TechPriceMultiplier)
 						+ 0.5
 				)
 				if price >= 100 then

@@ -337,15 +337,15 @@ end
 --
 -----------------------------------------------------------------------
 function VoidWanderers:loadCurrentGameState()
-	if CF.IsFileExists(self.ModuleName, self.stateConfigFileName) then
-		self.GS = CF.ReadDataFile("Mods/" .. self.ModuleName .. "/CampaignData/" .. self.stateConfigFileName)
+	if CF.IsFileExists("Mods/VoidWanderers.rte/CampaignData/" .. self.stateConfigFileName) then
+		self.GS = CF.ReadDataFile("Mods/VoidWanderers.rte/CampaignData/" .. self.stateConfigFileName)
 	end
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function VoidWanderers:saveCurrentGameState()
-	CF.WriteDataFile(self.GS, "Mods/" .. self.ModuleName .. "/CampaignData/" .. self.stateConfigFileName)
+	CF.WriteDataFile(self.GS, "Mods/VoidWanderers.rte/CampaignData/" .. self.stateConfigFileName)
 end
 -----------------------------------------------------------------------
 --

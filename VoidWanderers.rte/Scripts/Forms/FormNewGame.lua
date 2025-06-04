@@ -1,159 +1,186 @@
+local NewGameForm = {};
 -----------------------------------------------------------------------
---	Load event. Put all UI element initialiations here.
+--
 -----------------------------------------------------------------------
-function VoidWanderers:FormLoad()
-	-- Clear old elements
-	self.ui = {};
-	self.scrollingScreen = { X = false, Y = true };
+local function okButtonOnClick(element, form, activity)
+	local cpu = {};
+	
+	for index = 1, form.playableFactionCount do
+		factionInSlot = form.selectedParticipants[index];
 
-	local el;
-
-	self.TileW = 60;
-	self.TileH = 70;
-
-	-- Load factions
-	self.PlayableFactionCount = 0;
-
-	self.FactionButtons = {};
-	local largestFactionDescriptionHeight = 0;
-
-	for i = 1, #CF.Factions do
-		if CF.FactionPlayable[CF.Factions[i]] then
-			self.PlayableFactionCount = self.PlayableFactionCount + 1;
-			local el = {};
-			
-			el.Type = CF.ElementTypes.BUTTON;
-			el.Width = self.TileW - 2;
-			el.Height = self.TileH - 2;
-			el.Backdrop = false;
-			el.Text = "";
-			el.Palettes = CF.MenuNormalPalette;
-
-			el.Description = CF.FactionDescriptions[CF.Factions[i]];
-			el.FactionName = CF.FactionNames[CF.Factions[i]];
-			el.FactionId = CF.Factions[i];
-			el.Selected = false;
-			el.IsPlayer = false;
-			
-			largestFactionDescriptionHeight = math.max(CF.GetStringPixelWidth(el.Description) / 400, largestFactionDescriptionHeight);
-
-			self.FactionButtons[self.PlayableFactionCount] = el;
-			self.ui[#self.ui + 1] = el;
+		if factionInSlot ~= 0 then
+			table.insert(cpu, form.playableFactions[factionInSlot]);
 		end
 	end
 	
-	largestFactionDescriptionHeight = math.ceil(largestFactionDescriptionHeight) * 11 + 22;
-
-	self.MaxCPUPlayersSelectable = #CF.Factions - 1;
-
-	self.FactionButtonsPerRow = math.floor(FrameMan.PlayerScreenWidth / (self.TileW + 1)); -- Plates per row
-
-	if self.PlayableFactionCount < self.FactionButtonsPerRow then
-		self.FactionButtonsPerRow = self.PlayableFactionCount;
+	for index = 1, #form.factionsStatic do
+		table.insert(cpu, form.factionsStatic[index]);
 	end
 
-	self.Rows = math.ceil(self.PlayableFactionCount / self.FactionButtonsPerRow);
+	activity.GS = activity:makeFreshGameState(cpu[1], cpu);
+	activity.sceneToLaunch = activity.GS["Scene"];
+	activity.scriptToLaunch = "Tactics.lua";
+end
+-----------------------------------------------------------------------
+--
+-----------------------------------------------------------------------
+local function backButtonOnClick(element, form, activity)
+	activity.formToLoad = "FormStart.lua";
+end
+-----------------------------------------------------------------------
+--
+-----------------------------------------------------------------------
+local function factionButtonOnClick(element, form, activity)
+	local meta = element.Metadata;
+	local faction = meta.factionId;
+	local factionIndex = meta.index;
 
-	el = {};
-	el.Type = CF.ElementTypes.LABEL;
-	el.Preset = nil;
-	el.Pos = self.mid + Vector(0, -self.Rows * self.TileH - largestFactionDescriptionHeight);
-	el.Text = "START NEW GAME";
-	el.Width = 800;
-	el.Height = 11;
-	el.Centered = true;
-
-	self.ui[#self.ui + 1] = el;
-	self.LblHeader = el;
-	self.bound.Corner = self.LblHeader.Pos + Vector(0, 155);
-
-	el = {};
-	el.Type = CF.ElementTypes.LABEL;
-	el.Preset = nil;
-	el.Pos = self.mid + Vector(0, -self.Rows * self.TileH - largestFactionDescriptionHeight + 10);
-	el.Text = "SELECT STARTING FACTION";
-	el.Width = 800;
-	el.Height = 11;
-	el.Centered = true;
-
-	self.ui[#self.ui + 1] = el;
-	self.LblPhase = el;
-
-	el = {};
-	el.Type = CF.ElementTypes.LABEL;
-	el.Preset = nil;
-	el.Pos = self.mid + Vector(0, -self.Rows * self.TileH - largestFactionDescriptionHeight + 30);
-	el.Text = "";
-	el.Width = 400;
-	el.Height = 100;
-	el.Centered = true;
-
-	self.ui[#self.ui + 1] = el
-	self.LblFactionName = el
-
-	el = {};
-	el.Type = CF.ElementTypes.LABEL;
-	el.Preset = nil;
-	el.Pos = self.mid + Vector(0, -self.Rows * self.TileH - largestFactionDescriptionHeight + 70);
-	el.Text = "";
-	el.Width = 400;
-	el.Height = 100;
-	el.Centered = true;
-
-	self.ui[#self.ui + 1] = el;
-	self.LblFactionDescription = el;
-
-	el = {};
-	el.Type = CF.ElementTypes.BUTTON;
-	el.Pos = self.mid + Vector(0, 60);
-	el.Text = "OK";
-	el.Width = 140;
-	el.Height = 40;
-	el.Visible = false;
-
-	el.OnClick = self.BtnOk_OnClick;
-
-	self.ui[#self.ui + 1] = el;
-	self.BtnOk = el;
-
-	el = {};
-	el.Type = CF.ElementTypes.BUTTON;
-	el.Pos = Vector(self.mid.X + self.res.X / 2 - 70 - 20, self.bound.Corner.Y - self.res.Y / 2 + 20 + 20);
-	el.Text = "Back";
-	el.Width = 140;
-	el.Height = 40;
-	el.Visible = true;
-
-	el.OnClick = self.BtnBack_OnClick;
-
-	self.ui[#self.ui + 1] = el;
-	self.BtnBack = el;
-
-	local xtile = 1;
-	local ytile = 0;
-	local tilesperrow = 0;
-	local tileH2 = 80;
-
-	-- Init factions UI
-	for i = 1, self.PlayableFactionCount do
-		if i <= self.PlayableFactionCount - self.PlayableFactionCount % self.FactionButtonsPerRow then
-			tilesperrow = self.FactionButtonsPerRow;
+	local removing = false;
+	local relevantIndex = 0;
+	
+	for index = 1, form.playableFactionCount do
+		local factionInSlot = form.selectedParticipants[index];
+		
+		if factionInSlot == 0 then
+			if relevantIndex == 0 then
+				relevantIndex = index;
+			end
 		else
-			tilesperrow = self.PlayableFactionCount % self.FactionButtonsPerRow;
+			if factionInSlot == factionIndex then
+				removing = true;
+				relevantIndex = index;
+				break;
+			end
+		end
+	end
+
+	if not removing then
+		local slot = form.participantSlots[relevantIndex];
+		local actor = CF.SpawnRandomInfantry(-1, slot.Pos, faction, Actor.AIMODE_SENTRY);
+
+		if actor then
+			actor.HFlipped = false;
+			actor:SetControllerMode(Controller.CIM_DISABLED, -1);
+			actor.HitsMOs = false;
+			actor.GetsHitByMOs = false;
+			actor.IgnoresTerrain = true;
+
+			slot.Metadata.actor = actor;
 		end
 
-		self.FactionButtons[i].Pos = Vector(
-			self.mid.X - ((tilesperrow * self.TileW) / 2) + (xtile * self.TileW) - (self.TileW / 2),
-			self.mid.Y - (ytile * 70)
+		form.selectedParticipants[relevantIndex] = factionIndex;
+		form.factionButtons[factionIndex].Palettes = CF.MenuDeniedPalette;
+
+		form.addSoundContainer:Play();
+	else
+		local slotMeta = form.participantSlots[relevantIndex].Metadata;
+		local actor = slotMeta.actor;
+
+		if actor ~= nil then
+			actor.ToDelete = true;
+
+			slotMeta.actor = nil;
+		end
+		
+		form.selectedParticipants[relevantIndex] = 0;
+		form.factionButtons[factionIndex].Palettes = CF.MenuNormalPalette;
+
+		form.removeSoundContainer:Play();
+	end
+	
+	local validParticipants = 0;
+	local firstHole = 0;
+
+	for index = 1, form.playableFactionCount do
+		if form.selectedParticipants[index] == 0 then
+			if firstHole == 0 then
+				firstHole = index;
+			end
+		else
+			validParticipants = validParticipants + 1;
+		end
+	end
+
+	local playerSelected = firstHole ~= 1;
+
+	if firstHole == 0 then
+		form.phaseLabel.Text = "ALL FACTIONS SELECTED, REARRANGE OR CONTINUE";
+	elseif playerSelected then
+		form.phaseLabel.Text = "SELECT CPU " .. (firstHole - 1) .. " FACTION";
+	else
+		form.phaseLabel.Text = "SELECT PLAYER FACTION";
+	end
+
+	form.okButton.Visible = validParticipants >= 5 and playerSelected;
+end
+-----------------------------------------------------------------------
+--	Load event. Put all UI element initialiations here.
+-----------------------------------------------------------------------
+function NewGameForm:Load(document, activity)
+	local ui = {};
+
+	local resolution = Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight);
+	local center = Vector(SceneMan.Scene.Width / 4, SceneMan.Scene.Height / 2);
+
+	self.addSoundContainer = CreateSoundContainer("Confirm");
+	self.removeSoundContainer = CreateSoundContainer("Error");
+
+	self.playableFactions = {};
+	self.factionsStatic = {};
+
+	for i = 1, #CF.Factions do
+		local faction = CF.Factions[i];	
+
+		if CF.FactionStaticInvolvement[faction] then
+			table.insert(self.factionsStatic, faction);
+		elseif CF.FactionPlayable[faction] then
+			table.insert(self.playableFactions, faction);
+		end
+	end
+
+	self.playableFactionCount = #self.playableFactions;
+	self.selectedParticipants = {};
+
+	for i = 1, self.playableFactionCount do
+		self.selectedParticipants[i] = 0;
+	end
+	
+	self.factionButtons = {};
+	self.participantSlots = {};
+	self.participantLabels = {};
+	
+	local factionTileWidth = 60;
+	local factionTileHeight = 70;
+	local participantsTileHeight = 83;
+	local columns = math.floor(FrameMan.PlayerScreenWidth / (factionTileWidth + 1));
+	local rows = math.ceil(self.playableFactionCount / columns);
+	local columnsInLastRow = self.playableFactionCount % columns;
+	local xTile = 0;
+	local yTile = 0;
+	local maxDescriptionLines = 0;
+
+	for i = 1, self.playableFactionCount do
+		local faction = self.playableFactions[i];
+		local columnsThisRow = columns;
+
+		if i > self.playableFactionCount - columnsInLastRow then
+			columnsThisRow = columnsInLastRow;
+		end
+
+		local factionSlotOffset = center + Vector(
+			xTile * (factionTileWidth) + (factionTileWidth / 2) - columnsThisRow * (factionTileWidth / 2), 
+			-40 - (factionTileHeight / 2) - yTile * (factionTileHeight)
 		);
 
-		xtile = xtile + 1;
-		if (xtile > self.FactionButtonsPerRow) then
-			xtile = 1;
-			ytile = ytile + 1;
-		end
+		local participantSlotOffset = center + Vector(
+			xTile * (factionTileWidth) + (factionTileWidth / 2) - columnsThisRow * (factionTileWidth / 2), 
+			40 + (participantsTileHeight / 2) + yTile * (participantsTileHeight)
+		);
 
-		local actor = CF.SpawnRandomInfantry(-1, self.FactionButtons[i].Pos, self.FactionButtons[i].FactionId, Actor.AIMODE_SENTRY);
+		local textContent = CF.FactionDescriptions[faction];
+		maxDescriptionLines = math.max(maxDescriptionLines, CF.GetStringPixelWidth(textContent) / 400);
+
+		local actor = CF.SpawnRandomInfantry(-1, factionSlotOffset, faction, Actor.AIMODE_SENTRY);
 
 		if actor ~= nil then
 			actor:EnableOrDisableAllScripts(false);
@@ -167,284 +194,229 @@ function VoidWanderers:FormLoad()
 			actor.GetsHitByMOs = false;
 			actor:ClearForces();
 
-			if (actor.Height > self.TileH) then
-				actor.Scale = self.TileH / actor.Height;
+			if (actor.Height > factionTileHeight) then
+				actor.Scale = factionTileHeight / actor.Height;
 			end
-
-			self.FactionButtons[i].Actor = actor;
 		end
-	end
 
-	self.NoMOIDPlaceholders = {};
+		local factionButton = {
+			Type = CF.ElementTypes.BUTTON,
+			Pos = factionSlotOffset,
+			Text = "",
+			Width = factionTileWidth,
+			Height = factionTileHeight,
+			Backdrop = false,
+			Palettes = CF.MenuNormalPalette,
+			OnClick = factionButtonOnClick,
+			Metadata = {
+				index = i,
+				factionId = faction,
+				factionName = CF.FactionNames[faction],
+				description = CF.SplitStringToFitWidth(textContent, 400, false),
+				actor = actor,
+			},
+		};
 
-	-- Interface logic
-	self.Phases = {};
-	for i = 1, (self.MaxCPUPlayersSelectable + 1) do
-		self.Phases[i] = "player";
-	end
-	self.Phase = 0;
+		table.insert(self.factionButtons, factionButton);
+		table.insert(ui, factionButton);
 
-	-- Selections
-	self.SelectedPlayerFaction = 0;
-	self.SelectedPlayerAlly = 0;
-	self.SelectedCPUFactions = {};
-	self.NoMOIDPlaceholders[0] = false;
-	for i = 1, self.MaxCPUPlayersSelectable do
-		self.SelectedCPUFactions[i] = 0;
-		self.NoMOIDPlaceholders[i] = false;
-	end
+		local participantSlot = {
+			Type = CF.ElementTypes.LABEL,
+			Pos = participantSlotOffset + Vector(0, 7),
+			Text = "",
+			Width = factionTileWidth,
+			Height = factionTileHeight,
+			Backdrop = false,
+			Metadata = {
+				actor = nil,
+			},
+		};
 
-	-- Draw selection plates
-	self.participantSlots = {};
-	self.participantTags = {};
-	self.participantLabels = {};
-	local xtile = 1;
-	local ytile = 0;
-	local tilesperrow = self.FactionButtonsPerRow;
+		table.insert(self.participantSlots, participantSlot);
+		table.insert(ui, participantSlot);
 
-
-	for i = 1, self.MaxCPUPlayersSelectable do
-		local el = {};
-		el.Type = CF.ElementTypes.LABEL;
-		el.Backdrop = false;
-		el.Text = "";
-		el.Pos = Vector(
-			self.mid.X - ((tilesperrow * self.TileW) / 2) + (xtile * self.TileW) - (self.TileW / 2),
-			self.mid.Y + 90 + (ytile * tileH2) + 60
-		);
-		el.Width = self.TileW - 2;
-		el.Height = 12;
-
-		self.participantSlots[i] = el;
-		self.ui[#self.ui + 1] = el;
-
-		-- Add labels
-		local el = {};
-		el.Type = CF.ElementTypes.LABEL;
-		el.Backdrop = true;
-		el.Text = i == 1 and "PLAYER" or ("FACTION " .. i);
-		el.Palettes = i == 1 and CF.MenuSelectPalette or CF.MenuNormalPalette;
-		el.State = i == 1 and CF.ElementStates.IDLE or CF.ElementStates.MOUSE_OVER;
-		el.Pos = self.participantSlots[i].Pos + Vector(0, -39);
-		el.Width = self.TileW - 2;
-		el.Height = 14;
-		el.Centered = true;
+		local participantLabel = {
+			Type = CF.ElementTypes.LABEL,
+			Pos = participantSlotOffset + Vector(0, -34),
+			Text = i == 1 and "PLAYER" or ("FACTION " .. i),
+			Centered = true,
+			Width = factionTileWidth,
+			Height = 14,
+			Backdrop = true,
+			Palettes = i == 1 and CF.MenuSelectPalette or CF.MenuNormalPalette,
+			State = i == 1 and CF.ElementStates.IDLE or CF.ElementStates.MOUSE_OVER,
+		};
 		
-		self.participantLabels[i] = el;
-		self.ui[#self.ui + 1] = el;
+		table.insert(self.participantLabels, participantLabel);
+		table.insert(ui, participantLabel);
 
-		xtile = xtile + 1;
-		if (xtile > tilesperrow) then
-			xtile = 1;
-			ytile = ytile + 1;
+		xTile = xTile + 1;
+
+		if (xTile >= columns) then
+			xTile = 0;
+			yTile = yTile + 1;
 		end
 	end
-end
------------------------------------------------------------------------
---
------------------------------------------------------------------------
-function VoidWanderers:BtnOk_OnClick()
-	-- Create new game file
-	local player = self.FactionButtons[self.SelectedPlayerFaction].FactionId;
 
-	for i = 1, self.MaxCPUPlayersSelectable do
-		if (self.SelectedCPUFactions[i] == 0) then
-			table.remove(self.SelectedCPUFactions, i);
-			self.SelectedCPUFactions[self.MaxCPUPlayersSelectable] = 0;
-			i = i - 1;
-		end
-	end
+	local maxDescriptionHeight = math.ceil(maxDescriptionLines) * 11;
+	vertOffset = Vector(0, 0);
+
+	local okButton = {
+		Type = CF.ElementTypes.BUTTON,
+		Pos = center + vertOffset,
+		Text = "OK",
+		Width = 140,
+		Height = 40,
+		Visible = false,
+		OnClick = okButtonOnClick,
+	};
+
+	table.insert(ui, okButton);
+	self.okButton = okButton;
+
+	vertOffset.Y = -(40 + rows * factionTileHeight + 22);
+
+	local phaseLabel = {
+		Type = CF.ElementTypes.LABEL,
+		Preset = nil,
+		Pos = center + vertOffset,
+		Text = "SELECT STARTING FACTION",
+		Centered = true,
+		Width = 800,
+		Height = 11,
+	};
 	
-	local cpu = { player };
+	table.insert(ui, phaseLabel);
+	self.phaseLabel = phaseLabel;
 
-	for i = 1, self.MaxCPUPlayersSelectable do
-		if self.SelectedCPUFactions[i] ~= 0 then
-			cpu[i + 1] = self.FactionButtons[self.SelectedCPUFactions[i]].FactionId;
-		end
-	end
+	vertOffset.Y = vertOffset.Y - (maxDescriptionHeight / 2 + 22);
 
-	-- Create new game state
-	self.GS = self:makeFreshGameState(player, cpu);
-	self:OnSave();
-	self:loadSaveData();
-	self:FormClose();
-	self.sceneToLaunch = self.GS["Scene"];
-	self.scriptToLaunch = "Tactics.lua";
+	local factionDescriptionLabel = {
+		Type = CF.ElementTypes.LABEL,
+		Preset = nil,
+		Pos = center + vertOffset,
+		Text = "",
+		Centered = true,
+		Width = 400,
+		Height = 100,
+	};
+
+	table.insert(ui, factionDescriptionLabel);
+	self.factionDescriptionLabel = factionDescriptionLabel;
+
+	vertOffset.Y = vertOffset.Y - (maxDescriptionHeight / 2 + 22);
+
+	local factionNameLabel = {
+		Type = CF.ElementTypes.LABEL,
+		Preset = nil,
+		Pos = center + vertOffset,
+		Text = "",
+		Centered = true,
+		Width = 400,
+		Height = 100,
+	};
+
+	table.insert(ui, factionNameLabel);
+	self.factionNameLabel = factionNameLabel;
+
+	vertOffset.Y = vertOffset.Y - 22;
+
+	local headerLabel = {
+		Type = CF.ElementTypes.LABEL,
+		Preset = nil,
+		Pos = center + vertOffset,
+		Text = "START NEW GAME",
+		Centered = true,
+		Width = 800,
+		Height = 11,
+	};
+
+	table.insert(ui, headerLabel);
+	self.headerLabel = headerLabel;
+
+	vertOffset.X = resolution.X / 2 - 70 - 20;
+
+	local backButton = {
+		Type = CF.ElementTypes.BUTTON,
+		Pos = center + vertOffset,
+		Text = "Back",
+		Width = 140,
+		Height = 40,
+		Visible = true,
+		OnClick = backButtonOnClick,
+	};
+
+	table.insert(ui, backButton);
+	self.backButton = backButton;
+
+	vertOffset.Y = vertOffset.Y - 40 + resolution.Y / 2;
+
+	document.scrollingScreen = { X = false, Y = true };
+	document.bound.Corner = center + Vector(0, vertOffset.Y);
+	document.bound.Height = 40 + rows * participantsTileHeight + 20 - resolution.Y / 2 - vertOffset.Y;
+	document.bound.Width = 0;
+
+	return ui;
+end
+-----------------------------------------------------------------------
+-- When a click occurs anywhere without catching in an element
+-----------------------------------------------------------------------
+function NewGameForm:Click()
+	--print("Default form click handling.");
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-function VoidWanderers:GetFactionButtonUnderMouse(pos)
-	for i = 1, #self.FactionButtons do
-		local elpos = self.FactionButtons[i].Pos
-		local wx = self.FactionButtons[i].Width
-		local wy = self.FactionButtons[i].Height
+function NewGameForm:Update(document, activity)
+	local hoverIndex = document.hoverOverIndex;
+	
+	self.factionDescriptionLabel.Text = "";
+	self.factionNameLabel.Text = "";
 
-		if
-			pos.X > elpos.X - (wx / 2)
-			and pos.X < elpos.X + (wx / 2)
-			and pos.Y > elpos.Y - (wy / 2)
-			and pos.Y < elpos.Y + (wy / 2)
-		then
-			return i
+	if hoverIndex ~= 0 then
+		local button = document.ui[hoverIndex];
+		
+		if not button or button.Type ~= CF.ElementTypes.BUTTON then
+			return;
 		end
-	end
 
-	return nil
+		local meta = button.Metadata;
+
+		if not meta or not meta.description or not meta.factionName then
+			return;
+		end
+
+		self.factionDescriptionLabel.Text = meta.description;
+		self.factionNameLabel.Text = string.upper(meta.factionName);
+	end
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-function VoidWanderers:BtnBack_OnClick()
-	self:FormClose();
+function NewGameForm:Draw()
+	--print("Default form draw handling.");
+end
+-----------------------------------------------------------------------
+--
+-----------------------------------------------------------------------
+function NewGameForm:Close()
 	for _, set in pairs{MovableMan.Actors, MovableMan.AddedActors} do
 		for actor in set do
-			MovableMan:RemoveActor(actor);
+			actor.ToDelete = true;
 		end
 	end
-	dofile(basePath .. "FormStart.lua");
-	self:FormLoad();
-end
------------------------------------------------------------------------
---
------------------------------------------------------------------------
-local addSoundContainer = CreateSoundContainer("Confirm")
-local removeSoundContainer = CreateSoundContainer("Error")
-local selectedActors = {}
-local freeSpots = {}
-function VoidWanderers:FormClick()
-	local f = self:GetFactionButtonUnderMouse(self.cursor)
-
-	if f ~= nil then
-		-- If a faction is already in the list, note where so we can remove it on click
-		local removeIndex = 0
-		local isPlayerFaction = f == self.SelectedPlayerFaction
-
-		if not isPlayerFaction then
-			for i = 1, #self.Phases do
-				if self.SelectedCPUFactions[i] == f then
-					removeIndex = i
-					break
-				end
-			end
+	for _, set in pairs{MovableMan.Particles, MovableMan.AddedParticles} do
+		for particle in set do
+			particle.ToDelete = true;
 		end
-
-		if not (isPlayerFaction or removeIndex > 0) then
-			-- If we're clear, add a unit and a faction to the list
-			local actor = CF.SpawnRandomInfantry(-1, self.participantSlots[self.Phase + 1].Pos, self.FactionButtons[f].FactionId, Actor.AIMODE_SENTRY)
-
-			if not actor then
-				self.NoMOIDPlaceholders[self.Phase] = true
-			else
-				actor.HFlipped = false
-				actor:SetControllerMode(Controller.CIM_DISABLED, -1)
-				actor.HitsMOs = false
-				actor.GetsHitByMOs = false
-				actor.IgnoresTerrain = true
-				selectedActors[self.Phase] = actor
-			end
-
-			if self.Phase == 0 then
-				self.SelectedPlayerFaction = f
-				self.FactionButtons[f].IsPlayer = true
-			elseif self.Phase > 0 then
-				self.SelectedCPUFactions[self.Phase] = f
-			end
-
-			self.FactionButtons[f].Selected = true
-			self.FactionButtons[f].Palettes = CF.MenuDeniedPalette
-
-			addSoundContainer:Play()
-		else
-			-- If we're removing a faction, remove it and their guy
-			if isPlayerFaction then
-				self.SelectedPlayerFaction = 0
-			else
-				self.SelectedCPUFactions[removeIndex] = 0
-			end
-
-			local actor = selectedActors[removeIndex]
-			if actor ~= nil then
-				actor.ToDelete = true
-			end
-			selectedActors[removeIndex] = nil
-			self.FactionButtons[f].IsPlayer = false
-			self.FactionButtons[f].Selected = false
-			self.FactionButtons[f].Palettes = CF.MenuNormalPalette
-
-			removeSoundContainer:Play()
-		end
-
-		-- Find the first open slot for a faction
-		self.Phase = 0
-		
-		if self.SelectedPlayerFaction ~= 0 then
-			for i = 1, #self.Phases do
-				self.Phase = self.Phase + 1;
-
-				if self.SelectedCPUFactions[i] == 0 then
-					break;
-				end
-			end
-		end
-		
-		self.LblPhase["Text"] = (self.Phase == #self.Phases - 1) and "ALL FACTIONS SELECTED, REARRANGE OR CONTINUE" or ("SELECT " .. (self.Phase > 0 and ("CPU " .. self.Phase) or "STARTING") .. " FACTION")
-
-		-- Allow continuing only with at least 5 factions selected, and only if player faction is selected
-		local validFactions = 0
-
-		if self.SelectedPlayerFaction ~= 0 then
-			validFactions = 1
-			for i = 1, #self.Phases do
-				if self.SelectedCPUFactions[i] ~= 0 then
-					validFactions = validFactions + 1
-				end
-			end
-		end
-		
-		self.BtnOk["Visible"] = validFactions > 5
 	end
-end
------------------------------------------------------------------------
---
------------------------------------------------------------------------
-function VoidWanderers:FormUpdate()
-	-- Redraw plates on hover or press
-	local f = self:GetFactionButtonUnderMouse(self.cursor);
-
-	if self.LastMouseOver and self.LastMouseOver ~= f then
-		-- Clear faction description
-		self.LblFactionDescription["Text"] = "";
-		self.LblFactionName["Text"] = "";
-	end
-
-	if f ~= nil then
-		if not self.MouseButtonHeld then
-			-- Update faction description
-			self.LblFactionDescription["Text"] = self.FactionButtons[f].Description;
-			self.LblFactionName["Text"] = string.upper(self.FactionButtons[f].FactionName);
-		end
-		self.LastMouseOver = f;
-	end
-
-	-- Print out of MOID warning
-	for i = 0, self.MaxCPUPlayersSelectable do
-		if self.NoMOIDPlaceholders[i] then
-			local s = "No MOIDs";
-			local l = CF.GetStringPixelWidth(s);
-
-			CF.DrawString(s, self.participantSlots[i + 1].Pos + Vector(-l / 2, 0), 100, 100); 
+	for _, set in pairs{MovableMan.Items, MovableMan.AddedItems} do
+		for item in set do
+			item.ToDelete = true;
 		end
 	end
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-function VoidWanderers:FormDraw() end
------------------------------------------------------------------------
---
------------------------------------------------------------------------
-function VoidWanderers:FormClose() end
------------------------------------------------------------------------
---
------------------------------------------------------------------------
+return NewGameForm;

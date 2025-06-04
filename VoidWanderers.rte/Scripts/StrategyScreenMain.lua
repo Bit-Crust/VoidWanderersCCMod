@@ -29,12 +29,14 @@ function VoidWanderers:StartSceneProcess()
 
 	self.mid = Vector(SceneMan.Scene.Width / 4, SceneMan.Scene.Height / 2);
 	self.res = Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight);
+
 	self.mouse = Vector();
 	self.scroll = self.mid * 1;
 	self.cursor = self.mouse + self.scroll; 
+
 	self.scrollingScreen = { X = false, Y = false };
 	self.screen = Box(-self.res.X / 2, -self.res.Y / 2, self.res.X / 2, self.res.Y / 2);
-	self.bound = Box(self.mid.X, self.res.Y / 2, self.mid.X, SceneMan.Scene.Height - self.res.Y / 2);
+	self.bound = Box(self.mid.X, self.mid.Y, self.mid.X, self.mid.Y);
 
 	for player = Activity.PLAYER_NONE + 1, Activity.MAXPLAYERCOUNT - 1 do
 		self:SetPlayerBrain(nil, player);
@@ -202,7 +204,7 @@ function VoidWanderers:UpdateSceneProcess()
 			local elementOnHover = element.OnHover;
 		
 			if elementOnHover ~= nil then
-				elementOnHover(element, self);
+				elementOnHover(element, self.form, self);
 			end
 		end
 	end
@@ -218,13 +220,13 @@ function VoidWanderers:UpdateSceneProcess()
 
 				if elementOnClick ~= nil then
 					dontpass = true;
-					elementOnClick(clickedElement, self);
+					elementOnClick(clickedElement, self.form, self);
 				end
 			end
 		end
 
 		if not dontpass then
-			self.form:Click();
+			self.form:Click(self, self);
 		end
 
 		pressStartIndex = nil;
@@ -235,7 +237,7 @@ function VoidWanderers:UpdateSceneProcess()
 	self.pressHoldIndex = pressHoldIndex;
 	self.pressStartIndex = pressStartIndex;
 	
-	self.form:Update();
+	self.form:Update(self, self);
 
 	for i = 1, #self.ui do
 		local element = self.ui[i];
@@ -247,7 +249,7 @@ function VoidWanderers:UpdateSceneProcess()
 		end
 	end
 
-	self.form:Draw();
+	self.form:Draw(self, self);
 
 	PrimitiveMan:DrawBitmapPrimitive(Activity.PLAYER_NONE, self.cursor + Vector(5, 5), "Mods/VoidWanderers.rte/UI/Generic/Cursor.png", 0);
 end
@@ -255,7 +257,7 @@ end
 -- 
 -----------------------------------------------------------------------
 function VoidWanderers:CloseSceneProcess()
-	self.form:Close();
+	self.form:Close(self, self);
 end
 -----------------------------------------------------------------------
 -- Thats all folks!!!

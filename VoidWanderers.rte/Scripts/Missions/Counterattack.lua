@@ -90,7 +90,7 @@ function VoidWanderers:MissionCreate()
 	end
 
 	self.missionData["reinforcementsTriggered"] = true
-	self.missionData["reinforcementsLast"] = self.Time
+	self.missionData["reinforcementsLast"] = tonumber(self.GS["Time"])
 	self.missionData["counterAttackTriggered"] = false
 	
 	self.encounterData = {};
@@ -112,7 +112,7 @@ function VoidWanderers:MissionUpdate()
 			if
 				self.missionData["reinforcementsTriggered"]
 				and self.missionData["reinforcements"] == 0
-				and self.Time >= self.missionData["reinforcementsLast"] + self.missionData["interval"]
+				and tonumber(self.GS["Time"]) >= self.missionData["reinforcementsLast"] + self.missionData["interval"]
 			then
 				self.missionData["reinforcements"] = -1
 				if self.missionData["brain"]:HasObject("Blueprint") then
@@ -150,8 +150,8 @@ function VoidWanderers:MissionUpdate()
 			self:GiveMissionRewards(true);
 			self.missionData["stage"] = CF.MissionStages.COMPLETED;
 
-			self.missionData["statusShowStart"] = self.Time;
-			self.missionData["missionEndTime"] = self.Time;
+			self.missionData["statusShowStart"] = tonumber(self.GS["Time"]);
+			self.missionData["missionEndTime"] = tonumber(self.GS["Time"]);
 		end
 
 		-- Trigger reinforcements
@@ -173,7 +173,7 @@ function VoidWanderers:MissionUpdate()
 					print("The enemy has been alerted!")
 					self:MakeAlertSound(1)
 
-					self.missionData["reinforcementsLast"] = self.Time
+					self.missionData["reinforcementsLast"] = tonumber(self.GS["Time"])
 				end
 			end
 		end
@@ -185,10 +185,10 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["reinforcementsTriggered"]
 			and self.missionData["cloneSpawn"]
 			and self.missionData["reinforcements"] > 0
-			and self.Time >= self.missionData["reinforcementsLast"] + self.missionData["interval"]
+			and tonumber(self.GS["Time"]) >= self.missionData["reinforcementsLast"] + self.missionData["interval"]
 		then
 			if MovableMan:GetMOIDCount() < CF.MOIDLimit then
-				self.missionData["reinforcementsLast"] = self.Time
+				self.missionData["reinforcementsLast"] = tonumber(self.GS["Time"])
 
 				local count = math.min(math.random(2), self.missionData["reinforcements"])
 				for i = 1, count do
@@ -209,7 +209,7 @@ function VoidWanderers:MissionUpdate()
 		if
 			not self.missionData["counterAttackTriggered"]
 			and self.missionData["counterAttackDelay"] > 0
-			and self.Time >= self.missionData["missionStartTime"] + self.missionData["counterAttackDelay"]
+			and tonumber(self.GS["Time"]) >= self.missionData["missionStartTime"] + self.missionData["counterAttackDelay"]
 		then
 			self.missionData["counterAttackTriggered"] = true
 
@@ -229,7 +229,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["endMusicPlayed"] = true
 		end
 
-		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
+		if tonumber(self.GS["Time"]) < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)

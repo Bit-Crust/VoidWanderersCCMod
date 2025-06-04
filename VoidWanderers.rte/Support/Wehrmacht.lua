@@ -20,13 +20,13 @@ CF.RequiredModules[factionid] = { "Base.rte", "Wehrmacht.rte" }
 CF.FactionNatures[factionid] = CF.FactionNatureTypes.ORGANIC
 
 -- Define brain unit
-CF.Brains[factionid] = "Brain Robot"
+CF.BrainPresets[factionid] = "Brain Robot"
 CF.BrainModules[factionid] = "Base.rte"
 CF.BrainClasses[factionid] = "AHuman"
 CF.BrainPrices[factionid] = 500
 
 -- Define dropship
-CF.Crafts[factionid] = "Lwf.gPz Saucer D3"
+CF.CraftPresets[factionid] = "Lwf.gPz Saucer D3"
 CF.CraftModules[factionid] = "Wehrmacht.rte"
 CF.CraftClasses[factionid] = "ACDropShip"
 CF.CraftPrices[factionid] = 120

@@ -23,13 +23,13 @@ do
 	CF.PreferedBrainInventory[factionID] = { CF.WeaponTypes.HEAVY, CF.WeaponTypes.PISTOL, CF.WeaponTypes.PISTOL };
 
 	-- Define brain unit
-	CF.Brains[factionID] = "Dummy Coordinator";
+	CF.BrainPresets[factionID] = "Dummy Coordinator";
 	CF.BrainModules[factionID] = "Dummy.rte";
 	CF.BrainClasses[factionID] = "AHuman";
 	CF.BrainPrices[factionID] = 500;
 
 	-- Define dropship
-	CF.Crafts[factionID] = "Dummy Dropship";
+	CF.CraftPresets[factionID] = "Dummy Dropship";
 	CF.CraftModules[factionID] = "Base.rte";
 	CF.CraftClasses[factionID] = "ACDropShip";
 	CF.CraftPrices[factionID] = 500;

@@ -123,7 +123,7 @@ function VoidWanderers:MissionUpdate()
 					self.missionData["alertsTrigged"][i] = true
 					if not self.missionData["reinforcementsTriggered"] then
 						self.missionData["reinforcementsTriggered"] = true
-						self.missionData["reinforcementsLast"] = self.Time
+						self.missionData["reinforcementsLast"] = tonumber(self.GS["Time"])
 					end
 
 					for actor in MovableMan.Actors do
@@ -157,15 +157,15 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["reinforcementsTriggered"]
 			and #self.missionData["enemyLandingZones"] > 0
 			and self.missionData["reinforcements"] > 0
-			and self.Time >= self.missionData["reinforcementsLast"] + self.missionData["interval"]
+			and tonumber(self.GS["Time"]) >= self.missionData["reinforcementsLast"] + self.missionData["interval"]
 		then
 			if MovableMan:GetMOIDCount() < CF.MOIDLimit then
-				self.missionData["reinforcementsLast"] = self.Time
+				self.missionData["reinforcementsLast"] = tonumber(self.GS["Time"])
 				self.missionData["reinforcements"] = self.missionData["reinforcements"] - 1
 
 				local count = 3
 				local f = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])
-				local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
+				local ship = CF.MakeActor(CF.CraftClasses[f], CF.CraftPresets[f], CF.CraftModules[f])
 				if ship then
 					for i = 1, count do
 						local actor = CF.MakeUnit(self.GS, self.missionData["missionTarget"]);
@@ -188,7 +188,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["stage"] = CF.MissionStages.COMPLETED
 
 			-- Remember when we started showing misison status messageaaa
-			self.missionData["statusShowStart"] = self.Time
+			self.missionData["statusShowStart"] = tonumber(self.GS["Time"])
 		end
 	elseif self.missionData["stage"] == CF.MissionStages.COMPLETED then
 		self.missionData["missionStatus"] = "MISSION COMPLETED"
@@ -197,7 +197,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["endMusicPlayed"] = true
 		end
 
-		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
+		if tonumber(self.GS["Time"]) < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)

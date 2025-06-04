@@ -84,7 +84,7 @@ function Update(self)
 
 	for i, actor in ipairs(self.registeredActors) do
 		if actor and MovableMan:IsActor(actor) then
-			local distance = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX).Magnitude;
+			local distance = SceneMan:ShortestDistance(self.Pos, actor.Pos, true).Magnitude;
 			
 			if (not actor:IsPlayerControlled()) or distance > self.interactDist + actor.IndividualRadius then
 				self.registeredFlags[actor] = nil;
@@ -106,7 +106,7 @@ function Update(self)
 		local actor = activity:GetControlledActor(player);
 
 		if actor then
-			local distance = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX).Magnitude;
+			local distance = SceneMan:ShortestDistance(self.Pos, actor.Pos, true).Magnitude;
 
 			if distance < self.interactDist + actor.IndividualRadius then
 				local isNewSlice = actor.PieMenu:AddPieSliceIfPresetNameIsUnique(self.pieSliceToAdd:Clone(), self, true, true);

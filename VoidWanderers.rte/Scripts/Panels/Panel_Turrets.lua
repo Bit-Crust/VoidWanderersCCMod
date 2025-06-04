@@ -240,7 +240,7 @@ function VoidWanderers:ProcessTurretsControlPanelUI()
 
 						local pre = self.GS["DeployedTurret" .. turr .. "Preset"]
 
-						if self.Time % 2 == 0 then
+						if tonumber(self.GS["Time"]) % 2 == 0 then
 							if pre ~= nil then
 								CF.DrawString("Active: " .. pre, pos + Vector(-60, -24), 136, 10)
 							else

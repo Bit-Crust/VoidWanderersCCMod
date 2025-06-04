@@ -1,164 +1,152 @@
 -----------------------------------------------------------------------
 -- Returns trimmed string
 -----------------------------------------------------------------------
-CF.StringTrim = function(s)
-	return s:gsub("^%s+", ""):gsub("%s+$", "")
+function CF.StringTrim(s)
+	return s:gsub("^%s+", ""):gsub("%s+$", "");
 end
 -----------------------------------------------------------------------
 -- Returns true if string ends with 'End'
 -----------------------------------------------------------------------
-CF.StringEnds = function(String, End)
-	return End == "" or string.sub(String, -string.len(End)) == End
+function CF.StringEnds(String, End)
+	return End == "" or string.sub(String, -string.len(End)) == End;
 end
 -----------------------------------------------------------------------
 -- Read data from file line by line and return the list
 -----------------------------------------------------------------------
-CF.ReadFactionsList = function(filename, defaultpath)
-	print("VoidWanderers::CF['ReadFactionsList']")
-	local config = {}
-
-	local fileid = LuaMan:FileOpen(filename, "r")
+function CF.ReadFactionsList(filename, defaultpath)
+	print("VoidWanderers::CF['ReadFactionsList']");
+	local config = {};
+	local fileid = LuaMan:FileOpen(filename, "r");
 
 	while not LuaMan:FileEOF(fileid) do
-		local line = LuaMan:FileReadLine(fileid)
-		local s = string.gsub(line, "\n", "")
-		s = string.gsub(s, "\r", "")
-
-		local enabled = false
+		local line = LuaMan:FileReadLine(fileid);
+		local s = string.gsub(line, "\n", "");
+		s = string.gsub(s, "\r", "");
+		local enabled = false;
 
 		if string.find(s, "*") == nil then
-			enabled = true
+			enabled = true;
 		end
 
 		if enabled then
 			if CF.StringEnds(s, ".rte") then
-				local file = string.sub(s, 1, #s - 4)
-				local path = s .. "/FactionFiles/" .. file .. ".lua"
+				local file = string.sub(s, 1, #s - 4);
+				local path = s .. "/FactionFiles/" .. file .. ".lua";
 
 				if PresetMan:GetModuleID(s) > -1 then
 					if LuaMan:FileExists(path) then
-						-- Add found .lua file if it exists
-						config[#config + 1] = path
+						config[#config + 1] = path;
 					else
-						-- Check support folder for special cases popular mods
-						-- if lua file don't exist
-						local supportpath = "VoidWanderers.rte/Support/" .. file .. ".lua"
+						local supportpath = "VoidWanderers.rte/Support/" .. file .. ".lua";
+
 						if LuaMan:FileExists(supportpath) then
-							print("SUPPORT " .. supportpath .. " FOUND, EXECUTING")
-							local paths
-							f = loadfile(supportpath)
+							print("SUPPORT " .. supportpath .. " FOUND, EXECUTING");
+							local paths;
+							f = loadfile(supportpath);
+
 							if f ~= nil then
-								paths = f()
+								paths = f();
 
 								if paths ~= nil then
 									for i = 1, #paths do
-										config[#config + 1] = paths[i]
+										config[#config + 1] = paths[i];
 									end
 								end
 							else
-								print("ERR: CAN'T LOAD " .. supportpath .. " SUPPORT, FACTIONS DISABLED")
+								print("ERR: CAN'T LOAD " .. supportpath .. " SUPPORT, FACTIONS DISABLED");
 							end
 						else
-							print("ERR: FILE " .. path .. " NOT FOUND, FACTION NOT AUTOLOADED")
+							print("ERR: FILE " .. path .. " NOT FOUND, FACTION NOT AUTOLOADED");
 						end
 					end
 				else
-					print("MSG: MODULE " .. s .. " NOT LOADED, FACTION NOT AUTOLOADED")
+					print("MSG: MODULE " .. s .. " NOT LOADED, FACTION NOT AUTOLOADED");
 				end
 			else
-				config[#config + 1] = defaultpath .. s
+				config[#config + 1] = defaultpath .. s;
 			end
 		end
 	end
-
-	LuaMan:FileClose(fileid)
-
-	return config
+	
+	LuaMan:FileClose(fileid);
+	return config;
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-CF.ReadExtensionsList = function(filename, defaultpath)
-	print("VoidWanderers::CF['ReadExtensionsList']")
-	local config = {}
-
-	local fileid = LuaMan:FileOpen(filename, "r")
+function CF.ReadExtensionsList(filename, defaultpath)
+	print("VoidWanderers::CF['ReadExtensionsList']");
+	local config = {};
+	local fileid = LuaMan:FileOpen(filename, "r");
 
 	while not LuaMan:FileEOF(fileid) do
-		line = LuaMan:FileReadLine(fileid)
-		local s = string.gsub(line, "\n", "")
-		s = string.gsub(s, "\r", "")
-
-		local enabled = false
+		line = LuaMan:FileReadLine(fileid);
+		local s = string.gsub(line, "\n", "");
+		s = string.gsub(s, "\r", "");
+		local enabled = false;
 
 		if string.find(s, "*") == nil then
-			enabled = true
+			enabled = true;
 		end
 
 		if enabled then
 			if CF.StringEnds(s, ".rte") then
-				--local fileName = string.sub(s, 1, #s - 4)
-				local supportpath = s .. "/Support/VoidWanderers.lua"
+				local supportpath = s .. "/Support/VoidWanderers.lua";
+
 				if LuaMan:FileExists(supportpath) then
-					print("EXTENSION SUPPORT " .. supportpath .. " FOUND, EXECUTING")
-					local paths
-					f = loadfile(supportpath)
+					print("EXTENSION SUPPORT " .. supportpath .. " FOUND, EXECUTING");
+					local paths;
+					f = loadfile(supportpath);
+
 					if f ~= nil then
-						paths = f()
+						paths = f();
 
 						if paths ~= nil then
 							for i = 1, #paths do
-								config[#config + 1] = paths[i]
+								config[#config + 1] = paths[i];
 							end
 						end
 					else
-						print("ERR: CAN'T LOAD " .. supportpath .. " SUPPORT, EXTENSIONS DISABLED")
+						print("ERR: CAN'T LOAD " .. supportpath .. " SUPPORT, EXTENSIONS DISABLED");
 					end
 				else
-					print("ERR: FILE " .. supportpath .. " NOT FOUND, EXTENSION NOT AUTOLOADED")
+					print("ERR: FILE " .. supportpath .. " NOT FOUND, EXTENSION NOT AUTOLOADED");
 				end
 			else
-				config[#config + 1] = defaultpath .. s
+				config[#config + 1] = defaultpath .. s;
 			end
 		end
 	end
 
-	LuaMan:FileClose(fileid)
-
-	--for i = 1, #config do
-	--	print (config[i])
-	--end
-
-	return config
+	LuaMan:FileClose(fileid);
+	return config;
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-CF.ParseLine = function(s)
-	local pos1, pos2
-
-	pos = string.find(s, "=")
+function CF.ParseLine(s)
+	local pos1, pos2;
+	pos = string.find(s, "=");
 
 	if pos ~= nil then
-		local param, value
-
-		s = string.gsub(s, "\n", "")
-		s = string.gsub(s, "\r", "")
-		param = string.sub(s, 1, pos - 1)
-		value = string.sub(s, pos + 1, string.len(s))
-
-		return param, value
+		local param, value;
+		s = string.gsub(s, "\n", "");
+		s = string.gsub(s, "\r", "");
+		param = string.sub(s, 1, pos - 1);
+		value = string.sub(s, pos + 1, string.len(s));
+		return param, value;
 	else
-		return nil
+		return nil;
 	end
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function CF.ReadDataFile(filePath)
-	local config = {};
+	local config = nil;
 
 	if LuaMan:FileExists(filePath) then
+		config = {};
 		local file = LuaMan:FileOpen(filePath, "r");
 
 		while not LuaMan:FileEOF(file) do
@@ -177,107 +165,104 @@ end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-function CF.WriteDataFile(config, filePath)
-	local file = LuaMan:FileOpen(filePath, "w")
-
-	local sorted = CF.GetSortedListFromTable(config)
+function CF.WriteDataFile(gameState, filePath)
+	local file = LuaMan:FileOpen(filePath, "w");
+	local sorted = CF.GetSortedListFromTable(gameState);
 
 	for i = 1, #sorted do
-		LuaMan:FileWriteLine(file, tostring(sorted[i].Key) .. "=" .. tostring(sorted[i].Value) .. "\n")
+		LuaMan:FileWriteLine(file, tostring(sorted[i].Key) .. "=" .. tostring(sorted[i].Value) .. "\n");
 	end
 
-	LuaMan:FileClose(file)
+	return LuaMan:FileClose(file);
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-CF.GetSortedListFromTable = function(arr)
-	local newarr = {}
-
-	for key, value in pairs(arr) do
-		local i = #newarr + 1
-		newarr[i] = {}
-		newarr[i].Key = key
-		newarr[i].Value = value
+function CF.UpdateGameState(gameState)
+	if CF.PlanetName[gameState["Planet"]] == nil then
+		gameState["Planet"] = CF.Planet[1];
+		gameState["Location"] = nil;
 	end
 
-	for i = 1, #newarr do
-		for j = 1, #newarr - 1 do
-			if newarr[j].Key > newarr[j + 1].Key then
-				local tmp = newarr[j]
-				newarr[j] = newarr[j + 1]
-				newarr[j + 1] = tmp
+	for i = 1, CF.MaxMissions do
+		if CF.LocationName[gameState["Mission" .. i .. "Location"]] == nil then
+			CF.GenerateRandomMissions(gameState);
+			break;
+		end
+	end
+
+	local brainDataIndices = {
+		"SkillPoints", "Level", "Toughness",
+		"Field", "Telekinesis", "Scanner",
+		"Heal", "SelfHeal", "Fix",
+		"Splitter", "QuantumStorage", "QuantumCapacity",
+		"Exp",
+	};
+
+	for player = Activity.PLAYER_NONE + 1, Activity.MAXPLAYERCOUNT - 1 do
+		for index, brainDataName in ipairs(brainDataIndices) do
+			local dataName = "Brain" .. player .. brainDataName;
+			gameState[dataName] = gameState[dataName] or 0;
+		end
+	end
+
+	if #CF.GetAvailableQuantumItems(gameState) == 0 then
+		CF.UnlockRandomQuantumItems(gameState);
+	end
+
+	for i = 1, CF.MaxMissionReportLines do
+		local report = gameState["MissionReport" .. i];
+						
+		if not report then
+			break;
+		end
+
+		if string.find(report, "Completion streak") then
+			gameState["MissionReport" .. i] = "Completion streak: 0";
+			break;
+		end
+	end
+
+	gameState["PlayerVesselTurrets"] = gameState["PlayerVesselTurrets"] or CF.VesselStartTurrets[gameState["PlayerVessel"]];
+	gameState["PlayerVesselTurretStorage"] = gameState["PlayerVesselTurretStorage"] or CF.VesselStartTurretStorage[gameState["PlayerVessel"]];
+	gameState["PlayerVesselBombBays"] = gameState["PlayerVesselBombBays"] or CF.VesselStartBombBays[gameState["PlayerVessel"]];
+	gameState["PlayerVesselBombStorage"] = gameState["PlayerVesselBombStorage"] or CF.VesselStartBombStorage[gameState["PlayerVessel"]];
+end
+-----------------------------------------------------------------------
+--
+-----------------------------------------------------------------------
+function CF.GetSortedListFromTable(arr)
+	local newArray = {};
+
+	for key, value in pairs(arr) do
+		table.insert(newArray, {
+			Key = key,
+			Value = value,
+		})
+	end
+
+	for i = 1, #newArray do
+		for j = 1, #newArray - 1 do
+			if newArray[j].Key > newArray[j + 1].Key then
+				table.insert(newArray, j + 1, table.remove(newArray, j));
 			end
 		end
 	end
 
-	return newarr
+	return newArray;
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-CF.DeleteCurrentConfig = function(modulename)
-	local file = LuaMan:FileOpen(modulename .. "/CampaignData/current.dat", "w")
-
-	for i, line in pairs(config) do
-		LuaMan:WriteLine(file, tostring(i) .. "=" .. tostring(line) .. "\n")
-	end
-
-	LuaMan:FileClose(file)
+function CF.DeleteConfig(filename)
+	local file = LuaMan:FileOpen(filename);
+	return LuaMan:FileClose(file);
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-CF.IsFileExists = function(modulename, filename)
-	return LuaMan:FileExists(modulename .. "/CampaignData/" .. filename)
-end
------------------------------------------------------------------------
---
------------------------------------------------------------------------
-CF.GetCharPixelWidth = function(char)
-	local ChrLen = {}
-	local n = nil
-
-	ChrLen["1"] = 4
-	ChrLen[" "] = 3
-	ChrLen["!"] = 3
-	ChrLen[","] = 3
-	ChrLen["."] = 3
-
-	ChrLen["f"] = 5
-	ChrLen["i"] = 3
-	ChrLen["j"] = 4
-	ChrLen["l"] = 3
-	ChrLen["m"] = 8
-	ChrLen["t"] = 5
-	ChrLen["w"] = 8
-
-	ChrLen["I"] = 3
-	ChrLen["M"] = 8
-	ChrLen["T"] = 5
-	ChrLen["W"] = 8
-
-	--print(char)
-
-	n = ChrLen[char]
-
-	--print (n)
-
-	if n == nil then
-		n = 6
-	end
-
-	return n
-end
------------------------------------------------------------------------
---
------------------------------------------------------------------------
-CF.GetStringPixelWidth = function(str)
-	local len = 0
-	for i = 1, #str do
-		len = len + CF.GetCharPixelWidth(string.sub(str, i, i))
-	end
-	return len
+function CF.IsFileExists(filename)
+	return LuaMan:FileExists(filename);
 end
 -----------------------------------------------------------------------
 --

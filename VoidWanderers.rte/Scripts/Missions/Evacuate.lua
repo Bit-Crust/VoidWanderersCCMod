@@ -100,8 +100,8 @@ function VoidWanderers:MissionCreate()
 		error("Can't create brain")
 	end
 
-	self.missionData["craftCheckTime"] = self.Time + 10
-	self.missionData["reinforcementsNext"] = self.Time
+	self.missionData["craftCheckTime"] = tonumber(self.GS["Time"]) + 10
+	self.missionData["reinforcementsNext"] = tonumber(self.GS["Time"])
 	self.missionData["craft"] = nil
 end
 -----------------------------------------------------------------------
@@ -159,11 +159,11 @@ function VoidWanderers:MissionUpdate()
 				self:AddObjectivePoint("EVACUATE", self.missionData["brain"].AboveHUDPos, CF.PlayerTeam, GameActivity.ARROWDOWN)
 				if self.missionData["craft"] then
 					-- Craft is defined but not an actor - that means it has been destroyed, so delay the next one
-					self.missionData["craftCheckTime"] = self.Time + 10
+					self.missionData["craftCheckTime"] = tonumber(self.GS["Time"]) + 10
 				end
 				self.missionData["craft"] = nil
-				if self.missionData["craftCheckTime"] < self.Time then
-					self.missionData["craftCheckTime"] = self.Time + 2
+				if self.missionData["craftCheckTime"] < tonumber(self.GS["Time"]) then
+					self.missionData["craftCheckTime"] = tonumber(self.GS["Time"]) + 2
 					if
 						SceneMan:CastObstacleRay(
 							self.missionData["brain"].Pos,
@@ -177,7 +177,7 @@ function VoidWanderers:MissionUpdate()
 						) < 0
 					then
 						local f = CF.GetPlayerFaction(self.GS, self.missionData["missionContractor"])
-						self.missionData["craft"] = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
+						self.missionData["craft"] = CF.MakeActor(CF.CraftClasses[f], CF.CraftPresets[f], CF.CraftModules[f])
 							or CreateACDropShip("Dropship MK1", "Base.rte")
 						self.missionData["craft"].Pos = Vector(self.missionData["brain"].Pos.X, -10)
 						self.missionData["craft"].Team = self.missionData["brain"].Team
@@ -259,12 +259,12 @@ function VoidWanderers:MissionUpdate()
 			end
 			self.missionData["brain"] = nil
 			-- Remember when we started showing misison status message
-			self.missionData["statusShowStart"] = self.Time
-			self.missionData["missionEndTime"] = self.Time
+			self.missionData["statusShowStart"] = tonumber(self.GS["Time"])
+			self.missionData["missionEndTime"] = tonumber(self.GS["Time"])
 		else
 			self.missionData["missionStatus"] = "COMMANDER ALIVE"
 
-			if self.Time >= self.missionData["reinforcementsNext"] then
+			if tonumber(self.GS["Time"]) >= self.missionData["reinforcementsNext"] then
 				local actorCount = { [CF.PlayerTeam] = 0, [CF.CPUTeam] = 0 }
 				for actor in MovableMan.Actors do
 					if actor.ID ~= self.missionData["brain"].ID then
@@ -281,7 +281,7 @@ function VoidWanderers:MissionUpdate()
 									and CF.IsAlly(actor)
 									and actor.AIMode ~= Actor.AIMODE_GOTO
 									and SceneMan
-										:ShortestDistance(actor.Pos, self.missionData["brain"].Pos, SceneMan.SceneWrapsX)
+										:ShortestDistance(actor.Pos, self.missionData["brain"].Pos, true)
 										:MagnitudeIsLessThan(50)
 								then
 									CF.Hunt(actor, { self.missionData["brain"] })
@@ -306,7 +306,7 @@ function VoidWanderers:MissionUpdate()
 						)
 						local f = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])
 
-						local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
+						local ship = CF.MakeActor(CF.CraftClasses[f], CF.CraftPresets[f], CF.CraftModules[f])
 						if ship then
 							for i = 1, count do
 								local actor = CF.MakeUnit(self.GS, self.missionData["missionTarget"]);
@@ -338,7 +338,7 @@ function VoidWanderers:MissionUpdate()
 						self.missionData["enemyDropShips"] = self.missionData["enemyDropShips"] + 1
 					end
 				end
-				self.missionData["reinforcementsNext"] = self.Time
+				self.missionData["reinforcementsNext"] = tonumber(self.GS["Time"])
 					+ self.missionData["interval"]
 					+ math.ceil(actorCount[CF.CPUTeam] / math.sqrt(math.max(actorCount[CF.PlayerTeam], 1)))
 			end
@@ -350,7 +350,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["endMusicPlayed"] = true
 		end
 
-		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
+		if tonumber(self.GS["Time"]) < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)
@@ -363,7 +363,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["endMusicPlayed"] = true
 		end
 
-		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
+		if tonumber(self.GS["Time"]) < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)

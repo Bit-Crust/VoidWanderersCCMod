@@ -23,13 +23,13 @@ CF.FactionNatures[factionid] = CF.FactionNatureTypes.ORGANIC
 CF.PreferedBrainInventory[factionid] = { CF.WeaponTypes.HEAVY, CF.WeaponTypes.RIFLE }
 
 -- Define brain unit
-CF.Brains[factionid] = "Ultramarines Assault Sergeant Brain"
+CF.BrainPresets[factionid] = "Ultramarines Assault Sergeant Brain"
 CF.BrainModules[factionid] = "w40k.rte"
 CF.BrainClasses[factionid] = "AHuman"
 CF.BrainPrices[factionid] = 500
 
 -- Define dropship
-CF.Crafts[factionid] = "Ultramarines Drop Pod"
+CF.CraftPresets[factionid] = "Ultramarines Drop Pod"
 CF.CraftModules[factionid] = "w40k.rte"
 CF.CraftClasses[factionid] = "ACRocket"
 CF.CraftPrices[factionid] = 0

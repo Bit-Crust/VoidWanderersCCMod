@@ -33,8 +33,8 @@ function VoidWanderers:MissionCreate()
 	self.missionData["allyPlayer"][1] = false;
 	self.missionData["allyPlayer"][2] = false;
 
-	local p1Rep = tonumber(self.GS["Player" .. participant1 .. "Reputation"]);
-	local p2Rep = tonumber(self.GS["Player" .. participant2 .. "Reputation"]);
+	local p1Rep = tonumber(self.GS["Participant" .. participant1 .. "Reputation"]);
+	local p2Rep = tonumber(self.GS["Participant" .. participant2 .. "Reputation"]);
 
 	if p1Rep >=	 p2Rep then
 		if p1Rep >= 500 then
@@ -119,7 +119,7 @@ function VoidWanderers:MissionCreate()
 	self.missionData["showObjectiveTime"] = -100;
 
 	if self.missionData["allyPlayer"][1] or self.missionData["allyPlayer"][2] then
-		self.missionData["showObjectiveTime"] = self.Time + 10;
+		self.missionData["showObjectiveTime"] = tonumber(self.GS["Time"]) + 10;
 	end
 
 	self:InitExplorationPoints();
@@ -175,7 +175,7 @@ function VoidWanderers:MissionUpdate()
 	end
 	--]]
 
-	if self.Time < missionData["showObjectiveTime"] then
+	if tonumber(self.GS["Time"]) < missionData["showObjectiveTime"] then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			FrameMan:ClearScreenText(player);
 			FrameMan:SetScreenText("TRY TO SAVE AS MANY ALLIED UNITS AS POSSIBLE!", player, 0, 1000, true);

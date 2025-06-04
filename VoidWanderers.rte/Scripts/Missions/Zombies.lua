@@ -130,7 +130,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["stage"] = CF.MissionStages.COMPLETED
 
 			-- Remember when we started showing mission status message
-			self.missionData["statusShowStart"] = self.Time
+			self.missionData["statusShowStart"] = tonumber(self.GS["Time"])
 		end
 
 		-- Control zombie population
@@ -185,7 +185,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["endMusicPlayed"] = true
 		end
 
-		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
+		if tonumber(self.GS["Time"]) < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)

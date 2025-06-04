@@ -1,52 +1,73 @@
 local LoadForm = {};
 -----------------------------------------------------------------------
+--	
+-----------------------------------------------------------------------
+local function saveSlotOnClick(element, form, activity)
+	local gameState = element.Metadata.gameState;
+
+	if gameState and not element.Metadata.isBroken then
+		CF.UpdateGameState(gameState);
+
+		activity.GS = gameState;
+		activity.sceneToLaunch = activity.GS["Scene"];
+		activity.scriptToLaunch = "Tactics.lua";
+	end
+end
+-----------------------------------------------------------------------
+--	
+-----------------------------------------------------------------------
+local function backButtonOnClick(element, form, activity)
+	activity.formToLoad = "FormStart.lua";
+end
+-----------------------------------------------------------------------
 --	Load event. Put all UI element initialiations here.
 -----------------------------------------------------------------------
 function LoadForm:Load(document, activity)
 	local ui = {};
+	
+	local resolution = Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight);
+	local center = Vector(SceneMan.Scene.Width / 4, SceneMan.Scene.Height / 2);
 
 	local saveSlotWidth = 180;
 	local saveSlotHeight = 70;
 	local columns = math.min(4, CF.MaxSaveGames);
-	local rows = math.floor(CF.MaxSaveGames / columns);
+	local rows = math.ceil(CF.MaxSaveGames / columns);
 	local columnsInLastRow = CF.MaxSaveGames % columns;
-	local xtile = 1;
-	local ytile = 1;
-	local resolution = Vector(FrameMan.PlayerScreenWidth, FrameMan.PlayerScreenHeight);
+	local xTile = 1;
+	local yTile = 1;
 
 	for i = 1, CF.MaxSaveGames do
 		local text = "EMPTY";
+		local gameState = CF.ReadDataFile("Mods/VoidWanderers.rte/CampaignData/savegame" .. i .. ".dat");
+		local isBroken = false;
+		local reason = "";
 
-		if CF.IsFileExists(activity.ModuleName, "savegame" .. i .. ".dat") then
-			local gameState = CF.ReadDataFile("Mods/VoidWanderers.rte/CampaignData/savegame" .. i .. ".dat");
-			local isbroken = false;
-			local reason = "";
-
+		if gameState then
 			if not gameState["PlayerGold"] then
-				isbroken = true;
+				isBroken = true;
 			end
 
 			-- Check that all used factions are installed
 			for j = 1, CF.MaxCPUPlayers do
-				if gameState["Player" .. j .. "Active"] == "True" then
-					local f = gameState["Player" .. j .. "Faction"];
+				if gameState["Participant" .. j .. "Active"] == "True" then
+					local f = gameState["Participant" .. j .. "Faction"];
 
 					if f == nil then
-						isbroken = true;
+						isBroken = true;
 						break;
 					else
 						if CF.FactionNames[f] == nil then
-							isbroken = true;
+							isBroken = true;
 							reason = "NO " .. f;
 						elseif CF.FactionPlayable[f] == false then
-							isbroken = true;
+							isBroken = true;
 							reason = f .. " NOT PLAYABLE";
 						end
 					end
 				end
 			end
 
-			if not isbroken then
+			if not isBroken then
 				text = CF.FactionNames[gameState["PlayerFaction"]];
 			else
 				text = "Broken slot #" .. i .. "";
@@ -64,67 +85,30 @@ function LoadForm:Load(document, activity)
 			columnsThisRow = columnsInLastRow;
 		end
 
-		local slotId = #ui + 1;
+		local offset = Vector(
+			xTile * (saveSlotWidth - 2) - (saveSlotWidth / 2 - 1) - columnsThisRow * (saveSlotWidth / 2 - 1), 
+			yTile * (saveSlotHeight - 2) - (saveSlotHeight / 2 - 1) - rows * (saveSlotHeight / 2 - 1)
+		);
 
 		table.insert(ui, {
 			Type = CF.ElementTypes.BUTTON,
-			Pos = document.mid + Vector(
-				xtile * 178 - 89 - columnsThisRow * 89,
-				ytile * 68 - 34 - rows * 34
-			),
+			Pos = document.mid + offset,
 			Text = text,
 			Width = saveSlotWidth - 4,
 			Height = saveSlotHeight - 4,
-			OnClick = function(element, activity)
-				local gameState = CF.ReadDataFile("Mods/VoidWanderers.rte/CampaignData/savegame" .. slotId .. ".dat")
-
-				if gameState then
-					for j = 1, CF.MaxMissions do
-						local resetMissions = true;
-
-						if gameState["Mission" .. j .. "Location"] and gameState["Mission" .. j .. "Type"] and CF.LocationMissions[gameState["Mission" .. j .. "Location"]] then
-							for lm = 1, #CF.LocationMissions[gameState["Mission" .. j .. "Location"]] do
-								if gameState["Mission" .. j .. "Type"] == CF.LocationMissions[gameState["Mission" .. j .. "Location"]][lm] then
-									resetMissions = false;
-									break;
-								end
-							end
-
-							if resetMissions then
-								CF.GenerateRandomMissions(gameState);
-								break;
-							end
-						end
-					end
-
-					for i = 1, CF.MaxMissionReportLines do
-						local report = gameState["MissionReport" .. i];
-						
-						if not report then
-							break;
-						end
-
-						if string.find(report, "Completion streak") then
-							gameState["MissionReport" .. i] = "Completion streak: 0";
-							break;
-						end
-					end
-
-					activity.GS = gameState;
-					activity:OnSave();
-					activity:loadSaveData();
-					activity.sceneToLaunch = activity.GS["Scene"];
-					activity.scriptToLaunch = "Tactics.lua";
-				end
-			end,
-			Text = text,
+			Backdrop = true,
+			OnClick = saveSlotOnClick,
+			Metadata = {
+				gameState = gameState,
+				isBroken = isBroken,
+			},
 		});
 
-		xtile = xtile + 1;
+		xTile = xTile + 1;
 
-		if xtile > columns then
-			xtile = 1;
-			ytile = ytile + 1;
+		if xTile > columns then
+			xTile = 1;
+			yTile = yTile + 1;
 		end
 	end
 	
@@ -143,10 +127,13 @@ function LoadForm:Load(document, activity)
 		Text = "Back",
 		Width = 140,
 		Height = 40,
-		OnClick = function(element, activity)
-			activity.formToLoad = "FormStart.lua";
-		end,
+		OnClick = backButtonOnClick,
 	});
+	
+	document.scrollingScreen = { X = false, Y = false };
+	document.bound.Corner = center * 1;
+	document.bound.Height = 0;
+	document.bound.Width = 0;
 
 	return ui;
 end
@@ -154,7 +141,7 @@ end
 -- When a click occurs anywhere without catching in an element
 -----------------------------------------------------------------------
 function LoadForm:Click()
-	print("Default form click handling.");
+	--print("Default form click handling.");
 end
 -----------------------------------------------------------------------
 --
@@ -172,7 +159,7 @@ end
 --
 -----------------------------------------------------------------------
 function LoadForm:Close()
-	print("Default form close handling.");
+	--print("Default form close handling.");
 end
 -----------------------------------------------------------------------
 --

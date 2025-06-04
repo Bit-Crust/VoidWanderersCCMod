@@ -89,8 +89,8 @@ function VoidWanderers:MissionCreate()
 
 	-- Data
 	self.missionData["dropShipCount"] = 0
-	self.missionData["missionNextDropShip"] = self.Time + CF.AmbientReinforcementsInterval
-	self.missionData["missionNextIntervention"] = self.Time + CF.AmbientReinforcementsInterval * 2.5
+	self.missionData["missionNextDropShip"] = tonumber(self.GS["Time"]) + CF.AmbientReinforcementsInterval
+	self.missionData["missionNextIntervention"] = tonumber(self.GS["Time"]) + CF.AmbientReinforcementsInterval * 2.5
 
 	-- Read some out
 	print("TEAM 1: " .. CF.GetPlayerFaction(self.GS, team1Player))
@@ -143,17 +143,17 @@ function VoidWanderers:MissionUpdate()
 		end
 	end
 
-	if self.Time > self.missionData["missionNextDropShip"]
+	if tonumber(self.GS["Time"]) > self.missionData["missionNextDropShip"]
 		and #self.missionData["enemyLandingZones"] > 0 
 	then
 		local team = math.random() < 0.5 and Activity.TEAM_3 or Activity.TEAM_4
 
 		if #activeUnits[team] < 5 then
-			self.missionData["missionNextDropShip"] = self.Time + CF.AmbientReinforcementsInterval + math.random(15)
+			self.missionData["missionNextDropShip"] = tonumber(self.GS["Time"]) + CF.AmbientReinforcementsInterval + math.random(15)
 			self.missionData["dropShipCount"] = self.missionData["dropShipCount"] + 1
 			local count = math.random(math.ceil(math.max(1, math.min(CF.MaxDifficulty, self.missionData["difficulty"] / 2))))
 			local f = CF.GetPlayerFaction(self.GS, self.missionData["teamParticipants"][team])
-			local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
+			local ship = CF.MakeActor(CF.CraftClasses[f], CF.CraftPresets[f], CF.CraftModules[f])
 
 			if ship then
 				for i = 1, count do
@@ -178,14 +178,14 @@ function VoidWanderers:MissionUpdate()
 	if
 		self.missionData["difficulty"] >= 2
 		and self.missionData["teamParticipants"][Activity.TEAM_2] ~= nil
-		and self.Time > self.missionData["missionNextIntervention"]
+		and tonumber(self.GS["Time"]) > self.missionData["missionNextIntervention"]
 		and #self.missionData["enemyLandingZones"] > 0
 	then
-		self.missionData["missionNextIntervention"] = self.Time + CF.AmbientReinforcementsInterval + math.random(30)
+		self.missionData["missionNextIntervention"] = tonumber(self.GS["Time"]) + CF.AmbientReinforcementsInterval + math.random(30)
 		local team = Activity.TEAM_2
 		local count = 3
 		local f = CF.GetPlayerFaction(self.GS, self.missionData["teamParticipants"][team])
-		local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
+		local ship = CF.MakeActor(CF.CraftClasses[f], CF.CraftPresets[f], CF.CraftModules[f])
 
 		if ship then
 			for i = 1, count do
@@ -212,7 +212,7 @@ function VoidWanderers:MissionUpdate()
 	end
 
 	-- Have patrollers go out to fight instead, after some time
-	if self.Time > self.missionData["missionStartTime"] + 90 then
+	if tonumber(self.GS["Time"]) > self.missionData["missionStartTime"] + 90 then
 		-- Teams will go after their default enemies if there are any left, and otherwise will find someone to kill, or default to the rogue team
 		local targets = {}
 
@@ -248,7 +248,7 @@ function VoidWanderers:MissionUpdate()
 						local target
 
 						for i = 1, #targetGroup do
-							local d = SceneMan:ShortestDistance(actor.Pos, targetGroup[i].Pos, SceneMan.SceneWrapsX).Magnitude
+							local d = SceneMan:ShortestDistance(actor.Pos, targetGroup[i].Pos, true).Magnitude
 							if d < distance then
 								distance = d
 								target = targetGroup[i]

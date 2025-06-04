@@ -2,7 +2,7 @@ function VoidWanderers:AmbientCreate()
 	local vesselInterior = SceneMan.Scene:GetArea("Vessel Interior") or SceneMan.Scene:GetArea("Vessel");
 	self.ambientData["vesselInterior"] = vesselInterior;
 
-	self.ambientData["smokeNextEmission"] = self.Time + math.random(3);
+	self.ambientData["smokeNextEmission"] = tonumber(self.GS["Time"]) + math.random(3);
 	self.ambientData["smokeEmitters"] = {};
 	self.ambientData["smokeEmitterCount"] = 4;
 
@@ -182,14 +182,14 @@ function VoidWanderers:AmbientCreate()
 	self.ambientData["explosionInterval"] = 5
 	self.ambientData["explosionVariance"] = 3
 	self.ambientData["explosionSafeDistance"] = 250
-	self.ambientData["explosionNext"] = self.Time + self.ambientData["explosionInterval"] + math.random(-self.ambientData["explosionVariance"], self.ambientData["explosionVariance"])
+	self.ambientData["explosionNext"] = tonumber(self.GS["Time"]) + self.ambientData["explosionInterval"] + math.random(-self.ambientData["explosionVariance"], self.ambientData["explosionVariance"])
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function VoidWanderers:AmbientUpdate()
-	if self.Time >= self.ambientData["smokeNextEmission"] then
-		self.ambientData["smokeNextEmission"] = self.Time + math.random(2)
+	if tonumber(self.GS["Time"]) >= self.ambientData["smokeNextEmission"] then
+		self.ambientData["smokeNextEmission"] = tonumber(self.GS["Time"]) + math.random(2)
 
 		for i = 1, self.ambientData["smokeEmitterCount"] do
 			if MovableMan:IsParticle(self.ambientData["smokeEmitters"][i]) then
@@ -201,7 +201,7 @@ function VoidWanderers:AmbientUpdate()
 	end
 
 	-- Put explosion
-	if self.Time >= self.ambientData["explosionNext"] then
+	if tonumber(self.GS["Time"]) >= self.ambientData["explosionNext"] then
 		local pos = self.ambientData["vesselInterior"]:GetRandomPoint();
 		local ok = true;
 
@@ -244,7 +244,7 @@ function VoidWanderers:AmbientUpdate()
 			explosion.Pos = pos;
 			MovableMan:AddParticle(explosion);
 			explosion:GibThis();
-			self.ambientData["explosionNext"] = self.Time + self.ambientData["explosionInterval"] + math.random(-self.ambientData["explosionVariance"], self.ambientData["explosionVariance"])
+			self.ambientData["explosionNext"] = tonumber(self.GS["Time"]) + self.ambientData["explosionInterval"] + math.random(-self.ambientData["explosionVariance"], self.ambientData["explosionVariance"])
 		end
 	end
 end

@@ -127,7 +127,7 @@ function VoidWanderers:EncounterUpdate()
 			-- Indicate thet we fought this pirate and defeated him
 			self.GS[self.encounterData["feeKey"]] = -1;
 			self.encounterData["attackLaunched"] = true;
-			self.encounterData["attackNextSpawnTime"] = self.Time + bandEncountered.Interval;
+			self.encounterData["attackNextSpawnTime"] = tonumber(self.GS["Time"]) + bandEncountered.Interval;
 			self.encounterData["attackNextSpawnPos"] = self.encounterData["attackSpawn"]:GetRandomPoint();
 
 			self.vesselData["lifeSupportEnabled"] = false;
@@ -153,7 +153,7 @@ function VoidWanderers:EncounterUpdate()
 			end
 		end
 
-		if self.encounterData["attackNextSpawnTime"] == self.Time then
+		if self.encounterData["attackNextSpawnTime"] == tonumber(self.GS["Time"]) then
 			local cnt = math.random(math.ceil(bandEncountered.Burst * 0.5), bandEncountered.Burst);
 
 			for i = 1, cnt do
@@ -256,14 +256,14 @@ function VoidWanderers:EncounterUpdate()
 			MovableMan:AddParticle(sfx);
 
 			self.encounterData["attackNextSpawnPos"] = self.EnemySpawn[math.random(#self.EnemySpawn)];
-			self.encounterData["attackNextSpawnTime"] = self.Time + bandEncountered.Interval + math.random(0, 2);
+			self.encounterData["attackNextSpawnTime"] = tonumber(self.GS["Time"]) + bandEncountered.Interval + math.random(0, 2);
 		end
 
-		if self.Time % 10 == 0 and self.encounterData["unitsWithheld"] > 0 then
+		if tonumber(self.GS["Time"]) % 10 == 0 and self.encounterData["unitsWithheld"] > 0 then
 			FrameMan:SetScreenText("Remaining intruders: " .. self.encounterData["unitsWithheld"], 0, 0, 1500, true);
 		end
 
-		if self.encounterData["unitsWithheld"] > 0 and self.Time > self.encounterData["attackNextSpawnTime"] - self.encounterData["attackWarningPeriod"] then
+		if self.encounterData["unitsWithheld"] > 0 and tonumber(self.GS["Time"]) > self.encounterData["attackNextSpawnTime"] - self.encounterData["attackWarningPeriod"] then
 			self:AddObjectivePoint("INTRUDER\nALERT", self.encounterData["attackNextSpawnPos"], CF.PlayerTeam, GameActivity.ARROWDOWN);
 
 			if self.TeleportEffectTimer:IsPastSimMS(50) then

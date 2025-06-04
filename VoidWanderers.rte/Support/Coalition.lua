@@ -24,13 +24,13 @@ do
 	CF.PreferedBrainInventory[factionid] = { CF.WeaponTypes.HEAVY, CF.WeaponTypes.RIFLE }
 
 	-- Define brain unit
-	CF.Brains[factionid] = "Brain Robot"
+	CF.BrainPresets[factionid] = "Brain Robot"
 	CF.BrainModules[factionid] = "Base.rte"
 	CF.BrainClasses[factionid] = "AHuman"
 	CF.BrainPrices[factionid] = 500
 
 	-- Define dropship
-	CF.Crafts[factionid] = "Dropship MK1"
+	CF.CraftPresets[factionid] = "Dropship MK1"
 	CF.CraftModules[factionid] = "Base.rte"
 	CF.CraftClasses[factionid] = "ACDropShip"
 	CF.CraftPrices[factionid] = 500

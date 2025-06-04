@@ -129,7 +129,7 @@ function Update(self)
 					if
 						(IsActor(foundMO) or foundMO:NumberValueExists("Carriable"))
 						and SceneMan
-							:ShortestDistance(reachPoint, foundMO.Pos, SceneMan.SceneWrapsX)
+							:ShortestDistance(reachPoint, foundMO.Pos, true)
 							:MagnitudeIsLessThan(reach + radius)
 					then
 						self.objectInReach = foundMO;
@@ -142,7 +142,7 @@ function Update(self)
 						or (IsActor(self.objectInReach) and not IsACrab(self.objectInReach) and not (IsAHuman(self.objectInReach) and (not ToAHuman(self.objectInReach).FGLeg) and (not ToAHuman(self.objectInReach).BGLeg)) and ToActor(self.objectInReach).Status == Actor.STABLE)
 						or self.objectInReach.ID == self.ID
 						or SceneMan
-							:ShortestDistance(reachPoint, self.objectInReach.Pos, SceneMan.SceneWrapsX)
+							:ShortestDistance(reachPoint, self.objectInReach.Pos, true)
 							:MagnitudeIsGreaterThan(
 								reach
 									+ (IsActor(self.objectInReach) and self.objectInReach.IndividualRadius or self.objectInReach.Radius)

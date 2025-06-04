@@ -54,7 +54,7 @@ function VoidWanderers:MissionCreate()
 	-- Get base
 	self:ObtainBaseBoxes("Enemy", pointSetIndex);
 	-- Deploy mines
-	self:DeployInfantryMines(CF.CPUTeam, math.min(-tonumber(self.GS["Player" .. self.missionData["missionTarget"] .. "Reputation"]) / (CF.MaxDifficulty * CF.ReputationPerDifficulty), 1) - 0.5);
+	self:DeployInfantryMines(CF.CPUTeam, math.min(-tonumber(self.GS["Participant" .. self.missionData["missionTarget"] .. "Reputation"]) / (CF.MaxDifficulty * CF.ReputationPerDifficulty), 1) - 0.5);
 
 	-- Spawn commander
 	local cmndrpts = CF.GetPointsArray(self.Pts, "Assassinate", pointSetIndex, "Commander");
@@ -85,7 +85,7 @@ function VoidWanderers:MissionCreate()
 	end
 
 	self.missionData["craft"] = nil;
-	self.missionData["craftCheckTime"] = self.Time;
+	self.missionData["craftCheckTime"] = tonumber(self.GS["Time"]);
 
 	self.missionData["reinforcementsTriggered"] = false;
 	self.missionData["reinforcementsLast"] = 0;
@@ -145,7 +145,7 @@ function VoidWanderers:MissionUpdate()
 
 				if
 					self.missionData["reinforcementsTriggered"]
-					and self.Time >= self.missionData["reinforcementsLast"] + self.missionData["interval"]
+					and tonumber(self.GS["Time"]) >= self.missionData["reinforcementsLast"] + self.missionData["interval"]
 				then
 					if self.missionData["reinforcements"] == 0 then
 						self.missionData["reinforcements"] = -1
@@ -171,9 +171,9 @@ function VoidWanderers:MissionUpdate()
 				if
 					self.missionData["craft"] == nil
 					and self.missionData["reinforcements"] < 0
-					and self.missionData["craftCheckTime"] < self.Time
+					and self.missionData["craftCheckTime"] < tonumber(self.GS["Time"])
 				then
-					self.missionData["craftCheckTime"] = self.Time + 3
+					self.missionData["craftCheckTime"] = tonumber(self.GS["Time"]) + 3
 
 					if
 						SceneMan:CastObstacleRay(
@@ -188,7 +188,7 @@ function VoidWanderers:MissionUpdate()
 						) < 0
 					then
 						local f = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])
-						self.missionData["craft"] = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
+						self.missionData["craft"] = CF.MakeActor(CF.CraftClasses[f], CF.CraftPresets[f], CF.CraftModules[f])
 						self.missionData["craft"].Pos = Vector(self.missionData["brain"].Pos.X, -10)
 						self.missionData["craft"].Team = self.missionData["brain"].Team
 						self.missionData["craft"].AIMode = Actor.AIMODE_STAY
@@ -203,7 +203,7 @@ function VoidWanderers:MissionUpdate()
 			end
 		end
 
-		if self.missionData["brainHasIntel"] and self.Time < self.missionData["missionStartTime"] + 5 then
+		if self.missionData["brainHasIntel"] and tonumber(self.GS["Time"]) < self.missionData["missionStartTime"] + 5 then
 			local message = "The enemy has some of " .. (ours and "our" or "their") .. " classified information, see if you can't retrieve it.";
 			FrameMan:SetScreenText(message, Activity.PLAYER_1, 0, 1000, true);
 		end
@@ -234,8 +234,8 @@ function VoidWanderers:MissionUpdate()
 				end
 			end
 
-			self.missionData["statusShowStart"] = self.Time
-			self.missionData["missionEndTime"] = self.Time
+			self.missionData["statusShowStart"] = tonumber(self.GS["Time"])
+			self.missionData["missionEndTime"] = tonumber(self.GS["Time"])
 		end
 
 		-- Trigger reinforcements
@@ -252,7 +252,7 @@ function VoidWanderers:MissionUpdate()
 					print("The enemy has been alerted!")
 					self:MakeAlertSound(1)
 
-					self.missionData["reinforcementsLast"] = self.Time
+					self.missionData["reinforcementsLast"] = tonumber(self.GS["Time"])
 				end
 			end
 		end
@@ -261,8 +261,8 @@ function VoidWanderers:MissionUpdate()
 
 		-- Send reinforcements if available
 		if self.missionData["reinforcementsTriggered"] then
-			if self.Time >= self.missionData["reinforcementsLast"] + self.missionData["interval"] then
-				self.missionData["reinforcementsLast"] = self.Time
+			if tonumber(self.GS["Time"]) >= self.missionData["reinforcementsLast"] + self.missionData["interval"] then
+				self.missionData["reinforcementsLast"] = tonumber(self.GS["Time"])
 				if
 					self.missionData["reinforcements"] > 0
 					and #self.missionData["landingZones"] > 0
@@ -271,7 +271,7 @@ function VoidWanderers:MissionUpdate()
 
 					local count = math.random(2, 3)
 					local f = CF.GetPlayerFaction(self.GS, self.missionData["missionTarget"])
-					local ship = CF.MakeActor(CF.CraftClasses[f], CF.Crafts[f], CF.CraftModules[f])
+					local ship = CF.MakeActor(CF.CraftClasses[f], CF.CraftPresets[f], CF.CraftModules[f])
 					if ship then
 						for i = 1, count do
 							local actor = CF.MakeUnit(self.GS, self.missionData["missionTarget"])
@@ -288,7 +288,7 @@ function VoidWanderers:MissionUpdate()
 				end
 			end
 			--[[
-			if self.Time < self.missionData["reinforcementsLast"] + self.missionData["interval"] and self.Time % 3 == 0 then
+			if tonumber(self.GS["Time"]) < self.missionData["reinforcementsLast"] + self.missionData["interval"] and tonumber(self.GS["Time"]) % 3 == 0 then
 				self:MakeAlertSound()
 			end
 			]]
@@ -299,7 +299,7 @@ function VoidWanderers:MissionUpdate()
 		if
 			not self.missionData["counterAttackTriggered"]
 			and self.missionData["counterAttackDelay"] > 0
-			and self.Time >= self.missionData["missionStartTime"] + self.missionData["counterAttackDelay"]
+			and tonumber(self.GS["Time"]) >= self.missionData["missionStartTime"] + self.missionData["counterAttackDelay"]
 		then
 			self.missionData["counterAttackTriggered"] = true
 			print("COUNTERATTACK!")
@@ -325,7 +325,7 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["endMusicPlayed"] = true
 		end
 
-		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
+		if tonumber(self.GS["Time"]) < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)
@@ -339,14 +339,14 @@ function VoidWanderers:MissionUpdate()
 			self.missionData["endMusicPlayed"] = true
 		end
 
-		if self.Time < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
+		if tonumber(self.GS["Time"]) < self.missionData["statusShowStart"] + CF.MissionResultShowInterval then
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				FrameMan:ClearScreenText(player)
 				FrameMan:SetScreenText(self.missionData["missionStatus"], player, 0, 1000, true)
 			end
 		end
 
-		if self.Time < self.missionData["missionEndTime"] + 25 then
+		if tonumber(self.GS["Time"]) < self.missionData["missionEndTime"] + 25 then
 			for actor in MovableMan.Actors do
 				if actor.Team == CF.CPUTeam and math.random() < 0.1 then
 					actor:GetController():SetState(Controller.WEAPON_FIRE, true)

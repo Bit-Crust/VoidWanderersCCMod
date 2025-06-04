@@ -73,7 +73,7 @@ function Update(self)
 					if penet >= 1 then
 						local moAngle = -mo.RotAngle * mo.FlipFactor
 
-						local dist = SceneMan:ShortestDistance(mo.Pos, hitPos, SceneMan.SceneWrapsX)
+						local dist = SceneMan:ShortestDistance(mo.Pos, hitPos, true)
 						local woundName = mo:GetEntryWoundPresetName()
 						if woundName ~= "" then
 							local wound = CreateAEmitter(woundName)
@@ -99,7 +99,7 @@ function Update(self)
 									end
 									lastPos = checkPos
 								end
-								dist = SceneMan:ShortestDistance(mo.Pos, lastPos, SceneMan.SceneWrapsX)
+								dist = SceneMan:ShortestDistance(mo.Pos, lastPos, true)
 								local woundOffset = Vector(dist.X * mo.FlipFactor, dist.Y)
 									:RadRotate(moAngle)
 									:SetMagnitude(dist.Magnitude - (wound.Radius - 1) * wound.Scale)
@@ -121,7 +121,7 @@ function Update(self)
 				pix.Vel = Vector(trace.X, trace.Y):SetMagnitude(6)
 				MovableMan:AddParticle(pix)
 			end
-			trace = SceneMan:ShortestDistance(startPos, gapPos, SceneMan.SceneWrapsX)
+			trace = SceneMan:ShortestDistance(startPos, gapPos, true)
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				local team = self.activity:GetTeamOfPlayer(player)
 				local screen = self.activity:ScreenOfPlayer(player)

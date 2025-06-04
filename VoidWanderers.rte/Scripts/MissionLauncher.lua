@@ -22,9 +22,17 @@ function VoidWanderers:StartActivity(isNewGame)
 		__index = function(table, key)
 			if sub(key, 1, 3) == "CF_" and CF then
 				key = sub(key, 4, -1);
-
+				
 				if key == "FactionTypes" then
 					key = "FactionNatureTypes";
+				end
+
+				if key == "Brains" then
+					key = "BrainPresets";
+				end
+
+				if key == "Crafts" then
+					key = "CraftPresets";
 				end
 
 				return rawget(CF, key);
@@ -94,8 +102,8 @@ function VoidWanderers:StartActivity(isNewGame)
 		self.scriptToLaunch = "StrategyScreenMain.lua";
 	else
 		print("VoidWanderers:StartActivity: Detected load game");
-		self:loadSaveData();
-		
+
+		self.GS = self:loadSaveData();
 		self.sceneToLaunch = self.GS["Scene"];
 		self.scriptToLaunch = "Tactics.lua";
 	end
@@ -196,7 +204,7 @@ function VoidWanderers:UpdateActivity()
 	end
 
 	if self.cacheCurrentGameState then
-		self:saveCurrentGameState();
+		self:saveCurrentGameState(self.GS);
 		self.cacheCurrentGameState = false;
 	end
 	
@@ -218,7 +226,7 @@ function VoidWanderers:UpdateActivity()
 	self:UpdateSceneProcess();
 end
 -----------------------------------------------------------------------
--- Update Activity
+-- Save Activity
 -----------------------------------------------------------------------
 function VoidWanderers:OnSave()
 	print("SAVE! -- VoidWanderers:OnSave()!");
@@ -265,7 +273,7 @@ function VoidWanderers:launchScene(scene)
 	SceneMan:LoadScene(scene, true);
 
 	for actor in MovableMan.AddedActors do
-		if actor and actor.ClassName ~= "ADoor" then
+		if actor.ClassName ~= "ADoor" then
 			actor.ToDelete = true;
 		end
 	end
@@ -299,280 +307,29 @@ end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-function VoidWanderers:loadCurrentGameState()
-	if CF.IsFileExists(self.ModuleName, self.stateConfigFileName) then
-		self.GS = CF.ReadDataFile("Mods/" .. self.ModuleName .. "/CampaignData/" .. self.stateConfigFileName)
-
-		self.Time = tonumber(self.GS["Time"])
-
-		-- Move ship to tradestar if last location was removed
-		if CF.PlanetName[self.GS["Planet"]] == nil then
-			--print (self.GS["Location"].." not found. Relocated to tradestar.")
-
-			self.GS["Planet"] = CF.Planet[1]
-			self.GS["Location"] = nil
-		end
-
-		if self.GS["Difficulty"] then
-			CF.Difficulty = tonumber(self.GS["Difficulty"])
-		end
-		if self.GS["AISkillPlayer"] then
-			CF.AISkillPlayer = tonumber(self.GS["AISkillPlayer"])
-		end
-		if self.GS["AISkillCPU"] then
-			CF.AISkillCPU = tonumber(self.GS["AISkillCPU"])
-		end
-
-		-- Check missions for missing scenes, if any of them found - recreate missions
-		for i = 1, CF.MaxMissions do
-			if CF.LocationName[self.GS["Mission" .. i .. "Location"]] == nil then
-				CF.GenerateRandomMissions(self.GS)
-				break
-			end
-		end
-
-		-- Create RPG brain values if they are not present
-		-- This is needed to update old save files, those values are not created during save-file initialization
-		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-			local val = self.GS["Brain" .. player .. "SkillPoints"]
-			if val == nil then
-				self.GS["Brain" .. player .. "SkillPoints"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Exp"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Exp"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Level"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Level"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Toughness"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Toughness"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Field"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Field"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Telekinesis"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Telekinesis"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Scanner"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Scanner"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Heal"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Heal"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "SelfHeal"]
-			if val == nil then
-				self.GS["Brain" .. player .. "SelfHeal"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Fix"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Fix"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Fix"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Fix"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Splitter"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Splitter"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "QuantumStorage"]
-			if val == nil then
-				self.GS["Brain" .. player .. "QuantumStorage"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "QuantumCapacity"]
-			if val == nil then
-				self.GS["Brain" .. player .. "QuantumCapacity"] = 0
-			end
-		end
-
-		local arr = CF.GetAvailableQuantumItems(self.GS)
-		if #arr == 0 then
-			CF.UnlockRandomQuantumItem(self.GS)
-		end
-
-		local val = self.GS["PlayerVesselTurrets"]
-		if val == nil then
-			self.GS["PlayerVesselTurrets"] = CF.VesselStartTurrets[self.GS["PlayerVessel"]]
-		end
-
-		local val = self.GS["PlayerVesselTurretStorage"]
-		if val == nil then
-			self.GS["PlayerVesselTurretStorage"] = CF.VesselStartTurretStorage[self.GS["PlayerVessel"]]
-		end
-
-		local val = self.GS["PlayerVesselBombBays"]
-		if val == nil then
-			self.GS["PlayerVesselBombBays"] = CF.VesselStartBombBays[self.GS["PlayerVessel"]]
-		end
-
-		local val = self.GS["PlayerVesselBombStorage"]
-		if val == nil then
-			self.GS["PlayerVesselBombStorage"] = CF.VesselStartBombStorage[self.GS["PlayerVessel"]]
-		end
-	end
+function VoidWanderers:saveCurrentGameState(gameState)
+	CF.WriteDataFile(gameState, "Mods/VoidWanderers.rte/CampaignData/" .. self.stateConfigFileName);
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
-function VoidWanderers:saveCurrentGameState()
-	CF.WriteDataFile(self.GS, "Mods/" .. self.ModuleName .. "/CampaignData/" .. self.stateConfigFileName)
+function VoidWanderers:loadCurrentGameState()
+	local gameState = CF.ReadDataFile("Mods/VoidWanderers.rte/CampaignData/" .. self.stateConfigFileName);
+
+	if gameState then
+		CF.UpdateGameState(gameState);
+		return gameState;
+	end
 end
 -----------------------------------------------------------------------
 --
 -----------------------------------------------------------------------
 function VoidWanderers:loadSaveData()
 	local gsRead = self.saveLoadHandler:ReadSavedStringAsTable("gameState")
+
 	if next(gsRead) ~= nil then
-		self.GS = gsRead
-
-		self.Time = tonumber(self.GS["Time"])
-
-		-- Move ship to tradestar if last location was removed
-		if CF.PlanetName[self.GS["Planet"]] == nil then
-			--print (self.GS["Location"].." not found. Relocated to tradestar.")
-
-			self.GS["Planet"] = CF.Planet[1]
-			self.GS["Location"] = nil
-		end
-
-		if self.GS["Difficulty"] then
-			CF.Difficulty = tonumber(self.GS["Difficulty"])
-		end
-
-		if self.GS["AISkillPlayer"] then
-			CF.AISkillPlayer = tonumber(self.GS["AISkillPlayer"])
-		end
-
-		if self.GS["AISkillCPU"] then
-			CF.AISkillCPU = tonumber(self.GS["AISkillCPU"])
-		end
-
-		-- Check missions for missing scenes, if any of them found - recreate missions
-		for i = 1, CF.MaxMissions do
-			if CF.LocationName[self.GS["Mission" .. i .. "Location"]] == nil then
-				CF.GenerateRandomMissions(self.GS)
-				break
-			end
-		end
-
-		-- Create RPG brain values if they are not present
-		-- This is needed to update old save files, those values are not created during save-file initialization
-		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-			local val = self.GS["Brain" .. player .. "SkillPoints"]
-			if val == nil then
-				self.GS["Brain" .. player .. "SkillPoints"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Exp"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Exp"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Level"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Level"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Toughness"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Toughness"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Field"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Field"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Telekinesis"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Telekinesis"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Scanner"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Scanner"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Heal"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Heal"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "SelfHeal"]
-			if val == nil then
-				self.GS["Brain" .. player .. "SelfHeal"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Fix"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Fix"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Fix"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Fix"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "Splitter"]
-			if val == nil then
-				self.GS["Brain" .. player .. "Splitter"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "QuantumStorage"]
-			if val == nil then
-				self.GS["Brain" .. player .. "QuantumStorage"] = 0
-			end
-
-			local val = self.GS["Brain" .. player .. "QuantumCapacity"]
-			if val == nil then
-				self.GS["Brain" .. player .. "QuantumCapacity"] = 0
-			end
-		end
-
-		local arr = CF.GetAvailableQuantumItems(self.GS)
-		if #arr == 0 then
-			CF.UnlockRandomQuantumItem(self.GS)
-		end
-
-		local val = self.GS["PlayerVesselTurrets"]
-		if val == nil then
-			self.GS["PlayerVesselTurrets"] = CF.VesselStartTurrets[self.GS["PlayerVessel"]]
-		end
-
-		local val = self.GS["PlayerVesselTurretStorage"]
-		if val == nil then
-			self.GS["PlayerVesselTurretStorage"] = CF.VesselStartTurretStorage[self.GS["PlayerVessel"]]
-		end
-
-		local val = self.GS["PlayerVesselBombBays"]
-		if val == nil then
-			self.GS["PlayerVesselBombBays"] = CF.VesselStartBombBays[self.GS["PlayerVessel"]]
-		end
-
-		local val = self.GS["PlayerVesselBombStorage"]
-		if val == nil then
-			self.GS["PlayerVesselBombStorage"] = CF.VesselStartBombStorage[self.GS["PlayerVessel"]]
-		end
+		CF.UpdateGameState(gsRead);
+		return gsRead;
 	end
 end
 -----------------------------------------------------------------------
@@ -580,6 +337,7 @@ end
 -----------------------------------------------------------------------
 function VoidWanderers:makeFreshGameState(playerFaction, cpus)
 	local gameState = {};
+
 	gameState["Time"] = tostring(0);
 	gameState["Difficulty"] = self.Difficulty;
 	gameState["FogOfWar"] = self:GetFogOfWarEnabled() and "True" or "False";
@@ -589,6 +347,23 @@ function VoidWanderers:makeFreshGameState(playerFaction, cpus)
 	gameState["PlayerFaction"] = playerFaction;
 	gameState["Planet"] = tostring(CF.Planet[1]);
 	gameState["Location"] = tostring(CF.Location[1]);
+
+	local brainDataIndices = {
+		"SkillPoints", "Level", "Toughness",
+		"Field", "Telekinesis", "Scanner",
+		"Heal", "SelfHeal", "Fix",
+		"Splitter", "QuantumStorage", "QuantumCapacity",
+		"Exp",
+	};
+
+	for player = Activity.PLAYER_NONE + 1, Activity.MAXPLAYERCOUNT - 1 do
+		for index, brainDataName in ipairs(brainDataIndices) do
+			local dataName = "Brain" .. player .. brainDataName;
+			gameState[dataName] = gameState[dataName] or 0;
+		end
+	end
+
+	CF.UnlockRandomQuantumItems(gameState, 1);
 
 	local locpos = CF.LocationPos[gameState["Location"]];
 	gameState["ShipX"] = tostring(locpos.X);
@@ -631,12 +406,12 @@ function VoidWanderers:makeFreshGameState(playerFaction, cpus)
 		local cpu = cpus[i];
 		
 		if cpu then
-			gameState["Player" .. i .. "Faction"] = cpu;
-			gameState["Player" .. i .. "Active"] = "True";
-			gameState["Player" .. i .. "Type"] = "CPU";
+			gameState["Participant" .. i .. "Faction"] = cpu;
+			gameState["Participant" .. i .. "Active"] = "True";
+			gameState["Participant" .. i .. "Type"] = "CPU";
 
 			if cpu == playerFaction then
-				gameState["Player" .. i .. "Reputation"] = 500;
+				gameState["Participant" .. i .. "Reputation"] = 500;
 			else
 				computedReputation = 0;
 
@@ -644,15 +419,11 @@ function VoidWanderers:makeFreshGameState(playerFaction, cpus)
 					computedReputation = computedReputation + CF.ReputationHuntThreshold * (self.Difficulty / 100);
 				end
 
-				if CF.FactionAlignments[playerFaction] ~= CF.FactionAlignments[cpu] then
-					computedReputation = computedReputation + CF.ReputationHuntThreshold * (self.Difficulty / 100);
-				end
-
 				if CF.FactionIngroupPreference[cpu] then
 					computedReputation = computedReputation + CF.ReputationHuntThreshold * (self.Difficulty / 100) * 2;
 				end
 
-				gameState["Player" .. i .. "Reputation"] = math.floor(computedReputation * (0.9 + 0.2 * math.random()));
+				gameState["Participant" .. i .. "Reputation"] = math.floor(computedReputation * (0.9 + 0.2 * math.random()));
 			end
 
 			activecpus = activecpus + 1;

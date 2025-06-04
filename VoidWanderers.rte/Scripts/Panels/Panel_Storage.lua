@@ -299,7 +299,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 							end
 						else
 							self.StorageControlMessageText = "No item to dispense.";
-							self.StorageControlMessageTime = self.Time;
+							self.StorageControlMessageTime = tonumber(self.GS["Time"]);
 						end
 					end
 				else
@@ -384,7 +384,7 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 				end
 
 				if self.StorageControlMessageText then
-					if self.Time <= self.StorageControlMessageTime + self.StorageControlMessagePeriod then
+					if tonumber(self.GS["Time"]) <= self.StorageControlMessageTime + self.StorageControlMessagePeriod then
 						lowBarPalette = CF.MenuDeniedIdle;
 						lowBarCenterText = self.StorageControlMessageText;
 					end
@@ -443,10 +443,10 @@ function VoidWanderers:ProcessStorageControlPanelUI()
 
 			if foundItem then
 				if not self.StorageLastDetectedItemTime then
-					self.StorageLastDetectedItemTime = self.Time;
+					self.StorageLastDetectedItemTime = tonumber(self.GS["Time"]);
 				end
 				
-				local timeLeft = (self.StorageLastDetectedItemTime + self.StorageInputDelay - self.Time);
+				local timeLeft = (self.StorageLastDetectedItemTime + self.StorageInputDelay - tonumber(self.GS["Time"]));
 
 				if showIdle then
 					local text = "Store in " .. timeLeft;

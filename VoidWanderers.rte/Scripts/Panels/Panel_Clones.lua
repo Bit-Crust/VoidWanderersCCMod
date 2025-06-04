@@ -524,7 +524,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 												actor:AddInventoryItem(item);
 											end
 										else
-											self.ClonesControlMessageTime = self.Time;
+											self.ClonesControlMessageTime = tonumber(self.GS["Time"]);
 											self.ClonesControlMessageText = "Can't create item. Very bad.";
 										end
 									end
@@ -549,15 +549,15 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 										cloneSelected = 1;
 									end
 								else
-									self.ClonesControlMessageTime = self.Time;
+									self.ClonesControlMessageTime = tonumber(self.GS["Time"]);
 									self.ClonesControlMessageText = "Actor could not be created. Very bad.";
 								end
 							else
-								self.ClonesControlMessageTime = self.Time;
+								self.ClonesControlMessageTime = tonumber(self.GS["Time"]);
 								self.ClonesControlMessageText = "Too many units. Upgrade life support.";
 							end
 						else
-							self.ClonesControlMessageTime = self.Time;
+							self.ClonesControlMessageTime = tonumber(self.GS["Time"]);
 							self.ClonesControlMessageText = "Clone storage is empty.";
 						end
 					end
@@ -749,11 +749,11 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 								itemSelected = math.min(#clone.Items, itemSelected);
 							else
 								self.ClonesControlMessageText = "Clone has no items!";
-								self.ClonesControlMessageTime = self.Time;
+								self.ClonesControlMessageTime = tonumber(self.GS["Time"]);
 							end
 						else
 							self.ClonesControlMessageText = "Item storage full!";
-							self.ClonesControlMessageTime = self.Time;
+							self.ClonesControlMessageTime = tonumber(self.GS["Time"]);
 						end
 					end
 				else
@@ -848,11 +848,11 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 								itemSelected = math.min(#self.StorageItems, itemSelected);
 							else
 								self.ClonesControlMessageText = "Clone has no inventory space left.";
-								self.ClonesControlMessageTime = self.Time;
+								self.ClonesControlMessageTime = tonumber(self.GS["Time"]);
 							end
 						else
 							self.ClonesControlMessageText = "No items in storage.";
-							self.ClonesControlMessageTime = self.Time;
+							self.ClonesControlMessageTime = tonumber(self.GS["Time"]);
 						end
 					end
 				else
@@ -907,7 +907,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 			end
 
 			if self.ClonesControlMessageText then
-				if self.Time <= self.ClonesControlMessageTime + self.ClonesControlMessagePeriod then
+				if tonumber(self.GS["Time"]) <= self.ClonesControlMessageTime + self.ClonesControlMessagePeriod then
 					lowBarPalette = CF.MenuDeniedIdle;
 					lowBarCenterText = self.ClonesControlMessageText;
 				end
@@ -988,7 +988,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 						if self.ClonesLastDetectedBodyTime ~= nil then
 							-- Put clone to storage
 							if
-								self.Time >= self.ClonesLastDetectedBodyTime + self.ClonesInputDelay
+								tonumber(self.GS["Time"]) >= self.ClonesLastDetectedBodyTime + self.ClonesInputDelay
 								and CF.CountUsedClonesInArray(self.Clones)
 									< tonumber(self.GS["PlayerVesselClonesCapacity"])
 							then
@@ -1068,7 +1068,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 
 							foundActor = actor;
 						else
-							self.ClonesLastDetectedBodyTime = self.Time;
+							self.ClonesLastDetectedBodyTime = tonumber(self.GS["Time"]);
 						end
 					end
 				end
@@ -1076,7 +1076,7 @@ function VoidWanderers:ProcessClonesControlPanelUI()
 
 			if showIdle then
 				if foundActor and self.ClonesLastDetectedBodyTime ~= nil then
-					text = "Store in " .. self.ClonesLastDetectedBodyTime + self.ClonesInputDelay - self.Time;
+					text = "Store in " .. self.ClonesLastDetectedBodyTime + self.ClonesInputDelay - tonumber(self.GS["Time"]);
 					self:AddObjectivePoint(text, foundActor.EyePos + Vector(0, -10), CF.PlayerTeam, GameActivity.ARROWDOWN);
 				end
 			end

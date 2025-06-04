@@ -115,9 +115,9 @@ function VoidWanderers:EncounterUpdate()
 	local encounterData = self.encounterData;
 	local vessel = encounterData["vessel"];
 
-	if encounterData["encounterStartTime"] > self.Time then
-		if self.Time % 2 == 0 then
-			self:MakeAlertSound(1 / math.max((encounterData["encounterStartTime"] - self.Time) / 3, 1))
+	if encounterData["encounterStartTime"] > tonumber(self.GS["Time"]) then
+		if tonumber(self.GS["Time"]) % 2 == 0 then
+			self:MakeAlertSound(1 / math.max((encounterData["encounterStartTime"] - tonumber(self.GS["Time"])) / 3, 1))
 		end
 	end
 
@@ -126,7 +126,7 @@ function VoidWanderers:EncounterUpdate()
 		self:SendTransmission("BATTLE STATIONS!!!", {});
 		encounterData["fightSelected"] = true
 		encounterData["runLaunched"] = true
-		encounterData["runStarted"] = self.Time
+		encounterData["runStarted"] = tonumber(self.GS["Time"])
 		encounterData["chaseTimer"] = Timer()
 		
 		self.vesselData["flightDisabled"] = false
@@ -135,14 +135,14 @@ function VoidWanderers:EncounterUpdate()
 	if variant == 2 then
 		self:SendTransmission("They are scanning us...", {});
 		encounterData["scanLaunched"] = true
-		encounterData["ScanStarted"] = self.Time
+		encounterData["ScanStarted"] = tonumber(self.GS["Time"])
 	end
 
 	if variant == 3 then
 		self:SendTransmission("Let's pray we're faster...", {});
 		encounterData["boostTriggered"] = false
 		encounterData["runLaunched"] = true
-		encounterData["runStarted"] = self.Time
+		encounterData["runStarted"] = tonumber(self.GS["Time"])
 		encounterData["chaseTimer"] = Timer()
 		
 		self.vesselData["flightDisabled"] = false
@@ -157,7 +157,7 @@ function VoidWanderers:EncounterUpdate()
 			99
 		)
 
-		local progress = self.Time - encounterData["ScanStarted"]
+		local progress = tonumber(self.GS["Time"]) - encounterData["ScanStarted"]
 
 		FrameMan:SetScreenText(
 			"Scan progress "
@@ -171,7 +171,7 @@ function VoidWanderers:EncounterUpdate()
 			true
 		)
 
-		if self.Time >= encounterData["ScanStarted"] + encounterData["scanTime"] then
+		if tonumber(self.GS["Time"]) >= encounterData["ScanStarted"] + encounterData["scanTime"] then
 			if math.random(100) < prob then
 				self:SendTransmission("BATTLE STATIONS!!!", {});
 				encounterData["Text"] = "BATTLE STATIONS!!!"
@@ -179,7 +179,7 @@ function VoidWanderers:EncounterUpdate()
 				self.vesselData["dialogOptionChosen"] = 0
 				encounterData["runLaunched"] = true
 				encounterData["scanLaunched"] = false
-				encounterData["runStarted"] = self.Time
+				encounterData["runStarted"] = tonumber(self.GS["Time"])
 				encounterData["fightSelected"] = true
 				encounterData["chaseTimer"] = Timer()
 			else
@@ -231,7 +231,7 @@ function VoidWanderers:EncounterUpdate()
 			-- Stop chasing if it's too long
 			if not encounterData["fightSelected"] then
 				if
-					(self.Time > encounterData["runStarted"] + 40 and encounterData["distance"] > 150)
+					(tonumber(self.GS["Time"]) > encounterData["runStarted"] + 40 and encounterData["distance"] > 150)
 					or encounterData["distance"] > encounterData["triggerDistance"] + 100
 					or encounterData["abortChase"]
 				then
@@ -251,7 +251,7 @@ function VoidWanderers:EncounterUpdate()
 			if encounterData["distance"] <= 0 then
 				encounterData["attackLaunched"] = true
 				encounterData["runLaunched"] = false
-				encounterData["NextAttackTime"] = self.Time
+				encounterData["NextAttackTime"] = tonumber(self.GS["Time"])
 
 				--Deploy turrets
 				self:DeployTurrets()
@@ -265,12 +265,12 @@ function VoidWanderers:EncounterUpdate()
 	end
 
 	if encounterData["attackLaunched"] then
-		if self.Time % 10 == 0 and vessel.onboard > 0 then
+		if tonumber(self.GS["Time"]) % 10 == 0 and vessel.onboard > 0 then
 			FrameMan:SetScreenText("Remaining Reavers: " .. vessel.onboard, 0, 0, 1500, true)
 		end
 		local centerGates = encounterData["gates"]:GetCenterPoint()
-		if self.Time >= encounterData["NextAttackTime"] then
-			encounterData["NextAttackTime"] = self.Time + encounterData["reaversInterval"]
+		if tonumber(self.GS["Time"]) >= encounterData["NextAttackTime"] then
+			encounterData["NextAttackTime"] = tonumber(self.GS["Time"]) + encounterData["reaversInterval"]
 
 			-- Create assault bot
 			if MovableMan:GetMOIDCount() < CF.MOIDLimit and vessel.onboard > 0 then
@@ -515,7 +515,7 @@ function VoidWanderers:EncounterUpdate()
 							grapple.Team = actor.Team
 							grapple.Vel = actor.Vel * 0.5
 								+ SceneMan
-									:ShortestDistance(actor.Pos, centerGates, SceneMan.SceneWrapsX)
+									:ShortestDistance(actor.Pos, centerGates, true)
 									:RadRotate(RangeRand(-0.2, 0.2))
 									:SetMagnitude(30)
 							grapple.RotAngle = grapple.Vel.AbsRadAngle

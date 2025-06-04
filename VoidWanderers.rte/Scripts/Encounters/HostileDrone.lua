@@ -45,7 +45,7 @@ function VoidWanderers:EncounterUpdate()
 				local message = "The drone is charging its weapons, move units deeper inside the ship!";
 				self:SendTransmission(message, {});
 				encounterData["droneAlerted"] = true;
-				encounterData["droneNextShot"] = self.Time + 18;
+				encounterData["droneNextShot"] = tonumber(self.GS["Time"]) + 18;
 			else
 				concludeEncounter = true;
 				conclusionMessage = "Looks like it was dead after all.";
@@ -58,7 +58,7 @@ function VoidWanderers:EncounterUpdate()
 				self:SendTransmission(message, {});
 			
 				encounterData["droneAlerted"] = true;
-				encounterData["droneNextShot"] = self.Time + 6;
+				encounterData["droneNextShot"] = tonumber(self.GS["Time"]) + 6;
 				encounterData["droneCharges"] = encounterData["droneCharges"] + 1;
 			else
 				concludeEncounter = true;
@@ -71,7 +71,7 @@ function VoidWanderers:EncounterUpdate()
 			self:SendTransmission(message, {});
 			
 			encounterData["droneAlerted"] = true;
-			encounterData["droneNextShot"] = self.Time + 4;
+			encounterData["droneNextShot"] = tonumber(self.GS["Time"]) + 4;
 			encounterData["droneCharges"] = encounterData["droneCharges"] + 4;
 		end
 	end
@@ -117,14 +117,14 @@ function VoidWanderers:EncounterUpdate()
 		encounterData["droneSourcePos"] = encounterData["droneSourcePos"] + encounterData["droneInitialVelocity"]	
 		encounterData["droneTargetAngle"] = (encounterData["droneTargetPos"] - encounterData["droneSourcePos"]).AbsRadAngle
 
-		if self.Time > encounterData["droneNextShot"] - encounterData["droneChargeInterval"] then
+		if tonumber(self.GS["Time"]) > encounterData["droneNextShot"] - encounterData["droneChargeInterval"] then
 			for i = encounterData["droneShotsFired"] , 2 do
 				local a = encounterData["droneTargetAngle"]
 				self:AddObjectivePoint("DANGER!!!", encounterData["droneTargetImpactZone"] + Vector(-math.cos(a + math.pi) * (i * 50), -math.sin(a + math.pi) * (i * 50)) , CF.PlayerTeam, GameActivity.ARROWDOWN)
 			end
 		end
 		
-		if self.Time >= encounterData["droneNextShot"] then
+		if tonumber(self.GS["Time"]) >= encounterData["droneNextShot"] then
 			local a = encounterData["droneTargetAngle"]
 	
 			for i = 1, 25 do
@@ -153,9 +153,9 @@ function VoidWanderers:EncounterUpdate()
 					self.RandomEncounterID = nil
 				end
 				
-				encounterData["droneNextShot"] = self.Time + encounterData["droneChargeInterval"]
+				encounterData["droneNextShot"] = tonumber(self.GS["Time"]) + encounterData["droneChargeInterval"]
 			else
-				encounterData["droneNextShot"] = self.Time
+				encounterData["droneNextShot"] = tonumber(self.GS["Time"])
 			end
 		end
 	end

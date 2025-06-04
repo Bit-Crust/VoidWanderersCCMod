@@ -22,7 +22,7 @@ function VoidWanderers:MissionCreate()
 
 	-- Create fake player for this random faction
 	self.missionData["fakePlayer"] = CF.MaxCPUPlayers + 1
-	self.GS["Player" .. self.missionData["fakePlayer"] .. "Faction"] = self.missionData["selectedFaction"]
+	self.GS["Participant" .. self.missionData["fakePlayer"] .. "Faction"] = self.missionData["selectedFaction"]
 	CF.CreateAIUnitPresets(
 		self.GS,
 		self.missionData["fakePlayer"],

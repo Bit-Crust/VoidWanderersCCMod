@@ -601,12 +601,12 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							mission.Location = self.GS["Mission" .. i .. "Location"];
 							mission.Type = self.GS["Mission" .. i .. "Type"];
 
-							local rep = math.floor(tonumber(self.GS["Player" .. mission.SourcePlayer .. "Reputation"]));
+							local rep = math.floor(tonumber(self.GS["Participant" .. mission.SourcePlayer .. "Reputation"]));
 							local srep = (rep > 0 and "+" or "") .. tostring(rep);
 							mission.SourceFactionReputation = srep;
 							mission.SourceFaction = CF.FactionNames[CF.GetPlayerFaction(self.GS, mission.SourcePlayer)];
 
-							local rep = math.floor(tonumber(self.GS["Player" .. mission.TargetPlayer .. "Reputation"]));
+							local rep = math.floor(tonumber(self.GS["Participant" .. mission.TargetPlayer .. "Reputation"]));
 							local srep = (rep > 0 and "+" or "") .. tostring(rep);
 							mission.TargetFactionRaputation = srep;
 							mission.TargetFaction = CF.FactionNames[CF.GetPlayerFaction(self.GS, mission.TargetPlayer)];
@@ -743,7 +743,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					for i = 1, tonumber(self.GS["ActiveCPUs"]) do
 						local faction = {};
 						faction.Faction = CF.FactionNames[CF.GetPlayerFaction(self.GS, i)];
-						faction.Reputation = math.floor(tonumber(self.GS["Player" .. i .. "Reputation"]));
+						faction.Reputation = math.floor(tonumber(self.GS["Participant" .. i .. "Reputation"]));
 						table.insert(factions, faction);
 					end
 
@@ -792,7 +792,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				-----------------------------------------------------------------------
 				if self.ShipControlMode == self.ShipControlPanelModes.BRAIN then
 					if self.GS["Brain" .. player .. "Detached"] == "True" then
-						if self.Time % 2 == 0 then
+						if tonumber(self.GS["Time"]) % 2 == 0 then
 							local text;
 							text = "PLAYER " .. player + 1 .. " BRAIN DETACHED, ROBOT IN USE!"
 							.. "\n" .. self.GS["Brain" .. player .. "SkillPoints"] .. " POINTS AVAILABLE";
@@ -874,6 +874,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 						if up then
 							selectedSkill = selectedSkill - 1;
+
 							if selectedSkill < 1 then
 								selectedSkill = #skills;
 							end
@@ -881,6 +882,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 
 						if down then
 							selectedSkill = selectedSkill + 1;
+
 							if selectedSkill > #skills then
 								selectedSkill = 1;
 							end
@@ -910,7 +912,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 						lineOffset = lineOffset + 16;
 
 						if price > sklpts then
-							if self.Time % 2 == 0 then
+							if tonumber(self.GS["Time"]) % 2 == 0 then
 								CF.DrawString("POINTS: " .. sklpts, pos + Vector(-70, lineOffset), 270, 11, nil, nil, 1);
 							end
 						else
@@ -1086,7 +1088,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 					lineOffset = lineOffset + 16;
 
 					if price > CF.GetPlayerGold(self.GS, 0) then
-						if self.Time % 2 == 0 then
+						if tonumber(self.GS["Time"]) % 2 == 0 then
 							CF.DrawString("FUNDS: " .. CF.GetPlayerGold(self.GS, 0) .. " oz", pos + Vector(-70, lineOffset), 135, 11, nil, nil, 1)
 						end
 					else
@@ -1207,19 +1209,19 @@ function VoidWanderers:ProcessShipControlPanelUI()
 							local ok = true
 
 							if CF.CountUsedClonesInArray(self.Clones) > actcryo then
-								self.ShipControlMessageTime = self.Time
+								self.ShipControlMessageTime = tonumber(self.GS["Time"])
 								self.ShipControlMessageText = "Not enough storage to transfer clones"
 								ok = false
 							end
 
 							if CF.CountUsedStorageInArray(self.StorageItems) > actstor then
-								self.ShipControlMessageTime = self.Time
+								self.ShipControlMessageTime = tonumber(self.GS["Time"])
 								self.ShipControlMessageText = "Not enough storage to transfer items"
 								ok = false
 							end
 
 							if CF.GetPlayerGold(self.GS, 0) < total then
-								self.ShipControlMessageTime = self.Time
+								self.ShipControlMessageTime = tonumber(self.GS["Time"])
 								self.ShipControlMessageText = "Not enough gold"
 								ok = false
 							end
@@ -1342,7 +1344,7 @@ function VoidWanderers:ProcessShipControlPanelUI()
 				end
 
 				if self.ShipControlMessageText then
-					if self.Time <= self.ShipControlMessageTime + self.ShipControlMessagePeriod then
+					if tonumber(self.GS["Time"]) <= self.ShipControlMessageTime + self.ShipControlMessagePeriod then
 						lowBarPalette = CF.MenuDeniedIdle;
 						lowBarCenterText = self.ShipControlMessageText;
 					end
