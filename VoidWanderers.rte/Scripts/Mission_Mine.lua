@@ -277,10 +277,8 @@ function VoidWanderers:MissionUpdate()
 					self:SetAlly(ship, true)
 					ship.Team = CF["PlayerTeam"]
 					ship.Pos = Vector(self.MissionLZs[math.random(#self.MissionLZs)].X, -10)
-					ship.AIMode = Actor.AIMODE_DELIVER
 					ship:SetGoldValue(0)
-					ship.MaxEngineAngle = 5
-					ship.LateralControlSpeed = 1
+					ship.AIMode = Actor.AIMODE_DELIVER
 					MovableMan:AddActor(ship)
 					self.MissionSettings["AllyReinforcementsCount"] = self.MissionSettings["AllyReinforcementsCount"]
 						- 1
