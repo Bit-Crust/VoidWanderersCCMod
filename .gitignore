@@ -2,7 +2,6 @@
 *.zip
 VoidWanderers.rte/CampaignData
 .vscode
-*.dat
 /.vs
 /*.rte
 Extensions/
