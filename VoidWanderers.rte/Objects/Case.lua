@@ -52,7 +52,8 @@ function Create(self)
 				CF_Write({"ArtifactItemRate"}, 0)
 			end
 			artifactActorRate = CF_Read(self, {"ArtifactItemRate"})
-			local artifactChance =artifactActorRate - (artifactActorRate / (0.5 + math.sqrt(#artItmPresets)))
+			-- hmm..
+			local artifactChance =artifactActorRate - (artifactActorRate / (0.5 + math.sqrt(#artItmPresets))) 
 
 			local f
 			local ok = false
@@ -69,7 +70,7 @@ function Create(self)
 			cfg["Player0Faction"] = f
 
 			--print (cfg)
-			local weaps = CF_Call(self, {"MakeListOfMostPowerfulWeapons"}, {cfg, 0, weaponTypes[math.random(#weaponTypes)], 100000})[1]
+			local weaps = CF_Call(self, {"MakeListOfMostPowerfulWeapons"}, {cfg, 0, weaponTypes.ANY, 100000})[1]
 
 			if math.random() < artifactChance or weaps == nil then
 				local r = math.random(#artItmPresets)

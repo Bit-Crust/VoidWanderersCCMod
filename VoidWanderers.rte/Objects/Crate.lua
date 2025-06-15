@@ -83,7 +83,7 @@ function Create(self)
 
 			--print (cfg)
 
-			local acts = CF_Call(self, {"MakeListOfMostPowerfulActors"}, {cfg, 0, actorTypes[math.random(#actorTypes)], 100000})[1]
+			local acts = CF_Call(self, {"MakeListOfMostPowerfulActors"}, {cfg, 0, actorTypes.ANY, 100000})[1]
 
 			if math.random() < artifactChance or acts == nil then
 				local r = math.random(#artActPresets)
