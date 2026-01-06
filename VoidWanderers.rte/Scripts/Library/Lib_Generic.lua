@@ -837,15 +837,22 @@ do
 		local iconOffsets = {};
 		local iconFromLine = {};
 
+		-- Convert string to byte array upfront to avoid str:sub(i,i) JIT bug
+		local bytes = {};
+		for charIndex = 1, length do
+			bytes[charIndex] = str:byte(charIndex);
+		end
+
 		for i = 1, length do
-			local ch = str:sub(i, i);
-			local byte = ch:byte();
+			-- Get character from byte array instead of using str:sub(i,i)
+			local byte = bytes[i];
+			local ch = string.char(byte);
 			local w = fontCache[byte];
 
 			if not w then
 				if byte >= 242 and byte < 255 then
 					w = 8;
-					table.insert(icons, ch:byte());
+					table.insert(icons, byte);
 					table.insert(iconOffsets, Vector(totalX + 4, totalY + 7));
 					table.insert(iconFromLine, #lines + 1);
 					ch = "   ";
@@ -855,7 +862,7 @@ do
 					fontCache[ch:byte()] = w;
 				else
 					w = FrameMan:CalculateTextWidth(ch, smallFont);
-					fontCache[ch:byte()] = w;
+					fontCache[byte] = w;
 				end
 			end
 
@@ -875,6 +882,7 @@ do
 
 				if i ~= length and totalY + lineOffset * 2 <= height then
 					totalY = totalY + lineOffset;
+
 					if not newLine then
 						totalX = w;
 						lineString = ch;
@@ -896,7 +904,7 @@ do
 				-- + Vector(0, lineOffset * (1 - math.cos(rotation)) / 2);
 			PrimitiveMan:DrawTextPrimitive(player, pos + offset:RadRotate(rotation), line, smallFont, halignment, rotation);
 		end
-		
+
 		for i, icon in pairs(icons) do
 			local offset = Vector(iconOffsets[i].X - lineWidths[iconFromLine[i]] * halignment / 2, iconOffsets[i].Y) + alignmentOffset;
 			if CF.FontIcons[icon] then
