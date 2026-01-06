@@ -2,7 +2,7 @@
 -- Start Scene Process.
 -----------------------------------------------------------------------
 function VoidWanderers:StartSceneProcess()
-	print("VoidWanderers:StrategyScreen:StartSceneProcess");
+	print "Start Strategy Screen";
 
 	self.AllowsUserSaving = false;
 
@@ -144,15 +144,15 @@ function VoidWanderers:UpdateSceneProcess()
 	local pressEndIndex = self.pressEndIndex;
 
 	if self.menuNavigationScheme == self.menuNavigationSchemes.MOUSE then
-		if UInputMan:MouseButtonPressed(MouseButtons.MOUSE_LEFT, navigator) then
+		if UInputMan:MouseButtonPressed(MouseButtons.MOUSE_LEFT, navigator, 0) then
 			pressStartIndex = hoverOverIndex;
 		end
 
-		if UInputMan:MouseButtonReleased(MouseButtons.MOUSE_LEFT, navigator) then
+		if UInputMan:MouseButtonReleased(MouseButtons.MOUSE_LEFT, navigator, 0) then
 			pressEndIndex = hoverOverIndex;
 		end
 
-		if UInputMan:MouseButtonHeld(MouseButtons.MOUSE_LEFT, navigator) then
+		if UInputMan:MouseButtonHeld(MouseButtons.MOUSE_LEFT, navigator, 0) then
 			pressHoldIndex = hoverOverIndex;
 			hoverOverIndex = nil;
 		else
@@ -257,6 +257,7 @@ end
 -- 
 -----------------------------------------------------------------------
 function VoidWanderers:CloseSceneProcess()
+	print "Close Strategy Screen";
 	self.form:Close(self, self);
 end
 -----------------------------------------------------------------------
