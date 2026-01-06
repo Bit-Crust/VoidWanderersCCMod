@@ -7,20 +7,18 @@ do
 	-- State that there is a faction with this ID
 	CF.Factions[#CF.Factions + 1] = factionID;
 
-	do
-		-- Faction name
-		CF.FactionNames[factionID] = "Free Trade";
-		-- Faction description
-		CF.FactionDescriptions[factionID] = "The enabler of interstellar trade on the multi-civilizational scale and the hand that feeds most factions, so to speak. You probably do not want to make enemies with these guys.";
-		-- Set true if faction is selectable for player or AI
-		CF.FactionPlayable[factionID] = false;
-		-- Available values: NONE, ORGANIC, SYNTHETIC
-		CF.FactionNatures[factionID] = CF.FactionNatureTypes.ORGANIC;
-		-- Set true if faction is significantly hostile to outgroups
-		CF.FactionIngroupPreference[factionID] = false;
-		-- Set true if faction is always involved, but not selectable
-		CF.FactionStaticInvolvement[factionID] = true;
-	end
+	-- Faction name
+	CF.FactionNames[factionID] = "Free Trade";
+	-- Faction description
+	CF.FactionDescriptions[factionID] = "The enabler of interstellar trade on the multi-civilizational scale and the hand that feeds most factions, so to speak. You probably do not want to make enemies with these guys.";
+	-- Set true if faction is selectable for player or AI
+	CF.FactionPlayable[factionID] = false;
+	-- Available values: NONE, ORGANIC, SYNTHETIC
+	CF.FactionNatures[factionID] = CF.FactionNatureTypes.ORGANIC;
+	-- Set true if faction is significantly hostile to outgroups
+	CF.FactionIngroupPreference[factionID] = false;
+	-- Set true if faction is always involved, but not selectable
+	CF.FactionStaticInvolvement[factionID] = true;
 	--
 	CF.FactionAttributes[factionID] = {
 		"VENDOR"
@@ -37,7 +35,7 @@ do
 	};
 	local criminal = {
 		type = "union",
-		"PIRATES"
+		"PIRATES",
 		"Ronin",
 	};
 	CF.FactionInclinations[factionID] = {
