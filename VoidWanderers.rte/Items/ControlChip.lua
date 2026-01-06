@@ -1,4 +1,4 @@
-require("Scripts/Lib_Generic");
+require("Scripts/Library/Lib_Generic");
 
 function Create(self)
 	self.attachSound = CreateSoundContainer(self:StringValueExists("AttachSound") and self:GetStringValue("AttachSound") or "Robot Stride");
