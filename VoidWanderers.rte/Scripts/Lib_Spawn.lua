@@ -291,7 +291,7 @@ end
 CF["MakeListOfMostPowerfulWeapons"] = function(config, player, weaponType, maxTech)
 	local weaps = {}
 	local f = CF["GetPlayerFaction"](config, player)
-	-- Filter needed items
+
 	for i = 1, #CF["ItmNames"][f] do
 		if
 			CF["ItmPowers"][f][i] > 0
@@ -305,7 +305,7 @@ CF["MakeListOfMostPowerfulWeapons"] = function(config, player, weaponType, maxTe
 			weaps[n]["Power"] = CF["ItmPowers"][f][i]
 		end
 	end
-	-- Sort them
+
 	for j = 1, #weaps - 1 do
 		for i = 1, #weaps - j do
 			if weaps[i]["Power"] < weaps[i + 1]["Power"] then
@@ -315,20 +315,11 @@ CF["MakeListOfMostPowerfulWeapons"] = function(config, player, weaponType, maxTe
 			end
 		end
 	end
-	--[[ If no weapons were found, try other types?
-	if #weaps == 0 then
-		for i = 0, #CF["WeaponTypes"] - 1 do
-			weaps = CF["MakeListOfMostPowerfulWeapons"](config, player, i, maxTech)
-			if weaps then
-				break
-			end
-		end
-	end
-	]]
-	--
+
 	if #weaps == 0 then
 		weaps = nil
 	end
+
 	return weaps
 end
 -----------------------------------------------------------------------------------------
@@ -337,7 +328,7 @@ end
 CF.MakeListOfMostPowerfulActors = function(config, player, actorType, maxTech)
 	local acts = {}
 	local f = CF.GetPlayerFaction(config, player)
-	-- Filter needed items
+
 	for i = 1, #CF.ActNames[f] do
 		if
 			CF.ActPowers[f][i] > 0
@@ -351,7 +342,7 @@ CF.MakeListOfMostPowerfulActors = function(config, player, actorType, maxTech)
 			acts[n]["Power"] = CF.ActPowers[f][i]
 		end
 	end
-	-- Sort them
+
 	for j = 1, #acts - 1 do
 		for i = 1, #acts - j do
 			if acts[i]["Power"] < acts[i + 1]["Power"] then
@@ -361,20 +352,11 @@ CF.MakeListOfMostPowerfulActors = function(config, player, actorType, maxTech)
 			end
 		end
 	end
-	--[[ If no actors were found, try other types?
-	if #acts == 0 then
-		for i = 0, #CF.ActorTypes - 1 do
-			acts = CF.MakeListOfMostPowerfulActors(config, player, i, maxTech)
-			if acts then
-				break
-			end
-		end
-	end
-	]]
-	--
+
 	if #acts == 0 then
 		acts = nil
 	end
+
 	return acts
 end
 -----------------------------------------------------------------------------------------

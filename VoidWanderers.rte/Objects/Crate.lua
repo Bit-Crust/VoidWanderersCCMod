@@ -83,7 +83,7 @@ function Create(self)
 
 			--print (cfg)
 
-			local acts = CF_Call(self, {"MakeListOfMostPowerfulActors"}, {cfg, 0, actorTypes[math.random(#actorTypes)], 100000})[1]
+			local acts = CF_Call(self, {"MakeListOfMostPowerfulActors"}, {cfg, 0, math.random(actorTypes.LIGHT, actorTypes.ARMOR), 100000})[1]
 
 			if math.random() < artifactChance or acts == nil then
 				local r = math.random(#artActPresets)
@@ -93,7 +93,7 @@ function Create(self)
 				local actindex = acts[r]["Actor"]
 				act = CF_Call(self, {"MakeActor"}, {actPresets[f][actindex], actClasses[f][actindex], actModules[f][actindex]})[1]:Clone()
 			end
-			print(act)
+
 			if act then
 				act.AngularVel = 0
 				act.Vel = Vector(0, -3)

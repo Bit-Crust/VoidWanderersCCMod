@@ -69,7 +69,7 @@ function Create(self)
 			cfg["Player0Faction"] = f
 
 			--print (cfg)
-			local weaps = CF_Call(self, {"MakeListOfMostPowerfulWeapons"}, {cfg, 0, weaponTypes[math.random(#weaponTypes)], 100000})[1]
+			local weaps = CF_Call(self, {"MakeListOfMostPowerfulWeapons"}, {cfg, 0, math.random(weaponTypes.PISTOL, weaponTypes.BOMB), 100000})[1]
 
 			if math.random() < artifactChance or weaps == nil then
 				local r = math.random(#artItmPresets)
@@ -79,6 +79,7 @@ function Create(self)
 				local itmindex = weaps[r]["Item"]
 				itm = CF_Call(self, {"MakeItem"}, {itmPresets[f][itmindex], itmClasses[f][itmindex], itmModules[f][itmindex]})[1]:Clone()
 			end
+
 			if itm then
 				itm.AngularVel = 0
 				itm.Vel = Vector(0, -3)
